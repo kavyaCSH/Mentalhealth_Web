@@ -1,19 +1,10 @@
-import { useNavigate, Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { Bell, User as UserIcon, LogOut, Menu, SearchIcon } from 'lucide-react';
+import { Bell, Menu, SearchIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { logout } from '../features/auth/store/authSlice';
 import SideNav from '../components/SideNav';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user } = useAuth();
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-
-    const handleLogout = () => {
-        dispatch(logout());
-        navigate('/login');
-    };
 
     return (
         <div className="flex min-h-screen bg-[#F9FBFA]">
@@ -52,27 +43,13 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                                 <span className="text-sm font-black text-slate-900 leading-none">{user?.name}</span>
                                 <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-1.5">{user?.role}</span>
                             </div>
-                            <div className="relative group cursor-pointer">
-                                <div className="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-200/50 transition-all group-hover:scale-105 active:scale-95 overflow-hidden">
-                                    <UserIcon size={20} />
-                                </div>
-
-                                <div className="absolute right-0 top-full mt-3 w-56 bg-white rounded-[1.5rem] shadow-2xl border border-slate-100 opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 p-2 z-50">
-                                    <div className="p-4 mb-2 border-b border-slate-50">
-                                        <p className="text-sm font-black text-slate-900">{user?.name}</p>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{user?.email}</p>
-                                    </div>
-                                    <Link to="/profile" className="flex items-center gap-3 p-3 text-sm font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-2xl transition-all">
-                                        <UserIcon size={18} /> Account Settings
-                                    </Link>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="w-full flex items-center gap-3 p-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-2xl transition-all mt-1"
-                                    >
-                                        <LogOut size={18} /> Sign Out
-                                    </button>
-                                </div>
-                            </div>
+                            <Link to="/profile" className="w-11 h-11 bg-indigo-100 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-200/50 transition-all hover:scale-105 active:scale-95 overflow-hidden border-2 border-white">
+                                <img
+                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`}
+                                    alt="profile"
+                                    className="w-full h-full object-cover"
+                                />
+                            </Link>
                         </div>
                     </div>
                 </header>

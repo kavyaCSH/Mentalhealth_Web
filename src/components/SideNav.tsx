@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useNavigate, NavLink } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronLeft,
@@ -17,9 +18,11 @@ import {
     ClipboardList,
     BarChart3,
     Bell,
-    Percent
+    Percent,
+    LogOut
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { logout } from '../features/auth/store/authSlice';
 
 interface NavItemProps {
     to: string;
@@ -70,7 +73,14 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, isCollapsed, b
 const SideNav = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { user } = useAuth();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
     const role = user?.role;
+
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate('/login');
+    };
 
     return (
         <motion.aside
@@ -179,10 +189,14 @@ const SideNav = () => {
                 )}
             </div>
 
-            <div className="p-5 border-t border-slate-50 bg-slate-50/30">
+            <div className="p-5 border-t border-slate-50 bg-slate-50/30 space-y-3">
                 <div className={`flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm transition-all ${isCollapsed ? 'justify-center border-none shadow-none bg-transparent' : ''}`}>
-                    <div className="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-bold text-lg">
-                        {user?.firstName?.charAt(0) || user?.name?.charAt(0) || 'U'}
+                    <div className="w-10 h-10 bg-indigo-50 rounded-xl overflow-hidden border border-slate-200">
+                        <img
+                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`}
+                            alt="avatar"
+                            className="w-full h-full object-cover"
+                        />
                     </div>
                     {!isCollapsed && (
                         <div className="flex-1 min-w-0">
@@ -191,6 +205,21 @@ const SideNav = () => {
                         </div>
                     )}
                 </div>
+
+                <button
+                    onClick={handleLogout}
+                    className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-red-600 hover:bg-red-50 transition-all duration-300 group relative
+                        ${isCollapsed ? 'justify-center' : ''}
+                    `}
+                >
+                    <LogOut size={20} className="shrink-0" />
+                    {!isCollapsed && <span className="font-bold text-sm">Sign Out</span>}
+                    {isCollapsed && (
+                        <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-[11px] font-medium rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-all translate-x-1 group-hover:translate-x-0 whitespace-nowrap z-50 shadow-xl">
+                            Sign Out
+                        </div>
+                    )}
+                </button>
             </div>
         </motion.aside>
     );
