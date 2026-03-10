@@ -1,0 +1,105 @@
+/* --- MindBalance Professional Indigo Design System Tokens --- */
+
+:root {
+    /* Typography */
+    --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+
+    /* Professional Indigo Palette (Premium Medical Tech) */
+    --indigo-50: #f5f7ff;
+    --indigo-100: #ebf0fe;
+    --indigo-200: #ced9fd;
+    --indigo-500: #6366f1;
+    --indigo-600: #4f46e5;
+    --indigo-700: #4338ca;
+    --indigo-800: #3730a3;
+    --indigo-950: #1e1b4b;
+
+    /* Functional Tokens */
+    --color-primary: var(--indigo-600);
+    --color-primary-hover: var(--indigo-700);
+    --color-accent-glow: rgba(79, 70, 229, 0.2);
+    --color-orange-glow: rgba(249, 115, 22, 0.2);
+
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.6);
+}
+
+/* Glassmorphism */
+.glass-card {
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(31, 27, 75, 0.05);
+    /* Slight indigo tint in shadow */
+    border-radius: 2.5rem;
+}
+
+.glass-surface {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+/* Premium Cards */
+.card-premium {
+    background-color: white;
+    border-radius: 2rem;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 1px 3px 0 rgba(31, 27, 75, 0.02);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-premium:hover {
+    box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.08), 0 8px 10px -6px rgba(79, 70, 229, 0.05);
+    transform: translateY(-0.4rem);
+    border-color: var(--indigo-100);
+}
+
+/* Base Input Styles */
+.input-base {
+    width: 100%;
+    background-color: #f8fafc;
+    border: 2px solid transparent;
+    border-radius: 1.25rem;
+    padding: 1.125rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.25s ease;
+    color: #1e293b;
+}
+
+.input-base:focus {
+    border-color: var(--indigo-500);
+    background-color: white;
+    box-shadow: 0 0 0 4px var(--indigo-50);
+}
+
+/* Visual Glows */
+.glow-primary {
+    box-shadow: 0 0 30px -5px var(--color-accent-glow);
+}
+
+.glow-orange {
+    box-shadow: 0 0 30px -5px var(--color-orange-glow);
+}
+
+/* Gradients */
+.text-gradient-primary {
+    background: linear-gradient(135deg, var(--indigo-800), var(--indigo-500));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Layout Utilities */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
