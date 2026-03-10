@@ -13,7 +13,8 @@ import {
     Plus,
     Video,
     MessageCircle,
-    Send
+    Send,
+    HeartPulse
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
@@ -125,6 +126,7 @@ const PatientRecord = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
+                    <Button variant="outline" leftIcon={<HeartPulse size={18} />} onClick={() => navigate(`/patients/${id}/health`)}>Health</Button>
                     <Button variant="outline" leftIcon={<MessageCircle size={18} />}>Message</Button>
                     <Button variant="outline" leftIcon={<Video size={18} />} onClick={() => navigate('/teleconsult')}>Teleconsult</Button>
                     <Button variant="primary" leftIcon={<Plus size={18} />} onClick={handleRequestAssessment}>Request Assessment</Button>

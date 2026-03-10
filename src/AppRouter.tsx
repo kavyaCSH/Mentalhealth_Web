@@ -19,6 +19,8 @@ import AssessmentResultPage from './pages/patient/AssessmentResultPage';
 import NotificationsPage from './pages/patient/NotificationsPage';
 import PatientDirectory from './pages/clinical/PatientDirectory';
 import PatientRecord from './pages/clinical/PatientRecord';
+import Health from './pages/clinical/Health';
+import ChiefComplaint from './pages/clinical/ChiefComplaint';
 import Teleconsult from './pages/clinical/Teleconsult';
 import MessagesPortal from './pages/clinical/MessagesPortal';
 import HealthRecords from './pages/clinical/HealthRecords';
@@ -105,6 +107,8 @@ const AppRouter = () => {
                                 <Route element={<ProtectedRoute allowedGroup="CLINICAL" />}>
                                     <Route path="patients" element={<PatientDirectory />} />
                                     <Route path="patients/:id" element={<PatientRecord />} />
+                                    <Route path="patients" element={<PatientDirectory />} />
+                                    <Route path="patients/:id" element={<PatientRecord />} />
                                     <Route path="messages" element={<MessagesPortal />} />
                                     <Route path="records" element={<HealthRecords />} />
                                     {/* Clinical roles might also need access to assessments for reference or conducting them */}
@@ -124,6 +128,8 @@ const AppRouter = () => {
 
                                 {/* Shared Shared/Teleconsult Routes */}
                                 <Route path="teleconsult/:id?" element={<Teleconsult />} />
+                                <Route path="patients/:id/health" element={<Health />} />
+                                <Route path="patients/:id/chief-complaint" element={<ChiefComplaint />} />
                                 <Route path="transactions" element={<Transactions />} />
                                 <Route path="users/:id/edit" element={<UserManagement />} />
 

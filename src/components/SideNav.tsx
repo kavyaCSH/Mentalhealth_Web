@@ -30,11 +30,13 @@ interface NavItemProps {
     label: string;
     isCollapsed: boolean;
     badge?: string;
+    end?: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, isCollapsed, badge }) => (
+const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, isCollapsed, badge, end }) => (
     <NavLink
         to={to}
+        end={end}
         className={({ isActive }) => `
       flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all duration-300 group relative
       ${isActive
@@ -119,7 +121,7 @@ const SideNav = () => {
                 {/* Section shared by all or Role-Specific */}
                 <div className="space-y-2">
                     {!isCollapsed && <p className="text-[11px] font-black text-slate-300 uppercase tracking-widest px-4 mb-4">Core</p>}
-                    <NavItem to="/" icon={Activity} label="Overview" isCollapsed={isCollapsed} />
+                    <NavItem to="/" icon={Activity} label="Overview" isCollapsed={isCollapsed} end />
                     <NavItem to="/profile" icon={Users} label="My Profile" isCollapsed={isCollapsed} />
                 </div>
 
@@ -151,7 +153,7 @@ const SideNav = () => {
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-slate-300 uppercase tracking-widest px-4 mb-4">Clinical</p>}
                             <NavItem to="/appointments" icon={Calendar} label="Schedule" isCollapsed={isCollapsed} />
-                            <NavItem to="/patients" icon={Users} label="My Patients" isCollapsed={isCollapsed} />
+                            <NavItem to="/patients" icon={Users} label="Patients" isCollapsed={isCollapsed} end />
                             <NavItem to="/records" icon={ClipboardList} label="Health Records" isCollapsed={isCollapsed} />
                             <NavItem to="/clinical/assessments" icon={ClipboardList} label="Assessments" isCollapsed={isCollapsed} />
                         </div>

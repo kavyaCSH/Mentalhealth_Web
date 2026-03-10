@@ -6,10 +6,10 @@ import {
     Filter,
     Users,
     Activity,
-    ChevronRight,
     Phone,
-    Mail,
-    Plus
+    Plus,
+    MoreHorizontal,
+    HeartPulse
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { UserService } from '../../api/services/user.service';
@@ -20,17 +20,14 @@ const PatientDirectory = () => {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeTab, setActiveTab] = useState<'my_patients' | 'all'>('my_patients');
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchPatients = async () => {
             setIsLoading(true);
             try {
-                // Using the users list endpoint from Postman to get patients
-                const data = activeTab === 'my_patients'
-                    ? await UserService.getMySubordinates()
-                    : await UserService.listUsers({ role: 'patient' });
-
+                // Fetch all users with role 'patient'
+                const data = await UserService.listUsers({ role: 'patient' });
                 setPatients(Array.isArray(data) ? (data as Patient[]) : []);
             } catch (error) {
                 console.error('Failed to fetch patients:', error);
@@ -41,7 +38,7 @@ const PatientDirectory = () => {
         };
 
         fetchPatients();
-    }, [activeTab]);
+    }, []);
 
     const filteredPatients = patients.filter(p =>
         p.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -60,37 +57,17 @@ const PatientDirectory = () => {
 
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in pb-20">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Patient Directory</h1>
-                    <p className="text-slate-500 font-medium mt-2">Manage and monitor your assigned clinical patients.</p>
-                </div>
+            {/* Search and Filters */}
+            <div className="flex justify-between items-center p-2">
                 <div className="flex gap-4">
-                    <Button variant="primary" leftIcon={<Plus size={18} />}>
-                        Enroll Patient
+                    <Button
+                        variant="primary"
+                        leftIcon={<Plus size={18} />}
+                        className="rounded-2xl px-6 py-2 shadow-indigo-100 shadow-lg hover:shadow-indigo-200"
+                    >
+                        Add Patient
                     </Button>
                 </div>
-            </header>
-
-            {/* Controls Bar */}
-            <div className="flex flex-col lg:flex-row gap-6 p-2 items-center justify-between">
-                <div className="flex p-1 bg-slate-100/80 rounded-2xl w-full lg:w-auto">
-                    <button
-                        onClick={() => setActiveTab('my_patients')}
-                        className={`flex-1 lg:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'my_patients' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                            }`}
-                    >
-                        My Patients
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('all')}
-                        className={`flex-1 lg:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'all' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                            }`}
-                    >
-                        Facility List
-                    </button>
-                </div>
-
                 <div className="flex gap-4 w-full lg:w-auto">
                     <div className="relative flex-1 lg:w-80">
                         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -108,68 +85,130 @@ const PatientDirectory = () => {
                 </div>
             </div>
 
-            {/* List */}
+            {/* Table List */}
             {isLoading ? (
                 <div className="flex justify-center py-20">
                     <Activity className="animate-spin text-indigo-600" size={40} />
                 </div>
             ) : filteredPatients.length > 0 ? (
-                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <AnimatePresence mode="popLayout">
-                        {filteredPatients.map((patient, index) => (
-                            <motion.div
-                                key={patient.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ delay: index * 0.05 }}
-                                onClick={() => navigate(`/patients/${patient.id}`)}
-                                className="card-premium p-6 group cursor-pointer hover:border-indigo-300 transition-all relative overflow-hidden flex flex-col"
-                            >
-                                <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50/50 border-b border-slate-100">
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Patient</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Risk Status</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Recent Activity</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Status</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {filteredPatients.map((patient, index) => (
+                                    <motion.tr
+                                        key={`${patient.id}-${index}`}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.03 }}
+                                        className="group hover:bg-indigo-50/30 transition-all cursor-pointer"
+                                        onClick={() => navigate(`/patients/${patient.id}`)}
+                                    >
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-sm border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                                    {patient.firstName?.charAt(0)}{patient.lastName?.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <p className="font-black text-slate-900 leading-tight group-hover:text-indigo-700 transition-colors tracking-tight text-base">
+                                                        {patient.firstName} {patient.lastName}
+                                                    </p>
+                                                    <p className="text-[11px] font-bold text-slate-400 mt-1">{patient.email}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className={`inline-flex px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getRiskColor(patient.riskLevel || 'Low')}`}>
+                                                {patient.riskLevel || 'Low'}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 text-sm font-semibold text-slate-600">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="flex items-center gap-2 tracking-tight">
+                                                    <Phone size={12} className="text-slate-300" /> {patient.phone || 'N/A'}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="max-w-[200px]">
+                                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider truncate border-b border-transparent group-hover:border-indigo-100 transition-all inline-block">
+                                                    {patient.diagnosis || 'Standard Checkup'}
+                                                </p>
+                                                <p className="text-[10px] font-bold text-slate-500 mt-1">Last: {patient.lastSession || 'N/A'}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 text-right">
+                                            <div className="flex items-center justify-end">
+                                                <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${patient.isActive !== false
+                                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                    : 'bg-slate-100 text-slate-400 border-slate-200'
+                                                    }`}>
+                                                    {patient.isActive !== false ? 'Active' : 'Inactive'}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5 text-right relative">
+                                            <div className="flex items-center justify-end">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const menuKey = `${patient.id}-${index}`;
+                                                        setOpenMenuId(openMenuId === menuKey ? null : menuKey);
+                                                    }}
+                                                    className={`p-2 rounded-xl transition-all ${openMenuId === `${patient.id}-${index}` ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-100'}`}
+                                                >
+                                                    <MoreHorizontal size={20} />
+                                                </button>
 
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 bg-indigo-50 text-indigo-700 rounded-[1.25rem] flex items-center justify-center font-black text-xl border border-indigo-100 shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                            {patient.firstName?.charAt(0)}{patient.lastName?.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-black text-slate-900 group-hover:text-indigo-700 transition-colors">
-                                                {patient.firstName} {patient.lastName}
-                                            </h3>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">ID: {String(patient.id).substring(0, 8)}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3 mb-6 flex-1">
-                                    <div className="flex items-center gap-3 text-sm text-slate-600 font-medium bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                                        <Activity size={16} className="text-indigo-400" />
-                                        <span className="truncate">{patient.diagnosis || 'No diagnosis recorded'}</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                                        <Phone size={14} className="text-slate-400 shrink-0" />
-                                        <span>{patient.phone || 'N/A'}</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                                        <Mail size={14} className="text-slate-400 shrink-0" />
-                                        <span className="truncate">{patient.email}</span>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                                    <div className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getRiskColor(patient.riskLevel || 'Low')}`}>
-                                        {patient.riskLevel || 'Low'} Risk
-                                    </div>
-                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 tooltip-trigger relative group/tooltip">
-                                        <span>Seen: {patient.lastSession}</span>
-                                        <ChevronRight size={16} className="text-indigo-400 group-hover:translate-x-1 transition-transform" />
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
+                                                <motion.div className="relative">
+                                                    <AnimatePresence>
+                                                        {openMenuId === `${patient.id}-${index}` && (
+                                                            <>
+                                                                <div
+                                                                    className="fixed inset-0 z-10"
+                                                                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }}
+                                                                />
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                                    className="absolute right-0 top-12 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 z-20 py-2 overflow-hidden"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setOpenMenuId(null);
+                                                                            navigate(`/patients/${patient.id}/health`);
+                                                                        }}
+                                                                        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-rose-50/50 transition-colors group/item"
+                                                                    >
+                                                                        <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600 group-hover/item:bg-rose-600 group-hover/item:text-white transition-all">
+                                                                            <HeartPulse size={16} />
+                                                                        </div>
+                                                                        <p className="text-sm font-black text-slate-900">Health</p>
+                                                                    </button>
+                                                                </motion.div>
+                                                            </>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </motion.div>
+                                            </div>
+                                        </td>
+                                    </motion.tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             ) : (
                 <div className="text-center py-24 glass-card">
