@@ -20,7 +20,13 @@ import NotificationsPage from './pages/patient/NotificationsPage';
 import PatientDirectory from './pages/clinical/PatientDirectory';
 import PatientRecord from './pages/clinical/PatientRecord';
 import Health from './pages/clinical/Health';
-import ChiefComplaint from './pages/clinical/ChiefComplaint';
+import ChiefComplaint from './pages/clinical/chief-complaint/ChiefComplaint';
+import AddChiefComplaint from './pages/clinical/chief-complaint/AddChiefComplaint';
+import EditChiefComplaint from './pages/clinical/chief-complaint/EditChiefComplaint';
+import ChiefComplaintDetail from './pages/clinical/chief-complaint/ChiefComplaintDetail';
+import HPIHistory from './pages/clinical/hpi/HPIHistory';
+import HPIDetail from './pages/clinical/hpi/HPIDetail';
+import AddHPI from './pages/clinical/hpi/AddHPI';
 import Teleconsult from './pages/clinical/Teleconsult';
 import MessagesPortal from './pages/clinical/MessagesPortal';
 import HealthRecords from './pages/clinical/HealthRecords';
@@ -128,8 +134,14 @@ const AppRouter = () => {
 
                                 {/* Shared Shared/Teleconsult Routes */}
                                 <Route path="teleconsult/:id?" element={<Teleconsult />} />
-                                <Route path="patients/:id/health" element={<Health />} />
-                                <Route path="patients/:id/chief-complaint" element={<ChiefComplaint />} />
+                                <Route path="patients/:userId/health" element={<Health />} />
+                                <Route path="patients/:userId/chief-complaint" element={<ChiefComplaint />} />
+                                <Route path="patients/:userId/chief-complaint/new" element={<AddChiefComplaint />} />
+                                <Route path="patients/:userId/chief-complaint/:ccId" element={<ChiefComplaintDetail />} />
+                                <Route path="patients/:userId/chief-complaint/edit/:ccId" element={<EditChiefComplaint />} />
+                                <Route path="patients/:userId/hpi" element={<HPIHistory />} />
+                                <Route path="patients/:userId/hpi/:hpiId" element={<HPIDetail />} />
+                                <Route path="patients/:userId/hpi/new" element={<AddHPI />} />
                                 <Route path="transactions" element={<Transactions />} />
                                 <Route path="users/:id/edit" element={<UserManagement />} />
 

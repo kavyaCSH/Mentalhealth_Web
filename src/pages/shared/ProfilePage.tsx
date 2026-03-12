@@ -85,7 +85,7 @@ const ProfilePage = () => {
     ];
 
     return (
-        <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in pb-20">
+        <div className="p-8 max-w-6xl  space-y-10 animate-fade-in pb-20">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-6">
                     <div className="relative group">

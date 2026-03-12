@@ -72,7 +72,12 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, isCollapsed, b
     </NavLink>
 );
 
-const SideNav = () => {
+interface SideNavProps {
+    isMobileOpen?: boolean;
+    onMobileClose?: () => void;
+}
+
+const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { user } = useAuth();
     const dispatch = useDispatch();
@@ -87,10 +92,19 @@ const SideNav = () => {
     return (
         <motion.aside
             initial={false}
-            animate={{ width: isCollapsed ? '90px' : '290px' }}
-            className="hidden md:flex flex-col h-screen sticky top-0 bg-white border-r border-slate-100 z-40"
+            animate={{ 
+                width: isCollapsed ? '90px' : '290px',
+                x: typeof window !== 'undefined' && window.innerWidth < 768 
+                    ? (isMobileOpen ? 0 : '-100%') 
+                    : 0
+            }}
+            transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+            className={`
+                fixed md:sticky top-0 left-0 h-screen bg-white border-r border-slate-100 z-50 flex flex-col shadow-2xl md:shadow-none
+                ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            `}
         >
-            <div className="p-6 flex items-center justify-between h-20 border-b border-slate-50">
+            <div className="p-6 flex items-center justify-between h-20 border-b border-slate-50 shrink-0">
                 <AnimatePresence mode="wait">
                     {!isCollapsed && (
                         <motion.div
@@ -107,14 +121,24 @@ const SideNav = () => {
                     )}
                 </AnimatePresence>
 
-                <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="p-2 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 transition-all shadow-sm"
-                >
-                    <motion.div animate={{ rotate: isCollapsed ? 180 : 0 }}>
-                        <ChevronLeft size={18} />
-                    </motion.div>
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        className="hidden md:block p-2 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 transition-all shadow-sm"
+                    >
+                        <motion.div animate={{ rotate: isCollapsed ? 180 : 0 }}>
+                            <ChevronLeft size={18} />
+                        </motion.div>
+                    </button>
+                    {isMobileOpen && onMobileClose && (
+                        <button
+                            onClick={onMobileClose}
+                            className="md:hidden p-2 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 hover:text-indigo-700 hover:bg-indigo-50 transition-all shadow-sm"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto py-8 px-5 space-y-10">

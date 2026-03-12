@@ -81,7 +81,7 @@ const AssessmentResultPage = () => {
 
     if (error || !assessment) {
         return (
-            <div className="p-8 max-w-3xl mx-auto text-center py-20">
+            <div className="p-8 max-w-3xl  text-center py-20">
                 <AlertTriangle className="text-orange-500 mx-auto mb-4" size={48} />
                 <h2 className="text-2xl font-black text-slate-900 mb-2">Unable to Load</h2>
                 <p className="text-slate-500 mb-8">{error || 'Assessment not found.'}</p>
@@ -97,7 +97,7 @@ const AssessmentResultPage = () => {
     const recs = assessment.recommendations || [];
 
     return (
-        <div className="p-8 max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
+        <div className="p-8 max-w-4xl  space-y-8 animate-fade-in pb-20">
             {/* Header */}
             <header className="flex items-center justify-between">
                 <button

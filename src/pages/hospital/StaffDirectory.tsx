@@ -93,7 +93,7 @@ const StaffDirectory = () => {
     };
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in pb-20">
+        <div className="p-8 max-w-7xl  space-y-8 animate-fade-in pb-20">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
                     <button

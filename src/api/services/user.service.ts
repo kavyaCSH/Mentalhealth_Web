@@ -6,10 +6,22 @@ export const UserService = {
         const response = await api.put('/users/update-me', data);
         return response.data?.data ?? response.data;
     },
-    listUsers: async (params: { role?: string; search?: string }): Promise<User[]> => {
+    listUsers: async (params: { role?: string; search?: string; page?: number; limit?: number }): Promise<{ users: User[], total: number }> => {
         const response = await api.get('/users/list', { params });
         const data = response.data?.data ?? response.data;
-        return Array.isArray(data) ? data : data?.users || [];
+        
+        let users = [];
+        let total = 0;
+
+        if (Array.isArray(data)) {
+            users = data;
+            total = data.length;
+        } else {
+            users = data?.users || [];
+            total = data?.totalCount || data?.total || users.length;
+        }
+
+        return { users, total };
     },
     getUserStats: async (): Promise<unknown> => {
         const response = await api.get('/users/stats');

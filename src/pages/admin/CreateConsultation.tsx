@@ -44,8 +44,8 @@ const CreateConsultation = () => {
                 const proRes = await UserService.listUsers({ role: 'psychiatrist,psychologist,counselor' });
                 const patRes = await UserService.listUsers({ role: 'patient' });
 
-                setProfessionals(proRes);
-                setPatients(patRes);
+                setProfessionals(proRes.users);
+                setPatients(patRes.users);
             } catch (error) {
                 console.error('Failed to fetch user lists:', error);
                 setProfessionals([]);
@@ -89,7 +89,7 @@ const CreateConsultation = () => {
 
     if (success) {
         return (
-            <div className="p-8 max-w-2xl mx-auto space-y-8 animate-fade-in py-20 text-center">
+            <div className="p-8 max-w-2xl  space-y-8 animate-fade-in py-20 text-center">
                 <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-emerald-100 glow-emerald">
                     <CheckCircle2 size={48} />
                 </div>
@@ -104,7 +104,7 @@ const CreateConsultation = () => {
     }
 
     return (
-        <div className="p-8 max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
+        <div className="p-8 max-w-4xl  space-y-8 animate-fade-in pb-20">
             <header className="flex items-center gap-6 pb-6 border-b border-slate-100">
                 <button onClick={() => navigate(-1)} className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors">
                     <ChevronLeft size={20} />

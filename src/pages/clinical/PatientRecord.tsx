@@ -104,7 +104,7 @@ const PatientRecord = () => {
     if (!patient) return <div className="p-8 text-center text-slate-500">Patient not found</div>;
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in pb-20">
+        <div className="p-8 max-w-7xl  space-y-8 animate-fade-in pb-20">
             <header className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-slate-100">
                 <div className="flex items-start gap-6">
                     <button onClick={() => navigate('/patients')} className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors mt-2">

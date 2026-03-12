@@ -12,6 +12,7 @@ import {
     HeartPulse
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import Pagination from '../../components/ui/Pagination';
 import { UserService } from '../../api/services/user.service';
 import type { Patient } from '../../types/user.types';
 
@@ -21,30 +22,46 @@ const PatientDirectory = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(0);
+    const itemsPerPage = 5;
 
     useEffect(() => {
         const fetchPatients = async () => {
             setIsLoading(true);
             try {
-                // Fetch all users with role 'patient'
-                const data = await UserService.listUsers({ role: 'patient' });
-                setPatients(Array.isArray(data) ? (data as Patient[]) : []);
+                // Fetch users with role 'patient', passing pagination info
+                const { users, total } = await UserService.listUsers({ 
+                    role: 'patient',
+                    page: currentPage,
+                    limit: itemsPerPage
+                });
+                
+                setPatients(users as Patient[]);
+                setTotalUsers(total || users.length);
             } catch (error) {
                 console.error('Failed to fetch patients:', error);
                 setPatients([]);
+                setTotalUsers(0);
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchPatients();
-    }, []);
+    }, [currentPage]);
 
     const filteredPatients = patients.filter(p =>
         p.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.email?.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const totalPages = Math.ceil(totalUsers / itemsPerPage) || 1;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     const getRiskColor = (risk: string) => {
         switch (risk?.toLowerCase()) {
@@ -56,7 +73,7 @@ const PatientDirectory = () => {
     };
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in pb-20">
+        <div className="p-8 max-w-7xl  space-y-8 animate-fade-in pb-20">
             {/* Search and Filters */}
             <div className="flex justify-between items-center p-2">
                 <div className="flex gap-4">
@@ -105,14 +122,16 @@ const PatientDirectory = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {filteredPatients.map((patient, index) => (
+                                {filteredPatients.map((patient, index) => {
+                                    const patientId = patient._id || patient.id;
+                                    return (
                                     <motion.tr
-                                        key={`${patient.id}-${index}`}
+                                        key={`${patientId}-${index}`}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.03 }}
                                         className="group hover:bg-indigo-50/30 transition-all cursor-pointer"
-                                        onClick={() => navigate(`/patients/${patient.id}`)}
+                                        onClick={() => navigate(`/patients/${patientId}`)}
                                     >
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-4">
@@ -162,17 +181,17 @@ const PatientDirectory = () => {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        const menuKey = `${patient.id}-${index}`;
+                                                        const menuKey = `${patientId}-${index}`;
                                                         setOpenMenuId(openMenuId === menuKey ? null : menuKey);
                                                     }}
-                                                    className={`p-2 rounded-xl transition-all ${openMenuId === `${patient.id}-${index}` ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-100'}`}
+                                                    className={`p-2 rounded-xl transition-all ${openMenuId === `${patientId}-${index}` ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-100'}`}
                                                 >
                                                     <MoreHorizontal size={20} />
                                                 </button>
 
                                                 <motion.div className="relative">
                                                     <AnimatePresence>
-                                                        {openMenuId === `${patient.id}-${index}` && (
+                                                        {openMenuId === `${patientId}-${index}` && (
                                                             <>
                                                                 <div
                                                                     className="fixed inset-0 z-10"
@@ -188,7 +207,7 @@ const PatientDirectory = () => {
                                                                     <button
                                                                         onClick={() => {
                                                                             setOpenMenuId(null);
-                                                                            navigate(`/patients/${patient.id}/health`);
+                                                                            navigate(`/patients/${patientId}/health`);
                                                                         }}
                                                                         className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-rose-50/50 transition-colors group/item"
                                                                     >
@@ -205,10 +224,17 @@ const PatientDirectory = () => {
                                             </div>
                                         </td>
                                     </motion.tr>
-                                ))}
+                                )})}
                             </tbody>
                         </table>
                     </div>
+                    <Pagination 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalUsers}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={(page) => setCurrentPage(page)}
+                    />
                 </div>
             ) : (
                 <div className="text-center py-24 glass-card">

@@ -220,7 +220,7 @@ const QuestionnairePage = () => {
         const recs: string[] = Array.isArray(result.recommendations) ? result.recommendations : [result.recommendation || ''];
 
         return (
-            <div className="p-8 max-w-3xl mx-auto space-y-8 animate-fade-in py-16">
+            <div className="p-8 max-w-3xl  space-y-8 animate-fade-in py-16">
                 {/* Completion header */}
                 <div className="text-center mb-6">
                     <div className={`w-24 h-24 ${style.bg} ${style.color} rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl ${style.glow}`}>
@@ -331,7 +331,7 @@ const QuestionnairePage = () => {
     // ── No questions ─────────────────────────────────────────────────────────
     if (questions.length === 0) {
         return (
-            <div className="p-8 max-w-3xl mx-auto text-center py-20">
+            <div className="p-8 max-w-3xl  text-center py-20">
                 <AlertCircle className="text-orange-500 mx-auto mb-4" size={48} />
                 <h2 className="text-2xl font-black text-slate-900 mb-2">Assessment Unavailable</h2>
                 <p className="text-slate-500 mb-8">
@@ -347,7 +347,7 @@ const QuestionnairePage = () => {
     const answeredCount = Object.keys(answers).length;
 
     return (
-        <div className="p-8 max-w-4xl mx-auto space-y-8 min-h-[80vh] flex flex-col pb-20">
+        <div className="p-8 max-w-4xl  space-y-8 min-h-[80vh] flex flex-col pb-20">
             <header className="flex items-center justify-between">
                 <button
                     onClick={() => navigate('/assessments')}

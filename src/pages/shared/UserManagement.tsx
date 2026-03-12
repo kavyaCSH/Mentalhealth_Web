@@ -122,7 +122,7 @@ const UserManagement = () => {
     }
 
     return (
-        <div className="p-8 max-w-4xl mx-auto space-y-10 animate-fade-in pb-32">
+        <div className="p-8 max-w-4xl  space-y-10 animate-fade-in pb-32">
             <header className="space-y-2">
                 <button
                     onClick={() => navigate(-1)}

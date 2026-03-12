@@ -144,7 +144,7 @@ const CreateConsultation = () => {
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto space-y-10 animate-fade-in pb-20">
+        <div className="p-8 max-w-4xl  space-y-10 animate-fade-in pb-20">
             <header className="space-y-4">
                 <button
                     onClick={() => navigate(-1)}
