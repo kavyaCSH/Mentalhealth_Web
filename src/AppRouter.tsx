@@ -27,6 +27,9 @@ import ChiefComplaintDetail from './pages/clinical/chief-complaint/ChiefComplain
 import HPIHistory from './pages/clinical/hpi/HPIHistory';
 import HPIDetail from './pages/clinical/hpi/HPIDetail';
 import AddHPI from './pages/clinical/hpi/AddHPI';
+import MSEPage from './pages/clinical/mse/MSEPage.tsx';
+import PastHistoryPage from './pages/clinical/past-history/PastHistoryPage.tsx';
+import ROSPage from './pages/clinical/ros/ROSPage.tsx';
 import Teleconsult from './pages/clinical/Teleconsult';
 import MessagesPortal from './pages/clinical/MessagesPortal';
 import HealthRecords from './pages/clinical/HealthRecords';
@@ -142,6 +145,9 @@ const AppRouter = () => {
                                 <Route path="patients/:userId/hpi" element={<HPIHistory />} />
                                 <Route path="patients/:userId/hpi/:hpiId" element={<HPIDetail />} />
                                 <Route path="patients/:userId/hpi/new" element={<AddHPI />} />
+                                <Route path="patients/:userId/mse" element={<MSEPage />} />
+                                <Route path="patients/:userId/past-history" element={<PastHistoryPage />} />
+                                <Route path="patients/:userId/ros" element={<ROSPage />} />
                                 <Route path="transactions" element={<Transactions />} />
                                 <Route path="users/:id/edit" element={<UserManagement />} />
 

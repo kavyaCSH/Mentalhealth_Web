@@ -179,7 +179,7 @@ const AssessmentCenter = () => {
                         onClick={() => navigate('/history')}
                         className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-full text-[11px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-colors"
                     >
-                        <Clock size={14} /> History
+                        <Clock size={14} /> History 
                     </button>
                 </div>
             </header>
