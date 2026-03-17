@@ -123,7 +123,7 @@ const PatientDirectory = () => {
                             </thead>
                             <tbody className="divide-y divide-slate-50">
                                 {filteredPatients.map((patient, index) => {
-                                    const patientId = patient._id || patient.id;
+                                    const patientId = patient.id || patient._id;
                                     return (
                                     <motion.tr
                                         key={`${patientId}-${index}`}
@@ -131,7 +131,7 @@ const PatientDirectory = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.03 }}
                                         className="group hover:bg-indigo-50/30 transition-all cursor-pointer"
-                                        onClick={() => navigate(`/patients/${patientId}`)}
+                                        onClick={() => navigate(`/patients/${patient.userId || patient.id || patient._id}`)}
                                     >
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-4">
@@ -207,7 +207,7 @@ const PatientDirectory = () => {
                                                                     <button
                                                                         onClick={() => {
                                                                             setOpenMenuId(null);
-                                                                            navigate(`/patients/${patientId}/health`);
+                                                                            navigate(`/patients/${patient.userId || patient.id || patient._id}/health`);
                                                                         }}
                                                                         className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-rose-50/50 transition-colors group/item"
                                                                     >

@@ -83,7 +83,7 @@ const CreateConsultation = () => {
                 role: roleFilter,
                 search: searchQuery
             });
-            setUsers(res);
+            setUsers((res as any).users || res || []);
         } catch (err) {
             console.error('Search failed:', err);
         } finally {

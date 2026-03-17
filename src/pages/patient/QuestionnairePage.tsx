@@ -316,7 +316,7 @@ const QuestionnairePage = () => {
 
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-50">
-                        <Button variant="outline" className="flex-1 py-4" onClick={() => targetPatientId ? navigate(`/patients/${targetPatientId}`) : navigate('/history')}>
+                        <Button variant="outline" className="flex-1 py-4" onClick={() => targetPatientId ? navigate(`/patients/${targetPatientId}?view=focused`) : navigate('/history')}>
                             {targetPatientId ? 'Back to Patient Record' : 'View Full History'}
                         </Button>
                         <Button variant="primary" className="flex-1 py-4" onClick={() => navigate('/')}>

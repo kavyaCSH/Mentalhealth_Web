@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     User as UserIcon,
@@ -25,8 +25,10 @@ import type { AssessmentResult } from '../../types/assessment.types';
 import type { Patient, ClinicalNote } from '../../types/user.types';
 
 const PatientRecord = () => {
-    const { id } = useParams<{ id: string }>();
+    const { patientId: id } = useParams<{ patientId: string }>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isFocused = searchParams.get('view') === 'focused';
 
     const [patient, setPatient] = useState<Patient | null>(null);
     const [history, setHistory] = useState<AssessmentResult[]>([]);
@@ -40,10 +42,46 @@ const PatientRecord = () => {
         const fetchPatientData = async () => {
             setIsLoading(true);
             try {
-                const [patientData, assessmentHistory] = await Promise.all([
-                    UserService.getUserById(id || ''),
-                    AssessmentService.getPatientHistory(id || '')
-                ]);
+                console.log(`[PatientRecord] Resolving profile for: ${id}`);
+                let patientData: any;
+                let assessmentHistory: any;
+
+                // 1. Try primary lookup
+                try {
+                    [patientData, assessmentHistory] = await Promise.all([
+                        UserService.getUserById(id || ''),
+                        AssessmentService.getPatientHistory(id || '')
+                    ]);
+                    console.log(`[PatientRecord] Profile resolved directly: ${patientData.firstName}`);
+                } catch (primaryError: any) {
+                    if (primaryError.response?.status === 404) {
+                        console.warn('[PatientRecord] Primary lookup failed, trying clinical fallback resolution...');
+                        try {
+                            const assessmentData = await AssessmentService.getQuestions(id);
+                            if (assessmentData.profile?.userId) {
+                                const resolvedId = String(assessmentData.profile.userId);
+                                console.log(`[PatientRecord] Identity resolved via fallback: ${resolvedId}`);
+                                
+                                [patientData, assessmentHistory] = await Promise.all([
+                                    UserService.getUserById(resolvedId),
+                                    AssessmentService.getPatientHistory(resolvedId)
+                                ]);
+                                
+                                // Merge hex ID back to patient object as 'id' or '_id' to ensure link compatibility
+                                if (patientData) {
+                                    patientData._id = id;
+                                }
+                            } else {
+                                throw primaryError; // No fallback profile found
+                            }
+                        } catch (fallbackError) {
+                            console.error('[PatientRecord] Both lookup attempts failed:', fallbackError);
+                            throw fallbackError;
+                        }
+                    } else {
+                        throw primaryError;
+                    }
+                }
 
                 setPatient((patientData as Patient) || null);
                 setHistory((assessmentHistory.length > 0 ? assessmentHistory : []) as AssessmentResult[]);
@@ -80,7 +118,7 @@ const PatientRecord = () => {
 
     const handleRequestAssessment = () => {
         if (!patient) return;
-        navigate(`/clinical/assessments?patientId=${id}&patientName=${patient.firstName} ${patient.lastName || ''}`);
+        navigate(`/clinical/assessments?patientId=${patient.userId || id}&patientName=${patient.firstName} ${patient.lastName || ''}`);
     };
 
     const getRiskColor = (risk: string) => {
@@ -126,10 +164,15 @@ const PatientRecord = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                    <Button variant="outline" leftIcon={<HeartPulse size={18} />} onClick={() => navigate(`/patients/${id}/health`)}>Health</Button>
-                    <Button variant="outline" leftIcon={<MessageCircle size={18} />}>Message</Button>
-                    <Button variant="outline" leftIcon={<Video size={18} />} onClick={() => navigate('/teleconsult')}>Teleconsult</Button>
-                    <Button variant="primary" leftIcon={<Plus size={18} />} onClick={handleRequestAssessment}>Request Assessment</Button>
+                    {!isFocused && (
+                        <>
+                            <Button variant="outline" leftIcon={<HeartPulse size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/health`)}>Health</Button>
+                            <Button variant="outline" leftIcon={<ClipboardList size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/clinical-hub`)}>Clinical Hub</Button>
+                            <Button variant="outline" leftIcon={<MessageCircle size={18} />}>Message</Button>
+                            <Button variant="outline" leftIcon={<Video size={18} />} onClick={() => navigate('/teleconsult')}>Teleconsult</Button>
+                            <Button variant="primary" leftIcon={<Plus size={18} />} onClick={handleRequestAssessment}>Request Assessment</Button>
+                        </>
+                    )}
                 </div>
             </header>
 
@@ -175,83 +218,87 @@ const PatientRecord = () => {
                                     <UserIcon size={16} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gender</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Gender</p>
                                     <p className="text-sm font-bold text-slate-900">{patient.gender || 'N/A'}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="card-premium p-6 bg-indigo-600 border-none text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-10">
-                            <Activity size={100} />
-                        </div>
-                        <h3 className="text-xs font-black text-indigo-200 uppercase tracking-widest mb-6 relative z-10">Clinical Profile</h3>
+                    {!isFocused && (
+                        <div className="card-premium p-6 bg-indigo-600 border-none text-white relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-8 opacity-10">
+                                <Activity size={100} />
+                            </div>
+                            <h3 className="text-xs font-black text-indigo-200 uppercase tracking-widest mb-6 relative z-10">Clinical Profile</h3>
 
-                        <div className="space-y-4 relative z-10">
-                            <div>
-                                <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Primary Diagnosis</p>
-                                <p className="font-bold">{patient.diagnosis}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Treatment Plan</p>
-                                <p className="text-sm text-indigo-100 font-medium leading-relaxed">{patient.plan}</p>
+                            <div className="space-y-4 relative z-10">
+                                <div>
+                                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Primary Diagnosis</p>
+                                    <p className="font-bold">{patient.diagnosis}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Treatment Plan</p>
+                                    <p className="text-sm text-indigo-100 font-medium leading-relaxed">{patient.plan}</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Right Col: Clinical Tools (Notes & History) */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Clinical Notes */}
-                    <div className="card-premium p-6 flex flex-col h-[500px]">
-                        <div className="flex items-center justify-between mb-6 shrink-0">
-                            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                                <FileText className="text-indigo-600" size={20} /> Clinical Notes
-                            </h2>
-                        </div>
+                    {!isFocused && (
+                        <div className="card-premium p-6 flex flex-col h-[500px]">
+                            <div className="flex items-center justify-between mb-6 shrink-0">
+                                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                                    <FileText className="text-indigo-600" size={20} /> Clinical Notes
+                                </h2>
+                            </div>
 
-                        <div className="flex-1 overflow-y-auto pr-2 space-y-4 no-scrollbar mb-4">
-                            {notes.length > 0 ? notes.map((note) => (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    key={note.id}
-                                    className="p-4 bg-slate-50 rounded-2xl border border-slate-100"
-                                >
-                                    <p className="text-slate-700 font-medium leading-relaxed mb-3 text-sm">{note.content}</p>
-                                    <div className="flex items-center justify-between text-xs font-bold text-slate-400">
-                                        <span className="uppercase tracking-wider">{note.author}</span>
-                                        <span>{new Date(note.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                            <div className="flex-1 overflow-y-auto pr-2 space-y-4 no-scrollbar mb-4">
+                                {notes.length > 0 ? notes.map((note) => (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        key={note.id}
+                                        className="p-4 bg-slate-50 rounded-2xl border border-slate-100"
+                                    >
+                                        <p className="text-slate-700 font-medium leading-relaxed mb-3 text-sm">{note.content}</p>
+                                        <div className="flex items-center justify-between text-xs font-bold text-slate-400">
+                                            <span className="uppercase tracking-wider">{note.author}</span>
+                                            <span>{new Date(note.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                        </div>
+                                    </motion.div>
+                                )) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                                        <FileText size={40} className="mb-2 opacity-20" />
+                                        <p className="text-sm font-bold">No clinical notes recorded yet.</p>
                                     </div>
-                                </motion.div>
-                            )) : (
-                                <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                                    <FileText size={40} className="mb-2 opacity-20" />
-                                    <p className="text-sm font-bold">No clinical notes recorded yet.</p>
-                                </div>
-                            )}
-                        </div>
+                                )}
+                            </div>
 
-                        <div className="shrink-0 flex gap-3 pt-4 border-t border-slate-100">
-                            <InputField
-                                placeholder="Add a new clinical note..."
-                                value={newNote}
-                                onChange={(e) => setNewNote(e.target.value)}
-                                containerClassName="flex-1"
-                                onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote() }}
-                            />
-                            <Button
-                                variant="primary"
-                                className="mt-2 h-[56px] w-[56px] p-0 flex items-center justify-center shrink-0"
-                                onClick={handleAddNote}
-                                isLoading={isSubmittingNote}
-                                disabled={!newNote.trim()}
-                            >
-                                <Send size={18} className="translate-x-0.5" />
-                            </Button>
+                            <div className="shrink-0 flex gap-3 pt-4 border-t border-slate-100">
+                                <InputField
+                                    placeholder="Add a new clinical note..."
+                                    value={newNote}
+                                    onChange={(e) => setNewNote(e.target.value)}
+                                    containerClassName="flex-1"
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote() }}
+                                />
+                                <Button
+                                    variant="primary"
+                                    className="mt-2 h-[56px] w-[56px] p-0 flex items-center justify-center shrink-0"
+                                    onClick={handleAddNote}
+                                    isLoading={isSubmittingNote}
+                                    disabled={!newNote.trim()}
+                                >
+                                    <Send size={18} className="translate-x-0.5" />
+                                </Button>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Assessment History */}
                     <div className="card-premium p-6">
@@ -259,7 +306,7 @@ const PatientRecord = () => {
                             <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                                 <ClipboardList className="text-indigo-600" size={20} /> Assessment History
                             </h2>
-                            <Button variant="ghost" size="sm" onClick={() => navigate(`/patients/${id}/assessments`)}>View All</Button>
+                            <Button variant="ghost" size="sm" onClick={() => navigate(`/patients/${patient.userId || id}/assessments`)}>View All</Button>
                         </div>
 
                         <div className="space-y-3">

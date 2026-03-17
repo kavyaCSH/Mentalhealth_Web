@@ -5,39 +5,43 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
 import { 
     ChevronLeft, 
-    History as HistoryIcon, 
+    Stethoscope, 
     AlertCircle, 
     Plus, 
-    Clock,
     Trash2,
     Edit3
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
-import { HPIService } from '../../../api/services/hpi.service';
+import { ROSService } from '../../../api/services/ros.service';
 import { UserService } from '../../../api/services/user.service';
-import type { HPIResponse } from '../../../api/services/hpi.service';
+import type { ROSResponse } from '../../../types/ros.types';
+import type { User, Patient } from '../../../types/user.types';
 
-const HPIHistory = () => {
+const ROSList = () => {
     const { patientId: userId } = useParams<{ patientId: string }>();
     const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
-    const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
+    const isPatient = (currentUser as any)?.role === 'patient' || 
+                      (currentUser as any)?.role === 'PATIENT' || 
+                      (currentUser as any)?.group === 'PATIENT' ||
+                      (currentUser as any)?.group === 'patient';
     
     // State
-    const [history, setHistory] = useState<HPIResponse[]>([]);
+    const [patient, setPatient] = useState<User | Patient | null>(null);
+    const [history, setHistory] = useState<ROSResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const handleDelete = async (id: string | number) => {
-        if (!window.confirm('Are you sure you want to delete this clinical record? This action cannot be undone.')) {
+    const handleDelete = async (rosId: string | number) => {
+        if (!window.confirm('Are you sure you want to delete this clinical review? This action cannot be undone.')) {
             return;
         }
 
         try {
-            await HPIService.deleteHPI(id);
-            setHistory(prev => prev.filter(item => (item.id || item._id || item.hpiId) !== id));
+            await ROSService.deleteROS(rosId);
+            setHistory(prev => prev.filter(item => (item as any).id !== rosId && (item as any)._id !== rosId));
         } catch (err) {
-            console.error('Failed to delete HPI:', err);
+            console.error('Failed to delete ROS:', err);
             alert('Failed to delete the record. Please try again.');
         }
     };
@@ -52,47 +56,56 @@ const HPIHistory = () => {
         setIsLoading(true);
         setError(null);
         try {
-            if (!userId) {
+            if (!userId || userId === 'undefined') {
                 setIsLoading(false);
                 return;
             }
 
-            // 1. Resolve hex ID from user profile
             let hexId = userId;
             
             // Optimization: Bypass unauthorized lookup if patient is viewing self
             if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
                 hexId = currentUser?._id || currentUser?.id || hexId;
-                console.log(`[HPIHistory] Using session identity: ${hexId}`);
+                console.log(`[ROSList] Using session identity: ${hexId}`);
+                if (currentUser) {
+                    setPatient(currentUser as any);
+                }
             } else {
                 try {
                     const userProfile = await UserService.getUserById(userId);
                     if (userProfile) {
                         hexId = userProfile._id || userProfile.id || hexId;
-                        console.log(`[HPIHistory] Resolved Hex ID: ${hexId}`);
+                        setPatient(userProfile);
                     }
                 } catch (profileError) {
-                    console.warn('[HPIHistory] Profile fetch failed, using parameter ID:', profileError);
+                    console.warn('[ROSList] Profile fetch failed, using parameter ID:', profileError);
                 }
             }
 
-            // 2. Fetch using hex ID
-            const response = await HPIService.getHPIList({ patient_id: hexId });
-            const records = response?.data || response || [];
-            const historyArray = Array.isArray(records) ? records : [records];
+            const queryData = await ROSService.getROSByPatient(hexId);
             
-            setHistory(historyArray);
+            const rosRecords = queryData?.data || queryData || [];
+            const rosArray = Array.isArray(rosRecords) ? rosRecords : [rosRecords];
+            
+            // Sort by createdAt descending
+            rosArray.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+            
+            setHistory(rosArray);
+            
+            if (rosArray.length > 0 && (rosArray[0] as any).patient_data && !patient) {
+                setPatient((rosArray[0] as any).patient_data);
+            }
         } catch (err: any) {
-            console.error('[HPIHistory] Fetch failed:', err);
+            console.error('[ROSList] Fetch failed:', err);
 
             // Graceful 403 handling for patients
             if (isPatient && err.response?.status === 403) {
-                console.log('[HPIHistory] Patient role hit authorization limit, showing empty state.');
+                console.log('[ROSList] Patient role hit authorization limit, showing empty state.');
                 setHistory([]);
                 return;
             }
 
-            setError('Could not load HPI history. Please check API connectivity.');
+            setError('Could not load Review of Systems records. Please check API connectivity.');
         } finally {
             setIsLoading(false);
         }
@@ -115,8 +128,7 @@ const HPIHistory = () => {
     }
 
     return (
-        <div className="p-8 max-w-6xl  space-y-10 animate-fade-in pb-24">
-            {/* Header */}
+        <div className="p-8 max-w-6xl space-y-10 animate-fade-in pb-24">
             <header className="flex items-center gap-6">
                 <button
                     onClick={navigateBack}
@@ -126,12 +138,12 @@ const HPIHistory = () => {
                 </button>
                 <div className="flex-1">
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                        HPI history
+                        Review of Systems
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Identity:</span>
                         <span className="text-xs font-bold text-indigo-600">
-                            Patient #{userId}
+                            {patient ? `${patient.firstName} ${patient.lastName || ''}` : `Patient #${userId}`}
                         </span>
                     </div>
                 </div>
@@ -139,81 +151,88 @@ const HPIHistory = () => {
                 <Button
                     variant="primary"
                     className="rounded-2xl px-8 shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-xs"
-                    onClick={() => navigate(`/patients/${userId}/hpi/new`)}
+                    onClick={() => navigate(`/patients/${userId}/ros/new`)}
                     leftIcon={<Plus size={18} />}
                 >
-                    Add HPI
+                    Add Review
                 </Button>
             </header>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {history.length > 0 ? (
-                    history.map((item, idx) => (
+                    history.map((item, idx) => {
+                        const rosId = (item as any).id || (item as any)._id;
+                        return (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: idx * 0.05 }}
-                            key={item.id || item._id}
-                            onClick={() => navigate(`/patients/${userId}/hpi/${item.id || item._id || item.hpiId}`)}
+                            key={rosId}
+                            onClick={() => navigate(`/patients/${userId}/ros/${rosId}`)}
                             className="card-premium p-8 bg-white border-slate-100 hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
                         >
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                                    <Stethoscope size={16} />
+                                </div>
+                                 <div className="flex items-center gap-3">
                                     <button 
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            navigate(`/patients/${userId}/hpi/edit/${item.hpiId || item.id || item._id}`);
+                                            navigate(`/patients/${userId}/ros/edit/${rosId}`);
                                         }}
                                         className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl shadow-sm transition-all"
-                                        title="Edit Record"
+                                        title="Edit Review"
                                     >
                                         <Edit3 size={16} />
                                     </button>
                                     <button 
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDelete((item.hpiId || item.id || item._id)!);
+                                            handleDelete(rosId);
                                         }}
                                         className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl shadow-sm transition-all"
                                         title="Delete Record"
                                     >
                                         <Trash2 size={16} />
                                     </button>
-                                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-                                        <Clock size={16} />
-                                    </div>
-                                    {item.severity_index !== undefined && (
-                                        <span 
-                                            className="text-[10px] font-black px-2 py-0.5 rounded-md text-white"
-                                            style={{ backgroundColor: item.color_code || '#6366f1' }}
-                                        >
-                                            Severity: {item.severity_index}
-                                        </span>
-                                    )}
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+                                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric'
+                                        }) : 'Recently'}
+                                    </span>
                                 </div>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
-                                    {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric'
-                                    }) : 'Recently'}
-                                </span>
                             </div>
-                            <p className="text-slate-700 font-bold leading-relaxed line-clamp-6 flex-1 italic">
-                                "{item.narrative || (item as any).content || 'No clinical narrative available.'}"
-                            </p>
+                            <div className="pt-2 flex-1">
+                                {(item as any).ai_notes ? (
+                                    <p className="text-slate-700 font-bold leading-relaxed line-clamp-4">
+                                        {(item as any).ai_notes}
+                                    </p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {Object.keys(item).filter(k => !['id', '_id', 'patient_id', 'consult_id', 'createdAt', 'updatedAt', '__v', 'ai_notes'].includes(k) && typeof (item as any)[k] === 'object').slice(0, 3).map(section => (
+                                            <div key={section} className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                                                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{section}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                             <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest group-hover:text-indigo-600 transition-colors">View AI Analysis</span>
-                                <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-transform group-hover:translate-x-1" />
+                                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">View Details</span>
+                                <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-colors" />
                             </div>
                         </motion.div>
-                    ))
+                    )})
                 ) : (
                     <div className="col-span-full card-premium p-20 text-center border-dashed border-slate-200 bg-slate-50/50">
-                        <HistoryIcon size={48} className="mx-auto text-slate-300 mb-6 opacity-50" />
+                        <Stethoscope size={48} className="mx-auto text-slate-300 mb-6 opacity-50" />
                         <h3 className="text-xl font-black text-slate-900 mb-2">No Records Found</h3>
                         <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto italic mb-8">
-                            There are no previous HPI history records for this patient.
+                            There are no previous Review of Systems recorded for this patient identity.
                         </p>
                     </div>
                 )}
@@ -229,4 +248,4 @@ const HPIHistory = () => {
     );
 };
 
-export default HPIHistory;
+export default ROSList;

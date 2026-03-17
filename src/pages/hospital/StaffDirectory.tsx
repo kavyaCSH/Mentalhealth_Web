@@ -10,9 +10,9 @@ import {
     Plus,
     RefreshCw,
     Mail,
-    Phone,
     Video,
-    MoreVertical
+    MoreVertical,
+    ShieldCheck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
@@ -33,7 +33,8 @@ const StaffDirectory = () => {
         { id: 'psychologist', label: 'Psychologists', icon: <Activity size={16} /> },
         { id: 'nurse', label: 'Nurses', icon: <Activity size={16} /> },
         { id: 'counselor', label: 'Counselors', icon: <Activity size={16} /> },
-        { id: 'social_worker', label: 'Social Workers', icon: <Activity size={16} /> }
+        { id: 'social_worker', label: 'Social Workers', icon: <Activity size={16} /> },
+        { id: 'hospital', label: 'Admins', icon: <ShieldCheck size={16} /> }
     ];
 
     const fetchUsers = useCallback(async () => {
@@ -47,7 +48,7 @@ const StaffDirectory = () => {
             }
 
             const data = await UserService.listUsers(params);
-            setUsers(data);
+            setUsers((data as any).users || data || []);
         } catch (error) {
             console.error('Failed to fetch staff:', error);
             setUsers([]);
@@ -88,6 +89,8 @@ const StaffDirectory = () => {
             case 'nurse': return 'bg-pink-50 text-pink-700 border-pink-100';
             case 'counselor': return 'bg-amber-50 text-amber-700 border-amber-100';
             case 'social_worker': return 'bg-teal-50 text-teal-700 border-teal-100';
+            case 'hospital': return 'bg-orange-50 text-orange-700 border-orange-100';
+            case 'admin': return 'bg-red-50 text-red-700 border-red-100';
             default: return 'bg-slate-50 text-slate-700 border-slate-100';
         }
     };
@@ -200,12 +203,18 @@ const StaffDirectory = () => {
                                             </div>
                                             <span className="text-sm font-medium truncate">{member.email}</span>
                                         </div>
-                                        {member.phone && (
+                                        {(member as any).specialization && (
                                             <div className="flex items-center gap-3 text-slate-500">
-                                                <div className="p-2 rounded-lg bg-slate-50">
-                                                    <Phone size={14} />
+                                                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-500">
+                                                    <Activity size={14} />
                                                 </div>
-                                                <span className="text-sm font-medium">{member.phone}</span>
+                                                <span className="text-sm font-bold text-slate-600 truncate">{(member as any).specialization}</span>
+                                            </div>
+                                        )}
+                                        {(member as any).qualifications && (
+                                            <div className="flex items-center gap-3 text-slate-400 pl-1">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest truncate">{(member as any).qualifications}</span>
                                             </div>
                                         )}
                                     </div>

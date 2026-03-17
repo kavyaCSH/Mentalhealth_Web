@@ -1,13 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import SideNav from '../components/SideNav';
+import { NotificationService } from '../api/services/notification.service';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const navigate = useNavigate();
     const { user } = useAuth();
-
     const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        const fetchCount = async () => {
+            try {
+                const notifications = await NotificationService.getNotifications({ page: 1, limit: 10 });
+                const unread = notifications.filter(n => !n.read).length;
+                setUnreadCount(unread);
+            } catch (error) {
+                console.error('Failed to fetch notification count:', error);
+            }
+        };
+        if (user) fetchCount();
+    }, [user]);
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#F9FBFA]">
@@ -33,12 +49,21 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     </div>
 
                     <div className="flex items-center gap-4 sm:gap-8">
-                        <button className="p-2.5 text-slate-500 hover:bg-slate-100 rounded-xl transition-all relative group">
+                        <button 
+                            onClick={() => navigate('/notifications')}
+                            className="p-2.5 text-slate-500 hover:bg-slate-100 rounded-xl transition-all relative group"
+                        >
                             <Bell size={22} />
-                            <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-white"></span>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-2 right-2 w-5 h-5 bg-orange-500 text-white text-[10px] font-black rounded-full border-2 border-white flex items-center justify-center animate-pulse">
+                                    {unreadCount}
+                                </span>
+                            )}
                             <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all p-4 pointer-events-none hidden sm:block">
-                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Notifications</p>
-                                <p className="text-sm font-bold text-slate-900">Therapy session in 1 hour.</p>
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Recent Alerts</p>
+                                <p className="text-sm font-bold text-slate-900">
+                                    {unreadCount > 0 ? `You have ${unreadCount} unread clinical priority alerts.` : 'Your clinical hub is currently quiet.'}
+                                </p>
                             </div>
                         </button>
 

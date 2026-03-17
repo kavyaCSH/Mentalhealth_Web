@@ -16,7 +16,12 @@ import AssessmentCenter from './pages/patient/AssessmentCenter';
 import QuestionnairePage from './pages/patient/QuestionnairePage';
 import HistoryPage from './pages/patient/HistoryPage';
 import AssessmentResultPage from './pages/patient/AssessmentResultPage';
-import NotificationsPage from './pages/patient/NotificationsPage';
+import SharedNotificationsPage from './pages/shared/NotificationsPage';
+import PatientHealthRecords from './pages/patient/PatientHealthRecords';
+import PatientTreatmentView from './pages/patient/PatientTreatmentView';
+import HelpCenter from './pages/patient/HelpCenter';
+import HelpArticle from './pages/patient/HelpArticle';
+import EditProfilePage from './pages/shared/EditProfilePage';
 import PatientDirectory from './pages/clinical/PatientDirectory';
 import PatientRecord from './pages/clinical/PatientRecord';
 import Health from './pages/clinical/Health';
@@ -24,15 +29,18 @@ import ChiefComplaint from './pages/clinical/chief-complaint/ChiefComplaint';
 import AddChiefComplaint from './pages/clinical/chief-complaint/AddChiefComplaint';
 import EditChiefComplaint from './pages/clinical/chief-complaint/EditChiefComplaint';
 import ChiefComplaintDetail from './pages/clinical/chief-complaint/ChiefComplaintDetail';
-import HPIHistory from './pages/clinical/hpi/HPIHistory';
+import HPIPage from './pages/clinical/hpi/HPIHistory'; // Renamed from HPIHistory
 import HPIDetail from './pages/clinical/hpi/HPIDetail';
 import AddHPI from './pages/clinical/hpi/AddHPI';
-import MSEPage from './pages/clinical/mse/MSEPage.tsx';
-import PastHistoryPage from './pages/clinical/past-history/PastHistoryPage.tsx';
-import ROSPage from './pages/clinical/ros/ROSPage.tsx';
+import EditHPI from './pages/clinical/hpi/EditHPI';
+import MseAssessmentPage from './pages/clinical/mse/MSEPage'; // Renamed from MSEPage
+import PastHistoryPage from './pages/clinical/past-history/PastHistoryPage';
+import RosAssessmentPage from './pages/clinical/ros/ROSList'; // Renamed from ROSList
+import AddROS from './pages/clinical/ros/AddROS';
+import ROSDetail from './pages/clinical/ros/ROSDetail';
+import EditROS from './pages/clinical/ros/EditROS';
 import Teleconsult from './pages/clinical/Teleconsult';
 import MessagesPortal from './pages/clinical/MessagesPortal';
-import HealthRecords from './pages/clinical/HealthRecords';
 import ClinicalAssessmentCenter from './pages/clinical/ClinicalAssessmentCenter';
 import UserList from './pages/admin/UserList';
 import CreateUser from './pages/admin/CreateUser';
@@ -45,8 +53,10 @@ import BillingCentral from './pages/hospital/BillingCentral';
 import TaxCodeManagement from './pages/hospital/TaxCodeManagement';
 import Transactions from './pages/shared/Transactions';
 import UserManagement from './pages/shared/UserManagement';
-
-
+import TreatmentPlanPage from './pages/clinical/treatment/TreatmentPlanPage';
+import InitializeTreatmentPage from './pages/clinical/treatment/InitializeTreatmentPage';
+import ClinicalRecordsHub from './pages/clinical/ClinicalRecordsHub';
+import ClinicalSchedulePage from './pages/clinical/ClinicalSchedulePage';
 
 const AppRouter = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -98,32 +108,61 @@ const AppRouter = () => {
                             <Routes>
                                 <Route index element={<Dashboard />} />
                                 <Route path="profile" element={<ProfilePage />} />
+                                <Route path="profile/edit" element={<EditProfilePage />} />
+                                <Route path="notifications" element={<SharedNotificationsPage />} />
 
                                 {/* Patient Portal Routes */}
                                 <Route element={<ProtectedRoute allowedGroup="PATIENT" />}>
                                     <Route path="schedule" element={<SchedulePage />} />
                                     <Route path="appointments" element={<Navigate to="/schedule" replace />} />
-                                    <Route path="assessments" element={<AssessmentCenter />} />
-                                    <Route path="assessments/:categoryId" element={<QuestionnairePage />} />
                                     <Route path="history" element={<HistoryPage />} />
                                     <Route path="history/:id" element={<AssessmentResultPage />} />
-                                    <Route path="notifications" element={<NotificationsPage />} />
                                     <Route path="statistics" element={<StatisticsPage />} />
                                     <Route path="specialists" element={<SpecialistsPage />} />
+                                    <Route path="records" element={<PatientHealthRecords />} />
+                                    <Route path="records/chief-complaint" element={<ChiefComplaint />} />
+                                    <Route path="records/chief-complaint/new" element={<AddChiefComplaint />} />
+                                    <Route path="records/chief-complaint/:ccId" element={<ChiefComplaintDetail />} />
+                                    <Route path="records/chief-complaint/edit/:ccId" element={<EditChiefComplaint />} />
+                                    <Route path="treatment" element={<PatientTreatmentView />} />
+                                    <Route path="help" element={<HelpCenter />} />
+                                    <Route path="help/article/:slug" element={<HelpArticle />} />
                                 </Route>
 
-                                {/* Clinical Portal Routes */}
+                                {/* Shared Clinical/Teleconsult Routes */}
+                                <Route path="teleconsult/:id?" element={<Teleconsult />} />
+                                <Route path="assessments" element={<AssessmentCenter />} />
+                                <Route path="assessments/:categoryId" element={<QuestionnairePage />} />
+                                <Route path="patients/:patientId" element={<PatientRecord />} />
+                                <Route path="patients/:patientId/health" element={<Health />} />
+                                <Route path="patients/:patientId/chief-complaint" element={<ChiefComplaint />} />
+                                <Route path="patients/:patientId/chief-complaint/new" element={<AddChiefComplaint />} />
+                                <Route path="patients/:patientId/chief-complaint/:ccId" element={<ChiefComplaintDetail />} />
+                                <Route path="patients/:patientId/chief-complaint/edit/:ccId" element={<EditChiefComplaint />} />
+                                <Route path="patients/:patientId/hpi/new" element={<AddHPI />} />
+                                <Route path="patients/:patientId/hpi/edit/:hpiId" element={<EditHPI />} />
+                                <Route path="patients/:patientId/hpi/:hpiId" element={<HPIDetail />} />
+                                <Route path="patients/:patientId/hpi" element={<HPIPage />} />
+                                <Route path="patients/:patientId/mse/:mseId?" element={<MseAssessmentPage />} />
+                                <Route path="patients/:patientId/past-history/:historyId?" element={<PastHistoryPage />} />
+                                <Route path="patients/:patientId/ros" element={<RosAssessmentPage />} />
+                                <Route path="patients/:patientId/ros/new" element={<AddROS />} />
+                                <Route path="patients/:patientId/ros/:rosId" element={<ROSDetail />} />
+                                <Route path="patients/:patientId/ros/edit/:rosId" element={<EditROS />} />
+                                <Route path="patients/:patientId/treatment" element={<TreatmentPlanPage />} />
+                                <Route path="patients/:patientId/treatment/new" element={<InitializeTreatmentPage />} />
+                                <Route path="clinical/assessments" element={<ClinicalAssessmentCenter />} />
+                                <Route path="transactions" element={<Transactions />} />
+                                <Route path="users/:id/edit" element={<UserManagement />} />
+
+                                {/* Secure Clinical Portal Routes */}
                                 <Route element={<ProtectedRoute allowedGroup="CLINICAL" />}>
                                     <Route path="patients" element={<PatientDirectory />} />
-                                    <Route path="patients/:id" element={<PatientRecord />} />
-                                    <Route path="patients" element={<PatientDirectory />} />
-                                    <Route path="patients/:id" element={<PatientRecord />} />
+                                    <Route path="clinical-schedule" element={<ClinicalSchedulePage />} />
+                                    <Route path="patients/:patientId/clinical-hub" element={<ClinicalRecordsHub />} />
                                     <Route path="messages" element={<MessagesPortal />} />
-                                    <Route path="records" element={<HealthRecords />} />
-                                    {/* Clinical roles might also need access to assessments for reference or conducting them */}
-                                    <Route path="assessments" element={<AssessmentCenter />} />
-                                    <Route path="clinical/assessments" element={<ClinicalAssessmentCenter />} />
                                 </Route>
+
 
                                 {/* Hospital Portal Routes */}
                                 <Route element={<ProtectedRoute allowedGroup="HOSPITAL" />}>
@@ -134,22 +173,6 @@ const AppRouter = () => {
                                     <Route path="tax" element={<TaxCodeManagement />} />
                                     <Route path="consultations/new" element={<CreateConsultation />} />
                                 </Route>
-
-                                {/* Shared Shared/Teleconsult Routes */}
-                                <Route path="teleconsult/:id?" element={<Teleconsult />} />
-                                <Route path="patients/:userId/health" element={<Health />} />
-                                <Route path="patients/:userId/chief-complaint" element={<ChiefComplaint />} />
-                                <Route path="patients/:userId/chief-complaint/new" element={<AddChiefComplaint />} />
-                                <Route path="patients/:userId/chief-complaint/:ccId" element={<ChiefComplaintDetail />} />
-                                <Route path="patients/:userId/chief-complaint/edit/:ccId" element={<EditChiefComplaint />} />
-                                <Route path="patients/:userId/hpi" element={<HPIHistory />} />
-                                <Route path="patients/:userId/hpi/:hpiId" element={<HPIDetail />} />
-                                <Route path="patients/:userId/hpi/new" element={<AddHPI />} />
-                                <Route path="patients/:userId/mse" element={<MSEPage />} />
-                                <Route path="patients/:userId/past-history" element={<PastHistoryPage />} />
-                                <Route path="patients/:userId/ros" element={<ROSPage />} />
-                                <Route path="transactions" element={<Transactions />} />
-                                <Route path="users/:id/edit" element={<UserManagement />} />
 
                                 {/* Admin Portal Routes */}
                                 <Route path="admin" element={<ProtectedRoute allowedGroup="ADMIN" />}>

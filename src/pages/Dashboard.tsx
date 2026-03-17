@@ -29,8 +29,15 @@ const Dashboard = () => {
             return <PatientDashboard />;
 
         default:
-            // Fallback dashboard or loading state
-            return <PatientDashboard />;
+            // neutral loading state while role is being determined
+            return (
+                <div className="min-h-[80vh] flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin" />
+                        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Synchronizing Dashboard...</p>
+                    </div>
+                </div>
+            );
     }
 };
 

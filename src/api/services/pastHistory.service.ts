@@ -21,5 +21,15 @@ export const PastHistoryService = {
     getPastHistoryById: async (id: string | number): Promise<ApiResponse<PastHistoryResponse>> => {
         const response = await api.get(`/past-history/${id}`);
         return response.data;
+    },
+
+    updatePastHistory: async (id: string | number, data: Partial<PastHistorySubmission>): Promise<ApiResponse<PastHistoryResponse>> => {
+        const response = await api.patch(`/past-history/${id}`, data);
+        return response.data;
+    },
+
+    deletePastHistory: async (id: string | number): Promise<ApiResponse<any>> => {
+        const response = await api.delete(`/past-history/${id}`);
+        return response.data;
     }
 };

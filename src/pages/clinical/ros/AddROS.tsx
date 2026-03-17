@@ -17,12 +17,16 @@ import {
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { ROSService } from '../../../api/services/ros.service';
+import { UserService } from '../../../api/services/user.service';
 import type { ROSSection, ROSResponse } from '../../../types/ros.types';
 
 
-const ROSPage = () => {
-    const { userId } = useParams<{ userId: string }>();
-    const navigate = useNavigate();
+const AddROS = () => {
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const isPatient = (currentUser as any)?.role === 'patient' || 
+                      (currentUser as any)?.role === 'PATIENT' || 
+                      (currentUser as any)?.group === 'PATIENT' ||
+                      (currentUser as any)?.group === 'patient';
     
     const [sections, setSections] = useState<ROSSection[]>([]);
     const [currentStep, setCurrentStep] = useState(0);
@@ -131,9 +135,28 @@ const ROSPage = () => {
         setError(null);
         
         try {
+            // 1. Resolve hex ID from user profile
+            let hexId = userId;
+            
+            // Optimization: Bypass unauthorized lookup if patient is submitting for self
+            if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
+                hexId = currentUser?._id || currentUser?.id || hexId;
+                console.log(`[AddROS] Using session identity for submission: ${hexId}`);
+            } else {
+                try {
+                    const userProfile = await UserService.getUserById(userId!);
+                    if (userProfile) {
+                        hexId = userProfile._id || userProfile.id || hexId;
+                        console.log(`[AddROS] Resolved Hex ID for submission: ${hexId}`);
+                    }
+                } catch (profileError) {
+                    console.warn('[AddROS] Profile lookup failed, using parameter ID:', profileError);
+                }
+            }
+
             // Group by section for submission
             const submissionData: any = {
-                patient_id: userId,
+                patient_id: hexId,
                 consult_id: null, // Can be integrated later
             };
 
@@ -315,7 +338,7 @@ const ROSPage = () => {
                         </Button>
                         <Button 
                             variant="primary"
-                            onClick={() => navigate(`/patients/${userId}/health`)}
+                            onClick={() => navigate(`/patients/${userId}/ros`)}
                             className="rounded-2xl h-12 px-8 font-black uppercase text-xs tracking-widest bg-slate-900 border-none shadow-xl shadow-slate-200"
                         >
                             Return to Profile
@@ -475,7 +498,7 @@ const ROSPage = () => {
         <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in pb-24">
             <header className="flex items-center gap-6">
                 <button
-                    onClick={() => navigate(`/patients/${userId}/health`)}
+                    onClick={() => navigate(`/patients/${userId}/ros`)}
                     className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
@@ -673,4 +696,4 @@ const ROSPage = () => {
     );
 };
 
-export default ROSPage;
+export default AddROS;

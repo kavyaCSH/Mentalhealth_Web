@@ -34,6 +34,23 @@ export interface User {
     experienceYears?: number;
     consultationFee?: number;
     about?: string;
+    city?: string;
+    isdCode?: string;
+    mobile?: string;
+    is2fa?: boolean;
+    communicationPreferences?: {
+        email: boolean;
+        sms: boolean;
+        push: boolean;
+    };
+    profileImage?: string;
+    languages?: string[];
+    skills?: string[];
+    timezoneId?: string;
+    coordinates?: {
+        lat: number;
+        lng: number;
+    };
     createdAt?: string;
     updatedAt?: string;
     plan?: string;
@@ -41,6 +58,7 @@ export interface User {
 
 export interface Patient extends User {
     emergencyContact?: string;
+    bloodGroup?: string;
 }
 
 export interface ClinicalNote {
@@ -53,7 +71,9 @@ export interface ClinicalNote {
 export interface UserStats {
     patient: number;
     psychiatrist: number;
+    psychologist: number;
     nurse: number;
+    social_worker: number;
     admin: number;
     total?: number;
     activeCount?: number;

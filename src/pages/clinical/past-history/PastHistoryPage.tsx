@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../store';
 import { 
     ChevronLeft, 
     ChevronRight, 
@@ -12,13 +14,14 @@ import {
     ClipboardList,
     Sparkles,
     Zap,
-    FileText,
-    Shield,
     Users,
-    History
+    History,
+    Shield,
+    FileText
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { PastHistoryService } from '../../../api/services/pastHistory.service';
+import { UserService } from '../../../api/services/user.service';
 import type { PastHistorySection, PastHistoryResponse } from '../../../types/pastHistory.types';
 
 const FindingItem = ({ label, value }: { label: string; value: any }) => {
@@ -57,8 +60,13 @@ const FindingItem = ({ label, value }: { label: string; value: any }) => {
 };
 
 const PastHistoryPage = () => {
-    const { userId } = useParams<{ userId: string }>();
+    const { patientId: userId, historyId } = useParams<{ patientId: string; historyId?: string }>();
     const navigate = useNavigate();
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const isPatient = (currentUser as any)?.role === 'patient' || 
+                      (currentUser as any)?.role === 'PATIENT' || 
+                      (currentUser as any)?.group === 'PATIENT' ||
+                      (currentUser as any)?.group === 'patient';
     
     const [sections, setSections] = useState<PastHistorySection[]>([]);
     const [currentStep, setCurrentStep] = useState(0);
@@ -67,11 +75,11 @@ const PastHistoryPage = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<PastHistoryResponse | null>(null);
+    const [patient, setPatient] = useState<any>(null);
 
     useEffect(() => {
         const fetchQuestionnaire = async () => {
             try {
-                setIsLoading(true);
                 const res = await PastHistoryService.getQuestions();
                 const data = res.data || res;
                 if (Array.isArray(data)) {
@@ -80,13 +88,60 @@ const PastHistoryPage = () => {
             } catch (err) {
                 console.error('Failed to fetch Past History questionnaire:', err);
                 setError('Failed to load questionnaire components.');
+            }
+        };
+
+        const fetchData = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                if (!userId || userId === 'undefined') {
+                    if (!historyId) {
+                        setIsLoading(false);
+                        return;
+                    }
+                }
+
+                // 1. Resolve Identity
+                let hexId = userId;
+                if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
+                    hexId = currentUser?._id || currentUser?.id || hexId;
+                    if (currentUser) setPatient(currentUser);
+                } else if (userId && userId !== 'undefined') {
+                    try {
+                        const userProfile = await UserService.getUserById(userId);
+                        if (userProfile) {
+                            hexId = userProfile._id || userProfile.id || hexId;
+                            setPatient(userProfile);
+                        }
+                    } catch (e) {
+                        console.warn('[PastHistory] Profile fetch failed:', e);
+                    }
+                }
+
+                // 2. Fetch Questionnaire
+                await fetchQuestionnaire();
+
+                // 3. Fetch Existing Record if ID provided
+                if (historyId) {
+                    const res = await PastHistoryService.getPastHistoryById(historyId!);
+                    const data = res.data || res;
+                    setResult(data as PastHistoryResponse);
+                }
+            } catch (err: any) {
+                console.error('[PastHistory] Fetch failed:', err);
+                if (isPatient && err.response?.status === 403) {
+                    setError('You do not have permission to view this clinical record.');
+                } else {
+                    setError('Could not load clinical history components. Please check connectivity.');
+                }
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchQuestionnaire();
-    }, []);
+        fetchData();
+    }, [userId, historyId, isPatient, currentUser]);
 
     const handleValueChange = (section: string, key: string, value: any) => {
         setResponses(prev => ({
@@ -192,16 +247,35 @@ const PastHistoryPage = () => {
             case 'medical_history': return <Activity size={18} />;
             case 'substance_use': return <Zap size={18} />;
             case 'family_history': return <Users size={18} />;
-            default: return <History size={18} />;
+            default: return <ClipboardList size={18} />; // Changed from History to ClipboardList as History was removed
         }
     };
 
     const handleSubmit = async () => {
-        if (!userId) return;
         setIsSaving(true);
         setError(null);
         
         try {
+            // Resolve Hex ID
+            let hexId = userId || currentUser?._id || currentUser?.id;
+            
+            if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
+                hexId = currentUser?._id || currentUser?.id || hexId;
+                console.log(`[PastHistory] Using session identity for submission: ${hexId}`);
+            } else if (userId && userId !== 'undefined') {
+                try {
+                    const userProfile = await UserService.getUserById(userId);
+                    if (userProfile) {
+                        hexId = userProfile._id || userProfile.id || hexId;
+                        console.log(`[PastHistory] Resolved Hex ID for submission: ${hexId}`);
+                    }
+                } catch (profileError) {
+                    console.warn('[PastHistory] Profile lookup failed, using parameter ID:', profileError);
+                }
+            }
+
+            if (!hexId) throw new Error('Patient identity could not be verified.');
+
             const flattenedResponses: { questionCode: string; value: any }[] = [];
             
             Object.values(responses).forEach((sectionData) => {
@@ -218,7 +292,7 @@ const PastHistoryPage = () => {
             }
 
             const res = await PastHistoryService.createPastHistory({
-                patient_id: userId,
+                patient_id: hexId!,
                 responses: flattenedResponses
             });
             
@@ -229,6 +303,15 @@ const PastHistoryPage = () => {
             setError(err.response?.data?.message || err.message || 'Failed to save clinical history.');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+
+    const navigateBack = () => {
+        if (currentUser?.role === 'patient' || (currentUser as any)?.group === 'PATIENT') {
+            navigate('/records');
+        } else {
+            navigate(`/patients/${userId}/health`);
         }
     };
 
@@ -366,7 +449,33 @@ const PastHistoryPage = () => {
         );
     }
 
-    if (!sections.length) return null;
+    if (!sections.length) {
+        return (
+            <div className="p-8 max-w-6xl space-y-10">
+                <header className="flex items-center gap-6">
+                    <button
+                        onClick={navigateBack}
+                        className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+                    <div className="flex-1">
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                            <History className="text-indigo-600" size={32} />
+                            Past Clinical History
+                        </h1>
+                    </div>
+                </header>
+                <div className="card-premium p-20 text-center border-dashed border-slate-200 bg-slate-50/50">
+                    <Activity size={48} className="mx-auto text-slate-300 mb-6 opacity-50" />
+                    <h3 className="text-xl font-black text-slate-900 mb-2">Framework Discovery Failed</h3>
+                    <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto italic">
+                        {error || 'The clinical history questionnaire framework could not be initialized at this time.'}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     if (result) {
         const isValueMeaningful = (v: any): boolean => {
@@ -397,19 +506,18 @@ const PastHistoryPage = () => {
                             <History className="text-indigo-600" size={32} />
                             Past Clinical History
                         </h1>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Identity:</span>
+                            <span className="text-xs font-bold text-indigo-600">
+                                {patient ? `${patient.firstName} ${patient.lastName || ''}` : `Patient #${userId}`}
+                            </span>
+                        </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Button 
-                            variant="outline"
-                            onClick={() => setResult(null)}
-                            leftIcon={<ChevronLeft size={18} />}
-                            className="rounded-2xl h-12 px-6 font-black uppercase text-xs tracking-widest border-2"
-                        >
-                            Refine History
-                        </Button>
+
                         <Button 
                             variant="primary"
-                            onClick={() => navigate(`/patients/${userId}/health`)}
+                            onClick={navigateBack}
                             className="rounded-2xl h-12 px-8 font-black uppercase text-xs tracking-widest bg-slate-900 border-none shadow-xl shadow-slate-200"
                         >
                             Return to Profile
@@ -545,7 +653,7 @@ const PastHistoryPage = () => {
         <div className="p-8 max-w-6xl space-y-10 animate-fade-in pb-24">
             <header className="flex items-center gap-6">
                 <button
-                    onClick={() => navigate(`/patients/${userId}/health`)}
+                    onClick={navigateBack}
                     className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
@@ -555,7 +663,12 @@ const PastHistoryPage = () => {
                         <History className="text-indigo-600" size={32} />
                         Past Clinical History
                     </h1>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Foundational Historical Intake Framework</p>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Identity:</span>
+                        <span className="text-xs font-bold text-indigo-600">
+                            {patient ? `${patient.firstName} ${patient.lastName || ''}` : `Patient #${userId}`}
+                        </span>
+                    </div>
                 </div>
             </header>
 

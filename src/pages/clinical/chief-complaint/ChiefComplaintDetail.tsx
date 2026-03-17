@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../store';
 import { 
     ChevronLeft, 
     Stethoscope, 
@@ -15,12 +17,18 @@ import Button from '../../../components/ui/Button';
 import { ChiefComplaintService } from '../../../api/services/chiefComplaint.service';
 
 const ChiefComplaintDetail = () => {
-    const { userId, ccId } = useParams<{ userId: string; ccId: string }>();
+    const { patientId: userId, ccId } = useParams<{ patientId: string; ccId: string }>();
     const navigate = useNavigate();
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const isPatient = (currentUser as any)?.role === 'patient' || 
+                      (currentUser as any)?.role === 'PATIENT' || 
+                      (currentUser as any)?.group === 'PATIENT' ||
+                      (currentUser as any)?.group === 'patient';
     
     const [complaint, setComplaint] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
 
     useEffect(() => {
         if (ccId) {
@@ -31,12 +39,18 @@ const ChiefComplaintDetail = () => {
     const fetchDetail = async () => {
         setIsLoading(true);
         try {
-            const response = await ChiefComplaintService.getById(ccId!);
+            const response = await ChiefComplaintService.getById(ccId!, userId);
             const data = response.data || response;
             setComplaint(data);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to fetch complaint detail:', err);
-            setError('Could not load the clinical record details.');
+            
+            // Suppress 403 for patients
+            if (isPatient && err.response?.status === 403) {
+                setError('Clinical details are restricted to authorized providers.');
+            } else {
+                setError('Could not load the clinical record details.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -58,7 +72,7 @@ const ChiefComplaintDetail = () => {
                     <AlertCircle size={18} />
                     {error || 'Clinical record not found.'}
                 </div>
-                <Button variant="outline" onClick={() => navigate(`/patients/${userId}/chief-complaint`)}>
+                <Button variant="outline" onClick={() => navigate(isPatient ? '/records/chief-complaint' : `/patients/${userId}/chief-complaint`)}>
                     Go Back
                 </Button>
             </div>
@@ -71,7 +85,7 @@ const ChiefComplaintDetail = () => {
         <div className="p-8 max-w-5xl  space-y-10 animate-fade-in pb-24">
             <header className="flex items-start gap-6">
                 <button
-                    onClick={() => navigate(`/patients/${userId}/chief-complaint`)}
+                    onClick={() => navigate(isPatient ? '/records' : `/patients/${userId}/chief-complaint`)}
                     className="p-3 mt-1 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
@@ -98,6 +112,7 @@ const ChiefComplaintDetail = () => {
                         </div>
                     )}
                 </div>
+
             </header>
 
             <div className="grid lg:grid-cols-3 gap-8">

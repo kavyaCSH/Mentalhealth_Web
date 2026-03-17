@@ -5,26 +5,52 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
 import { 
     ChevronLeft, 
-    Stethoscope, 
+    History as HistoryIcon, 
     AlertCircle, 
     Mic, 
     MicOff, 
-    Save 
+    Save,
+    Loader2
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
-import { ChiefComplaintService } from '../../../api/services/chiefComplaint.service';
-import { UserService } from '../../../api/services/user.service';
+import { HPIService } from '../../../api/services/hpi.service';
 
-const AddChiefComplaint = () => {
-    const { patientId: userId } = useParams<{ patientId: string }>();
+const EditHPI = () => {
+    const { patientId: userId, hpiId } = useParams<{ patientId: string; hpiId: string }>();
     const navigate = useNavigate();
     
     const [narrative, setNarrative] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [error, setError] = useState<string | null>(null);
     
     const recognitionRef = useRef<any>(null);
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
+
+    useEffect(() => {
+        if (hpiId) {
+            fetchInitialData();
+        }
+    }, [hpiId]);
+
+    const fetchInitialData = async () => {
+        setIsLoading(true);
+        try {
+            // HPIService.getHPIById handles falling back to list if direct fetch fails
+            const response = await HPIService.getHPIById(hpiId!, userId);
+            const data = response.data || response;
+            if (data && data.narrative) {
+                setNarrative(data.narrative);
+            }
+        } catch (err) {
+            console.error('Failed to fetch HPI data:', err);
+            setError('Could not load the existing clinical record.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -34,18 +60,14 @@ const AddChiefComplaint = () => {
             recognitionRef.current.interimResults = true;
 
             recognitionRef.current.onresult = (event: any) => {
-                let interimTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        setNarrative(prev => prev + ' ' + event.results[i][0].transcript);
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
+                        setNarrative(prev => prev.trim() + ' ' + event.results[i][0].transcript);
                     }
                 }
             };
 
             recognitionRef.current.onerror = (event: any) => {
-                console.error('Speech recognition error:', event.error);
                 setError(`Voice recognition error: ${event.error}`);
                 setIsRecording(false);
             };
@@ -82,13 +104,9 @@ const AddChiefComplaint = () => {
         }
     };
 
-    const { user: currentUser } = useSelector((state: RootState) => state.auth);
-    const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT' ||
-        (currentUser as any)?.group === 'PATIENT' || (currentUser as any)?.group === 'patient';
-
-    const handleSave = async () => { 
+    const handleSave = async () => {
         if (!narrative.trim()) {
-            setError('Please provide a narrative for the complaint.');
+            setError('Please provide a narrative for the record.');
             return;
         }
 
@@ -96,72 +114,43 @@ const AddChiefComplaint = () => {
         setError(null);
 
         try {
-            // 1. Resolve hex ID for authorization and submission
-            let hexId = userId || '';
+            await HPIService.updateHPI(hpiId!, {
+                narrative: narrative.trim()
+            });
             
-            // Optimization: Use session context for patients
-            if (isPatient && (currentUser?._id || currentUser?.id)) {
-                hexId = currentUser?._id || currentUser?.id || hexId;
-                console.log(`[AddChiefComplaint] Using session identity for submission: ${hexId}`);
-            } else {
-                try {
-                    if (userId && userId !== 'undefined') {
-                        const userProfile = await UserService.getUserById(userId);
-                        if (userProfile) {
-                            hexId = userProfile._id || userProfile.id || hexId;
-                            console.log(`[AddChiefComplaint] Resolved Hex ID for submission: ${hexId}`);
-                        }
-                    }
-                } catch (profileError) {
-                    console.warn('[AddChiefComplaint] Profile lookup failed, using parameter ID:', profileError);
-                }
-            }
-
-            const formData = new FormData();
-            
-            // Standardize on the resolved hex ID
-            formData.append('patient', hexId);
-            formData.append('patient_id', hexId);
-
-            formData.append('narrative', narrative.trim());
-            
-            console.log(`[AddChiefComplaint] Submitting: patient=${hexId}, narrative_length=${narrative.length}`);
-            
-            const response = await ChiefComplaintService.createComplaint(formData); 
-            
-            const createdData = response?.data || response;
-            const newId = (createdData as any)?.chiefComplaintId || (createdData as any)?.id || (createdData as any)?._id;
-            
-            alert('Chief complaint saved successfully!');
-            
-            const basePath = isPatient ? `/records/chief-complaint` : `/patients/${userId}/chief-complaint`;
-            if (newId) {
-                navigate(`${basePath}/${newId}`);
-            } else {
-                navigate(basePath);
-            }
+            alert('HPI record updated successfully!');
+            navigate(`/patients/${userId}/hpi/${hpiId}`);
         } catch (err: any) {
-            console.error('Failed to save complaint:', err);
-            setError(err.response?.data?.message || 'Failed to save the chief complaint. Please try again.');
+            console.error('Failed to update HPI:', err);
+            setError(err.response?.data?.message || 'Failed to update the record. Please try again.');
         } finally {
             setIsSaving(false);
         }
     };
 
+    if (isLoading) {
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+                <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+                <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Retrieving Clinical Record...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="p-8 max-w-4xl  space-y-10 animate-fade-in pb-24">
             <header className="flex items-center gap-6">
                 <button
-                    onClick={() => navigate(isPatient ? '/records/chief-complaint' : `/patients/${userId}/chief-complaint`)}
+                    onClick={() => isPatient ? navigate('/records') : navigate(-1)}
                     className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex-1">
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                        New Chief Complaint
+                        Edit HPI Record
                     </h1>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Capture clinical narrative</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Refine history of present illness</p>
                 </div>
             </header>
 
@@ -172,12 +161,12 @@ const AddChiefComplaint = () => {
             >
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl">
-                            <Stethoscope size={24} />
+                        <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                            <HistoryIcon size={24} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-900">Patient Complaint</h2>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Capture present symptoms</p>
+                            <h2 className="text-xl font-black text-slate-900">Update Narrative</h2>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Adjust clinical context</p>
                         </div>
                     </div>
 
@@ -191,7 +180,7 @@ const AddChiefComplaint = () => {
                     >
                         {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
                         <span className="text-xs font-black uppercase tracking-widest">
-                            {isRecording ? 'Stop Recording' : 'ADD VIA VOICE'}
+                            {isRecording ? 'Stop Recording' : 'Add via Voice'}
                         </span>
                     </button>
                 </div>
@@ -200,7 +189,7 @@ const AddChiefComplaint = () => {
                     <textarea
                         value={narrative}
                         onChange={(e) => setNarrative(e.target.value)}
-                        placeholder="Describe the patient's primary symptoms and duration..."
+                        placeholder="Refine the clinical narrative..."
                         className="w-full min-h-[300px] p-8 bg-slate-50/50 border-2 border-slate-100 rounded-[2.5rem] text-lg font-semibold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all resize-none leading-relaxed"
                     />
                     {isRecording && (
@@ -241,7 +230,7 @@ const AddChiefComplaint = () => {
                         isLoading={isSaving}
                         leftIcon={<Save size={18} />}
                     >
-                        Save Complaint
+                        Update Record
                     </Button>
                 </div>
             </motion.div>
@@ -249,4 +238,4 @@ const AddChiefComplaint = () => {
     );
 };
 
-export default AddChiefComplaint;
+export default EditHPI;

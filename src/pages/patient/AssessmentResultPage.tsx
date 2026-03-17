@@ -47,7 +47,7 @@ const getCategoryIcon = (slug?: string) => {
 };
 
 const AssessmentResultPage = () => {
-    const { id } = useParams<{ id: string }>();
+    const { id, patientId } = useParams<{ id: string; patientId: string }>();
     const navigate = useNavigate();
     const [assessment, setAssessment] = useState<AssessmentResult | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -85,7 +85,7 @@ const AssessmentResultPage = () => {
                 <AlertTriangle className="text-orange-500 mx-auto mb-4" size={48} />
                 <h2 className="text-2xl font-black text-slate-900 mb-2">Unable to Load</h2>
                 <p className="text-slate-500 mb-8">{error || 'Assessment not found.'}</p>
-                <Button onClick={() => navigate('/history')}>Back to History</Button>
+                <Button onClick={() => navigate(patientId ? `/patients/${patientId}/history` : '/history')}>Back to History</Button>
             </div>
         );
     }
@@ -101,10 +101,10 @@ const AssessmentResultPage = () => {
             {/* Header */}
             <header className="flex items-center justify-between">
                 <button
-                    onClick={() => navigate('/history')}
+                    onClick={() => navigate(patientId ? `/patients/${patientId}?view=focused` : '/history')}
                     className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors font-bold text-sm"
                 >
-                    <ChevronLeft size={18} /> Back to History
+                    <ChevronLeft size={18} /> {patientId ? 'Back to Patient Record' : 'Back to History'}
                 </button>
             </header>
 
@@ -249,11 +249,11 @@ const AssessmentResultPage = () => {
 
             {/* Footer */}
             <div className="flex flex-col sm:flex-row gap-4">
-                <Button variant="outline" className="flex-1 py-4" onClick={() => navigate('/history')}>
-                    Back to History
+                <Button variant="outline" className="flex-1 py-4" onClick={() => navigate(patientId ? `/patients/${patientId}?view=focused` : '/history')}>
+                    {patientId ? 'Back to Patient Record' : 'Back to History'}
                 </Button>
-                <Button variant="primary" className="flex-1 py-4" onClick={() => navigate('/assessments')}>
-                    Take Another Assessment
+                <Button variant="primary" className="flex-1 py-4" onClick={() => navigate(patientId ? `/clinical/assessments?patientId=${patientId}` : '/assessments')}>
+                    {patientId ? 'Assign Another' : 'Take Another Assessment'}
                 </Button>
             </div>
         </div>

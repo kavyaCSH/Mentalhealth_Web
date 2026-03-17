@@ -22,8 +22,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles,
         if (!allowedRoles && !allowedGroup) return true;
         if (!user) return false;
 
-        if (allowedRoles && allowedRoles.includes(user.role)) return true;
-        if (allowedGroup && ROLE_GROUPS[allowedGroup].includes(user.role)) return true;
+        const userRole = (user.role as string)?.toLowerCase();
+        const userGroup = (user as any).group?.toUpperCase();
+
+        if (allowedRoles && userRole && allowedRoles.includes(userRole as any)) return true;
+        
+        if (allowedGroup) {
+            if (userGroup === allowedGroup.toUpperCase()) return true;
+            if (userRole && ROLE_GROUPS[allowedGroup]?.includes(userRole as any)) return true;
+        }
 
         return false;
     };

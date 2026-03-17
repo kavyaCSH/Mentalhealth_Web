@@ -4,12 +4,21 @@ import { useSelector } from 'react-redux';
 import {
     Activity,
     Users,
-    ShieldCheck,
     Bell,
     Building2,
     Search,
-    ArrowUpRight
+    ArrowUpRight,
+    UserPlus,
+    CalendarPlus,
+    CreditCard,
+    ClipboardList,
+    Stethoscope,
+    Brain,
+    Heart,
+    Calendar,
+    UserCheck
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import type { RootState } from '../../store';
 import api from '../../api/client';
@@ -17,6 +26,7 @@ import type { UserStats } from '../../types/user.types';
 import type { Notification } from '../../types/common.types';
 
 const HospitalDashboard = () => {
+    const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
     const [stats, setStats] = useState<UserStats | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -39,15 +49,28 @@ const HospitalDashboard = () => {
 
     const facilityMetrics = [
         { label: 'Total Patients', value: stats?.patient?.toString() || '0', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { label: 'Psychiatrists', value: stats?.psychiatrist?.toString() || '0', icon: ShieldCheck, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-        { label: 'Clinical Staff', value: stats?.nurse?.toString() || '0', icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
-        { label: 'Active Alerts', value: notifications.filter(n => !n.read).length.toString(), icon: Bell, color: 'text-red-600', bg: 'bg-red-50' },
+        { label: 'Psychiatrists', value: stats?.psychiatrist?.toString() || '0', icon: Stethoscope, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Psychologists', value: stats?.psychologist?.toString() || '0', icon: Brain, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { label: 'Nurses', value: stats?.nurse?.toString() || '0', icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
+        { label: 'Social Workers', value: stats?.social_worker?.toString() || '0', icon: Heart, color: 'text-rose-600', bg: 'bg-rose-50' },
+        { label: 'Consults', value: stats?.consultCount?.toString() || '0', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Active Users', value: stats?.activeCount?.toString() || '0', icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { label: 'Facility Alerts', value: notifications.filter(n => !n.read).length.toString(), icon: Bell, color: 'text-red-600', bg: 'bg-red-50' },
     ];
 
     const staffComposition = [
-        { name: 'Psychiatric Care', count: stats?.psychiatrist || 0, color: 'bg-indigo-500' },
-        { name: 'Emergency Nursing', count: stats?.nurse || 0, color: 'bg-emerald-500' },
-        { name: 'Facility Admin', count: stats?.admin || 0, color: 'bg-orange-400' },
+        { name: 'Psychiatrists', count: stats?.psychiatrist || 0, color: 'bg-indigo-500' },
+        { name: 'Psychologists', count: stats?.psychologist || 0, color: 'bg-purple-500' },
+        { name: 'Nursing Staff', count: stats?.nurse || 0, color: 'bg-orange-400' },
+        { name: 'Social Workers', count: stats?.social_worker || 0, color: 'bg-rose-400' },
+        { name: 'Facility Admin', count: stats?.admin || 0, color: 'bg-slate-400' },
+    ];
+
+    const quickActions = [
+        { label: 'Register Clinician', icon: UserPlus, path: '/staff/manage', color: 'bg-indigo-600', shadow: 'shadow-indigo-200' },
+        { label: 'Staff Directory', icon: ClipboardList, path: '/staff', color: 'bg-emerald-600', shadow: 'shadow-emerald-200' },
+        { label: 'Book Consult', icon: CalendarPlus, path: '/schedule/create', color: 'bg-orange-500', shadow: 'shadow-orange-200' },
+        { label: 'Billing Central', icon: CreditCard, path: '/billing', color: 'bg-rose-500', shadow: 'shadow-rose-200' },
     ];
 
     return (
@@ -97,6 +120,25 @@ const HospitalDashboard = () => {
                             <h3 className="text-3xl font-black text-slate-900 mt-2">{metric.value}</h3>
                         </div>
                     </motion.div>
+                ))}
+            </div>
+
+            {/* Quick Management Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                {quickActions.map((action, i) => (
+                    <motion.button
+                        key={i}
+                        whileHover={{ y: -4 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigate(action.path)}
+                        className="p-8 card-premium flex flex-col items-center text-center group relative overflow-hidden transition-all hover:border-indigo-200 active:scale-95"
+                    >
+                        <div className={`w-14 h-14 ${action.color} rounded-2xl flex items-center justify-center text-white mb-6 shadow-xl ${action.shadow} group-hover:scale-110 transition-transform`}>
+                            <action.icon size={26} />
+                        </div>
+                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">{action.label}</h4>
+                        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.button>
                 ))}
             </div>
 
@@ -179,14 +221,16 @@ const HospitalDashboard = () => {
 
                         <div className="space-y-6">
                             {[
-                                { label: 'Active Psychiatrists', count: stats?.psychiatrist || 0, total: stats?.psychiatrist || 0 },
-                                { label: 'Nursing Staff', count: stats?.nurse || 0, total: stats?.nurse || 0 },
-                                { label: 'Admin Support', count: stats?.admin || 0, total: stats?.admin || 0 },
+                                { label: 'Active Psychiatrists', count: stats?.psychiatrist || 0 },
+                                { label: 'Psychologists', count: stats?.psychologist || 0 },
+                                { label: 'Nursing Staff', count: stats?.nurse || 0 },
+                                { label: 'Social Workers', count: stats?.social_worker || 0 },
+                                { label: 'Admin Support', count: stats?.admin || 0 },
                             ].map((staff, i) => (
                                 <div key={i} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-transparent hover:border-indigo-100 transition-all">
                                     <div>
                                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{staff.label}</p>
-                                        <p className="text-lg font-black text-slate-900 mt-1">{staff.count} <span className="text-slate-400 text-sm">/ {staff.total}</span></p>
+                                        <p className="text-lg font-black text-slate-900 mt-1">{staff.count}</p>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Active</div>

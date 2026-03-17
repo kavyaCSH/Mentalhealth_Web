@@ -6,7 +6,7 @@ export const UserService = {
         const response = await api.put('/users/update-me', data);
         return response.data?.data ?? response.data;
     },
-    listUsers: async (params: { role?: string; search?: string; page?: number; limit?: number }): Promise<{ users: User[], total: number }> => {
+    listUsers: async (params: { role?: string; search?: string; page?: number; limit?: number; isActive?: boolean }): Promise<{ users: User[], total: number }> => {
         const response = await api.get('/users/list', { params });
         const data = response.data?.data ?? response.data;
         

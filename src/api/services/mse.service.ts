@@ -21,5 +21,15 @@ export const MSEService = {
     getMSEById: async (id: string | number): Promise<ApiResponse<MSEResponse>> => {
         const response = await api.get(`/mse/${id}`);
         return response.data;
+    },
+
+    updateMSE: async (id: string | number, data: Partial<MSESubmission>): Promise<ApiResponse<MSEResponse>> => {
+        const response = await api.patch(`/mse/${id}`, data);
+        return response.data;
+    },
+
+    deleteMSE: async (id: string | number): Promise<ApiResponse<any>> => {
+        const response = await api.delete(`/mse/${id}`);
+        return response.data;
     }
 };

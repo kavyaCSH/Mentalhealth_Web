@@ -18,8 +18,32 @@ export const ROSService = {
         return response.data;
     },
 
-    getROSById: async (id: string | number): Promise<ApiResponse<ROSResponse>> => {
+    getROSById: async (id: string | number, patient_id?: string): Promise<ApiResponse<ROSResponse>> => {
+        if (patient_id) {
+            try {
+                const listRes = await ROSService.getROSByPatient(patient_id);
+                const list = listRes?.data || listRes || [];
+                const item = (list as ROSResponse[]).find(r => 
+                    String((r as any).id) === String(id) || 
+                    String((r as any)._id) === String(id)
+                );
+                
+                if (item) return { success: true, message: "Found in list", data: item };
+            } catch (e) {
+                console.warn('[ROSService] List fallback failed:', e);
+            }
+        }
         const response = await api.get(`/ros/${id}`);
+        return response.data;
+    },
+
+    updateROS: async (id: string | number, data: Partial<ROSSubmission>): Promise<ApiResponse<ROSResponse>> => {
+        const response = await api.put(`/ros/${id}`, data);
+        return response.data;
+    },
+
+    deleteROS: async (id: string | number): Promise<ApiResponse<void>> => {
+        const response = await api.delete(`/ros/${id}`);
         return response.data;
     }
 };

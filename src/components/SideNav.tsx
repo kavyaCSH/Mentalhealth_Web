@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronLeft,
     Heart,
-    Brain,
     Calendar,
     Activity,
     CreditCard,
@@ -13,7 +12,6 @@ import {
     Settings,
     ShieldCheck,
     Users,
-    Moon,
     MessageCircle,
     ClipboardList,
     BarChart3,
@@ -154,19 +152,16 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                     <>
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-slate-300 uppercase tracking-widest px-4 mb-4">Wellness</p>}
-                            <NavItem to="/mood" icon={Brain} label="Mood Tracker" isCollapsed={isCollapsed} />
-                            <NavItem to="/journal" icon={BookOpen} label="Daily Journal" isCollapsed={isCollapsed} />
-                            <NavItem to="/sleep" icon={Moon} label="Sleep Analysis" isCollapsed={isCollapsed} badge="New" />
                             <NavItem to="/assessments" icon={ClipboardList} label="Assessments" isCollapsed={isCollapsed} />
                         </div>
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-slate-300 uppercase tracking-widest px-4 mb-4">Care Team</p>}
                             <NavItem to="/appointments" icon={Calendar} label="Appointments" isCollapsed={isCollapsed} />
-                            <NavItem to="/messages" icon={MessageCircle} label="Messages" isCollapsed={isCollapsed} />
                             <NavItem to="/history" icon={BookOpen} label="History" isCollapsed={isCollapsed} />
                             <NavItem to="/transactions" icon={CreditCard} label="Transactions" isCollapsed={isCollapsed} />
                             <NavItem to="/notifications" icon={Bell} label="Notifications" isCollapsed={isCollapsed} />
                             <NavItem to="/statistics" icon={BarChart3} label="Statistics" isCollapsed={isCollapsed} />
+                            <NavItem to="/records" icon={ClipboardList} label="Health Records" isCollapsed={isCollapsed} />
                         </div>
                     </>
                 )}
@@ -176,10 +171,8 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                     <>
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-slate-300 uppercase tracking-widest px-4 mb-4">Clinical</p>}
-                            <NavItem to="/appointments" icon={Calendar} label="Schedule" isCollapsed={isCollapsed} />
+                            <NavItem to="/clinical-schedule" icon={Calendar} label="Schedule" isCollapsed={isCollapsed} />
                             <NavItem to="/patients" icon={Users} label="Patients" isCollapsed={isCollapsed} end />
-                            <NavItem to="/records" icon={ClipboardList} label="Health Records" isCollapsed={isCollapsed} />
-                            <NavItem to="/clinical/assessments" icon={ClipboardList} label="Assessments" isCollapsed={isCollapsed} />
                         </div>
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-slate-300 uppercase tracking-widest px-4 mb-4">Communication</p>}

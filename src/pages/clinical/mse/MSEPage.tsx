@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../store';
 import { 
     ChevronLeft, 
     ChevronRight, 
@@ -25,6 +27,7 @@ import {
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { MSEService } from '../../../api/services/mse.service';
+import { UserService } from '../../../api/services/user.service';
 import { MSE_FALLBACK_QUESTIONNAIRE } from '../../../constants/mse.constants';
 import type { MSESection, MSEQuestion, MSEResponse } from '../../../types/mse.types';
 
@@ -65,8 +68,9 @@ const FindingItem = ({ label, value }: { label: string; value: any }) => {
 };
 
 const MSEPage = () => {
-    const { userId } = useParams<{ userId: string }>();
+    const { patientId: userId, mseId } = useParams<{ patientId: string; mseId?: string }>();
     const navigate = useNavigate();
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
     
     const [sections, setSections] = useState<MSESection[]>([]);
     const [currentStep, setCurrentStep] = useState(0);
@@ -95,8 +99,26 @@ const MSEPage = () => {
             }
         };
 
+        const fetchExistingRecord = async () => {
+            if (!mseId) return;
+            try {
+                setIsLoading(true);
+                const res = await MSEService.getMSEById(mseId);
+                const data = res.data || res;
+                setResult(data as MSEResponse);
+            } catch (err) {
+                console.error('Failed to fetch specific MSE record:', err);
+                setError('Could not load the specified evaluation record.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
         fetchQuestionnaire();
-    }, []);
+        if (mseId) {
+            fetchExistingRecord();
+        }
+    }, [mseId]);
 
     const handleValueChange = (section: string, key: string, value: any) => {
         setResponses(prev => ({
@@ -328,6 +350,26 @@ const MSEPage = () => {
         setError(null);
         
         try {
+            // 1. Resolve hex ID from user profile
+            let hexId = userId;
+            const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
+
+            // Optimization: Bypass unauthorized lookup if patient is submitting for self
+            if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
+                hexId = currentUser?._id || currentUser?.id || hexId;
+                console.log(`[MSEPage] Using session identity for submission: ${hexId}`);
+            } else {
+                try {
+                    const userProfile = await UserService.getUserById(userId);
+                    if (userProfile) {
+                        hexId = userProfile._id || userProfile.id || hexId;
+                        console.log(`[MSEPage] Resolved Hex ID for submission: ${hexId}`);
+                    }
+                } catch (profileError) {
+                    console.warn('[MSEPage] Profile lookup failed, using parameter ID:', profileError);
+                }
+            }
+
             // Flatten the responses
             const flattenedResponses: { questionCode: string; value: any }[] = [];
             
@@ -346,7 +388,7 @@ const MSEPage = () => {
             }
 
             const res = await MSEService.createMSE({
-                patient_id: userId,
+                patient_id: hexId,
                 responses: flattenedResponses
             });
             
@@ -360,6 +402,15 @@ const MSEPage = () => {
             setError(err.response?.data?.message || 'Failed to save the MSE. Please try again.');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+
+    const navigateBack = () => {
+        if (currentUser?.role === 'patient' || (currentUser as any)?.group === 'PATIENT') {
+            navigate('/records');
+        } else {
+            navigate(`/patients/${userId}/health`);
         }
     };
 
@@ -551,17 +602,10 @@ const MSEPage = () => {
                         </h1>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Button 
-                            variant="outline"
-                            onClick={() => setResult(null)}
-                            leftIcon={<ChevronLeft size={18} />}
-                            className="rounded-2xl h-12 px-6 font-black uppercase text-xs tracking-widest border-2"
-                        >
-                            Refine Assessment
-                        </Button>
+
                         <Button 
                             variant="primary"
-                            onClick={() => navigate(`/patients/${userId}/health`)}
+                            onClick={navigateBack}
                             className="rounded-2xl h-12 px-8 font-black uppercase text-xs tracking-widest bg-slate-900 border-none shadow-xl shadow-slate-200"
                         >
                             Return to Profile
@@ -746,7 +790,7 @@ const MSEPage = () => {
         <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in pb-24">
             <header className="flex items-center gap-6">
                 <button
-                    onClick={() => navigate(`/patients/${userId}/health`)}
+                    onClick={navigateBack}
                     className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />

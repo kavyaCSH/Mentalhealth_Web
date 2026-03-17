@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../store';
 import { 
     ChevronLeft, 
     History as HistoryIcon, 
@@ -18,12 +20,15 @@ import { HPIService } from '../../../api/services/hpi.service';
 import type { HPIResponse } from '../../../api/services/hpi.service';
 
 const HPIDetail = () => {
-    const { userId, hpiId } = useParams<{ userId: string; hpiId: string }>();
+    const { patientId: userId, hpiId } = useParams<{ patientId: string; hpiId: string }>();
     const navigate = useNavigate();
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+
     
     const [hpi, setHpi] = useState<HPIResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
 
     useEffect(() => {
         if (hpiId) {
@@ -33,15 +38,30 @@ const HPIDetail = () => {
 
     const fetchDetail = async () => {
         setIsLoading(true);
+        const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.group === 'PATIENT';
         try {
             const response = await HPIService.getHPIById(hpiId!, userId);
             const data = response.data || response;
             setHpi(data);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to fetch HPI detail:', err);
-            setError('Could not load the HPI clinical details.');
+            
+            // Suppress 403 for patients
+            if (isPatient && err.response?.status === 403) {
+                setError('Detailed clinical analysis is restricted to authorized providers.');
+            } else {
+                setError('Could not load the HPI clinical details.');
+            }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const navigateBack = () => {
+        if (currentUser?.role === 'patient' || (currentUser as any)?.group === 'PATIENT') {
+            navigate('/records');
+        } else {
+            navigate(`/patients/${userId}/hpi`);
         }
     };
 
@@ -61,7 +81,7 @@ const HPIDetail = () => {
                     <AlertCircle size={18} />
                     {error || 'Clinical record not found.'}
                 </div>
-                <Button variant="outline" onClick={() => navigate(`/patients/${userId}/hpi`)}>
+                <Button variant="outline" onClick={navigateBack}>
                     Go Back to History
                 </Button>
             </div>
@@ -74,7 +94,7 @@ const HPIDetail = () => {
         <div className="p-8 max-w-6xl space-y-10 animate-fade-in pb-24">
             <header className="flex items-start gap-6">
                 <button
-                    onClick={() => navigate(`/patients/${userId}/hpi`)}
+                    onClick={navigateBack}
                     className="p-2.5 mt-1 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={18} />
@@ -99,6 +119,7 @@ const HPIDetail = () => {
                         </span>
                     </div>
                 </div>
+
             </header>
 
             <div className="grid lg:grid-cols-3 gap-8">

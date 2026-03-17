@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Lock, ChevronRight, Github, Chrome, ShieldCheck, User as UserIcon, Hospital, Stethoscope, Activity, Users, MessageSquare } from 'lucide-react';
+import { Heart, Lock, ChevronRight, Github, Chrome, ShieldCheck, User as UserIcon, Stethoscope, Activity, Users, MessageSquare } from 'lucide-react';
 import { setCredentials, getCurrentUser } from '../../features/auth/store/authSlice';
 import type { AppDispatch } from '../../store';
 import type { User, UserRole } from '../../types/user.types';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
-import Select from '../../components/ui/Select';
 import { AuthService } from '../../api/services/auth.service';
 
 const LoginPage = () => {
@@ -56,16 +55,19 @@ const LoginPage = () => {
         }
     };
 
-    const roleOptions = [
-        { value: 'super_admin', label: 'Super Administrator', icon: ShieldCheck },
-        { value: 'admin', label: 'Administrator', icon: ShieldCheck },
-        { value: 'hospital', label: 'Hospital Management', icon: Hospital },
-        { value: 'psychiatrist', label: 'Psychiatrist', icon: Stethoscope },
+    const categories = [
+        { id: 'patient', label: 'Patient', icon: UserIcon, roles: ['patient'] },
+        { id: 'clinical', label: 'Clinical', icon: Stethoscope, roles: ['psychiatrist', 'psychologist', 'nurse', 'social_worker', 'counselor'] },
+        { id: 'admin', label: 'Admin', icon: ShieldCheck, roles: ['hospital', 'admin', 'super_admin'] },
+    ];
+
+    const [activeCategory, setActiveCategory] = useState('patient');
+
+    const proRoles = [
+        { value: 'psychiatrist', label: 'Psychiatrist', icon: Activity },
         { value: 'psychologist', label: 'Psychologist', icon: Activity },
-        { value: 'nurse', label: 'Clinical Nurse', icon: Users },
-        { value: 'social_worker', label: 'Social Worker', icon: Users },
+        { value: 'nurse', label: 'Nurse', icon: Users },
         { value: 'counselor', label: 'Counselor', icon: MessageSquare },
-        { value: 'patient', label: 'Patient', icon: UserIcon },
     ];
 
     return (
@@ -126,12 +128,71 @@ const LoginPage = () => {
                         </Link>
                     </div>
 
-                    <Select
-                        label="Access Role"
-                        options={roleOptions}
-                        value={role}
-                        onChange={(val) => setRole(val as UserRole)}
-                    />
+                    <div className="space-y-4 mb-8">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">I am a...</p>
+                        <div className="flex p-1.5 bg-slate-100/80 rounded-[2rem] gap-1">
+                            {categories.map((cat) => (
+                                <button
+                                    key={cat.id}
+                                    type="button"
+                                    onClick={() => {
+                                        setActiveCategory(cat.id);
+                                        setRole(cat.roles[0] as UserRole);
+                                    }}
+                                    className={`flex-1 flex flex-col items-center justify-center py-4 rounded-[1.5rem] transition-all duration-300 relative overflow-hidden ${activeCategory === cat.id ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-100/50 scale-[1.02]' : 'text-slate-400 hover:text-slate-600'
+                                        }`}
+                                >
+                                    <cat.icon size={20} className="mb-1" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{cat.label}</span>
+                                    {activeCategory === cat.id && (
+                                        <motion.div layoutId="active-dot" className="absolute bottom-2 w-1.5 h-1.5 bg-indigo-600 rounded-full" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {activeCategory === 'clinical' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="grid grid-cols-2 gap-2 mt-4"
+                            >
+                                {proRoles.map((r) => (
+                                    <button
+                                        key={r.value}
+                                        type="button"
+                                        onClick={() => setRole(r.value as UserRole)}
+                                        className={`flex items-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all ${role === r.value ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'
+                                            }`}
+                                    >
+                                        <r.icon size={14} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">{r.label}</span>
+                                    </button>
+                                ))}
+                            </motion.div>
+                        )}
+
+                        {activeCategory === 'admin' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex gap-2"
+                            >
+                                {['hospital', 'admin'].map((r) => (
+                                    <button
+                                        key={r}
+                                        type="button"
+                                        onClick={() => setRole(r as UserRole)}
+                                        className={`flex-1 flex items-center justify-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all ${role === r ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'
+                                            }`}
+                                    >
+                                        <ShieldCheck size={14} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">{r} Portal</span>
+                                    </button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </div>
 
                     <Button
                         type="submit"

@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 import { Stethoscope, History as HistoryIcon, Activity, Brain } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { ChiefComplaintService } from '../../api/services/chiefComplaint.service';
@@ -7,16 +9,24 @@ import { HPIService } from '../../api/services/hpi.service';
 import { MSEService } from '../../api/services/mse.service';
 import { PastHistoryService } from '../../api/services/pastHistory.service';
 import { ROSService } from '../../api/services/ros.service';
+import { TreatmentService } from '../../api/services/treatment.service';
+import { AssessmentService } from '../../api/services/assessment.service';
+import { UserService } from '../../api/services/user.service';
+import type { TreatmentProgress } from '../../types/treatment.types';
+import { ClipboardCheck, ClipboardList } from 'lucide-react';
 
 const Health = () => {
     const navigate = useNavigate();
-    const { userId } = useParams<{ userId: string }>();
+    const { patientId: userId } = useParams<{ patientId: string }>();
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
 
     const [latestComplaint, setLatestComplaint] = useState<any>(null);
     const [latestHPI, setLatestHPI] = useState<any>(null);
     const [latestMSE, setLatestMSE] = useState<any>(null);
     const [latestHistory, setLatestHistory] = useState<any>(null);
     const [latestROS, setLatestROS] = useState<any>(null);
+    const [treatmentProgress, setTreatmentProgress] = useState<TreatmentProgress | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -28,39 +38,104 @@ const Health = () => {
     const fetchLatestRecords = async () => {
         setIsLoading(true);
         try {
-            const [complaintsRes, hpiRes, mseRes, historyRes, rosRes] = await Promise.all([
-                ChiefComplaintService.listComplaints({ patientId: userId || '', limit: 1 }),
-                HPIService.getHPIList({ patient_id: userId || '' }),
-                MSEService.listMSEByPatient(userId || ''),
-                PastHistoryService.getPastHistoryByPatient(userId || ''),
-                ROSService.getROSByPatient(userId || '')
+            console.log(`[Health] Resolving health overview for: ${userId}`);
+            
+            // 1. Fetch user profile to resolve both hex and numeric IDs
+            let hexId = userId || '';
+            let numericId: string | number | undefined = undefined;
+            
+            // Optimization: If viewing own profile as patient, we already have the IDs
+            if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
+                hexId = currentUser?._id || currentUser?.id || hexId;
+                numericId = currentUser?.userId;
+                console.log(`[Health] Using current patient session IDs: ${hexId}`);
+            } else {
+                try {
+                    const userProfile = await UserService.getUserById(userId || '');
+                    if (userProfile) {
+                        hexId = userProfile._id || userProfile.id || hexId;
+                        numericId = userProfile.userId;
+                        console.log(`[Health] Resolved IDs - Hex: ${hexId}, Numeric: ${numericId}`);
+                    }
+                } catch (profileError) {
+                    console.warn('[Health] Profile fetch failed, using fallback identifiers:', profileError);
+                }
+            }
+
+            // 2. Core clinical calls use the hex ID - Wrapped in individual try-catches to handle clinical 403s for patients
+            const [complaintsRes, hpiRes, mseRes, historyRes, rosRes] = await Promise.allSettled([
+                ChiefComplaintService.listComplaints({ patientId: hexId, limit: 1 }),
+                HPIService.getHPIList({ patient_id: hexId }),
+                MSEService.listMSEByPatient(hexId),
+                PastHistoryService.getPastHistoryByPatient(hexId),
+                ROSService.getROSByPatient(hexId)
             ]);
 
-            const complaints = complaintsRes?.data || complaintsRes || [];
-            if (Array.isArray(complaints) && complaints.length > 0) {
-                setLatestComplaint(complaints[0]);
+            // 3. Fetch Treatment Progress (using numeric ID)
+            try {
+                let resolvedTreatmentId: string | number = numericId || userId || '';
+                
+                // If we don't have a numeric ID yet, try to resolve it
+                if (typeof resolvedTreatmentId === 'string' && resolvedTreatmentId.length > 20) {
+                     const assessmentData = await AssessmentService.getQuestions(resolvedTreatmentId);
+                     if (assessmentData.profile?.userId) {
+                         resolvedTreatmentId = Number(assessmentData.profile.userId);
+                     }
+                }
+
+                console.log(`[Health] Fetching treatment progress with ID: ${resolvedTreatmentId}`);
+                const rawData = await TreatmentService.getPatientProgress(resolvedTreatmentId);
+                let data: any = rawData;
+
+                // Handle API response where stages are in a 'data' array (flexible parsing)
+                if (data && data.data && Array.isArray(data.data)) {
+                    const stageArray = data.data;
+                    data = {
+                        stages: stageArray,
+                        overall_progress: Math.round((stageArray.filter((s: any) => s.status === 'completed').length / (stageArray.length || 1)) * 100),
+                        diagnosis: data.diagnosis || 'Therapeutic Framework',
+                        patientId: String(resolvedTreatmentId)
+                    };
+                }
+
+                if (data && !Array.isArray(data) && data.stages) {
+                    setTreatmentProgress(data);
+                }
+            } catch (treatmentError) {
+                console.warn('[Health] Treatment progress fetch failed:', treatmentError);
             }
 
-            const hpis = hpiRes?.data || hpiRes || [];
-            if (Array.isArray(hpis) && hpis.length > 0) {
-                // Assuming the first one is the latest or we need to sort
-                setLatestHPI(hpis[0]);
+            // Update individual states based on Settlement results
+            if (complaintsRes.status === 'fulfilled') {
+                const res = complaintsRes.value;
+                const complaints = res?.data || res || [];
+                if (Array.isArray(complaints) && complaints.length > 0) setLatestComplaint(complaints[0]);
             }
 
-            const mses = mseRes?.data || mseRes || [];
-            if (Array.isArray(mses) && mses.length > 0) {
-                setLatestMSE(mses[0]);
+            if (hpiRes.status === 'fulfilled') {
+                const res = hpiRes.value;
+                const hpis = res?.data || res || [];
+                if (Array.isArray(hpis) && hpis.length > 0) setLatestHPI(hpis[0]);
             }
 
-            const history = historyRes?.data || historyRes || [];
-            if (Array.isArray(history) && history.length > 0) {
-                setLatestHistory(history[0]);
+            if (mseRes.status === 'fulfilled') {
+                const res = mseRes.value;
+                const mses = res?.data || res || [];
+                if (Array.isArray(mses) && mses.length > 0) setLatestMSE(mses[0]);
             }
 
-            const rosRecords = rosRes?.data || rosRes || [];
-            if (Array.isArray(rosRecords) && rosRecords.length > 0) {
-                setLatestROS(rosRecords[0]);
+            if (historyRes.status === 'fulfilled') {
+                const res = historyRes.value;
+                const history = res?.data || res || [];
+                if (Array.isArray(history) && history.length > 0) setLatestHistory(history[0]);
             }
+
+            if (rosRes.status === 'fulfilled') {
+                const res = rosRes.value;
+                const rosRecords = res?.data || res || [];
+                if (Array.isArray(rosRecords) && rosRecords.length > 0) setLatestROS(rosRecords[0]);
+            }
+
         } catch (error) {
             console.error('Failed to fetch latest health records:', error);
         } finally {
@@ -195,6 +270,70 @@ const Health = () => {
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Systems Review</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed">
                             {latestROS ? `Last review completed on ${new Date(latestROS.createdAt).toLocaleDateString()}` : 'No systematic review of systems performed.'}
+                        </p>
+                    </div>
+                </motion.div>
+
+                {/* Treatment Plan Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    onClick={() => navigate(`/patients/${userId}/treatment`)}
+                    className="card-premium p-5 border-slate-100 hover:border-emerald-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                >
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <ClipboardCheck size={20} />
+                        </div>
+                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Treatment Plan</h2>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Protocol Status</p>
+                        {treatmentProgress ? (
+                            <div className="space-y-2">
+                                <p className="text-sm font-semibold text-slate-700 leading-relaxed truncate">
+                                    {treatmentProgress.diagnosis}
+                                </p>
+                                <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    <span>Progress</span>
+                                    <span className="text-emerald-600">{treatmentProgress.overall_progress}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
+                                        style={{ width: `${treatmentProgress.overall_progress}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                                No active treatment protocol identified.
+                            </p>
+                        )}
+                    </div>
+                </motion.div>
+
+
+
+                {/* Clinical Assessments Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                    onClick={() => navigate(`/clinical/assessments?patientId=${userId}`)}
+                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                >
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <ClipboardList size={20} />
+                        </div>
+                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Clinical Assessments</h2>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Evaluation Pool</p>
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed uppercase">
+                            Assign or conduct standardized clinical evaluations for this patient.
                         </p>
                     </div>
                 </motion.div>

@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import {
     Activity,
     Calendar,
     ChevronDown,
     ChevronRight,
+    ChevronLeft,
     Search,
     Download,
     Brain,
@@ -41,6 +42,7 @@ const getSeverityStyle = (severity?: string, interpretation?: string) => {
 
 const HistoryPage = () => {
     const navigate = useNavigate();
+    const { patientId } = useParams<{ patientId: string }>();
     const [history, setHistory] = useState<AssessmentResult[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [masters, setMasters] = useState<AssessmentMaster[]>([]);
@@ -79,17 +81,26 @@ const HistoryPage = () => {
 
     useEffect(() => {
         fetchHistory(1, true);
-    }, [activeCategory, statusFilter, startDate, endDate, searchQuery]);
+    }, [activeCategory, statusFilter, startDate, endDate, searchQuery, patientId]);
 
     const fetchHistory = useCallback(async (pageNum: number, reset: boolean = false) => {
         if (reset) setIsLoading(true);
 
         try {
-            // Mobile app uses AssessmentHistoryScreen with granular filters
-            // Here we map Status and Date Range into params if the service supports it
-            // Assuming getOwnHistory can take additional filters in params
-            const result = await AssessmentService.getOwnHistory(pageNum, 10, activeCategory);
-            const items = result.assessments;
+            let items: AssessmentResult[] = [];
+            
+            if (patientId) {
+                // Fetch for specific patient
+                const allAssessments = await AssessmentService.getPatientHistory(patientId);
+                // Filter by category if one is selected
+                items = activeCategory === 'all' 
+                    ? allAssessments 
+                    : allAssessments.filter(a => (a.category === activeCategory || a.slug === activeCategory));
+            } else {
+                // Fetch own history
+                const result = await AssessmentService.getOwnHistory(pageNum, 10, activeCategory);
+                items = result.assessments;
+            }
 
             if (reset) {
                 setHistory(items);
@@ -97,7 +108,8 @@ const HistoryPage = () => {
                 setHistory(prev => [...prev, ...items]);
             }
 
-            setHasMore(items.length >= 10);
+            // Simple pagination logic for patient history (if it's not paginated by API)
+            setHasMore(!patientId && items.length >= 10);
             setPage(pageNum);
             setFetchError(null);
         } catch (err: any) {
@@ -109,7 +121,7 @@ const HistoryPage = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [activeCategory]);
+    }, [activeCategory, patientId]);
 
     const loadMore = () => {
         if (!isLoading && hasMore) {
@@ -157,15 +169,31 @@ const HistoryPage = () => {
         <div className="p-8 max-w-6xl  space-y-8 animate-fade-in pb-20">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => {
+                                if (patientId) {
+                                    navigate(`/patients/${patientId}?view=focused`);
+                                } else {
+                                    navigate(-1);
+                                }
+                            }}
+                            className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
+                        >
+                            <ChevronLeft size={14} /> Back to Patient Record
+                        </button>
+                    </div>
                     <div className="flex items-center gap-3 text-indigo-600 mb-2">
                         <CalendarDays size={18} />
-                        <span className="text-xs font-black uppercase tracking-widest">Clinical Data Repository</span>
+                        <span className="text-xs font-black uppercase tracking-widest">{patientId ? 'Patient Results Vault' : 'Clinical Data Repository'}</span>
                     </div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                        {activeCategory === 'all' ? 'Assessment' : masters.find(m => m.slug === activeCategory)?.name || 'Assessment'} History
+                        {activeCategory === 'all' ? 'Assessment' : masters.find(m => m.slug === activeCategory)?.name || 'Assessment'} {patientId ? 'Records' : 'History'}
                     </h1>
                     <div className="flex items-center gap-4 mt-1">
-                        <p className="text-slate-500 font-medium">Manage and export your longitudinal clinical results.</p>
+                        <p className="text-slate-500 font-medium">
+                            {patientId ? 'Review longitudinal clinical results for this patient.' : 'Manage and export your longitudinal clinical results.'}
+                        </p>
                         {history.length > 0 && (
                             <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-widest">
                                 {history.length} Attempt{history.length !== 1 ? 's' : ''}
@@ -338,7 +366,12 @@ const HistoryPage = () => {
                                         transition={{ delay: index * 0.05 }}
                                         onClick={() => {
                                             const itemId = item._id || item.id;
-                                            if (itemId) navigate(`/history/${itemId}`);
+                                            if (itemId) {
+                                                const path = patientId 
+                                                    ? `/patients/${patientId}/history/${itemId}`
+                                                    : `/history/${itemId}`;
+                                                navigate(path);
+                                            }
                                         }}
                                         className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-50/50 hover:border-indigo-100 transition-all group cursor-pointer overflow-hidden relative"
                                     >

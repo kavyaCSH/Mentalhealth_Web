@@ -10,11 +10,13 @@ import {
     Save,
     Loader2
 } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../store';
 import Button from '../../../components/ui/Button';
 import { ChiefComplaintService } from '../../../api/services/chiefComplaint.service';
 
 const EditChiefComplaint = () => {
-    const { userId, ccId } = useParams<{ userId: string; ccId: string }>();
+    const { patientId: userId, ccId } = useParams<{ patientId: string; ccId: string }>();
     const navigate = useNavigate();
     
     const [narrative, setNarrative] = useState('');
@@ -34,7 +36,13 @@ const EditChiefComplaint = () => {
     const fetchInitialData = async () => {
         setIsLoading(true);
         try {
-            const response = await ChiefComplaintService.getById(ccId!);
+            let response;
+            if (isPatient) {
+                const hexId = currentUser?._id || currentUser?.id || userId;
+                response = await ChiefComplaintService.getPatientComplaintById(hexId as string, ccId!);
+            } else {
+                response = await ChiefComplaintService.getById(ccId!, userId);
+            }
             // Handle different response structures
             const data = response.data || response;
             if (data && data.narrative) {
@@ -100,6 +108,11 @@ const EditChiefComplaint = () => {
         }
     };
 
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
+
+
+
     const handleSave = async () => {
         if (!narrative.trim()) {
             setError('Please provide a narrative for the complaint.');
@@ -110,13 +123,25 @@ const EditChiefComplaint = () => {
         setError(null);
 
         try {
+            // Resolve hex ID for authorization
+            let hexId = userId;
+            if (isPatient && (currentUser?._id || currentUser?.id)) {
+                hexId = currentUser?._id || currentUser?.id || userId;
+            }
+
+            console.log(`[EditChiefComplaint] Updating record ${ccId} for identity: ${hexId}`);
+
             // Postman PATCH usually expects JSON for standard updates
             await ChiefComplaintService.updateComplaint(ccId!, {
                 narrative: narrative.trim()
-            });
+            }, hexId);
             
             alert('Chief complaint updated successfully!');
-            navigate(`/patients/${userId}/chief-complaint/${ccId}`);
+            if (isPatient) {
+                navigate(`/records/chief-complaint/${ccId}`);
+            } else {
+                navigate(`/patients/${userId}/chief-complaint/${ccId}`);
+            }
         } catch (err: any) {
             console.error('Failed to update complaint:', err);
             setError(err.response?.data?.message || 'Failed to update the record. Please try again.');
@@ -138,7 +163,7 @@ const EditChiefComplaint = () => {
         <div className="p-8 max-w-4xl  space-y-10 animate-fade-in pb-24">
             <header className="flex items-center gap-6">
                 <button
-                    onClick={() => navigate(`/patients/${userId}/chief-complaint`)}
+                    onClick={() => navigate(isPatient ? '/records/chief-complaint' : `/patients/${userId}/chief-complaint`)}
                     className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />

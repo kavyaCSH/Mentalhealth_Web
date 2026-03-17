@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../store';
 import { 
     ChevronLeft, 
     History as HistoryIcon, 
@@ -13,7 +15,7 @@ import Button from '../../../components/ui/Button';
 import { HPIService } from '../../../api/services/hpi.service';
 
 const AddHPI = () => {
-    const { userId } = useParams<{ userId: string }>();
+    const { patientId: userId } = useParams<{ patientId: string }>();
     const navigate = useNavigate();
     
     const [content, setContent] = useState('');
@@ -22,6 +24,8 @@ const AddHPI = () => {
     const [error, setError] = useState<string | null>(null);
     
     const recognitionRef = useRef<any>(null);
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
 
     useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -103,7 +107,7 @@ const AddHPI = () => {
             if (hpiId) {
                 navigate(`/patients/${userId}/hpi/${hpiId}`);
             } else {
-                navigate(`/patients/${userId}/hpi`);
+                navigate(isPatient ? '/records' : `/patients/${userId}/hpi`);
             }
         } catch (err: any) {
             console.error('Failed to save HPI:', err);
@@ -117,7 +121,7 @@ const AddHPI = () => {
         <div className="p-8 max-w-4xl  space-y-10 animate-fade-in pb-24">
             <header className="flex items-center gap-6">
                 <button
-                    onClick={() => navigate(`/patients/${userId}/health`)}
+                    onClick={() => navigate(isPatient ? '/records' : `/patients/${userId}/health`)}
                     className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />

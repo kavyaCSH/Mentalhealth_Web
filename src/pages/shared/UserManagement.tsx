@@ -41,11 +41,14 @@ const UserManagement = () => {
         gender: 'male',
         dateOfBirth: '',
         address: '',
+        city: '',
         // Professional specific
         specialization: '',
         experienceYears: '',
         consultationFee: '',
         about: '',
+        qualifications: '',
+        languages: '',
         // Patient specific
         emergencyContact: ''
     });
@@ -56,7 +59,9 @@ const UserManagement = () => {
         { value: 'psychologist', label: 'Psychologist', icon: Activity },
         { value: 'nurse', label: 'Clinical Nurse', icon: Activity },
         { value: 'counselor', label: 'Counselor', icon: Activity },
-        { value: 'social_worker', label: 'Social Worker', icon: Activity }
+        { value: 'social_worker', label: 'Social Worker', icon: Activity },
+        { value: 'hospital', label: 'Hospital Admin', icon: Shield },
+        { value: 'admin', label: 'System Admin', icon: Shield }
     ];
 
     const isProfessional = ['psychiatrist', 'psychologist', 'nurse', 'counselor', 'social_worker'].includes(formData.role);
@@ -215,11 +220,12 @@ const UserManagement = () => {
                         />
                         <InputField
                             label="Contact Number"
-                            placeholder="johndoe123"
-                            value={formData.username}
+                            name="phone"
+                            placeholder="+1 (555) 000-0000"
+                            value={formData.phone}
                             onChange={handleInputChange}
                             required
-                            leftIcon={<UserIcon size={20} />}
+                            leftIcon={<Phone size={16} />}
                         />
                         <InputField
                             label="Date of Birth"
@@ -228,6 +234,14 @@ const UserManagement = () => {
                             value={formData.dateOfBirth}
                             onChange={handleInputChange}
                             leftIcon={<Calendar size={16} />}
+                        />
+                        <InputField
+                            label="City/Region"
+                            name="city"
+                            value={formData.city}
+                            onChange={handleInputChange}
+                            placeholder="New York, NY"
+                            leftIcon={<MapPin size={16} />}
                         />
                     </div>
                 </section>
@@ -257,6 +271,22 @@ const UserManagement = () => {
                                 onChange={handleInputChange}
                                 placeholder="e.g. Cognitive Behavioral Therapy"
                                 leftIcon={<Briefcase size={16} />}
+                            />
+                            <InputField
+                                label="Highest Qualification"
+                                name="qualifications"
+                                value={formData.qualifications}
+                                onChange={handleInputChange}
+                                placeholder="e.g. MD, PhD in Clinical Psychology"
+                                leftIcon={<Shield size={16} />}
+                            />
+                            <InputField
+                                label="Spoken Languages"
+                                name="languages"
+                                value={formData.languages}
+                                onChange={handleInputChange}
+                                placeholder="e.g. English, Spanish, French"
+                                leftIcon={<Mail size={16} />}
                             />
                             <div className="grid grid-cols-2 gap-4">
                                 <InputField
