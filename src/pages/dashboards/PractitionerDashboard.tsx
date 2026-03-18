@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -19,13 +19,15 @@ import {
 import type { RootState } from '../../store';
 import api from '../../api/client';
 import Button from '../../components/ui/Button';
+import type { Consultation, Participant } from '../../types/common.types';
+import { TeleConsultService } from '../../api/services/teleconsult.service';
 
 
 const PractitionerDashboard = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
     const [stats, setStats] = useState<{ activePatients?: number; totalSessions?: number; totalRevenue?: number } | null>(null);
-    const [todaySessions, setTodaySessions] = useState<any[]>([]);
+    const [todaySessions, setTodaySessions] = useState<Consultation[]>([]);
     const [expandedSession, setExpandedSession] = useState<string | null>(null);
     const [isStatsLoading, setIsStatsLoading] = useState(true);
     const [isSessionsLoading, setIsSessionsLoading] = useState(true);
@@ -44,13 +46,13 @@ const PractitionerDashboard = () => {
                 const { data, timestamp } = JSON.parse(cached);
                 setStats(data);
                 setLastUpdated(timestamp);
-            } catch (e) {
+            } catch {
                 console.error('Failed to parse cached stats');
             }
         }
     }, []);
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         if (!user) {
             console.warn('[API] fetchStats blocked: No user object found.');
             return;
@@ -78,10 +80,11 @@ const PractitionerDashboard = () => {
                 setStatsError(false);
                 setConnectionStatus('stable');
             }
-        } catch (error: any) {
-            console.error('[API] Specialist Stats Failed:', error.message);
+        } catch (error: unknown) {
+            const err = error as { message?: string; code?: string };
+            console.error('[API] Specialist Stats Failed:', err.message);
             setStatsError(true);
-            if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+            if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
                 setConnectionStatus('unresponsive');
             } else {
                 setConnectionStatus('slow');
@@ -89,9 +92,9 @@ const PractitionerDashboard = () => {
         } finally {
             setIsStatsLoading(false);
         }
-    };
+    }, [user]);
 
-    const fetchSessions = async () => {
+    const fetchSessions = useCallback(async () => {
         if (!user) return;
         setIsSessionsLoading(true);
         try {
@@ -119,7 +122,7 @@ const PractitionerDashboard = () => {
         } finally {
             setIsSessionsLoading(false);
         }
-    };
+    }, [user]);
 
     useEffect(() => {
         const userId = user?.userId || user?.id || user?._id;
@@ -132,7 +135,7 @@ const PractitionerDashboard = () => {
         } else {
             console.log('[PractitionerDashboard] Waiting for user authentication...');
         }
-    }, [user]); // Use the whole user object as dependency for maximum reliability
+    }, [user, fetchStats, fetchSessions]); // Use the whole user object as dependency for maximum reliability
 
     const getConsultStatusColor = (status: string) => {
         const s = status?.toLowerCase() || '';
@@ -344,7 +347,7 @@ const PractitionerDashboard = () => {
                                 ))
                             ) : recentSessions.length > 0 ? (
                                 recentSessions.map((session, i) => {
-                                    const patient: any = session.participants?.find((p: any) => 
+                                    const patient = session.participants?.find((p: Participant) => 
                                         p.role === 'subscriber' || 
                                         p.role === 'patient' ||
                                         p.participant_type?.code === 'patient' || 
@@ -358,7 +361,7 @@ const PractitionerDashboard = () => {
                                     
                                     // Robust name extraction favoring First + Last name combinations
                                     const pInfo = patient?.participant_info;
-                                    const pName = 
+                                    const pName = String(
                                         pInfo?.name ||
                                         (patient?.firstName ? `${patient.firstName} ${patient.lastName || ''}`.trim() : null) ||
                                         (patient?.first_name ? `${patient.first_name} ${patient.last_name || ''}`.trim() : null) ||
@@ -366,7 +369,8 @@ const PractitionerDashboard = () => {
                                         (pInfo?.first_name ? `${pInfo.first_name} ${pInfo.last_name || ''}`.trim() : null) ||
                                         patient?.name || 
                                         patient?.additional_info?.x_name ||
-                                        'Assigned Patient';
+                                        'Assigned Patient'
+                                    );
                                     
                                     const isVirtual = session.consult_type === 'virtual';
                                     const isExpanded = expandedSession === String(session.id || session._id);
@@ -419,14 +423,37 @@ const PractitionerDashboard = () => {
                                                         {isVirtual && (
                                                             <button 
                                                                 className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95"
-                                                                onClick={(e) => { 
+                                                                 onClick={async (e) => { 
                                                                     e.stopPropagation(); 
-                                                                    navigate(`/teleconsult/${session.id || session._id}`, { 
-                                                                        state: { 
-                                                                            appointment: session,
-                                                                            token: session.token || session.subscriber_token || (session.participants?.find((p: any) => p.token)?.token)
-                                                                        } 
-                                                                    }); 
+                                                                    
+                                                                    const getPublisherToken = () => {
+                                                                        const publisher = session.participants?.find((p: Participant) => 
+                                                                            p.role === 'publisher' || 
+                                                                            p.participant_type?.code === 'professional' ||
+                                                                            String(p.ref_number) === String(user?.userId || user?.id)
+                                                                        );
+                                                                        return publisher?.token || session.publisher_token || session.token;
+                                                                    };
+                                                                    
+                                                                    const token = getPublisherToken();
+                                                                    
+                                                                    if (token) {
+                                                                        try {
+                                                                            const validation = await TeleConsultService.tokenValidate(token, 'publisher');
+                                                                            if (validation.success || validation.code === 200) {
+                                                                                const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
+                                                                                window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                                                                            } else {
+                                                                                alert('Could not validate session. Please try again.');
+                                                                            }
+                                                                        } catch (err) {
+                                                                            console.error('Validation failed', err);
+                                                                            const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
+                                                                            window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                                                                        }
+                                                                    } else {
+                                                                        alert('Consultation token not found.');
+                                                                    }
                                                                 }}
                                                                 title="Join Session"
                                                             >

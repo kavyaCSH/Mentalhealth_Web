@@ -98,16 +98,41 @@ const ClinicalSchedulePage = () => {
         fetchPatients('');
     };
 
-    const handleJoinCall = (session: Consultation) => {
+    const handleJoinCall = async (session: Consultation) => {
         const apptId = session.id || session.consult_id || (session as any)._id;
         if (!apptId) return;
         
-        navigate(`/teleconsult/${apptId}`, {
-            state: {
-                appointment: session,
-                token: (session as any).token || (session as any).subscriber_token || (session.participants?.find((p: any) => p.token)?.token)
+        const getPublisherToken = () => {
+            const publisher = session.participants?.find((p: any) => 
+                p.role === 'publisher' || 
+                p.participant_type?.code === 'professional' ||
+                String(p.ref_number) === String(user?.userId || user?.id)
+            );
+            return publisher?.token || (session as any).publisher_token || (session as any).token;
+        };
+
+        const token = getPublisherToken();
+        
+        if (token) {
+            try {
+                // Determine type based on user role or session info
+                const validation = await TeleConsultService.tokenValidate(token, 'publisher');
+                if (validation.success || validation.code === 200) {
+                    const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
+                    window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                } else {
+                    console.error('Token validation failed', validation);
+                    const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
+                    window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                }
+            } catch (err) {
+                console.error('Validation error', err);
+                const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
+                window.location.href = `${baseUrl}${token}?hideMenu=true`;
             }
-        });
+        } else {
+            alert('Consultation token not found.');
+        }
     };
 
     const handleBookAppointment = async () => {

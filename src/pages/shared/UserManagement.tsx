@@ -22,7 +22,7 @@ import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
 import Select from '../../components/ui/Select';
 import { UserService } from '../../api/services/user.service';
-import type { User } from '../../types/user.types';
+// import type { User } from '../../types/user.types';
 
 const UserManagement = () => {
     const navigate = useNavigate();
@@ -80,7 +80,8 @@ const UserManagement = () => {
                 ...formData,
                 experienceYears: formData.experienceYears ? parseInt(formData.experienceYears) : undefined,
                 consultationFee: formData.consultationFee ? parseInt(formData.consultationFee) : undefined,
-            } as Partial<User>;
+                languages: formData.languages ? formData.languages.split(',').map(l => l.trim()).filter(Boolean) : undefined,
+            } as any;
 
             await UserService.createUserByRole(formData.role, payload);
 

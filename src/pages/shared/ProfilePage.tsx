@@ -9,42 +9,41 @@ import {
 import type { RootState } from '../../store';
 
 
+const MenuItem = ({ icon: IconComp, label, value, onClick, color = "text-indigo-600", bg = "bg-indigo-50" }: any) => (
+    <button 
+        onClick={onClick}
+        className="w-full flex items-center justify-between p-6 hover:bg-slate-50 transition-all group"
+    >
+        <div className="flex items-center gap-5">
+            <div className={`w-12 h-12 ${bg} ${color} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
+                <IconComp size={22} />
+            </div>
+            <div className="text-left">
+                <p className="font-black text-slate-900 text-[15px] tracking-tight">{label}</p>
+                {value && <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{value}</p>}
+            </div>
+        </div>
+        <ChevronRight className="text-slate-300 group-hover:text-indigo-600 transition-colors" size={20} />
+    </button>
+);
+
+const Section = ({ title, children }: any) => (
+    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden mb-10">
+        <div className="px-8 pt-8 pb-4">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{title}</h2>
+        </div>
+        <div className="divide-y divide-slate-50">
+            {children}
+        </div>
+    </div>
+);
+
 const ProfilePage = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
 
     // Mock theme - in real app, connect to ThemeContext
     const [themeType, setThemeType] = React.useState<'light' | 'dark' | 'auto'>('light');
-
-
-    const MenuItem = ({ icon: IconComp, label, value, onClick, color = "text-indigo-600", bg = "bg-indigo-50" }: any) => (
-        <button 
-            onClick={onClick}
-            className="w-full flex items-center justify-between p-6 hover:bg-slate-50 transition-all group"
-        >
-            <div className="flex items-center gap-5">
-                <div className={`w-12 h-12 ${bg} ${color} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
-                    <IconComp size={22} />
-                </div>
-                <div className="text-left">
-                    <p className="font-black text-slate-900 text-[15px] tracking-tight">{label}</p>
-                    {value && <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{value}</p>}
-                </div>
-            </div>
-            <ChevronRight className="text-slate-300 group-hover:text-indigo-600 transition-colors" size={20} />
-        </button>
-    );
-
-    const Section = ({ title, children }: any) => (
-        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden mb-10">
-            <div className="px-8 pt-8 pb-4">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{title}</h2>
-            </div>
-            <div className="divide-y divide-slate-50">
-                {children}
-            </div>
-        </div>
-    );
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] p-6 md:p-12 pb-32">

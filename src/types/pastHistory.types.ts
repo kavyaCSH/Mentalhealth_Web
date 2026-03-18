@@ -32,7 +32,7 @@ export interface PastHistorySection {
 
 export interface PastHistoryResponseItem {
     questionCode: string;
-    value: any;
+    value: unknown;
 }
 
 export interface PastHistorySubmission {
@@ -46,11 +46,11 @@ export interface PastHistoryResponse {
     consult_id: string | null;
     patient: string;
     status: string;
-    risk_flags: any[];
+    risk_flags: unknown[];
     treatment_resistance_risk: string;
     genetic_risk_summary: string;
     ai_notes: string;
     color_code: string;
     createdAt: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }

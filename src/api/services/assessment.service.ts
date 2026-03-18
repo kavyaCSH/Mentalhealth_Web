@@ -15,7 +15,7 @@ export const AssessmentService = {
         return Array.isArray(data) ? data : data?.masters || [];
     },
 
-    getMasters: async (userId?: string | number, params?: Record<string, unknown>): Promise<any> => {
+    getMasters: async (userId?: string | number, params?: Record<string, unknown>): Promise<Record<string, unknown>> => {
         const url = userId ? `/resource/masters/all/${userId}` : '/resource/masters/all';
         const response = await api.get(url, { params });
         return response.data;
@@ -59,7 +59,10 @@ export const AssessmentService = {
         const data = res.data?.data ?? res.data;
 
         if (Array.isArray(data)) {
-            return { assessments: data.map(normalizeAssessment), total: data.length };
+            return { 
+                assessments: data.filter(Boolean).map(normalizeAssessment), 
+                total: data.length 
+            };
         }
 
         // Handle deeply nested or alternative data structures
@@ -68,7 +71,7 @@ export const AssessmentService = {
             : (data.data?.assessments || data.data || []);
 
         return {
-            assessments: (Array.isArray(assessments) ? assessments : []).map(normalizeAssessment),
+            assessments: (Array.isArray(assessments) ? assessments : []).filter(Boolean).map(normalizeAssessment),
             total: Number(data.total ?? data.count ?? assessments.length ?? 0),
         };
     },
@@ -82,13 +85,13 @@ export const AssessmentService = {
     getPatientHistory: async (patientId: string): Promise<AssessmentResult[]> => {
         const res = await api.get(`/assessments/patient/${patientId}`);
         const data = res.data?.data ?? res.data;
-        return Array.isArray(data) ? data.map(normalizeAssessment) : [];
+        return (Array.isArray(data) ? data : []).filter(Boolean).map(normalizeAssessment);
     },
 
     getAllAdmin: async (): Promise<AssessmentResult[]> => {
         const res = await api.get('/assessments/admin');
         const data = res.data?.data ?? res.data;
-        return Array.isArray(data) ? data.map(normalizeAssessment) : [];
+        return (Array.isArray(data) ? data : []).filter(Boolean).map(normalizeAssessment);
     },
 
     update: async (
@@ -107,8 +110,8 @@ export const AssessmentService = {
 
 // ─── Normalization Helper ─────────────────────────────────────────────
 
-function normalizeAssessment(data: Record<string, unknown>): AssessmentResult {
-    if (!data) return data;
+function normalizeAssessment(data: Record<string, unknown> | null | undefined): AssessmentResult {
+    if (!data) return {} as AssessmentResult;
 
     // API sometimes returns score, rawScore, total_score, or totalScore
     const rawScore = Number(data.totalScore ?? data.score ?? data.rawScore ?? data.raw_score ?? data.total_score ?? 0);
@@ -127,26 +130,27 @@ function normalizeAssessment(data: Record<string, unknown>): AssessmentResult {
 
     // Extract Clinical Data (mobile parity)
     const slug = data.slug || data.type || data.category_slug || data.assessment_slug || data.category || data.category_name;
-    let clinical = (data.clinicalResults && slug) ? (data.clinicalResults as Record<string, any>)[slug as string] : {};
+    let clinical = (data.clinicalResults && slug) ? (data.clinicalResults as Record<string, Record<string, unknown>>)[slug as string] : {};
 
     // If slug lookup failed but clinical results exist, try to find the first non-empty interpretation
     if (!clinical?.interpretation && data.clinicalResults) {
-        const clinicalResults = data.clinicalResults as Record<string, any>;
+        const clinicalResults = data.clinicalResults as Record<string, Record<string, unknown>>;
         const firstKey = Object.keys(clinicalResults)[0];
         if (firstKey) clinical = clinicalResults[firstKey];
     }
 
-    let tScore = data.tScore ?? data.t_score ?? (clinical as any)?.tScore;
+    let tScore = data.tScore ?? data.t_score ?? (clinical as Record<string, unknown>)?.tScore;
     if (tScore != null) {
         tScore = Math.round(Number(tScore) * 100) / 100;
     }
 
-    const interpretation = (data.interpretation as string) || (clinical as any)?.interpretation || (data.severity as string) || (clinical as any)?.severity;
+    const interpretation = (data.interpretation as string) || (clinical as Record<string, unknown>)?.interpretation || (data.severity as string) || (clinical as Record<string, unknown>)?.severity;
 
     const finalRawScore = typeof rawScore === 'number' ? Math.round(rawScore * 100) / 100 : (rawScore as number);
 
     return {
         ...data,
+        id: data._id || data.id,
         totalScore: finalRawScore,
         score: finalRawScore, // Ensure both are synced
         maxScore: maxScore as number,

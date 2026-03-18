@@ -35,15 +35,17 @@ export interface ROSSubmission {
     extra_notes?: string;
     // The keys are flattened on the backend usually or grouped by section
     // Based on the user's POST example, it's grouped by section but includes follow-ups at the same level
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface ROSResponse {
+    id?: string | number;
+    _id?: string;
     rosId: number;
     consult_id?: string | number | null;
     status: string;
-    psychiatric: Record<string, any>;
-    medical: Record<string, any>;
+    psychiatric: Record<string, unknown>;
+    medical: Record<string, unknown>;
     extra_notes?: string;
     organic_red_flags: string[];
     medication_induced_risk: string[];

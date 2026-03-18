@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
@@ -51,13 +51,7 @@ const PatientTreatmentView = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (userId) {
-            fetchProgress();
-        }
-    }, [userId]);
-
-    const fetchProgress = async () => {
+    const fetchProgress = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
@@ -68,40 +62,60 @@ const PatientTreatmentView = () => {
             console.log('[PatientTreatment] Starting fetch. Hex:', hexId, 'Numeric:', numericId);
             // Prioritize Numeric ID (userId) which is what the treatment service typically expects
             let resolvedId: string | number = numericId || hexId || userId || '';
-            console.log('[PatientTreatment] Initially resolvedId:', resolvedId);
             
             try {
-                // 1. Try lookup with Numeric ID first
-                console.log('[PatientTreatment] Attempting lookup with ID:', resolvedId);
                 const rawData = await TreatmentService.getPatientProgress(resolvedId);
-                let data: any = rawData;
+                let data = rawData as { 
+                    data?: { 
+                        id?: string; 
+                        _id?: string; 
+                        stage?: string; 
+                        title?: string; 
+                        status?: string; 
+                        notes?: string; 
+                        description?: string; 
+                        createdAt?: string 
+                    }[]; 
+                    diagnosis?: string; 
+                    stages?: { 
+                        id: string; 
+                        title: string; 
+                        status: "pending" | "in_progress" | "completed" | "on_hold"; 
+                        notes?: string; 
+                        description?: string; 
+                        createdAt?: string 
+                    }[]; 
+                    overall_progress?: number; 
+                    patientId?: string 
+                };
 
                 // Handle API response mapping if nested in 'data' field
                 if (data && data.data && Array.isArray(data.data)) {
                     const stageArray = data.data;
                     data = {
-                        stages: stageArray.map((s: any) => ({
-                            id: s.id || s._id,
-                            title: s.title || s.stage || 'Clinical Milestone',
-                            status: s.status || 'pending',
+                        stages: stageArray.map((s: { id?: string; _id?: string; stage?: string; title?: string; status?: string; notes?: string; description?: string; createdAt?: string }) => ({
+                            id: (s.id || s._id) as string,
+                            title: (s.title || s.stage || 'Clinical Milestone') as string,
+                            status: (s.status || 'pending') as "pending" | "in_progress" | "completed" | "on_hold",
                             notes: s.notes,
                             description: s.description,
                             createdAt: s.createdAt
                         })),
-                        overall_progress: Math.round((stageArray.filter((s: any) => s.status === 'completed').length / (stageArray.length || 1)) * 100),
+                        overall_progress: Math.round((stageArray.filter((s: { status?: string }) => s.status === 'completed').length / (stageArray.length || 1)) * 100),
                         diagnosis: data.diagnosis || 'Therapeutic Framework',
                         patientId: String(resolvedId)
                     };
                 }
 
                 if (data && !Array.isArray(data) && data.stages) {
-                    setProgress(data);
+                    setProgress(data as unknown as TreatmentProgress);
                 } else {
                     setProgress(null);
                 }
-            } catch (treatmentError: any) {
+            } catch (treatmentError: unknown) {
                 // 2. Fallback resolution if first attempt fails
-                if (treatmentError.response?.status === 404 || !resolvedId) {
+                const terror = treatmentError as { response?: { status: number } };
+                if (terror.response?.status === 404 || !resolvedId) {
                     console.warn('[PatientTreatment] First attempt failed, trying fallback ID resolution...');
                     
                     // If we tried hex and failed, try numeric
@@ -117,7 +131,7 @@ const PatientTreatmentView = () => {
                                 resolvedId = Number(assessmentData.profile.userId);
                             } else {
                                 const { users } = await UserService.listUsers({ role: 'patient', search: userId });
-                                const match = users.find((u: any) => String(u._id) === userId || String(u.id) === userId);
+                                const match = users.find((u: { _id?: string; id?: string; userId?: string | number }) => String(u._id) === userId || String(u.id) === userId);
                                 if (match) resolvedId = match.userId ? Number(match.userId) : String(match.id);
                             }
                         } catch (e) {
@@ -128,8 +142,7 @@ const PatientTreatmentView = () => {
                     if (resolvedId) {
                         console.log(`[PatientTreatment] Retrying with resolved ID: ${resolvedId}`);
                         const fallbackData = await TreatmentService.getPatientProgress(resolvedId);
-                        console.log('[PatientTreatment] Retrying fetch successful');
-                        setProgress(fallbackData);
+                        setProgress(fallbackData as TreatmentProgress);
                     } else {
                         console.warn('[PatientTreatment] No further fallback options, ID remained constant');
                         throw treatmentError;
@@ -138,13 +151,20 @@ const PatientTreatmentView = () => {
                     throw treatmentError;
                 }
             }
-        } catch (err: any) {
-            console.error('[PatientTreatment] Protocol hydration failed:', err);
-            setError('We were unable to load your treatment journey. If this persists, please contact support.');
+        } catch (err: unknown) {
+            const terror = err as { message?: string };
+            console.error('[PatientTreatment] Protocol hydration failed:', terror);
+            setError(terror.message || 'We were unable to load your treatment journey. If this persists, please contact support.');
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [userId, user?._id, user?.id, user?.userId]);
+
+    useEffect(() => {
+        if (userId) {
+            fetchProgress();
+        }
+    }, [userId, fetchProgress]);
 
     if (isLoading) {
         return (

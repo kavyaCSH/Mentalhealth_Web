@@ -24,20 +24,32 @@ import type { UserStats } from '../../types/user.types';
 const AdminDashboard = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const [stats, setStats] = useState<UserStats | null>(null);
-    const [health, setHealth] = useState<any>(null);
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [health, setHealth] = useState<{ status?: string; version?: string; cpu_load?: string; storage_usage?: string; db_latency?: string } | null>(null);
+    const [notifications, setNotifications] = useState<{ read?: boolean; message?: string }[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [statsRes, healthRes, notifyRes] = await Promise.all([
+                const [statsRes, healthRes, notifyRes] = await Promise.allSettled([
                     api.get('/users/stats'),
                     api.get('/health'),
                     api.get('/notifications')
                 ]);
-                setStats(statsRes.data.data);
-                setHealth(healthRes.data.data);
-                setNotifications(Array.isArray(notifyRes.data.data) ? notifyRes.data.data : []);
+
+                if (statsRes.status === 'fulfilled') {
+                    const fullData = statsRes.value.data;
+                    const extractedStats = fullData?.data || fullData;
+                    setStats(extractedStats);
+                }
+
+                if (healthRes.status === 'fulfilled') {
+                    setHealth(healthRes.value.data?.data || healthRes.value.data);
+                }
+
+                if (notifyRes.status === 'fulfilled') {
+                    const notifyData = notifyRes.value.data?.data || notifyRes.value.data;
+                    setNotifications(Array.isArray(notifyData) ? notifyData : []);
+                }
             } catch (error) {
                 console.error('Failed to fetch admin data:', error);
             }
@@ -45,9 +57,33 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
+    const getCount = (key: string): number => {
+        if (!stats) return 0;
+        const s = stats as any;
+        const val = s[key] !== undefined ? s[key] : s.byRole?.[key];
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string' && !isNaN(Number(val))) return Number(val);
+
+        const variations: Record<string, string[]> = {
+            'total': ['totalCount', 'total_count', 'count'],
+            'active': ['activeCount', 'active_count', 'activeUsers'],
+            'psychiatrist': ['psychiatrists'],
+            'nurse': ['nurses'],
+            'admin': ['admins']
+        };
+
+        const fallbacks = variations[key] || [];
+        for (const fbKey of fallbacks) {
+            const fbVal = s[fbKey] !== undefined ? s[fbKey] : s.byRole?.[fbKey];
+            if (typeof fbVal === 'number') return fbVal;
+            if (typeof fbVal === 'string' && !isNaN(Number(fbVal))) return Number(fbVal);
+        }
+        return 0;
+    };
+
     const systemMetrics = [
         { label: 'System Status', value: health?.status === 'ok' ? 'Healthy' : 'Active', icon: Zap, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { label: 'Global Users', value: stats ? Object.values(stats).reduce((a, b) => Number(a) + Number(b), 0).toString() : '...', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Global Users', value: stats ? getCount('total').toString() : '...', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
         { label: 'API Version', value: health?.version || 'v1.0', icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
         { label: 'Active Alerts', value: notifications.filter(n => !n.read).length.toString(), icon: Bell, color: 'text-pink-600', bg: 'bg-pink-50' },
     ];
@@ -150,7 +186,7 @@ const AdminDashboard = () => {
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-2 h-2 rounded-full ${log.read ? 'bg-slate-300' : 'bg-orange-500'}`}></div>
                                                 <div>
-                                                    <p className="text-sm font-bold text-slate-800">{log.message}</p>
+                                                    <p className="text-sm font-bold text-slate-800">{String(log.message || '')}</p>
                                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Admin Event</p>
                                                 </div>
                                             </div>
@@ -212,24 +248,27 @@ const AdminDashboard = () => {
                         </div>
                         <div className="space-y-4">
                             {[
-                                { label: 'Active Psychiatrists', count: stats?.psychiatrist || 0, total: stats?.psychiatrist || 0, color: 'bg-emerald-500' },
-                                { label: 'Nursing Staff', count: stats?.nurse || 0, total: stats?.nurse || 0, color: 'bg-indigo-500' },
-                                { label: 'Admin Support', count: stats?.admin || 0, total: stats?.admin || 0, color: 'bg-orange-400' },
-                            ].map((staff, i) => (
-                                <div key={i} className="space-y-1">
-                                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                        <span>{staff.label}</span>
-                                        <span>{staff.count}</span>
+                                { label: 'Active Psychiatrists', count: getCount('psychiatrist'), color: 'bg-emerald-500' },
+                                { label: 'Nursing Staff', count: getCount('nurse'), color: 'bg-indigo-500' },
+                                { label: 'Admin Support', count: getCount('admin'), color: 'bg-orange-400' },
+                            ].map((staff, i) => {
+                                const total = getCount('total') || 1;
+                                return (
+                                    <div key={i} className="space-y-1">
+                                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                            <span>{staff.label}</span>
+                                            <span>{staff.count}</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${(staff.count / total) * 100}%` }}
+                                                className={`h-full ${staff.color} rounded-full`}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(Number(staff.count) / (Object.values(stats || {}).reduce((a, b) => Number(a) + Number(b), 0) || 1)) * 100}%` }}
-                                            className={`h-full ${staff.color} rounded-full`}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </section>
                 </div>

@@ -17,10 +17,11 @@ import {
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { NotificationService } from '../../api/services/notification.service';
+import type { Notification as AppNotification } from '../../types/common.types';
 
 const ClinicalNotificationsPage = () => {
     const navigate = useNavigate();
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'unread' | 'alerts'>('unread');
 
@@ -42,23 +43,27 @@ const ClinicalNotificationsPage = () => {
 
     const handleMarkAsRead = async (id: string) => {
         try {
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true, read: true } : n));
+            setNotifications((prev: AppNotification[]) => prev.map(n => n.id === id ? { ...n, isRead: true, read: true } : n));
             await NotificationService.markAsRead(id);
-        } catch (err) {}
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+        }
     };
 
     const handleMarkAllAsRead = async () => {
         try {
-            setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
+            setNotifications((prev: AppNotification[]) => prev.map(n => ({ ...n, isRead: true, read: true })));
             await NotificationService.markAllAsRead();
-        } catch (err) {}
+        } catch (error) {
+            console.error('Failed to mark all notifications as read:', error);
+        }
     };
 
     const handleDelete = async (id: string) => {
-        setNotifications(prev => prev.filter(n => n.id !== id));
+        setNotifications((prev: AppNotification[]) => prev.filter(n => n.id !== id));
     };
 
-    const getIconInfo = (type: string) => {
+    const getIconInfo = (type?: string) => {
         const props = { size: 22 };
         switch (type) {
             case 'alert':
@@ -77,14 +82,14 @@ const ClinicalNotificationsPage = () => {
         }
     };
 
-    const groupNotifications = (data: any[]) => {
+    const groupNotifications = (data: AppNotification[]) => {
         const filtered = data.filter(n => {
             if (filter === 'unread') return !n.isRead && !n.read;
             if (filter === 'alerts') return n.type === 'alert' || n.type === 'emergency';
-            return true;
+            return true; 
         });
 
-        const sections: { title: string; items: any[] }[] = [
+        const sections: { title: string; items: AppNotification[] }[] = [
             { title: 'Today', items: [] },
             { title: 'Yesterday', items: [] },
             { title: 'Older', items: [] }
@@ -193,7 +198,7 @@ const ClinicalNotificationsPage = () => {
                             <div className="grid gap-4">
                                 <AnimatePresence mode="popLayout">
                                     {section.items.map((notif, index) => {
-                                        const { icon, colorClass } = getIconInfo(notif.type);
+                                        const { icon, colorClass } = getIconInfo(notif.type || '');
                                         const isRead = notif.isRead || notif.read;
                                         return (
                                             <motion.div

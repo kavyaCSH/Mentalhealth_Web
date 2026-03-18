@@ -49,9 +49,7 @@ const ChatPage = () => {
     
     // Support generic chat rooms via route state or default to patient's private AI
     const roomType = location.state?.roomType || 'private_ai';
-    const initialRoomId = location.state?.roomId || user?.id || null;
-
-    const [roomId, setRoomId] = useState<string | null>(initialRoomId);
+    const roomId = location.state?.roomId || user?.id || null;
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [connecting, setConnecting] = useState(true);
@@ -68,29 +66,24 @@ const ChatPage = () => {
         scrollToBottom();
     }, [messages, isTyping]);
 
-    useEffect(() => {
-        setupChat();
-        return () => {
-            const currentSocket = getSocket();
-            currentSocket?.off('new_message');
-            currentSocket?.off('chat_history');
-        };
-    }, [roomId, roomType, user?.id]);
-
     const sanitizeAIContent = (content: string) => {
         return content
+            .replace(/【.*?】/g, '')
             .replace(/^\[?Skyheal AI\s*(\(ai\))?\]?:\s*/i, '')
             .replace(/\s*[—–-]\s*Skyheal AI\s*\(For medical advice,\s*consult a professional\.\)$/i, '')
+            .replace(/\s+/g, ' ')
             .trim();
     };
 
     const setupChat = async () => {
         try {
+            const activeRoomId = roomId || user?.id || user?._id || user?.userId;
+            if (!activeRoomId) return;
+
             setConnecting(true);
             const socket = await connectSocket();
             console.log('[ChatPage] Socket connected:', socket.id);
             
-            const activeRoomId = roomId || user?.id || user?._id || user?.userId;
             console.log('[ChatPage] activeRoomId:', activeRoomId, 'state roomId:', roomId, 'user:', { id: user?.id, _id: user?._id, userId: user?.userId });
 
             if (!activeRoomId) {
@@ -101,13 +94,11 @@ const ChatPage = () => {
                 return;
             }
 
-            if (!roomId && activeRoomId) {
-                setRoomId(String(activeRoomId));
-            }
 
             setConnecting(false);
-            console.log(`[ChatPage] Joining ${roomType} room: ${activeRoomId}`);
-            socket.emit('join_room', { room_id: String(activeRoomId), room_type: roomType });
+            const activeId = String(activeRoomId);
+            console.log(`[ChatPage] Joining ${roomType} room: ${activeId}`);
+            socket.emit('join_room', { room_id: activeId, room_type: roomType });
 
             setIsTyping(true);
             socket.emit('get_history', String(activeRoomId));
@@ -163,6 +154,32 @@ const ChatPage = () => {
         }
     };
 
+    useEffect(() => {
+        let mounted = true;
+        const init = async () => {
+            try {
+                const activeId = roomId || user?.id || user?._id || user?.userId;
+                if (!activeId) {
+                    if (mounted) setConnecting(false);
+                    return;
+                }
+                await setupChat();
+            } catch (err) {
+                console.error('[ChatPage] Init error:', err);
+                if (mounted) setConnecting(false);
+            }
+        };
+        
+        init();
+        
+        return () => {
+            mounted = false;
+            const currentSocket = getSocket();
+            currentSocket?.off('new_message');
+            currentSocket?.off('chat_history');
+        };
+    }, [roomId, roomType, user?.id, user?._id, user?.userId]);
+
     const sendMessage = useCallback((text?: string) => {
         const content = (text || input).trim();
         if (!content) return;
@@ -211,7 +228,7 @@ const ChatPage = () => {
         if (roomType === 'private_ai' || content.toLowerCase().includes('@skyheal')) {
             setIsTyping(true);
         }
-    }, [input, roomId, roomType]);
+    }, [input, roomId, roomType, user?.id, user?._id, user?.userId]);
 
     const formatTime = (iso?: string) => {
         if (!iso) return '';

@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import type { ChiefComplaintResponse } from '../../api/services/chiefComplaint.service';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     PhoneOff,
@@ -23,6 +25,7 @@ import {
 import { TeleConsultService } from '../../api/services/teleconsult.service';
 import { ChiefComplaintService } from '../../api/services/chiefComplaint.service';
 import Button from '../../components/ui/Button';
+import TeleconsultWebView from '../../components/shared/TeleconsultWebView';
 import type { Consultation, Participant } from '../../types/common.types';
 
 const Teleconsult = () => {
@@ -37,22 +40,63 @@ const Teleconsult = () => {
     const [activeTool, setActiveTool] = useState<'notes' | 'records' | 'assessments' | 'symptoms' | 'treatment' | 'directory'>('notes');
     const [notes, setNotes] = useState('');
     const [isSavingNotes, setIsSavingNotes] = useState(false);
-    const [patientHistory, setPatientHistory] = useState<any[]>([]);
+    const [patientHistory, setPatientHistory] = useState<ChiefComplaintResponse[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
-    // Extract token - mirror mobile logic
-    const token = stateToken || appointment?.subscriber_token || appointment?.token;
+    const { user } = useAuth();
 
-    // Extract participant info
+    // Extract token - mirror mobile logic but with role awareness
+    const getCorrectToken = () => {
+        if (stateToken) return stateToken;
+        
+        const isProfessional = user?.role !== 'patient';
+        const targetRole = isProfessional ? 'publisher' : 'subscriber';
+        
+        // Try to find participant matching current user first, or by role
+        const me = appointment?.participants?.find((p: Participant) => 
+            String(p.ref_number) === String(user?.id) || 
+            p.role === targetRole || 
+            (isProfessional ? p.participant_type?.code === 'professional' : p.participant_type?.code === 'patient')
+        );
+
+        return me?.token || appointment?.subscriber_token || appointment?.token;
+    };
+
+    const token = getCorrectToken();
+
+    const consult_url = user?.role !== 'patient' 
+        ? (import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/')
+        : (import.meta.env.VITE_TELECONSULT_SUBSCRIBER_URL || 'https://teleconsult.a2zhealth.in/consult/');
     const subscriber = appointment?.participants?.find((p: Participant) => 
         p.participant_type?.code === 'patient' || p.role === 'subscriber'
     );
-    const patientId = subscriber?.ref_number || (appointment as any)?.patientId;
+    const patientId = subscriber?.ref_number || appointment?.patient_id || appointment?.patientId;
 
     const specialist = appointment?.participants?.find((p: Participant) =>
         p.participant_type?.code === 'professional' || p.role === 'provider' || p.role === 'publisher'
     );
-    const doctorName = specialist?.name || (specialist as any)?.firstName ? `${(specialist as any).firstName} ${(specialist as any).lastName || ''}` : 'Clinical Specialist';
+    const doctorName = specialist?.name || (specialist?.firstName ? `${specialist.firstName} ${specialist.lastName || ''}` : 'Clinical Specialist');
+
+
+    useEffect(() => {
+        if (appointment) {
+            console.log('[Teleconsult] Session Details:', JSON.stringify(appointment, null, 2));
+        }
+    }, [appointment]);
+
+    const fetchPatientContext = useCallback(async () => {
+        if (!patientId) return;
+
+        setIsLoadingHistory(true);
+        try {
+            const res = await ChiefComplaintService.listComplaints({ patient_id: patientId, limit: 5 });
+            setPatientHistory(res.data || []);
+        } catch (err) {
+            console.error('Failed to fetch patient history:', err);
+        } finally {
+            setIsLoadingHistory(false);
+        }
+    }, [patientId]);
 
     useEffect(() => {
         if (!token && !id) {
@@ -70,21 +114,7 @@ const Teleconsult = () => {
         }
 
         return () => clearInterval(timer);
-    }, [token, id, navigate, patientId]);
-
-    const fetchPatientContext = async () => {
-        if (!patientId) return;
-
-        setIsLoadingHistory(true);
-        try {
-            const res = await ChiefComplaintService.listComplaints({ patient_id: patientId, limit: 5 });
-            setPatientHistory(res.data || []);
-        } catch (err) {
-            console.error('Failed to fetch patient history:', err);
-        } finally {
-            setIsLoadingHistory(false);
-        }
-    };
+    }, [token, id, navigate, patientId, fetchPatientContext]);
 
     const handleSaveNotes = async () => {
         if (!notes.trim() || !id) return;
@@ -107,12 +137,10 @@ const Teleconsult = () => {
 
     const handleEndSession = () => {
         if (window.confirm('Are you sure you want to leave the consultation session?')) {
-            navigate('/clinical-schedule');
+            navigate(user?.role !== 'patient' ? '/clinical-schedule' : '/schedule');
         }
     };
 
-    const consult_url = 'https://teleconsult.a2zhealth.in/consult/';
-    const iframeUrl = token ? `${consult_url}${token}` : '';
 
     if (!token && id) {
         // Fallback or loading if only ID is present but no state
@@ -195,42 +223,23 @@ const Teleconsult = () => {
 
             {/* Main Content Area */}
             <div className="flex-1 flex overflow-hidden relative">
-                {/* Iframe Area */}
+                {/* WebView Area */}
                 <main className="flex-1 relative bg-[#0a0a0a]">
-                <AnimatePresence>
-                    {isIframeLoading && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950"
-                        >
-                            <div className="relative">
-                                <div className="w-24 h-24 border-4 border-indigo-500/10 rounded-full"></div>
-                                <div className="absolute inset-0 w-24 h-24 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                                <Activity className="absolute inset-0 m-auto text-indigo-500 animate-pulse" size={32} />
+                    <TeleconsultWebView 
+                        token={token}
+                        baseUrl={consult_url}
+                        onLoad={() => setIsIframeLoading(false)}
+                        hideMenu={true}
+                    />
+
+                    {!isIframeLoading && (
+                        <div className="absolute bottom-6 left-6 flex flex-col items-start gap-3 pointer-events-none opacity-40 hover:opacity-100 transition-opacity">
+                            <div className="bg-slate-900/80 backdrop-blur border border-white/5 px-4 py-2 rounded-xl flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></div>
+                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Live Stream Active</span>
                             </div>
-                            <p className="mt-8 text-sm font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Establishing Handoff</p>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <iframe
-                    src={iframeUrl}
-                    className={`w-full h-full border-none transition-opacity duration-1000 ${isIframeLoading ? 'opacity-0' : 'opacity-100'}`}
-                    allow="camera; microphone; fullscreen; display-capture; autoplay"
-                    onLoad={() => setIsIframeLoading(false)}
-                    title="Clinical Consultation"
-                />
-
-                {!isIframeLoading && (
-                    <div className="absolute bottom-6 left-6 flex flex-col items-start gap-3 pointer-events-none opacity-40 hover:opacity-100 transition-opacity">
-                        <div className="bg-slate-900/80 backdrop-blur border border-white/5 px-4 py-2 rounded-xl flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></div>
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Live Stream Active</span>
                         </div>
-                    </div>
-                )}
+                    )}
                 </main>
 
                 {/* Clinical Sidebar */}
@@ -269,7 +278,7 @@ const Teleconsult = () => {
                                 ].map((tool) => (
                                     <button 
                                         key={tool.id}
-                                        onClick={() => setActiveTool(tool.id as any)}
+                                        onClick={() => setActiveTool(tool.id as 'notes' | 'records' | 'assessments' | 'symptoms' | 'treatment' | 'directory')}
                                         className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${activeTool === tool.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
                                     >
                                         <tool.icon size={16} />
@@ -321,7 +330,7 @@ const Teleconsult = () => {
                                                         <span className="text-[9px] text-slate-500 font-bold">{new Date().toLocaleDateString()}</span>
                                                     </div>
                                                     <p className="text-xs text-slate-400 font-medium leading-relaxed italic line-clamp-3 group-hover:text-slate-200">
-                                                        "{entry.narrative || entry.content || 'Clinical documentation entry for historical review.'}"
+                                                        "{entry.narrative || 'Clinical documentation entry'}"
                                                     </p>
                                                 </div>
                                             ))

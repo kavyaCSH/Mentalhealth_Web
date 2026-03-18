@@ -34,12 +34,26 @@ const HospitalDashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [statsRes, notifyRes] = await Promise.all([
+                const [statsRes, notifyRes] = await Promise.allSettled([
                     api.get('/users/stats'),
                     api.get('/notifications')
                 ]);
-                setStats(statsRes.data.data);
-                setNotifications(Array.isArray(notifyRes.data.data) ? notifyRes.data.data : []);
+
+                if (statsRes.status === 'fulfilled') {
+                    const fullData = statsRes.value.data;
+                    console.log('[HospitalDashboard] Raw stats response:', fullData);
+                    
+                    // Resiliently extract stats object
+                    // Based on user provided JSON: { code: 200, message: "...", data: { byRole: {...}, activeCount: 14, totalCount: 14 } }
+                    const extractedStats = fullData?.data || fullData;
+                    console.log('[HospitalDashboard] Extracted stats:', extractedStats);
+                    setStats(extractedStats);
+                }
+
+                if (notifyRes.status === 'fulfilled') {
+                    const notifyData = notifyRes.value.data?.data || notifyRes.value.data;
+                    setNotifications(Array.isArray(notifyData) ? notifyData : []);
+                }
             } catch (error) {
                 console.error('Failed to fetch hospital data:', error);
             }
@@ -47,29 +61,66 @@ const HospitalDashboard = () => {
         fetchData();
     }, []);
 
+    // Helper to safely get counts from stats supporting plural/singular and nested structures
+    const getCount = (key: keyof UserStats | string): number => {
+        if (!stats) return 0;
+        
+        const s = stats as any;
+        
+        // Try exact key at top level or in byRole
+        const val = s[key] !== undefined ? s[key] : s.byRole?.[key];
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string' && !isNaN(Number(val))) return Number(val);
+        
+        // Try common variations (plural/singular)
+        const variations: Record<string, string[]> = {
+            'patient': ['patients', 'totalPatients'],
+            'psychiatrist': ['psychiatrists', 'totalPsychiatrists'],
+            'psychologist': ['psychologists', 'totalPsychologists'],
+            'nurse': ['nurses', 'totalNurses'],
+            'social_worker': ['social_workers', 'socialWorkers', 'totalSocialWorkers'],
+            'counselor': ['counselors', 'totalCounselors'],
+            'admin': ['admins', 'totalAdmins'],
+            'total': ['totalCount', 'total_count', 'count'],
+            'consultCount': ['consults', 'totalConsults', 'consultationCount'],
+            'activeCount': ['active', 'totalActive', 'activeUsers']
+        };
+
+        const currentKey = key.toString();
+        const fallbackKeys = variations[currentKey] || [];
+        
+        for (const fbKey of fallbackKeys) {
+            const fbVal = s[fbKey] !== undefined ? s[fbKey] : s.byRole?.[fbKey];
+            if (typeof fbVal === 'number') return fbVal;
+            if (typeof fbVal === 'string' && !isNaN(Number(fbVal))) return Number(fbVal);
+        }
+
+        return 0;
+    };
+
     const facilityMetrics = [
-        { label: 'Total Patients', value: stats?.patient?.toString() || '0', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { label: 'Psychiatrists', value: stats?.psychiatrist?.toString() || '0', icon: Stethoscope, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-        { label: 'Psychologists', value: stats?.psychologist?.toString() || '0', icon: Brain, color: 'text-purple-600', bg: 'bg-purple-50' },
-        { label: 'Nurses', value: stats?.nurse?.toString() || '0', icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
-        { label: 'Social Workers', value: stats?.social_worker?.toString() || '0', icon: Heart, color: 'text-rose-600', bg: 'bg-rose-50' },
-        { label: 'Consults', value: stats?.consultCount?.toString() || '0', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Active Users', value: stats?.activeCount?.toString() || '0', icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { label: 'Total Patients', value: getCount('patient').toString(), icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { label: 'Psychiatrists', value: getCount('psychiatrist').toString(), icon: Stethoscope, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Psychologists', value: getCount('psychologist').toString(), icon: Brain, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { label: 'Nurses', value: getCount('nurse').toString(), icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
+        { label: 'Social Workers', value: getCount('social_worker').toString(), icon: Heart, color: 'text-rose-600', bg: 'bg-rose-50' },
+        { label: 'Consults', value: getCount('consultCount').toString(), icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Active Users', value: getCount('activeCount').toString(), icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         { label: 'Facility Alerts', value: notifications.filter(n => !n.read).length.toString(), icon: Bell, color: 'text-red-600', bg: 'bg-red-50' },
     ];
 
     const staffComposition = [
-        { name: 'Psychiatrists', count: stats?.psychiatrist || 0, color: 'bg-indigo-500' },
-        { name: 'Psychologists', count: stats?.psychologist || 0, color: 'bg-purple-500' },
-        { name: 'Nursing Staff', count: stats?.nurse || 0, color: 'bg-orange-400' },
-        { name: 'Social Workers', count: stats?.social_worker || 0, color: 'bg-rose-400' },
-        { name: 'Facility Admin', count: stats?.admin || 0, color: 'bg-slate-400' },
+        { name: 'Psychiatrists', count: getCount('psychiatrist'), color: 'bg-indigo-500' },
+        { name: 'Psychologists', count: getCount('psychologist'), color: 'bg-purple-500' },
+        { name: 'Nursing Staff', count: getCount('nurse'), color: 'bg-orange-400' },
+        { name: 'Social Workers', count: getCount('social_worker'), color: 'bg-rose-400' },
+        { name: 'Facility Admin', count: getCount('admin'), color: 'bg-slate-400' },
     ];
 
     const quickActions = [
-        { label: 'Register Clinician', icon: UserPlus, path: '/staff/manage', color: 'bg-indigo-600', shadow: 'shadow-indigo-200' },
+        { label: 'Register Clinician', icon: UserPlus, path: '/staff/new', color: 'bg-indigo-600', shadow: 'shadow-indigo-200' },
         { label: 'Staff Directory', icon: ClipboardList, path: '/staff', color: 'bg-emerald-600', shadow: 'shadow-emerald-200' },
-        { label: 'Book Consult', icon: CalendarPlus, path: '/schedule/create', color: 'bg-orange-500', shadow: 'shadow-orange-200' },
+        { label: 'Book Consult', icon: CalendarPlus, path: '/consultations/new', color: 'bg-orange-500', shadow: 'shadow-orange-200' },
         { label: 'Billing Central', icon: CreditCard, path: '/billing', color: 'bg-rose-500', shadow: 'shadow-rose-200' },
     ];
 
@@ -82,7 +133,7 @@ const HospitalDashboard = () => {
                         <span className="text-xs font-black uppercase tracking-[0.2em]">Facility Management • Hospital Portal</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <h1 className="text-4xl font-black tracking-tight text-slate-900 line-clamp-1">MindBalance {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : (user?.name || 'Center')} Overview.</h1>
+                        <h1 className="text-4xl font-black tracking-tight text-slate-900 line-clamp-1">MindBalance Center Overview</h1>
                         <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100 mt-1">
                             Hospital Admin
                         </span>
@@ -90,10 +141,10 @@ const HospitalDashboard = () => {
                     <p className="text-slate-500 font-medium">Real-time operational status for all clinical departments.</p>
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="outline" size="lg" className="px-6" leftIcon={<Search size={18} />}>
+                    <Button variant="outline" size="lg" className="px-6" leftIcon={<Search size={18} />} onClick={() => navigate('/staff')}>
                         Facility Search
                     </Button>
-                    <Button variant="primary" size="lg" className="px-6" leftIcon={<Activity size={18} />}>
+                    <Button variant="primary" size="lg" className="px-6" leftIcon={<Activity size={18} />} onClick={() => navigate('/facility')}>
                         Operational Report
                     </Button>
                 </div>
@@ -158,22 +209,27 @@ const HospitalDashboard = () => {
                     </div>
 
                     <div className="p-10 space-y-10">
-                        {staffComposition.map((staff, i) => (
-                            <div key={i} className="group">
-                                <div className="flex items-center justify-between mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                    <span>{staff.name}</span>
-                                    <span className="text-slate-900">{staff.count} Active</span>
+                        {staffComposition.map((staff, i) => {
+                            const totalStaff = staffComposition.reduce((sum, item) => sum + item.count, 0) || 1;
+                            const percentage = (staff.count / totalStaff) * 100;
+                            
+                            return (
+                                <div key={i} className="group">
+                                    <div className="flex items-center justify-between mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                        <span>{staff.name}</span>
+                                        <span className="text-slate-900">{staff.count} Active</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${percentage}%` }}
+                                            transition={{ duration: 1, ease: "easeOut" }}
+                                            className={`h-full ${staff.color} rounded-full`}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                    <motion.div
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${(Number(staff.count) / (Object.values(stats || {}).reduce((a, b) => Number(a) + Number(b), 0) || 1)) * 100}%` }}
-                                        transition={{ duration: 1, ease: "easeOut" }}
-                                        className={`h-full ${staff.color} rounded-full`}
-                                    />
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </section>
 
@@ -204,13 +260,13 @@ const HospitalDashboard = () => {
                                 )}
                             </div>
 
-                            <Button variant="white" size="lg" className="w-full text-indigo-900 py-5">
+                            <Button variant="white" size="lg" className="w-full text-indigo-900 py-5" onClick={() => navigate('/notifications')}>
                                 View Alerts center
                             </Button>
                         </div>
                     </section>
 
-                    {/* Staff Distribution */}
+                    {/* Staff Distribution Detailed */}
                     <section className="card-premium p-8">
                         <div className="flex items-center gap-4 mb-8">
                             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center glow-primary">
@@ -221,11 +277,11 @@ const HospitalDashboard = () => {
 
                         <div className="space-y-6">
                             {[
-                                { label: 'Active Psychiatrists', count: stats?.psychiatrist || 0 },
-                                { label: 'Psychologists', count: stats?.psychologist || 0 },
-                                { label: 'Nursing Staff', count: stats?.nurse || 0 },
-                                { label: 'Social Workers', count: stats?.social_worker || 0 },
-                                { label: 'Admin Support', count: stats?.admin || 0 },
+                                { label: 'Active Psychiatrists', count: getCount('psychiatrist') },
+                                { label: 'Psychologists', count: getCount('psychologist') },
+                                { label: 'Nursing Staff', count: getCount('nurse') },
+                                { label: 'Social Workers', count: getCount('social_worker') },
+                                { label: 'Admin Support', count: getCount('admin') },
                             ].map((staff, i) => (
                                 <div key={i} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-transparent hover:border-indigo-100 transition-all">
                                     <div>

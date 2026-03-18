@@ -28,7 +28,7 @@ export const MSEService = {
         return response.data;
     },
 
-    deleteMSE: async (id: string | number): Promise<ApiResponse<any>> => {
+    deleteMSE: async (id: string | number): Promise<ApiResponse<unknown>> => {
         const response = await api.delete(`/mse/${id}`);
         return response.data;
     }

@@ -33,7 +33,7 @@ export interface MSESection {
 
 export interface MSEResponseItem {
     questionCode: string;
-    value: any;
+    value: unknown;
 }
 
 export interface MSESubmission {
@@ -59,5 +59,5 @@ export interface MSEResponse {
     ai_analysis: AIAnalysis;
     color_code: string;
     createdAt: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }

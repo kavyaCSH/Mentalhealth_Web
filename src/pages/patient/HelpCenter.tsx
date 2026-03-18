@@ -101,7 +101,7 @@ const HelpCenter = () => {
                                         className="group bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all text-left flex items-start gap-6"
                                     >
                                         <div className={`w-16 h-16 shrink-0 rounded-[1.25rem] flex items-center justify-center transition-transform group-hover:scale-110 ${getBgColorForSlug(topic.slug)}`}>
-                                            {React.cloneElement(getIconForSlug(topic.slug) as React.ReactElement<any>, { size: 28 })}
+                                            {React.cloneElement(getIconForSlug(topic.slug) as React.ReactElement<{ size?: number }>, { size: 28 })}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h3 className="text-xl font-black text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors truncate">{topic.title}</h3>
@@ -130,7 +130,7 @@ const HelpCenter = () => {
                                         className={`w-full p-8 flex items-center gap-6 hover:bg-slate-50 transition-colors text-left ${i !== arr.length - 1 ? 'border-b border-slate-50' : ''}`}
                                     >
                                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${getBgColorForSlug(topic.slug)}`}>
-                                            {React.cloneElement(getIconForSlug(topic.slug) as React.ReactElement<any>, { size: 24 })}
+                                            {React.cloneElement(getIconForSlug(topic.slug) as React.ReactElement<{ size?: number }>, { size: 24 })}
                                         </div>
                                         <div className="flex-1">
                                             <h3 className="font-black text-slate-900 text-lg">{topic.title}</h3>

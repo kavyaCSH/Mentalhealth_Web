@@ -35,15 +35,15 @@ const SpecialistsPage = () => {
         try {
             setLoading(true);
             // Fallback to getSpecialists if Directory is empty for demo/robustness
-            const data = await SpecialistService.getDirectory();
-            const list = Array.isArray(data) ? data :
+            const data = await SpecialistService.getDirectory() as unknown as { data?: { masters?: User[] } | User[]; masters?: User[] };
+            const list: User[] = (Array.isArray(data) ? data :
                 Array.isArray(data?.data) ? data.data :
-                    Array.isArray(data?.data?.masters) ? data.data.masters :
-                        Array.isArray(data?.masters) ? data.masters : [];
+                    Array.isArray((data?.data as { masters?: User[] })?.masters) ? (data?.data as { masters?: User[] }).masters :
+                        Array.isArray(data?.masters) ? data.masters : []) as User[];
 
             if (list.length === 0) {
-                const altData = await SpecialistService.getSpecialists();
-                const altList = Array.isArray(altData) ? altData : (altData as any)?.data || (altData as any)?.masters || [];
+                const altData = await SpecialistService.getSpecialists() as unknown as { data?: User[]; masters?: User[] };
+                const altList = Array.isArray(altData) ? altData : altData?.data || altData?.masters || [];
                 setSpecialists(altList);
             } else {
                 setSpecialists(list);
@@ -52,8 +52,9 @@ const SpecialistsPage = () => {
             console.error('Failed to fetch specialist directory', err);
             // Final fallback
             try {
-                const fallback = await SpecialistService.getSpecialists();
-                setSpecialists(Array.isArray(fallback) ? fallback : (fallback as any)?.data || []);
+                const fallback = await SpecialistService.getSpecialists() as unknown as { data?: User[] };
+                const fallbackList: User[] = (Array.isArray(fallback) ? fallback : (fallback as { data?: User[] })?.data || []) || [];
+                setSpecialists(fallbackList);
             } catch {
                 setSpecialists([]);
             }

@@ -1,10 +1,20 @@
 export interface Notification {
     id: string;
     _id?: string;
+    title?: string;
     message: string;
     read: boolean;
+    isRead?: boolean;
     type?: string;
     createdAt?: string;
+    created_at?: string;
+    patientName?: string;
+}
+
+export interface ConsultStatus {
+    id: number;
+    name: string;
+    slug: string;
 }
 
 export interface Consultation {
@@ -15,6 +25,8 @@ export interface Consultation {
     reason: string;
     consult_type: 'virtual' | 'in_person';
     status: 'scheduled' | 'completed' | 'cancelled' | 'pending' | 'ongoing';
+    consult_status?: string | ConsultStatus;
+    consult_current_status?: string | ConsultStatus;
     participants: Participant[];
     totalPrice?: number | string;
     createdAt: string;
@@ -22,6 +34,13 @@ export interface Consultation {
         notes?: string;
         referred_by?: string;
     };
+    started_participant_id?: number;
+    patient_id?: string | number;
+    patientId?: string | number;
+    token?: string;
+    publisher_token?: string;
+    subscriber_token?: string;
+    active?: boolean;
 }
 
 export interface Participant {
@@ -34,12 +53,21 @@ export interface Participant {
     name?: string;
     role?: string;
     token?: string;
+    first_name?: string;
+    last_name?: string;
+    firstName?: string;
+    lastName?: string;
+    participant_info?: Record<string, unknown>;
+    additional_info?: Record<string, unknown>;
+    id?: string;
+    _id?: string;
 }
 
 export interface ApiResponse<T> {
     success: boolean;
     data: T;
     message?: string;
+    code?: number;
 }
 
 export interface Transaction extends Consultation {

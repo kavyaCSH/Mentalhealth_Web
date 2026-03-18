@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Stethoscope, History as HistoryIcon, Activity, Brain, ClipboardCheck, ClipboardList } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react';
+import { Stethoscope, History as HistoryIcon, Activity, Brain, ClipboardCheck } from 'lucide-react';
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
 import { ChiefComplaintService } from '../../api/services/chiefComplaint.service';
@@ -13,10 +13,10 @@ import { TreatmentService } from '../../api/services/treatment.service';
 import { UserService } from '../../api/services/user.service';
 import type { TreatmentProgress } from '../../types/treatment.types';
 
-const withTimeout = (promise: Promise<any>, ms: number, label: string) => {
+const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
     return Promise.race([
         promise,
-        new Promise((_, reject) =>
+        new Promise<T>((_, reject) =>
             setTimeout(() => reject(new Error(`Timeout: ${label} took more than ${ms}ms`)), ms)
         )
     ]);
@@ -26,54 +26,32 @@ const PatientHealthRecords = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
 
-    const [latestComplaint, setLatestComplaint] = useState<any>(null);
-    const [latestHPI, setLatestHPI] = useState<any>(null);
-    const [latestMSE, setLatestMSE] = useState<any>(null);
-    const [latestHistory, setLatestHistory] = useState<any>(null);
-    const [latestROS, setLatestROS] = useState<any>(null);
+    const [latestComplaint, setLatestComplaint] = useState<unknown>(null);
+    const [latestHPI, setLatestHPI] = useState<unknown>(null);
+    const [latestMSE, setLatestMSE] = useState<unknown>(null);
+    const [latestHistory, setLatestHistory] = useState<unknown>(null);
+    const [latestROS, setLatestROS] = useState<unknown>(null);
     const [treatmentProgress, setTreatmentProgress] = useState<TreatmentProgress | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [resolvedIds, setResolvedIds] = useState({ hex: user?._id || user?.id || '', numeric: user?.userId || '' });
 
+    const hasFullUser = !!(user?._id || user?.id);
     const fetchLock = useRef(false);
-    const hasFullUser = !!(user?._id || user?.id || user?.userId);
 
-    useEffect(() => {
-        // Trigger fetch if we have any valid ID and haven't fetched yet
-        if (hasFullUser && !fetchLock.current) {
-            fetchLock.current = true;
-            fetchRecords();
-        } 
-        
-        // Escape loading if no user object exists at all (e.g. not logged in)
-        if (!user && !isLoading) {
-            setIsLoading(false);
-        }
+    // Final fallback: never block for more than 10 seconds total
+    const emergencyTimeout = useMemo(() => setTimeout(() => {
+        setIsLoading((prev) => {
+            if (prev) console.warn('[PatientHealthRecords] Final hydration emergency escape triggered');
+            return false;
+        });
+    }, 10000), []);
 
-        // Secondary escape: if user object is present but after 2 seconds we still don't have basic IDs
-        const escapeTimeout = setTimeout(() => {
-            if (isLoading && !fetchLock.current) {
-                console.warn('[PatientHealthRecords] Potential initialization hang, forcing exit');
-                setIsLoading(false);
-            }
-        }, 5000);
 
-        return () => clearTimeout(escapeTimeout);
-    }, [hasFullUser, !!user]);
-
-    const fetchRecords = async () => {
+    const fetchRecords = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         
-        // Final fallback: never block for more than 10 seconds total
-        const emergencyTimeout = setTimeout(() => {
-            setIsLoading((prev) => {
-                if (prev) console.warn('[PatientHealthRecords] Final hydration emergency escape triggered');
-                return false;
-            });
-        }, 10000);
-
         try {
             console.log('[PatientHealthRecords] Hydration cycle triggered...');
             
@@ -81,21 +59,22 @@ const PatientHealthRecords = () => {
             let resolvedHexId = user?._id || user?.id || '';
             let resolvedNumericId = user?.userId || '';
             
-            const isMongoId = (id: any) => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
+            const isMongoId = (id: unknown) => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
             
             // Optimization: If we already have a Mongo ID, skip profile resolution
             if (!isMongoId(resolvedHexId) && resolvedHexId) {
                 console.log('[PatientHealthRecords] Initial ID is not hex, resolving profile from backend...');
                 try {
-                    const profile = await withTimeout(UserService.getUserById(resolvedHexId), 3000, 'Profile');
+                    const profileRes = await withTimeout(UserService.getUserById(resolvedHexId), 3000, 'Profile');
+                    const profile = profileRes as { _id?: string; id?: string; userId?: string | number };
                     if (profile) {
                         resolvedHexId = profile._id || profile.id || resolvedHexId;
                         resolvedNumericId = profile.userId || resolvedNumericId;
                         setResolvedIds({ hex: resolvedHexId, numeric: String(resolvedNumericId) });
                         console.log('[PatientHealthRecords] Extended profile IDs resolved.');
                     }
-                } catch (err) {
-                    console.warn('[PatientHealthRecords] Profile resolution timed out/failed, using current state');
+                } catch {
+                    console.warn('[PatientHealthRecords] Profile resolution failed, ID not hex.');
                 }
             }
 
@@ -105,9 +84,9 @@ const PatientHealthRecords = () => {
             // 2. Background fetching clinical models...
             console.log('[PatientHealthRecords] Initiating clinical stream for patient:', resolvedHexId);
 
-            const handleResult = (res: PromiseSettledResult<any>, setter: (val: any) => void, label: string) => {
+            const handleResult = (res: PromiseSettledResult<unknown>, setter: (val: unknown) => void, label: string) => {
                 if (res.status === 'fulfilled') {
-                    const data = res.value;
+                    const data = res.value as { data?: unknown[] };
                     const list = data?.data || (Array.isArray(data) ? data : []);
                     if (list.length > 0) {
                         console.log(`[PatientHealthRecords] ${label} data popped in.`);
@@ -120,20 +99,29 @@ const PatientHealthRecords = () => {
 
             const fetchTreatment = async () => {
                 try {
-                    const res = await withTimeout(TreatmentService.getPatientProgress(resolvedNumericId || resolvedHexId), 5000, 'Treatment');
-                    let data = res;
+                    const resolvedId = resolvedNumericId || resolvedHexId;
+                    const rawData = await TreatmentService.getPatientProgress(resolvedId);
+                    const data = rawData as { data?: { status?: string; id?: string; _id?: string; title?: string; stage?: string; notes?: string; description?: string; createdAt?: string }[]; diagnosis?: string };
                     if (data && data.data && Array.isArray(data.data)) {
-                        const stageArray = data.data;
-                        data = {
-                            stages: stageArray,
-                            overall_progress: Math.round((stageArray.filter((s: any) => s.status === 'completed').length / (stageArray.length || 1)) * 100),
+                        const stageArray = data.data as { status?: string; id?: string; _id?: string; title?: string; stage?: string; notes?: string; description?: string; createdAt?: string }[];
+                        const mappedData = {
+                            stages: stageArray.map((s) => ({
+                                id: (s.id || s._id) as string,
+                                title: (s.title || s.stage || 'Clinical Milestone') as string,
+                                status: (s.status || 'pending') as "pending" | "in_progress" | "completed" | "on_hold",
+                                notes: s.notes,
+                                description: s.description,
+                                createdAt: s.createdAt
+                            })),
+                            overall_progress: Math.round((stageArray.filter((s) => s.status === 'completed').length / (stageArray.length || 1)) * 100),
                             diagnosis: data.diagnosis || 'Therapeutic Framework',
+                            patientId: String(resolvedNumericId || resolvedHexId)
                         };
+                        if (mappedData.stages) {
+                            setTreatmentProgress(mappedData as TreatmentProgress);
+                        }
                     }
-                    if (data && !Array.isArray(data) && data.stages) {
-                        setTreatmentProgress(data);
-                    }
-                } catch (e) {
+                } catch {
                     console.warn('[PatientHealthRecords] Treatment protocol not found/failed');
                 }
             };
@@ -162,14 +150,37 @@ const PatientHealthRecords = () => {
 
             fetchTreatment();
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('[PatientHealthRecords] Critical hydration loop failure:', error);
             setError('We encountered a problem loading your history profile.');
             setIsLoading(false);
         } finally {
             clearTimeout(emergencyTimeout);
         }
-    };
+    }, [user?._id, user?.id, user?.userId, emergencyTimeout]);
+
+    useEffect(() => {
+        // Trigger fetch if we have any valid ID and haven't fetched yet
+        if (hasFullUser && !fetchLock.current) {
+            fetchLock.current = true;
+            fetchRecords();
+        } 
+        
+        // Escape loading if no user object exists at all (e.g. not logged in)
+        if (!user && isLoading) {
+            setIsLoading(false);
+        }
+
+        // Secondary escape: if user object is present but after 2 seconds we still don't have basic IDs
+        const escapeTimeout = setTimeout(() => {
+            if (isLoading && !fetchLock.current) {
+                console.warn('[PatientHealthRecords] Potential initialization hang, forcing exit');
+                setIsLoading(false);
+            }
+        }, 5000);
+
+        return () => clearTimeout(escapeTimeout);
+    }, [hasFullUser, user, isLoading, fetchRecords]);
 
     const resolvedUserId = resolvedIds.hex || user?._id || user?.id || '';
     const resolvedNumericId = resolvedIds.numeric || user?.userId || '';
@@ -229,7 +240,7 @@ const PatientHealthRecords = () => {
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Primary Symptom</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
-                            {latestComplaint ? `"${latestComplaint.narrative}"` : '"No chief complaint recorded yet."'}
+                            {latestComplaint ? `"${(latestComplaint as { narrative?: string }).narrative}"` : '"No chief complaint recorded yet."'}
                         </p>
                     </div>
                 </motion.div>
@@ -251,7 +262,7 @@ const PatientHealthRecords = () => {
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Clinical Narrative</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
-                            {latestHPI ? `"${latestHPI.narrative || latestHPI.content}"` : '"No HPI history recorded yet."'}
+                            {latestHPI ? `"${(latestHPI as { narrative?: string; content?: string }).narrative || (latestHPI as { narrative?: string; content?: string }).content}"` : '"No HPI history recorded yet."'}
                         </p>
                     </div>
                 </motion.div>
@@ -273,7 +284,7 @@ const PatientHealthRecords = () => {
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Examination Status</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                            {latestMSE ? `Last evaluated on ${new Date(latestMSE.createdAt).toLocaleDateString()}` : 'No mental status exam conducted.'}
+                            {latestMSE ? `Last evaluated on ${new Date((latestMSE as { createdAt: string }).createdAt).toLocaleDateString()}` : 'No mental status exam conducted.'}
                         </p>
                     </div>
                 </motion.div>
@@ -296,7 +307,7 @@ const PatientHealthRecords = () => {
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Historical Intake</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed">
                             {latestHistory 
-                                ? `Last intake documented on ${new Date(latestHistory.createdAt).toLocaleDateString()}` 
+                                ? `Last intake documented on ${new Date((latestHistory as { createdAt: string }).createdAt).toLocaleDateString()}` 
                                 : 'No previous records found.'}
                         </p>
                     </div>
@@ -320,7 +331,7 @@ const PatientHealthRecords = () => {
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Systems Review</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed">
                             {latestROS 
-                                ? `Last review completed on ${new Date(latestROS.createdAt).toLocaleDateString()}` 
+                                ? `Last review completed on ${new Date((latestROS as { createdAt: string }).createdAt).toLocaleDateString()}` 
                                 : 'No systematic review recorded.'}
                         </p>
                     </div>

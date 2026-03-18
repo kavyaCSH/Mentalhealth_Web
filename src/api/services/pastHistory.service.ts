@@ -28,7 +28,7 @@ export const PastHistoryService = {
         return response.data;
     },
 
-    deletePastHistory: async (id: string | number): Promise<ApiResponse<any>> => {
+    deletePastHistory: async (id: string | number): Promise<ApiResponse<unknown>> => {
         const response = await api.delete(`/past-history/${id}`);
         return response.data;
     }

@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { getCurrentUser } from './features/auth/store/authSlice';
 import type { AppDispatch, RootState } from './store';
 import SchedulePage from './pages/patient/SchedulePage';
+import ChatPage from './pages/patient/ChatPage';
 import AssessmentCenter from './pages/patient/AssessmentCenter';
 import QuestionnairePage from './pages/patient/QuestionnairePage';
 import HistoryPage from './pages/patient/HistoryPage';
@@ -39,7 +40,6 @@ import RosAssessmentPage from './pages/clinical/ros/ROSList'; // Renamed from RO
 import AddROS from './pages/clinical/ros/AddROS';
 import ROSDetail from './pages/clinical/ros/ROSDetail';
 import EditROS from './pages/clinical/ros/EditROS';
-import Teleconsult from './pages/clinical/Teleconsult';
 import MessagesPortal from './pages/clinical/MessagesPortal';
 import ClinicalAssessmentCenter from './pages/clinical/ClinicalAssessmentCenter';
 import UserList from './pages/admin/UserList';
@@ -114,6 +114,7 @@ const AppRouter = () => {
                                 {/* Patient Portal Routes */}
                                 <Route element={<ProtectedRoute allowedGroup="PATIENT" />}>
                                     <Route path="schedule" element={<SchedulePage />} />
+                                    <Route path="chat" element={<ChatPage />} />
                                     <Route path="appointments" element={<Navigate to="/schedule" replace />} />
                                     <Route path="history" element={<HistoryPage />} />
                                     <Route path="history/:id" element={<AssessmentResultPage />} />
@@ -130,7 +131,6 @@ const AppRouter = () => {
                                 </Route>
 
                                 {/* Shared Clinical/Teleconsult Routes */}
-                                <Route path="teleconsult/:id?" element={<Teleconsult />} />
                                 <Route path="assessments" element={<AssessmentCenter />} />
                                 <Route path="assessments/:categoryId" element={<QuestionnairePage />} />
                                 <Route path="patients/:patientId" element={<PatientRecord />} />

@@ -73,7 +73,7 @@ export interface AssessmentResult {
     }[];
     status?: string;
     colorClass?: string; // UI augmentation
-    severityStyle?: any; // UI augmentation (contains icons)
+    severityStyle?: Record<string, unknown>; // UI augmentation (contains icons)
     source?: string; // UI augmentation
     createdAt?: string;
     updatedAt?: string;

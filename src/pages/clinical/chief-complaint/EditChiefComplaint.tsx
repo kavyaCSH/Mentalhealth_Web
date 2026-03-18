@@ -109,7 +109,10 @@ const EditChiefComplaint = () => {
     };
 
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
-    const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
+    const isPatient = (currentUser as any)?.role === 'patient' || 
+                      (currentUser as any)?.role === 'PATIENT' || 
+                      (currentUser as any)?.group === 'PATIENT' ||
+                      (currentUser as any)?.group === 'patient';
 
 
 

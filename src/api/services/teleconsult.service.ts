@@ -34,7 +34,7 @@ export const TeleConsultService = {
             }
         };
         if (notes) {
-            (payload.additional_info as any).doctor_notes = notes;
+            (payload.additional_info as Record<string, unknown>).doctor_notes = notes;
         }
         const response = await api.patch(`/resource/consults/${id}`, payload);
         return response.data;
@@ -48,8 +48,7 @@ export const TeleConsultService = {
         return response.data;
     },
     tokenValidate: async (token: string, type: string = 'subscriber') => {
-        const url = 'https://services-api.a2zhealth.in/v1/consults/token-validate';
-        const response = await api.get(url, { params: { token, type } });
+        const response = await api.get('consults/token-validate', { params: { token, type } });
         return response.data;
     }
 };

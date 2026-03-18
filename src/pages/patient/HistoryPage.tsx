@@ -79,10 +79,6 @@ const HistoryPage = () => {
         loadMasters();
     }, [categoryParam]);
 
-    useEffect(() => {
-        fetchHistory(1, true);
-    }, [activeCategory, statusFilter, startDate, endDate, searchQuery, patientId]);
-
     const fetchHistory = useCallback(async (pageNum: number, reset: boolean = false) => {
         if (reset) setIsLoading(true);
 
@@ -95,7 +91,7 @@ const HistoryPage = () => {
                 // Filter by category if one is selected
                 items = activeCategory === 'all' 
                     ? allAssessments 
-                    : allAssessments.filter(a => (a.category === activeCategory || a.slug === activeCategory));
+                    : allAssessments.filter(a => a && (a.category === activeCategory || a.slug === activeCategory));
             } else {
                 // Fetch own history
                 const result = await AssessmentService.getOwnHistory(pageNum, 10, activeCategory);
@@ -112,16 +108,21 @@ const HistoryPage = () => {
             setHasMore(!patientId && items.length >= 10);
             setPage(pageNum);
             setFetchError(null);
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const terror = err as { message?: string };
             if (reset) {
                 setHistory([]);
-                setFetchError(err.message || 'Failed to synchronize with clinical vault.');
+                setFetchError(terror.message || 'Failed to synchronize with clinical vault.');
             }
             setHasMore(false);
         } finally {
             setIsLoading(false);
         }
     }, [activeCategory, patientId]);
+
+    useEffect(() => {
+        fetchHistory(1, true);
+    }, [activeCategory, statusFilter, startDate, endDate, searchQuery, patientId, fetchHistory]);
 
     const loadMore = () => {
         if (!isLoading && hasMore) {
@@ -141,6 +142,7 @@ const HistoryPage = () => {
     };
 
     const filteredHistory = history.filter(item => {
+        if (!item) return false;
         const matchesSearch = (item.category || item.slug || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (item.interpretation || '').toLowerCase().includes(searchQuery.toLowerCase());
 

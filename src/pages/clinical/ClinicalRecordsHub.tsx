@@ -23,6 +23,10 @@ import { PastHistoryService } from '../../api/services/pastHistory.service';
 import { UserService } from '../../api/services/user.service';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
+import type { ROSResponse } from '../../types/ros.types';
+import type { HPIResponse } from '../../api/services/hpi.service';
+import type { ChiefComplaintResponse } from '../../api/services/chiefComplaint.service';
+import type { PastHistoryResponse } from '../../types/pastHistory.types';
 import Button from '../../components/ui/Button';
 
 interface ClinicalRecord {
@@ -46,20 +50,20 @@ const ClinicalRecordsHub = () => {
     const [patientName, setPatientName] = useState('Patient');
 
     const fetchAllRecords = useCallback(async () => {
-        const idToUse = patientId || currentUser?.id || (currentUser as any)?._id;
+        const idToUse = patientId || currentUser?.id || currentUser?._id;
         if (!idToUse) return;
         setIsLoading(true);
         try {
             // Resolve patient name first
             let profile;
-            const isPatient = (currentUser as any)?.role === 'patient' || (currentUser as any)?.group === 'PATIENT';
+            const isPatient = currentUser?.role === 'patient' || (currentUser as unknown as { group?: string })?.group === 'PATIENT';
             
-            if (isPatient && idToUse === (currentUser?.id || (currentUser as any)?._id)) {
+            if (isPatient && idToUse === (currentUser?.id || currentUser?._id)) {
                 profile = currentUser;
             } else {
                 try {
                     profile = await UserService.getUserById(idToUse);
-                } catch (e) {
+                } catch {
                     console.warn('[ClinicalRecordsHub] Could not fetch profile, using current user');
                     profile = currentUser;
                 }
@@ -82,13 +86,12 @@ const ClinicalRecordsHub = () => {
 
             const normalized: ClinicalRecord[] = [];
 
-            // Normalize Complaints
-            const complaints = complaintsRes?.data || complaintsRes || [];
+            const complaints = (complaintsRes?.data || complaintsRes || []) as ChiefComplaintResponse[];
             if (Array.isArray(complaints)) {
-                complaints.forEach((c: any) => normalized.push({
-                    id: c._id || c.id,
+                complaints.forEach((c: ChiefComplaintResponse) => normalized.push({
+                    id: String(c._id || c.id || ''),
                     type: 'complaint',
-                    date: c.createdAt || c.date,
+                    date: String(c.createdAt || ''),
                     narrative: c.narrative || 'Primary Symptom Intake',
                     status: 'Finalized',
                     author: 'Clinical Intake'
@@ -96,25 +99,25 @@ const ClinicalRecordsHub = () => {
             }
 
             // Normalize HPI
-            const hpis = hpiRes?.data || hpiRes || [];
+            const hpis = (hpiRes?.data || hpiRes || []) as HPIResponse[];
             if (Array.isArray(hpis)) {
-                hpis.forEach((h: any) => normalized.push({
-                    id: h._id || h.id,
+                hpis.forEach((h: HPIResponse) => normalized.push({
+                    id: String(h._id || h.id || ''),
                     type: 'hpi',
-                    date: h.createdAt || h.date,
-                    narrative: h.narrative || h.content || 'History of Present Illness',
+                    date: String(h.createdAt || ''),
+                    narrative: h.narrative || 'History of Present Illness',
                     status: 'Clinical Record',
-                    author: h.recorded_by || 'Specialist'
+                    author: 'Specialist'
                 }));
             }
 
             // Normalize MSE
-            const mses = mseRes?.data || mseRes || [];
+            const mses = (mseRes?.data || mseRes || []) as any[];
             if (Array.isArray(mses)) {
                 mses.forEach((m: any) => normalized.push({
-                    id: m._id || m.id,
+                    id: String(m._id || m.id || ''),
                     type: 'mse',
-                    date: m.createdAt || m.date,
+                    date: String(m.createdAt || m.date || ''),
                     narrative: 'Mental Status Examination Completed',
                     status: 'Evaluated',
                     author: 'Clinical Provider'
@@ -124,22 +127,22 @@ const ClinicalRecordsHub = () => {
             // Normalize ROS
             const ross = rosRes?.data || rosRes || [];
             if (Array.isArray(ross)) {
-                ross.forEach((r: any) => normalized.push({
-                    id: r._id || r.id,
+                ross.forEach((r: ROSResponse) => normalized.push({
+                    id: String(r._id || r.id || ''),
                     type: 'ros',
-                    date: r.createdAt || r.date,
+                    date: String(r.createdAt || ''),
                     narrative: r.ai_notes || 'Systematic Review of Systems',
                     status: 'Documented',
                     author: 'System Intake'
                 }));
             }
             // Normalize Past History
-            const history = historyRes?.data || historyRes || [];
+            const history = (historyRes?.data || historyRes || []) as PastHistoryResponse[];
             if (Array.isArray(history)) {
-                history.forEach((h: any) => normalized.push({
-                    id: h._id || h.id,
+                history.forEach((h: PastHistoryResponse) => normalized.push({
+                    id: String(h._id || h.id || ''),
                     type: 'past-history',
-                    date: h.createdAt || h.date,
+                    date: String(h.createdAt || ''),
                     narrative: h.ai_notes || 'Comprehensive Clinical History',
                     status: 'Compiled',
                     author: 'Clinical Intake'
@@ -190,7 +193,7 @@ const ClinicalRecordsHub = () => {
     });
 
     const handleRecordClick = (record: ClinicalRecord) => {
-        const pid = patientId || currentUser?.id || (currentUser as any)?._id;
+        const pid = patientId || currentUser?.id || currentUser?._id;
         const paths: Record<string, string> = {
             complaint: `/patients/${pid}/chief-complaint/${record.id}`,
             hpi: `/patients/${pid}/hpi/${record.id}`,
@@ -224,7 +227,7 @@ const ClinicalRecordsHub = () => {
                 </div>
                 <div className="flex gap-3">
                     <Button variant="outline" leftIcon={<Download size={18} />}>Export Timeline</Button>
-                    <Button variant="primary" leftIcon={<Plus size={18} />} onClick={() => navigate(`/patients/${patientId || currentUser?.id || (currentUser as any)?._id}/health`)}>New Intake</Button>
+                    <Button variant="primary" leftIcon={<Plus size={18} />} onClick={() => navigate(`/patients/${patientId || currentUser?.id || currentUser?._id}/health`)}>New Intake</Button>
                 </div>
             </header>
 

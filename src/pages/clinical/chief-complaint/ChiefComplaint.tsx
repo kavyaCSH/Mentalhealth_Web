@@ -51,9 +51,9 @@ const ChiefComplaint = () => {
             console.log(`[ChiefComplaint] Deleting record ${ccId} for identity: ${hexId}`);
 
             if (isPatient && hexId) {
-                await ChiefComplaintService.deletePatientComplaint(hexId, ccId);
+                await ChiefComplaintService.deletePatientComplaint(hexId as string, ccId);
             } else {
-                await ChiefComplaintService.deleteComplaint(ccId, hexId);
+                await ChiefComplaintService.deleteComplaint(ccId, hexId as string);
             }
 
             setHistory(prev => prev.filter(item => (item.chiefComplaintId || item.id || item._id) !== ccId));
@@ -64,21 +64,21 @@ const ChiefComplaint = () => {
     };
 
     useEffect(() => {
-        if (userId) {
+        if (effectiveUserId) {
             fetchData();
         }
-    }, [userId]);
+    }, [effectiveUserId]);
 
     const fetchData = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            if (!userId || userId === 'undefined') {
+            if (!effectiveUserId || effectiveUserId === 'undefined') {
                 setIsLoading(false);
                 return;
             }
 
-            console.log(`[ChiefComplaint] Loading history for patient ID (userId): ${userId}`);
+            console.log(`[ChiefComplaint] Loading history for identity: ${effectiveUserId}`);
 
             // 1. Resolve hex ID from user profile
             let hexId = userId;
@@ -97,9 +97,9 @@ const ChiefComplaint = () => {
                 if (currentUser) {
                     setPatient(currentUser as any);
                 }
-            } else {
+            } else if (userId) {
                 try {
-                    const userProfile = await UserService.getUserById(userId);
+                    const userProfile = await UserService.getUserById(userId as string);
                     if (userProfile) {
                         hexId = userProfile._id || userProfile.id || hexId;
                         console.log(`[ChiefComplaint] Resolved Hex ID: ${hexId}`);
@@ -116,7 +116,7 @@ const ChiefComplaint = () => {
             if (isPatient && hexId) {
                 // Use patient-scoped endpoint — backend authorizes this for patient role
                 console.log(`[ChiefComplaint] Patient: using /patients/${hexId}/chief-complaints`);
-                const queryData = await ChiefComplaintService.listPatientComplaints(hexId);
+                const queryData = await ChiefComplaintService.listPatientComplaints(hexId as string);
                 const complaints = queryData?.data || queryData || [];
                 complaintsArray = Array.isArray(complaints) ? complaints : [complaints].filter(Boolean);
             } else {
@@ -215,31 +215,30 @@ const ChiefComplaint = () => {
                                     <Clock size={16} />
                                 </div>
                                  <div className="flex items-center gap-3">
-                                    {!isPatient && (
-                                        <>
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const path = `/patients/${effectiveUserId}/chief-complaint/edit/${item.chiefComplaintId || item.id || item._id}`;
-                                                    navigate(path);
-                                                }}
-                                                className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl shadow-sm transition-all"
-                                                title="Edit Record"
-                                            >
-                                                <Edit3 size={16} />
-                                            </button>
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDelete((item.chiefComplaintId || item.id || item._id)!);
-                                                }}
-                                                className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl shadow-sm transition-all"
-                                                title="Delete Record"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </>
-                                    )}
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const id = item.chiefComplaintId || item.id || item._id;
+                                            const path = isPatient 
+                                                ? `/records/chief-complaint/edit/${id}`
+                                                : `/patients/${effectiveUserId}/chief-complaint/edit/${id}`;
+                                            navigate(path);
+                                        }}
+                                        className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl shadow-sm transition-all"
+                                        title="Edit Record"
+                                    >
+                                        <Edit3 size={16} />
+                                    </button>
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete((item.chiefComplaintId || item.id || item._id)!);
+                                        }}
+                                        className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl shadow-sm transition-all"
+                                        title="Delete Record"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
                                         {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
                                             month: 'short',

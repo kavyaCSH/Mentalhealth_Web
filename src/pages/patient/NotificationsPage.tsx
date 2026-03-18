@@ -16,9 +16,10 @@ import {
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { NotificationService } from '../../api/services/notification.service';
+import type { Notification } from '../../types/common.types';
 
 const PatientNotificationsPage = () => {
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'unread' | 'alerts'>('all');
 
@@ -42,21 +43,25 @@ const PatientNotificationsPage = () => {
         try {
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true, read: true } : n));
             await NotificationService.markAsRead(id);
-        } catch (err) {}
+        } catch {
+            // Silently fail as per original logic
+        }
     };
 
     const handleMarkAllAsRead = async () => {
         try {
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
             await NotificationService.markAllAsRead();
-        } catch (err) {}
+        } catch {
+            // Silently fail as per original logic
+        }
     };
 
     const handleDelete = async (id: string) => {
         setNotifications(prev => prev.filter(n => n.id !== id));
     };
 
-    const getIconInfo = (type: string) => {
+    const getIconInfo = (type?: string) => {
         const props = { size: 22 };
         switch (type) {
             case 'alert':
@@ -76,14 +81,14 @@ const PatientNotificationsPage = () => {
         }
     };
 
-    const groupNotifications = (data: any[]) => {
+    const groupNotifications = (data: Notification[]) => {
         const filtered = data.filter(n => {
             if (filter === 'unread') return !n.isRead && !n.read;
             if (filter === 'alerts') return n.type === 'alert';
             return true;
         });
 
-        const sections: { title: string; items: any[] }[] = [
+        const sections: { title: string; items: Notification[] }[] = [
             { title: 'Today', items: [] },
             { title: 'Yesterday', items: [] },
             { title: 'Older', items: [] }
@@ -182,7 +187,7 @@ const PatientNotificationsPage = () => {
                             <div className="grid gap-4">
                                 <AnimatePresence mode="popLayout">
                                     {section.items.map((notif, index) => {
-                                        const { icon, colorClass } = getIconInfo(notif.type);
+                                        const { icon, colorClass } = getIconInfo(notif.type || '');
                                         const isRead = notif.isRead || notif.read;
                                         return (
                                             <motion.div

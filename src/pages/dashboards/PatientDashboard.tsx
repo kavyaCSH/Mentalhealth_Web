@@ -35,7 +35,8 @@ import { useRealTimeClock } from '../../hooks/useRealTime';
 import Button from '../../components/ui/Button';
 import type { RootState } from '../../store';
 import api from '../../api/client';
-import type { Consultation, Notification } from '../../types/common.types';
+import { TeleConsultService } from '../../api/services/teleconsult.service';
+import type { Consultation, Notification, Participant, ConsultStatus } from '../../types/common.types';
 import type { AssessmentMaster } from '../../types/assessment.types';
 
 const PatientDashboard = () => {
@@ -248,15 +249,11 @@ const PatientDashboard = () => {
                     <div className="space-y-4">
                         {appointments.slice(0, 2).map((appt: Consultation, i: number) => {
                             const dt = new Date(appt.scheduled_at);
-                            const extendedAppt = appt as Consultation & {
-                                consult_current_status?: { name: string, slug: string } | string;
-                                consult_status?: { name: string, slug: string } | string;
-                            };
-                            const statusObj = extendedAppt.consult_current_status || extendedAppt.consult_status;
-                            const statusName = statusObj ? (typeof statusObj === 'string' ? statusObj : statusObj.name) : 'Unknown Status';
-                            const statusSlug = statusObj ? (typeof statusObj === 'string' ? statusObj.toLowerCase() : statusObj.slug) : appt.status || 'scheduled';
+                            const statusObj = appt.consult_current_status || appt.consult_status;
+                            const statusName = statusObj ? (typeof statusObj === 'string' ? statusObj : (statusObj as ConsultStatus).name) : (appt.status || 'Scheduled');
+                            const statusSlug = statusObj ? (typeof statusObj === 'string' ? statusObj.toLowerCase() : (statusObj as ConsultStatus).slug) : (appt.status || 'scheduled');
                             const isVirtual = appt.consult_type === 'virtual';
-                            const professional = appt.participants?.find(p => p.participant_type?.code === 'professional');
+                            const professional = appt.participants?.find(p => p.participant_type?.code === 'professional' || p.role === 'publisher');
                             const isExpanded = expandedAppointment === String(appt.id);
 
                             return (
@@ -293,8 +290,39 @@ const PatientDashboard = () => {
                                             <div className="flex gap-3">
                                                 <button className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors">Reschedule</button>
                                                 <button 
-                                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors shadow-lg shadow-indigo-200"
-                                                    onClick={(e) => { e.stopPropagation(); navigate('/teleconsult'); }}
+                                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors shadow-lg shadow-indigo-200 disabled:opacity-50"
+                                                    onClick={async (e) => { 
+                                                        e.stopPropagation(); 
+                                                                                                                 console.log('[PatientDashboard] Session ID:', appt.id || appt._id);
+                                                        
+                                                        const getSubscriberToken = () => {
+                                                            const subscriber = appt.participants?.find((p: Participant) => 
+                                                                p.role === 'subscriber' || 
+                                                                p.participant_type?.code === 'patient'
+                                                            );
+                                                            return subscriber?.token || appt.subscriber_token || appt.token;
+                                                        };
+                                                        
+                                                        const token = getSubscriberToken();
+                                                        
+                                                        if (token) {
+                                                            try {
+                                                                const validation = await TeleConsultService.tokenValidate(token, 'subscriber');
+                                                                if (validation.success || validation.code === 200) {
+                                                                    const baseUrl = import.meta.env.VITE_TELECONSULT_SUBSCRIBER_URL || 'https://teleconsult.a2zhealth.in/consult/';
+                                                                    window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                                                                } else {
+                                                                    alert('Could not validate session. Please try again.');
+                                                                }
+                                                            } catch (err) {
+                                                                console.error('Validation failed', err);
+                                                                const baseUrl = import.meta.env.VITE_TELECONSULT_SUBSCRIBER_URL || 'https://teleconsult.a2zhealth.in/consult/';
+                                                                window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                                                            }
+                                                        } else {
+                                                            alert('Consultation token not found.');
+                                                        }
+                                                    }}
                                                 >
                                                     Join Session
                                                 </button>

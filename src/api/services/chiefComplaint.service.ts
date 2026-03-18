@@ -46,8 +46,8 @@ export const ChiefComplaintService = {
                 const listRes = await ChiefComplaintService.listComplaints({ patientId: patient_id });
                 const list = listRes?.data || listRes || [];
                 const item = (list as ChiefComplaintResponse[]).find(h =>
-                    String((h as any).id) === String(id) ||
-                    String((h as any)._id) === String(id)
+                    String(h.id) === String(id) ||
+                    String(h._id) === String(id)
                 );
                 if (item) return { success: true, message: 'Found in list', data: item };
             } catch (e) {
@@ -60,7 +60,7 @@ export const ChiefComplaintService = {
 
     updateComplaint: async (
         id: string | number,
-        data: any,
+        data: Partial<ChiefComplaintResponse>,
         patient_id?: string | number
     ): Promise<ApiResponse<ChiefComplaintResponse>> => {
         const response = await api.patch(`/chief-complaints/${id}`, data, {
@@ -72,7 +72,7 @@ export const ChiefComplaintService = {
     deleteComplaint: async (
         id: string | number,
         patient_id?: string | number
-    ): Promise<ApiResponse<any>> => {
+    ): Promise<ApiResponse<unknown>> => {
         const response = await api.delete(`/chief-complaints/${id}`, {
             params: patient_id ? { patient_id } : {},
         });
@@ -93,16 +93,12 @@ export const ChiefComplaintService = {
     ): Promise<ApiResponse<ChiefComplaintResponse>> => {
         try {
             const listRes = await ChiefComplaintService.listPatientComplaints(patientId);
-            const list: ChiefComplaintResponse[] = Array.isArray(listRes?.data)
-                ? listRes.data
-                : Array.isArray(listRes)
-                ? (listRes as any)
-                : [];
+            const list = (listRes?.data || listRes || []) as ChiefComplaintResponse[];
             const item = list.find(
                 h =>
-                    String((h as any).chiefComplaintId) === String(ccId) ||
-                    String((h as any).id) === String(ccId) ||
-                    String((h as any)._id) === String(ccId)
+                    String(h.chiefComplaintId) === String(ccId) ||
+                    String(h.id) === String(ccId) ||
+                    String(h._id) === String(ccId)
             );
             if (item) return { success: true, message: 'Found in list', data: item };
         } catch (e) {
@@ -136,7 +132,7 @@ export const ChiefComplaintService = {
     deletePatientComplaint: async (
         patientId: string,
         ccId: string | number
-    ): Promise<ApiResponse<any>> => {
+    ): Promise<ApiResponse<unknown>> => {
         const response = await api.delete(`/chief-complaints/${ccId}`, {
             params: { patient_id: patientId }
         });

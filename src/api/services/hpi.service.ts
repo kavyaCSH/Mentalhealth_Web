@@ -69,7 +69,7 @@ export const HPIService = {
         return response.data;
     },
 
-    deleteHPI: async (id: string | number): Promise<ApiResponse<any>> => {
+    deleteHPI: async (id: string | number): Promise<ApiResponse<unknown>> => {
         const response = await api.delete(`/hpis/${id}`);
         return response.data;
     }

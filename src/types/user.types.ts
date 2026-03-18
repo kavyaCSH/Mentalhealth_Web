@@ -46,6 +46,7 @@ export interface User {
     profileImage?: string;
     languages?: string[];
     skills?: string[];
+    qualifications?: string;
     timezoneId?: string;
     coordinates?: {
         lat: number;

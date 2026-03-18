@@ -39,7 +39,13 @@ const ChiefComplaintDetail = () => {
     const fetchDetail = async () => {
         setIsLoading(true);
         try {
-            const response = await ChiefComplaintService.getById(ccId!, userId);
+            let response;
+            if (isPatient) {
+                const hexId = currentUser?._id || currentUser?.id || userId;
+                response = await ChiefComplaintService.getPatientComplaintById(hexId as string, ccId!);
+            } else {
+                response = await ChiefComplaintService.getById(ccId!, userId);
+            }
             const data = response.data || response;
             setComplaint(data);
         } catch (err: any) {

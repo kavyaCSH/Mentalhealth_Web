@@ -43,8 +43,8 @@ const PatientRecord = () => {
             setIsLoading(true);
             try {
                 console.log(`[PatientRecord] Resolving profile for: ${id}`);
-                let patientData: any;
-                let assessmentHistory: any;
+                let patientData: Patient | null = null;
+                let assessmentHistory: AssessmentResult[] = [];
 
                 // 1. Try primary lookup
                 try {
@@ -52,9 +52,10 @@ const PatientRecord = () => {
                         UserService.getUserById(id || ''),
                         AssessmentService.getPatientHistory(id || '')
                     ]);
-                    console.log(`[PatientRecord] Profile resolved directly: ${patientData.firstName}`);
-                } catch (primaryError: any) {
-                    if (primaryError.response?.status === 404) {
+                    console.log(`[PatientRecord] Profile resolved directly: ${patientData?.firstName}`);
+                } catch (primaryError: unknown) {
+                    const error = primaryError as { response?: { status?: number } };
+                    if (error.response?.status === 404) {
                         console.warn('[PatientRecord] Primary lookup failed, trying clinical fallback resolution...');
                         try {
                             const assessmentData = await AssessmentService.getQuestions(id);
@@ -169,7 +170,7 @@ const PatientRecord = () => {
                             <Button variant="outline" leftIcon={<HeartPulse size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/health`)}>Health</Button>
                             <Button variant="outline" leftIcon={<ClipboardList size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/clinical-hub`)}>Clinical Hub</Button>
                             <Button variant="outline" leftIcon={<MessageCircle size={18} />}>Message</Button>
-                            <Button variant="outline" leftIcon={<Video size={18} />} onClick={() => navigate('/teleconsult')}>Teleconsult</Button>
+                            <Button variant="outline" leftIcon={<Video size={18} />} onClick={() => navigate('/clinical-schedule')}>Teleconsult</Button>
                             <Button variant="primary" leftIcon={<Plus size={18} />} onClick={handleRequestAssessment}>Request Assessment</Button>
                         </>
                     )}

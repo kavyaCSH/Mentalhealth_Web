@@ -24,8 +24,8 @@ export const ROSService = {
                 const listRes = await ROSService.getROSByPatient(patient_id);
                 const list = listRes?.data || listRes || [];
                 const item = (list as ROSResponse[]).find(r => 
-                    String((r as any).id) === String(id) || 
-                    String((r as any)._id) === String(id)
+                    String(r.id || r.rosId) === String(id) || 
+                    String(r._id) === String(id)
                 );
                 
                 if (item) return { success: true, message: "Found in list", data: item };
