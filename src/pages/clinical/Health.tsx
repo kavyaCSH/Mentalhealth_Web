@@ -321,8 +321,7 @@ const Health = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45 }}
-                    onClick={() => navigate(`/clinical/assessments?patientId=${userId}`)}
-                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col"
                 >
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
@@ -330,11 +329,25 @@ const Health = () => {
                         </div>
                         <h2 className="text-sm font-black text-slate-900 tracking-tight">Clinical Assessments</h2>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 mb-6">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Evaluation Pool</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed uppercase">
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
                             Assign or conduct standardized clinical evaluations for this patient.
                         </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <button 
+                            onClick={() => navigate(`/clinical/assessments?patientId=${userId}`)}
+                            className="py-3 px-4 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
+                        >
+                            Start New
+                        </button>
+                        <button 
+                            onClick={() => navigate(`/clinical/assessments/history?patientId=${userId}`)}
+                            className="py-3 px-4 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-colors"
+                        >
+                            View History
+                        </button>
                     </div>
                 </motion.div>
 

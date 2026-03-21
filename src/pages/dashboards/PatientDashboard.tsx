@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import CircularProgress from '../../components/common/CircularProgress';
 import TrendAreaChart from '../../components/common/TrendAreaChart';
+import QuickCheckIn from '../../components/dashboard/QuickCheckIn';
+import DailyTasks from '../../components/dashboard/DailyTasks';
 import { useRealTimeClock } from '../../hooks/useRealTime';
 import Button from '../../components/ui/Button';
 import type { RootState } from '../../store';
@@ -89,7 +91,6 @@ const PatientDashboard = () => {
     }, [user?.id]);
 
 
-    const [expandedAppointment, setExpandedAppointment] = useState<string | null>(null);
 
     // AI Card animations & effects
     const [pulse, setPulse] = useState(false);
@@ -129,17 +130,19 @@ const PatientDashboard = () => {
         eating_disorder: { icon: 'Coffee', color: '#10B981' },
         pmdd: { icon: 'HeartCrack', color: '#EC4899' },
         autism_spectrum: { icon: 'Sparkles', color: '#6366F1' },
-        ptsd_pediatric: { icon: 'Shield', color: '#EF4444' },
+        ptsd_pediatric: { icon: 'Shield', color: '#EF4444' }, // Added this entry
         acute_stress: { icon: 'Flame', color: '#F97316' },
         dissociative_symptoms: { icon: 'Eye', color: '#A855F7' },
         personality_inventory: { icon: 'Brain', color: '#6366F1' },
         irritability: { icon: 'Flame', color: '#F97316' },
     };
 
-    const getIcon = (iconName: string, color: string) => {
-        const props = { size: 24, fill: "currentColor", className: `text-[${color}] opacity-90` };
+
+
+    const getIcon = (iconName: string) => {
+        const props = { size: 24, fill: "currentColor", className: "opacity-90" };
         switch (iconName) {
-            case 'Heart': return <Activity {...props} />;
+            case 'Heart': return <Activity {...props} />; 
             case 'Activity': return <Activity {...props} />;
             case 'Moon': return <Moon {...props} />;
             case 'Zap': return <Zap {...props} />;
@@ -154,7 +157,6 @@ const PatientDashboard = () => {
             case 'Sparkles': return <Sparkles {...props} />;
             case 'Crosshair': return <Crosshair {...props} />;
             case 'Dice1': return <Dice1 {...props} />;
-            case 'Coffee': return <Coffee {...props} />;
             default: return <Brain {...props} />;
         }
     };
@@ -173,20 +175,20 @@ const PatientDashboard = () => {
 
     return (
         <div className="p-8 space-y-10 animate-fade-in max-w-7xl ">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-slate-50">
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 text-indigo-600 mb-1">
                         <Clock size={16} />
                         <span className="text-xs font-black uppercase tracking-[0.2em]">{dateString} • {timeString}</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <h1 className="text-4xl font-black tracking-tight text-slate-900 line-clamp-1 text-premium">Hello, {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : (user?.name || user?.username || 'Guest')}</h1>
+                        <h1 className="text-4xl font-black tracking-tight text-slate-900 line-clamp-1 text-gradient-primary">Hello, {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : (user?.name || user?.username || 'Guest')}</h1>
                         <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100 mt-1">
                             Patient
                         </span>
                     </div>
                     <p className="text-slate-500 font-medium flex items-center gap-2">
-                        How are you feeling today?
+                        How is your mental well-being today?
                     </p>
                 </div>
             </header>
@@ -230,234 +232,168 @@ const PatientDashboard = () => {
                     </div>
                 </div>
             </motion.div>
+            {/* Dashboard Protocol Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Main Content Area (8 Cols) */}
+                <div className="lg:col-span-8 space-y-8">
+                    <QuickCheckIn />
 
-            {/* Scheduled Events — from consults API */}
-            {appointments.length > 0 && (
-                <section>
-                    <div className="flex items-center justify-between mb-6 pl-2">
-                        <div className="flex items-center gap-4">
-                            <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Upcoming Consultations</h2>
+                    {/* Upcoming Sessions Section — restored prominently */}
+                    <section className="card-premium p-8 bg-white border-slate-100">
+                        <div className="flex items-center justify-between mb-8 pl-2">
+                            <div className="flex items-center gap-4">
+                                <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Upcoming Sessions</h2>
+                            </div>
+                            <button 
+                                onClick={() => navigate('/teleconsult')}
+                                className="text-indigo-600 font-bold text-sm hover:text-indigo-700 transition-colors"
+                            >
+                                Open Portal
+                            </button>
                         </div>
-                        <button
-                            onClick={() => navigate('/schedule')}
-                            className="text-indigo-600 font-bold text-sm hover:text-indigo-700 transition-colors"
-                        >
-                            My Schedule
-                        </button>
-                    </div>
-                    <div className="space-y-4">
-                        {appointments.slice(0, 2).map((appt: Consultation, i: number) => {
-                            const dt = new Date(appt.scheduled_at);
-                            const statusObj = appt.consult_current_status || appt.consult_status;
-                            const statusName = statusObj ? (typeof statusObj === 'string' ? statusObj : (statusObj as ConsultStatus).name) : (appt.status || 'Scheduled');
-                            const statusSlug = statusObj ? (typeof statusObj === 'string' ? statusObj.toLowerCase() : (statusObj as ConsultStatus).slug) : (appt.status || 'scheduled');
-                            const isVirtual = appt.consult_type === 'virtual';
-                            const professional = appt.participants?.find(p => p.participant_type?.code === 'professional' || p.role === 'publisher');
-                            const isExpanded = expandedAppointment === String(appt.id);
-
-                            return (
-                                <motion.div
-                                    key={appt.id || i}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="card-premium bg-white p-5 border-slate-100 hover:border-indigo-200 transition-all cursor-pointer group"
-                                    onClick={() => setExpandedAppointment(isExpanded ? null : String(appt.id))}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                                {isVirtual ? <Video size={20} /> : <MapPin size={20} />}
+                        
+                        {appointments.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {appointments.slice(0, 2).map((appt: Consultation, i: number) => {
+                                    const dt = new Date(appt.scheduled_at);
+                                    const isVirtual = appt.consult_type === 'virtual';
+                                    const statusStyle = getConsultStatusColor(appt.status);
+                                    
+                                    return (
+                                        <div 
+                                            key={appt.id || appt._id || i} 
+                                            onClick={() => navigate(`/teleconsult/${appt.id || appt._id}`)}
+                                            className="p-6 bg-slate-50/50 border border-slate-100 rounded-[2rem] hover:bg-white hover:border-indigo-100 hover:shadow-xl transition-all group cursor-pointer relative overflow-hidden"
+                                        >
+                                            <div className="flex items-start justify-between mb-5">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                                        {isVirtual ? <Video size={22} className="text-indigo-500" /> : <MapPin size={22} className="text-emerald-500" />}
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-sm font-black text-slate-900 line-clamp-1">{appt.reason || 'Symptom Review'}</h4>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Clinical Consultation</p>
+                                                    </div>
+                                                </div>
+                                                <div className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${statusStyle}`}>
+                                                    {appt.status}
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-slate-900 mb-1">{appt.reason || 'Consultation'}</h3>
-                                                <div className="flex items-center gap-3 text-xs font-semibold text-slate-500">
-                                                    <span className="flex items-center gap-1.5"><Clock size={12} />{!isNaN(dt.getTime()) ? `${dt.toLocaleDateString()} ${dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'TBD'}</span>
-                                                    {professional && <span className="flex items-center gap-1.5"><User size={12} />{professional.name}</span>}
+
+                                            <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100/50">
+                                                <div className="flex items-center gap-2 text-slate-500 font-bold text-xs">
+                                                    <Clock size={14} className="text-slate-300" />
+                                                    {!isNaN(dt.getTime()) 
+                                                        ? dt.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) + ' at ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                        : 'Schedule TBD'}
+                                                </div>
+                                                <div className="w-8 h-8 bg-white rounded-xl border border-slate-100 flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                                    <ChevronRight size={16} />
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border ${getConsultStatusColor(statusSlug)}`}>
-                                                {statusName}
-                                            </span>
-                                            <ChevronDown size={20} className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                                        </div>
-                                    </div>
-                                    {isExpanded && (
-                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="mt-5 pt-5 border-t border-slate-50 overflow-hidden">
-                                            <div className="flex gap-3">
-                                                <button className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors">Reschedule</button>
-                                                <button 
-                                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors shadow-lg shadow-indigo-200 disabled:opacity-50"
-                                                    onClick={async (e) => { 
-                                                        e.stopPropagation(); 
-                                                                                                                 console.log('[PatientDashboard] Session ID:', appt.id || appt._id);
-                                                        
-                                                        const getSubscriberToken = () => {
-                                                            const subscriber = appt.participants?.find((p: Participant) => 
-                                                                p.role === 'subscriber' || 
-                                                                p.participant_type?.code === 'patient'
-                                                            );
-                                                            return subscriber?.token || appt.subscriber_token || appt.token;
-                                                        };
-                                                        
-                                                        const token = getSubscriberToken();
-                                                        
-                                                        if (token) {
-                                                            try {
-                                                                const validation = await TeleConsultService.tokenValidate(token, 'subscriber');
-                                                                if (validation.success || validation.code === 200) {
-                                                                    const baseUrl = import.meta.env.VITE_TELECONSULT_SUBSCRIBER_URL || 'https://teleconsult.a2zhealth.in/consult/';
-                                                                    window.location.href = `${baseUrl}${token}?hideMenu=true`;
-                                                                } else {
-                                                                    alert('Could not validate session. Please try again.');
-                                                                }
-                                                            } catch (err) {
-                                                                console.error('Validation failed', err);
-                                                                const baseUrl = import.meta.env.VITE_TELECONSULT_SUBSCRIBER_URL || 'https://teleconsult.a2zhealth.in/consult/';
-                                                                window.location.href = `${baseUrl}${token}?hideMenu=true`;
-                                                            }
-                                                        } else {
-                                                            alert('Consultation token not found.');
-                                                        }
-                                                    }}
-                                                >
-                                                    Join Session
-                                                </button>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </motion.div>
-                            );
-                        })}
-                    </div>
-                </section>
-            )}
-
-            {/* Mood Trajectory Chart */}
-            <section className="card-premium p-10 space-y-8 bg-white border-slate-100">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <Activity size={16} className="text-indigo-600" />
-                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Wellness Overview</h2>
-                        </div>
-                        <h3 className="text-3xl font-black text-slate-900 tracking-tight">Mood Trajectory</h3>
-                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest italic mt-1">Weekly Delta Analysis</p>
-                    </div>
-                    <div className="flex flex-col items-end">
-                        <span className="text-3xl font-black text-indigo-600">82%</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Neural Balance</span>
-                    </div>
-                </div>
-                
-                <TrendAreaChart 
-                    data={[
-                        { label: 'Mon', value: 65 },
-                        { label: 'Tue', value: 72 },
-                        { label: 'Wed', value: 68 },
-                        { label: 'Thu', value: 75 },
-                        { label: 'Fri', value: 82 },
-                        { label: 'Sat', value: 78 },
-                        { label: 'Sun', value: 85 },
-                    ]} 
-                    height={200} 
-                    color="#6366f1" 
-                />
-            </section>
-
-            {/* Mental Health Services — from masters API */}
-            <section>
-                <div className="flex items-center justify-between mb-6 pl-2">
-                    <div className="flex items-center gap-4">
-                        <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                        <h2 className="text-xl font-black text-slate-900 tracking-tight">Wellness Assessments</h2>
-                    </div>
-                    <button
-                        onClick={() => navigate('/assessments')}
-                        className="text-indigo-600 font-bold text-sm hover:text-indigo-700 transition-colors"
-                    >
-                        Explore All
-                    </button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {masters.length > 0 ? masters.slice(0, 4).map((m: AssessmentMaster, i: number) => {
-                        const style = slugStyleMap[m.slug || ''] || { icon: 'Brain', color: '#6366F1' };
-                        const progress = Math.min(Math.floor(Math.random() * 40) + 60, 100);
-                        
-                        return (
-                            <motion.button
-                                key={m.id || m._id}
-                                initial={{ opacity: 0, y: 15 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.1 }}
-                                onClick={() => navigate(`/assessments/${m.slug}`)}
-                                className="card-premium p-5 bg-white border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col group text-left"
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="p-12 bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200 text-center">
+                                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100 shadow-sm">
+                                    <Video size={32} className="text-slate-200" />
+                                </div>
+                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No sessions scheduled for this period</p>
+                                <button 
+                                    onClick={() => navigate('/schedule?action=book')}
+                                    className="mt-4 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:text-indigo-700"
+                                >
+                                    Book Session Now
+                                </button>
+                            </div>
+                        )}
+                    </section>
+                    
+                    {/* Wellness Assessments — from masters API */}
+                    <section className="card-premium p-8 bg-white border-slate-100">
+                        <div className="flex items-center justify-between mb-8 pl-2">
+                            <div className="flex items-center gap-4">
+                                <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Active Assessments</h2>
+                            </div>
+                            <button
+                                onClick={() => navigate('/assessments')}
+                                className="text-indigo-600 font-bold text-sm hover:text-indigo-700 transition-colors"
                             >
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-colors" style={{ backgroundColor: `${style.color}15` }}>
-                                        <div style={{ color: style.color }}>
-                                            {getIcon(style.icon, style.color)}
+                                View Portal
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {masters.length > 0 ? masters.slice(0, 4).map((m: AssessmentMaster, i: number) => {
+                                const style = slugStyleMap[m.slug || ''] || { icon: 'Brain', color: '#6366F1' };
+                                const progress = Math.min(Math.floor(Math.random() * 40) + 60, 100);
+                                return (
+                                    <button
+                                        key={m.id || m._id || `master-${i}`}
+                                        onClick={() => navigate(`/assessments/${m.slug}`)}
+                                        className="p-5 bg-slate-50/50 hover:bg-white border border-slate-100 hover:border-indigo-100 rounded-3xl hover:shadow-xl transition-all flex flex-col group text-left"
+                                    >
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ backgroundColor: `${style.color}15` }}>
+                                                <div style={{ color: style.color }}>
+                                                    {getIcon(style.icon)}
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{progress}%</span>
                                         </div>
-                                    </div>
-                                    <CircularProgress 
-                                        size={46} 
-                                        rings={[
-                                            { 
-                                                progress: progress / 100, 
-                                                color: style.color, 
-                                                radius: 18, 
-                                                strokeWidth: 4, 
-                                                id: `${m.id}-ring` 
-                                            }
-                                        ]}
-                                    />
-                                </div>
-                                <h3 className="font-extrabold text-sm text-slate-900 mb-3 truncate pr-2 group-hover:text-indigo-600 transition-colors">{m.name}</h3>
-                                <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden mt-auto mb-2">
-                                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${progress}%`, backgroundColor: style.color }} />
-                                </div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{progress}% Completed</p>
-                            </motion.button>
-                        );
-                    }) : (
-                        Array(4).fill(0).map((_, i) => (
-                            <div key={i} className="h-40 bg-slate-50 rounded-3xl border border-slate-100 animate-pulse" />
-                        ))
-                    )}
-                </div>
-            </section>
+                                        <h3 className="font-extrabold text-xs text-slate-900 mb-2 truncate group-hover:text-indigo-600 transition-colors">{m.name}</h3>
+                                        <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden mt-auto">
+                                            <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: style.color }} />
+                                        </div>
+                                    </button>
+                                );
+                            }) : (
+                                Array(4).fill(0).map((_, i) => (
+                                    <div key={i} className="h-28 bg-slate-50/50 rounded-3xl border border-slate-100 animate-pulse" />
+                                ))
+                            )}
+                        </div>
+                    </section>
 
-            {/* Clinical Insights Gateway */}
-            <section>
-                <div className="flex items-center justify-between mb-6 pl-2">
-                    <div className="flex items-center gap-4">
-                        <div className="w-1.5 h-6 bg-teal-500 rounded-full" />
-                        <h2 className="text-xl font-black text-slate-900 tracking-tight">Clinical Insights</h2>
+                    {/* Mood Trajectory Chart */}
+                    <section className="card-premium p-10 space-y-8 bg-white border-slate-100">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Activity size={16} className="text-indigo-600" />
+                                    <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Neural Overview</h2>
+                                </div>
+                                <h3 className="text-3xl font-black text-slate-900 tracking-tight">Mood Trajectory</h3>
+                                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest italic mt-1">Weekly Delta Analysis</p>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className="text-3xl font-black text-indigo-600">82%</span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Balance Score</span>
+                            </div>
+                        </div>
+                        <TrendAreaChart 
+                            data={[
+                                { label: 'Mon', value: 65 }, { label: 'Tue', value: 72 }, { label: 'Wed', value: 68 },
+                                { label: 'Thu', value: 75 }, { label: 'Fri', value: 82 }, { label: 'Sat', value: 78 }, { label: 'Sun', value: 85 },
+                            ]} 
+                            height={180} 
+                            color="#6366f1" 
+                        />
+                    </section>
+                </div>
+
+                {/* Sidebar Protocol (4 Cols) */}
+                <div className="lg:col-span-4 flex flex-col gap-8">
+                    <div className="flex-1">
+                        <DailyTasks />
                     </div>
                 </div>
-                <motion.div 
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={() => navigate('/records')}
-                    className="card-premium p-6 md:p-8 bg-white border-slate-100 flex items-center justify-between cursor-pointer group hover:shadow-lg transition-all"
-                >
-                    <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg shadow-emerald-200 flex items-center justify-center p-3 text-white">
-                            <LineChart size={28} />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-black text-slate-900 mb-1 tracking-tight">Your progress is looking great!</h3>
-                            <p className="text-sm font-medium text-slate-500">Tap to see your detailed clinical history, HPI, and reports.</p>
-                        </div>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
-                        <ChevronRight size={20} />
-                    </div>
-                </motion.div>
-            </section>
+            </div>
+
+
 
 
             {/* Sidebar - Notifications & Goals */}
@@ -479,7 +415,7 @@ const PatientDashboard = () => {
                         <div className="space-y-4 max-h-[200px] overflow-y-auto no-scrollbar">
                             {notifications.length > 0 ? (
                                 notifications.slice(0, 3).map((n, i) => (
-                                    <div key={i} className="flex items-start gap-4 py-3 border-b border-white/10 last:border-0">
+                                    <div key={n.id || n._id || `notif-${i}`} className="flex items-start gap-4 py-3 border-b border-white/10 last:border-0">
                                         <div className="mt-1">
                                             <div className={`w-2 h-2 rounded-full ${n.read ? 'bg-indigo-400' : 'bg-pink-400'}`}></div>
                                         </div>
@@ -494,7 +430,7 @@ const PatientDashboard = () => {
                             )}
                         </div>
 
-                        <Button variant="white" size="lg" className="w-full text-indigo-900 py-5" onClick={() => navigate('/notifications')}>
+                        <Button variant="white" size="lg" className="w-full text-indigo-900 py-5 rounded-2xl" onClick={() => navigate('/notifications')}>
                             View Notification Center
                         </Button>
                     </div>

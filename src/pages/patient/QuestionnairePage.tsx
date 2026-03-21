@@ -65,6 +65,7 @@ const QuestionnairePage = () => {
     const [searchParams] = useSearchParams();
     const targetPatientId = searchParams.get('patientId');
     const { user } = useSelector((state: RootState) => state.auth);
+    const [notes, setNotes] = useState('');
 
     const [questions, setQuestions] = useState<NormalisedQuestion[]>([]);
     const [rawApiQuestions, setRawApiQuestions] = useState<AssessmentQuestion[]>([]); // keep raw from API
@@ -153,10 +154,6 @@ const QuestionnairePage = () => {
         setError(null);
 
         try {
-            const now = new Date();
-            const dateStr = now.toISOString().split('T')[0];
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
             // Build responses using raw API questions for accurate questionId
             const submissionResponses: AssessmentResponse[] = questions.map((q, index: number) => {
                 const rawQ = rawApiQuestions[index];
@@ -167,29 +164,42 @@ const QuestionnairePage = () => {
                 };
             }).filter(r => r.questionId != null && r.optionId);
 
-            // Resolve patientId from profile.userId (e.g. 9)
-            const resolvedPatientId = profile?.userId || targetPatientId || user?.id;
+            let backendResult: AssessmentResult;
 
-            const payload: SubmitAssessmentPayload = {
-                patientId: resolvedPatientId || 0,
-                slug: categoryId || '',
-                date: dateStr,
-                time: timeStr,
-                notes: '',
-                responses: submissionResponses
-            };
+            if (targetPatientId) {
+                // ── Professional Assessment (clinician on behalf of patient) ──
+                const res = await AssessmentService.submitProfessionalAssessment({
+                    patientId: Number(targetPatientId),
+                    category: categoryId || '',
+                    responses: submissionResponses,
+                    notes: notes || undefined,
+                });
+                backendResult = (res?.data as any) || {};
+            } else {
+                // ── Self Assessment (patient) ──
+                const res = await AssessmentService.submitSelfAssessment({
+                    responses: submissionResponses,
+                    notes: notes || undefined,
+                });
+                backendResult = (res?.data as any) || {};
 
-            console.log('📋 Submit payload:', JSON.stringify(payload, null, 2));
+                // Fallback: if no data from modern endpoint, try legacy
+                if (!backendResult?.interpretation) {
+                    const now = new Date();
+                    const legacyPayload: SubmitAssessmentPayload = {
+                        patientId: profile?.userId || user?.id || 0,
+                        slug: categoryId || '',
+                        date: now.toISOString().split('T')[0],
+                        time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                        notes: notes || '',
+                        responses: submissionResponses,
+                    };
+                    backendResult = await AssessmentService.submitAssessment(legacyPayload);
+                }
+            }
 
-            const backendResult = await AssessmentService.submitAssessment(payload);
-
-            // ── Use NORMALIZED BACKEND RESULT  ──
-            const style = backendResult.severityStyle || getSeverityStyle(backendResult.severity, backendResult.interpretation);
-            setResult({
-                ...backendResult,
-                severityStyle: style,
-                source: 'backend'
-            });
+            const style = (backendResult as any).severityStyle || getSeverityStyle(backendResult.severity, backendResult.interpretation);
+            setResult({ ...backendResult, severityStyle: style, source: 'backend' });
         } catch (err: unknown) {
             const error = err as { response?: { data?: { message?: string } } };
             const errorMsg = error.response?.data?.message || 'Failed to submit assessment.';
@@ -214,7 +224,7 @@ const QuestionnairePage = () => {
 
     // ── Results view ─────────────────────────────────────────────────────────
     if (result) {
-        const style = result.severityStyle || getSeverityStyle(result.severity, result.interpretation);
+        const style = (result.severityStyle || getSeverityStyle(result.severity, result.interpretation)) as any;
         const SeverityIcon = style.icon as any;
         const scoreDisplay = result.percentage ?? result.score ?? result.totalScore ?? 0;
         const recs: string[] = Array.isArray(result.recommendations) ? result.recommendations : [result.recommendation || ''];
@@ -454,7 +464,20 @@ const QuestionnairePage = () => {
                         )}
                     </motion.div>
                 </AnimatePresence>
-            </main>
+                {/* Notes section on last question */}
+            {currentStep === questions.length - 1 && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto w-full mb-4">
+                    <div className="glass-card p-6">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Additional Notes (Optional)</p>
+                        <textarea
+                            value={notes} onChange={e => setNotes(e.target.value)} rows={3}
+                            placeholder="Add any observations, context, or feelings here..."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                        />
+                    </div>
+                </motion.div>
+            )}
+        </main>
 
             {error && (
                 <div className="p-4 bg-red-50 text-red-600 text-sm font-bold rounded-xl border border-red-100 text-center">

@@ -2,8 +2,16 @@ import api from '../client';
 import type { User, Patient } from '../../types/user.types';
 
 export const UserService = {
-    updateMyProfile: async (data: Partial<User>): Promise<User> => {
+    updateMyProfile: async (data: Partial<User> | FormData): Promise<User> => {
         const response = await api.put('/users/update-me', data);
+        return response.data?.data ?? response.data;
+    },
+    updateProfileImage: async (formData: FormData): Promise<User> => {
+        const response = await api.put('/users/update-me', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
         return response.data?.data ?? response.data;
     },
     listUsers: async (params: { role?: string; search?: string; page?: number; limit?: number; isActive?: boolean }): Promise<{ users: User[], total: number }> => {

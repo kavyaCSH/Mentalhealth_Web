@@ -14,7 +14,8 @@ import {
     RefreshCw,
     AlertCircle,
     Info,
-    ChevronUp
+    ChevronUp,
+    Settings
 } from 'lucide-react';
 import type { RootState } from '../../store';
 import api from '../../api/client';
@@ -216,9 +217,14 @@ const PractitionerDashboard = () => {
                                 </div>
                     </div>
                 </div>
-                <Button variant="primary" leftIcon={<Calendar size={18} />} onClick={() => navigate('/clinical-schedule')} className="rounded-2xl shadow-lg shadow-indigo-100 py-3.5">
-                    Manage Schedule
-                </Button>
+                <div className="flex gap-4">
+                    <Button variant="secondary" leftIcon={<Settings size={18} />} onClick={() => navigate('/clinical/availability')} className="rounded-2xl shadow-sm border-slate-200 py-3.5">
+                        Manage Availability
+                    </Button>
+                    <Button variant="primary" leftIcon={<Calendar size={18} />} onClick={() => navigate('/clinical-schedule')} className="rounded-2xl shadow-lg shadow-indigo-100 py-3.5">
+                        Manage Schedule
+                    </Button>
+                </div>
             </header>
 
             {/* Troubleshooting Guide (Visible when connection issues occur) */}

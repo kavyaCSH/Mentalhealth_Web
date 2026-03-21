@@ -108,29 +108,31 @@ const PatientDirectory = () => {
                     <Activity className="animate-spin text-indigo-600" size={40} />
                 </div>
             ) : filteredPatients.length > 0 ? (
-                <div className="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-visible">
+                    <div className="overflow-x-visible">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50/50 border-b border-slate-100">
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Patient</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] first:rounded-tl-[2.5rem]">Patient</th>
                                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Risk Status</th>
                                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact</th>
                                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Recent Activity</th>
                                     <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Status</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right last:rounded-tr-[2.5rem]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
                                 {filteredPatients.map((patient, index) => {
-                                    const patientId = patient.id || patient._id;
+                                    const patientId = patient.id || patient._id || `patient-${index}`;
+                                    const isMenuOpen = openMenuId === patientId;
+                                    
                                     return (
                                     <motion.tr
-                                        key={`${patientId}-${index}`}
+                                        key={patientId}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.03 }}
-                                        className="group hover:bg-indigo-50/30 transition-all cursor-pointer"
+                                        className={`group transition-all cursor-pointer relative ${isMenuOpen ? 'z-50 bg-indigo-50/50 shadow-sm' : 'hover:bg-indigo-50/30 z-0'}`}
                                         onClick={() => navigate(`/patients/${patient.userId || patient.id || patient._id}`)}
                                     >
                                         <td className="px-8 py-5">
@@ -181,27 +183,26 @@ const PatientDirectory = () => {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        const menuKey = `${patientId}-${index}`;
-                                                        setOpenMenuId(openMenuId === menuKey ? null : menuKey);
+                                                        setOpenMenuId(isMenuOpen ? null : patientId);
                                                     }}
-                                                    className={`p-2 rounded-xl transition-all ${openMenuId === `${patientId}-${index}` ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-100'}`}
+                                                    className={`p-2 rounded-xl transition-all ${isMenuOpen ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-100'}`}
                                                 >
                                                     <MoreHorizontal size={20} />
                                                 </button>
 
                                                 <motion.div className="relative">
                                                     <AnimatePresence>
-                                                        {openMenuId === `${patientId}-${index}` && (
+                                                        {isMenuOpen && (
                                                             <>
                                                                 <div
-                                                                    className="fixed inset-0 z-10"
+                                                                    className="fixed inset-0 z-[60]"
                                                                     onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }}
                                                                 />
                                                                 <motion.div
                                                                     initial={{ opacity: 0, scale: 0.95, y: -10 }}
                                                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                                                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                                    className="absolute right-0 top-12 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 z-20 py-2 overflow-hidden"
+                                                                    className="absolute right-0 top-12 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 z-[70] py-2 overflow-hidden shadow-indigo-100/50"
                                                                     onClick={(e) => e.stopPropagation()}
                                                                 >
                                                                     <button
@@ -209,12 +210,25 @@ const PatientDirectory = () => {
                                                                             setOpenMenuId(null);
                                                                             navigate(`/patients/${patient.userId || patient.id || patient._id}/health`);
                                                                         }}
-                                                                        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-rose-50/50 transition-colors group/item"
+                                                                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-indigo-50 transition-colors group/item"
                                                                     >
-                                                                        <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600 group-hover/item:bg-rose-600 group-hover/item:text-white transition-all">
-                                                                            <HeartPulse size={16} />
+                                                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-all flex items-center justify-center">
+                                                                            <Activity size={16} />
                                                                         </div>
-                                                                        <p className="text-sm font-black text-slate-900">Health</p>
+                                                                        <p className="text-xs font-black text-slate-700">Health Overview</p>
+                                                                    </button>
+
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setOpenMenuId(null);
+                                                                            navigate(`/patients/${patient.userId || patient.id || patient._id}`);
+                                                                        }}
+                                                                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors group/item"
+                                                                    >
+                                                                        <div className="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 group-hover/item:bg-slate-900 group-hover/item:text-white transition-all flex items-center justify-center">
+                                                                            <Users size={16} />
+                                                                        </div>
+                                                                        <p className="text-xs font-black text-slate-700">View Profile</p>
                                                                     </button>
                                                                 </motion.div>
                                                             </>

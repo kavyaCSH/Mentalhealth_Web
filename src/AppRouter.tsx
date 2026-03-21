@@ -42,6 +42,7 @@ import ROSDetail from './pages/clinical/ros/ROSDetail';
 import EditROS from './pages/clinical/ros/EditROS';
 import MessagesPortal from './pages/clinical/MessagesPortal';
 import ClinicalAssessmentCenter from './pages/clinical/ClinicalAssessmentCenter';
+import ProfessionalHistoryPage from './pages/clinical/ProfessionalHistoryPage';
 import UserList from './pages/admin/UserList';
 import CreateUser from './pages/admin/CreateUser';
 import CreateConsultation from './pages/hospital/CreateConsultation';
@@ -57,6 +58,7 @@ import TreatmentPlanPage from './pages/clinical/treatment/TreatmentPlanPage';
 import InitializeTreatmentPage from './pages/clinical/treatment/InitializeTreatmentPage';
 import ClinicalRecordsHub from './pages/clinical/ClinicalRecordsHub';
 import ClinicalSchedulePage from './pages/clinical/ClinicalSchedulePage';
+import ClinicalAvailabilityPage from './pages/clinical/ClinicalAvailabilityPage';
 
 const AppRouter = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -152,6 +154,7 @@ const AppRouter = () => {
                                 <Route path="patients/:patientId/treatment" element={<TreatmentPlanPage />} />
                                 <Route path="patients/:patientId/treatment/new" element={<InitializeTreatmentPage />} />
                                 <Route path="clinical/assessments" element={<ClinicalAssessmentCenter />} />
+                                <Route path="clinical/assessments/history" element={<ProfessionalHistoryPage />} />
                                 <Route path="transactions" element={<Transactions />} />
                                 <Route path="users/:id/edit" element={<UserManagement />} />
 
@@ -159,6 +162,7 @@ const AppRouter = () => {
                                 <Route element={<ProtectedRoute allowedGroup="CLINICAL" />}>
                                     <Route path="patients" element={<PatientDirectory />} />
                                     <Route path="clinical-schedule" element={<ClinicalSchedulePage />} />
+                                    <Route path="clinical/availability" element={<ClinicalAvailabilityPage />} />
                                     <Route path="patients/:patientId/clinical-hub" element={<ClinicalRecordsHub />} />
                                     <Route path="messages" element={<MessagesPortal />} />
                                 </Route>

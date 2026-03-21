@@ -50,7 +50,8 @@ const UserManagement = () => {
         qualifications: '',
         languages: '',
         // Patient specific
-        emergencyContact: ''
+        emergencyContact: '',
+        bloodGroup: ''
     });
 
     const roles = [
@@ -67,7 +68,7 @@ const UserManagement = () => {
     const isProfessional = ['psychiatrist', 'psychologist', 'nurse', 'counselor', 'social_worker'].includes(formData.role);
     const isPatient = formData.role === 'patient';
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
@@ -341,14 +342,28 @@ const UserManagement = () => {
                         </div>
 
                         <div className="grid gap-6 md:grid-cols-2">
-                            <InputField
-                                label="Emergency Contact"
-                                name="emergencyContact"
-                                value={formData.emergencyContact}
-                                onChange={handleInputChange}
-                                placeholder="Name & Phone Number"
-                                leftIcon={<Phone size={16} />}
-                            />
+                                <InputField
+                                    label="Emergency Contact"
+                                    name="emergencyContact"
+                                    value={formData.emergencyContact}
+                                    onChange={handleInputChange}
+                                    placeholder="Name & Phone Number"
+                                    leftIcon={<Phone size={16} />}
+                                />
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Blood Group</label>
+                                    <select 
+                                        name="bloodGroup"
+                                        value={formData.bloodGroup}
+                                        onChange={handleInputChange}
+                                        className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl p-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                                    >
+                                        <option value="">Select Blood Group</option>
+                                        {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                                            <option key={bg} value={bg}>{bg}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             <InputField
                                 label="Current Address"
                                 name="address"

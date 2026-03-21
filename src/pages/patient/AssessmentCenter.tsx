@@ -1,279 +1,693 @@
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
-import type { RootState } from '../../store';
-import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Brain,
-    Heart,
-    Activity,
-    Moon,
-    Coffee,
-    ChevronRight,
-    Search,
-    Clock,
-    CheckCircle2,
-    AlertCircle,
-    Zap,
-    Shield,
-    Flame,
-    Eye,
-    Bug,
-    Pill,
-    Baby,
-    Frown,
-    Dice1,
-    PersonStanding,
-    Crosshair,
-    Sparkles,
-    HeartCrack
+    Brain, Heart, Activity, Moon, Coffee, Zap, Shield, Flame, Eye, Pill, Baby,
+    Dice1, PersonStanding, Crosshair, Sparkles, HeartCrack, Star, ChevronLeft,
+    CheckCircle2, AlertCircle, ClipboardList, ArrowRight, Clock
 } from 'lucide-react';
-import Button from '../../components/ui/Button';
 import { AssessmentService } from '../../api/services/assessment.service';
-import type { AssessmentMaster } from '../../types/assessment.types';
+import type { SelfAssessmentQuestion } from '../../types/assessment.types';
 
-interface UICard {
-    id: string;
-    masterId: string;
-    name: string;
-    slug: string;
-    description: string;
-    icon: string;
-    color: string;
-}
+// ─── Category → style ───────────────────────────────────────────────────────
+const CAT_STYLE: Record<string, { icon: string; color: string; label: string }> = {
+    general:         { icon: 'Brain',          color: '#6366f1', label: 'General Well-being' },
+    depression:      { icon: 'Heart',          color: '#10b981', label: 'Depression' },
+    anxiety:         { icon: 'Activity',       color: '#3b82f6', label: 'Anxiety' },
+    adhd:            { icon: 'Sparkles',       color: '#f59e0b', label: 'ADHD' },
+    panic_disorder:  { icon: 'Zap',            color: '#ef4444', label: 'Panic Disorder' },
+    sleep:           { icon: 'Moon',           color: '#8b5cf6', label: 'Sleep' },
+    stress:          { icon: 'Flame',          color: '#f97316', label: 'Stress' },
+    psychosis:       { icon: 'Eye',            color: '#64748b', label: 'Psychosis' },
+    ocd:             { icon: 'Crosshair',      color: '#7c3aed', label: 'OCD' },
+    mania:           { icon: 'Zap',            color: '#d97706', label: 'Mania / Energy' },
+    anger:           { icon: 'Flame',          color: '#dc2626', label: 'Anger' },
+    somatic:         { icon: 'PersonStanding', color: '#0d9488', label: 'Somatic' },
+    social_anxiety:  { icon: 'Eye',            color: '#4f46e5', label: 'Social Anxiety' },
+    substance_use:   { icon: 'Pill',           color: '#475569', label: 'Substance Use' },
+    eating_disorder: { icon: 'Coffee',         color: '#059669', label: 'Eating' },
+    purpose:         { icon: 'Star',           color: '#ca8a04', label: 'Purpose' },
+    social:          { icon: 'Heart',          color: '#ec4899', label: 'Social Support' },
+    family:          { icon: 'Heart',          color: '#db2777', label: 'Relationships' },
+    financial:       { icon: 'Shield',         color: '#4b5563', label: 'Financial Stress' },
+    'self-image':    { icon: 'Sparkles',       color: '#7c3aed', label: 'Self-image' },
+};
+const DEF_CAT = { icon: 'Brain', color: '#6366f1', label: 'Assessment' };
 
-// ─── Slug → icon + color mapping ─────────────────────────────────────────────
-const slugStyleMap: Record<string, { icon: string; color: string; description: string }> = {
-    depression: { icon: 'Heart', color: 'emerald', description: 'Assess depressive symptoms, mood patterns, and emotional well-being.' },
-    anxiety: { icon: 'Activity', color: 'indigo', description: 'Evaluate anxiety levels, worry patterns, and their impact on daily life.' },
-    sleep: { icon: 'Moon', color: 'pink', description: 'Analyze sleep quality, disturbance patterns, and restfulness.' },
-    mania: { icon: 'Zap', color: 'orange', description: 'Screen for manic episodes, elevated mood, and high-energy patterns.' },
-    bipolar: { icon: 'Zap', color: 'orange', description: 'Screen for bipolar mood fluctuations between depressive and manic episodes.' },
-    anger: { icon: 'Flame', color: 'red', description: 'Evaluate anger triggers, emotional distress, and coping mechanisms.' },
-    anger_pediatric: { icon: 'Flame', color: 'red', description: 'Assess anger and emotional regulation in children and adolescents.' },
-    substance_use: { icon: 'Pill', color: 'slate', description: 'Screen for substance use behaviors and addiction risk factors.' },
-    postpartum: { icon: 'Baby', color: 'pink', description: 'Evaluate postpartum depression symptoms in new mothers.' },
-    somatic: { icon: 'PersonStanding', color: 'teal', description: 'Assess physical symptoms linked to psychological distress.' },
-    anxiety_pediatric: { icon: 'Activity', color: 'indigo', description: 'Evaluate anxiety levels and worry patterns in children.' },
-    repetitive_thoughts: { icon: 'Brain', color: 'purple', description: 'Assess repetitive thoughts, compulsions, and obsessive behavioral patterns.' },
-    repetitive_thoughts_pediatric: { icon: 'Brain', color: 'purple', description: 'Screen for repetitive thoughts and behaviors in children.' },
-    separation_anxiety: { icon: 'HeartCrack', color: 'pink', description: 'Evaluate separation anxiety symptoms and attachment concerns.' },
-    odd: { icon: 'Shield', color: 'orange', description: 'Screen for oppositional defiant disorder patterns in children.' },
-    social_anxiety: { icon: 'Eye', color: 'indigo', description: 'Assess social anxiety, avoidance behaviors, and performance fears.' },
-    agoraphobia: { icon: 'Shield', color: 'slate', description: 'Evaluate fears related to open or crowded spaces and avoidance.' },
-    panic_disorder: { icon: 'Zap', color: 'red', description: 'Screen for recurrent panic attacks and related avoidance.' },
-    adhd: { icon: 'Sparkles', color: 'orange', description: 'Assess attention deficit, hyperactivity, and impulsivity.' },
-    ocd: { icon: 'Crosshair', color: 'purple', description: 'Evaluate obsessive-compulsive thoughts and ritual behaviors.' },
-    psychosis: { icon: 'Eye', color: 'slate', description: 'Screen for psychotic symptoms including hallucinations and delusions.' },
-    gambling: { icon: 'Dice1', color: 'orange', description: 'Assess gambling frequency, urges, and addiction risk factors.' },
-    eating_disorder: { icon: 'Coffee', color: 'emerald', description: 'Screen for disordered eating patterns and body image concerns.' },
-    pmdd: { icon: 'HeartCrack', color: 'pink', description: 'Evaluate premenstrual dysphoric disorder symptoms.' },
-    autism_spectrum: { icon: 'Sparkles', color: 'indigo', description: 'Screen for autism spectrum characteristics and social communication.' },
-    ptsd_pediatric: { icon: 'Shield', color: 'red', description: 'Screen for trauma and PTSD symptoms in children and adolescents.' },
-    acute_stress: { icon: 'Flame', color: 'orange', description: 'Assess acute stress reactions following a traumatic event.' },
-    dissociative_symptoms: { icon: 'Eye', color: 'purple', description: 'Evaluate dissociative experiences and detachment symptoms.' },
-    personality_inventory: { icon: 'Brain', color: 'indigo', description: 'Comprehensive personality traits and behavioral pattern assessment.' },
-    irritability: { icon: 'Flame', color: 'orange', description: 'Assess levels of irritability, frustration, and emotional reactivity.' },
+const Ico = ({ name, size = 20, color = 'white' }: { name: string; size?: number; color?: string }) => {
+    const p = { size, color };
+    switch (name) {
+        case 'Brain': return <Brain {...p} />;
+        case 'Heart': return <Heart {...p} />;
+        case 'Activity': return <Activity {...p} />;
+        case 'Moon': return <Moon {...p} />;
+        case 'Coffee': return <Coffee {...p} />;
+        case 'Zap': return <Zap {...p} />;
+        case 'Shield': return <Shield {...p} />;
+        case 'Flame': return <Flame {...p} />;
+        case 'Eye': return <Eye {...p} />;
+        case 'Pill': return <Pill {...p} />;
+        case 'Baby': return <Baby {...p} />;
+        case 'Dice1': return <Dice1 {...p} />;
+        case 'PersonStanding': return <PersonStanding {...p} />;
+        case 'Crosshair': return <Crosshair {...p} />;
+        case 'Sparkles': return <Sparkles {...p} />;
+        case 'HeartCrack': return <HeartCrack {...p} />;
+        case 'Star': return <Star {...p} />;
+        default: return <Brain {...p} />;
+    }
 };
 
-const defaultStyle = { icon: 'Brain', color: 'indigo', description: 'Complete this clinical assessment questionnaire.' };
+type View = 'landing' | 'quiz' | 'success' | 'history' | 'detail';
 
-const AssessmentCenter = () => {
-    const navigate = useNavigate();
-    const [categories, setCategories] = useState<UICard[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [fetchError, setFetchError] = useState<string | null>(null);
+// Add hex2rgba utility
+const hex2rgba = (hex: string, a: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${a})`;
+};
 
-    const { user } = useSelector((state: RootState) => state.auth);
+export default function AssessmentCenter() {
+    const [view, setView]       = useState<View>('landing');
+    const [questions, setQs]    = useState<SelfAssessmentQuestion[]>([]);
+    const [idx, setIdx]         = useState(0);
+    const [answers, setAnswers] = useState<Record<number, string>>({});
+    const [notes, setNotes]     = useState('');
+    const [result, setResult]   = useState<any>(null);
+    const [history, setHistory] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [submitting, setSub]  = useState(false);
+    const [error, setError]     = useState<string | null>(null);
+    const [showSuccess, setShowSuccess] = useState(false);
 
+    const q        = questions[idx];
+    const cat      = q ? (CAT_STYLE[q.category] || DEF_CAT) : DEF_CAT;
+    const selOpt   = q ? answers[q.questionId as number] : undefined;
+    const isLast   = idx === questions.length - 1;
+    const answered = Object.keys(answers).length;
+    const progress = questions.length ? ((idx + 1) / questions.length) * 100 : 0;
+    const allDone  = answered >= questions.length;
+
+    // Auto-advance to success after submit
     useEffect(() => {
-        const fetchMasters = async () => {
-            setFetchError(null);
-            try {
-                const response = await AssessmentService.getMasters(user?.id, {
-                    page: 1, limit: 100, is_active: 1, master_type_slug: 'mental_health'
-                });
-                const data = response?.data?.data || response?.data || response;
-                const masters = data?.masters || (Array.isArray(data) ? data : []);
-
-                const cards: UICard[] = (masters as AssessmentMaster[]).map((m: AssessmentMaster) => {
-                    const style = (m.slug ? slugStyleMap[m.slug] : null) || defaultStyle;
-                    return {
-                        id: m.slug || m.id || Math.random().toString(),
-                        masterId: m.id || '',
-                        name: m.name || m.title || 'Untitled Assessment',
-                        slug: m.slug || '',
-                        description: style.description,
-                        icon: style.icon,
-                        color: style.color,
-                    };
-                });
-
-                setCategories(cards);
-            } catch (err: unknown) {
-                console.error('Failed to load assessments:', err);
-                setCategories([]);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchMasters();
-    }, [user?.id]);
-
-    const getIcon = (iconName: string, color: string) => {
-        const cls = `text-${color}-600`;
-        const props = { size: 28, className: cls };
-        switch (iconName) {
-            case 'Brain': return <Brain {...props} />;
-            case 'Heart': return <Heart {...props} />;
-            case 'Activity': return <Activity {...props} />;
-            case 'Moon': return <Moon {...props} />;
-            case 'Coffee': return <Coffee {...props} />;
-            case 'Zap': return <Zap {...props} />;
-            case 'Shield': return <Shield {...props} />;
-            case 'Flame': return <Flame {...props} />;
-            case 'Eye': return <Eye {...props} />;
-            case 'Bug': return <Bug {...props} />;
-            case 'Pill': return <Pill {...props} />;
-            case 'Baby': return <Baby {...props} />;
-            case 'Frown': return <Frown {...props} />;
-            case 'Dice1': return <Dice1 {...props} />;
-            case 'PersonStanding': return <PersonStanding {...props} />;
-            case 'Crosshair': return <Crosshair {...props} />;
-            case 'Sparkles': return <Sparkles {...props} />;
-            case 'HeartCrack': return <HeartCrack {...props} />;
-            default: return <Brain {...props} />;
+        if (showSuccess) {
+            const t = setTimeout(() => setView('success'), 2200);
+            return () => clearTimeout(t);
         }
+    }, [showSuccess]);
+
+    const start = async () => {
+        setLoading(true); setError(null);
+        try {
+            const res = await AssessmentService.getSelfAssessmentQuestions();
+            const qs  = res?.data?.questions || [];
+            if (!qs.length) throw new Error('No questions available.');
+            setQs(qs); setIdx(0); setAnswers({}); setNotes(''); setView('quiz');
+        } catch (e: any) {
+            setError(e?.response?.data?.message || e?.message || 'Failed to load.');
+        } finally { setLoading(false); }
     };
 
-    const getColorClasses = (color: string) => {
-        const map: Record<string, string> = {
-            indigo: 'bg-indigo-50 border-indigo-100 text-indigo-600 hover:border-indigo-300',
-            emerald: 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:border-emerald-300',
-            pink: 'bg-pink-50 border-pink-100 text-pink-600 hover:border-pink-300',
-            orange: 'bg-orange-50 border-orange-100 text-orange-600 hover:border-orange-300',
-            red: 'bg-red-50 border-red-100 text-red-600 hover:border-red-300',
-            purple: 'bg-purple-50 border-purple-100 text-purple-600 hover:border-purple-300',
-            teal: 'bg-teal-50 border-teal-100 text-teal-600 hover:border-teal-300',
-            slate: 'bg-slate-100 border-slate-200 text-slate-600 hover:border-slate-400',
-        };
-        return map[color] || map.indigo;
+    const fetchHistory = async () => {
+        setLoading(true); setError(null);
+        try {
+            const res = await AssessmentService.getSelfAssessmentHistory();
+            setHistory(res?.data || []);
+            setView('history');
+        } catch (e: any) {
+            setError(e?.response?.data?.message || 'Failed to load history.');
+        } finally { setLoading(false); }
     };
 
-    const filteredCategories = categories.filter(c =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const fetchDetail = async (id: string) => {
+        setLoading(true); setError(null);
+        try {
+            const res = await AssessmentService.getSelfAssessmentDetail(id);
+            setResult(res?.data || res);
+            setView('detail');
+        } catch (e: any) {
+            setError(e?.response?.data?.message || 'Failed to load details.');
+        } finally { setLoading(false); }
+    };
+
+    const pick = (optId: string) => {
+        if (!q) return;
+        setAnswers(p => ({ ...p, [q.questionId as number]: optId }));
+    };
+
+    const handleNext = async () => {
+        if (!isLast) { setIdx(i => i + 1); return; }
+        // Submit on last
+        setSub(true); setError(null);
+        try {
+            const responses = questions
+                .map(qq => ({ questionId: qq.questionId as number, optionId: answers[qq.questionId as number] || '' }))
+                .filter(r => r.optionId);
+            const res = await AssessmentService.submitSelfAssessment({ responses, notes: notes || undefined });
+            setResult(res?.data || res);
+            setShowSuccess(true);
+        } catch (e: any) {
+            setError(e?.response?.data?.message || 'Submission failed. Try again.');
+        } finally { setSub(false); }
+    };
+
+    const reset = () => {
+        setView('landing'); setAnswers({}); setNotes('');
+        setIdx(0); setQs([]); setError(null); setShowSuccess(false); setResult(null);
+    };
+
+    // ══ LANDING (Dashboard Style) ════════════════════════════════════════
+    if (view === 'landing') return (
+        <div className="min-h-full bg-slate-50/50 flex flex-col items-center py-12 px-6">
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+                className="w-full max-w-6xl space-y-10">
+                
+                {/* Header / Hero */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white rounded-[32px] p-8 lg:p-12 border border-slate-100 shadow-sm">
+                    <div className="flex-1 space-y-6">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full text-indigo-600 text-xs font-black uppercase tracking-widest">
+                            <Sparkles size={14} /> Mental Wellness Hub
+                        </div>
+                        <h1 className="text-4xl lg:text-5xl font-black text-slate-900 leading-[1.1] tracking-tight">
+                            How are you feeling <br /><span className="text-indigo-600">today?</span>
+                        </h1>
+                        <p className="text-slate-500 font-medium text-lg max-w-xl leading-relaxed">
+                            Take a clinically-backed self-assessment to track your mental well-being across 15+ categories. Secure, private, and insightful.
+                        </p>
+                        <div className="flex flex-wrap gap-4 pt-2">
+                            <button onClick={start} disabled={loading}
+                                className="px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center gap-3 disabled:opacity-50">
+                                {loading ? <Activity size={20} className="animate-spin" /> : <><Brain size={20} /> Start New Assessment</>}
+                            </button>
+                            <button onClick={fetchHistory}
+                                className="px-8 py-4 bg-white border-2 border-slate-100 text-slate-600 font-black rounded-2xl hover:bg-slate-50 transition-all flex items-center gap-3">
+                                <Clock size={20} /> View History
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* Visual Card */}
+                    <div className="lg:w-80 shrink-0">
+                        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 -translate-y-4 translate-x-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                               <Brain size={180} />
+                           </div>
+                           <div className="relative z-10 space-y-6">
+                               <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                                   <Shield size={24} />
+                               </div>
+                               <div>
+                                   <div className="text-sm font-bold opacity-80 uppercase tracking-widest mb-1">Privacy First</div>
+                                   <div className="text-xl font-black leading-tight">Your data is fully encrypted & private.</div>
+                               </div>
+                           </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Grid of Info / Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[
+                        { icon: <ClipboardList />, title: '20 Questions', desc: 'Comprehensive screening', color: 'bg-blue-50 text-blue-600' },
+                        { icon: <Clock />, title: '5-8 Minutes', desc: 'Quick & effective', color: 'bg-amber-50 text-amber-600' },
+                        { icon: <Activity />, title: '15+ Categories', desc: 'DSM-5 informed', color: 'bg-emerald-50 text-emerald-600' },
+                        { icon: <Sparkles />, title: 'Instant Score', desc: 'Real-time analysis', color: 'bg-purple-50 text-purple-600' },
+                    ].map((item, i) => (
+                        <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-start gap-4 hover:translate-y-[-4px] transition-transform">
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${item.color}`}>
+                                {item.icon}
+                            </div>
+                            <div>
+                                <h3 className="font-black text-slate-900">{item.title}</h3>
+                                <p className="text-xs font-bold text-slate-400 mt-0.5 uppercase tracking-wide">{item.desc}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {error && (
+                    <div className="flex items-center gap-3 px-6 py-4 bg-red-50 border border-red-100 rounded-3xl text-sm font-bold text-red-600">
+                        <AlertCircle size={20} /> {error}
+                    </div>
+                )}
+            </motion.div>
+        </div>
     );
 
-    return (
-        <div className="p-8 max-w-7xl  space-y-10 animate-fade-in pb-20">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Assessment Center</h1>
-                    <p className="text-slate-500 font-medium mt-2">Discover insights about your mental health through clinically validated questionnaires.</p>
-                </div>
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => navigate('/history')}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-full text-[11px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-colors"
-                    >
-                        <Clock size={14} /> History 
+    // ══ HISTORY (Dashboard Grid) ══════════════════════════════════════════
+    if (view === 'history') return (
+        <div className="min-h-full bg-slate-50/50 flex flex-col items-center py-12 px-6">
+            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-6xl space-y-10">
+                
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="space-y-1">
+                        <button onClick={reset} className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest mb-2">
+                            <ChevronLeft size={14} /> Back to Dashboard
+                        </button>
+                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Your Assessment Journey</h2>
+                        <p className="text-slate-500 font-medium">Review your historical mental wellness progress and insights.</p>
+                    </div>
+                    <button onClick={start} className="px-8 py-4 bg-slate-900 text-white font-black rounded-2xl shadow-xl hover:bg-slate-800 transition-all flex items-center gap-3">
+                        <Brain size={20} /> New Assessment
                     </button>
                 </div>
-            </header>
 
-            {/* Search */}
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between glass-card p-4">
-                <div className="relative w-full md:w-96">
-                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Search assessments..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    />
+                {!history.length ? (
+                    <div className="bg-white rounded-[32px] p-24 text-center border border-slate-100 shadow-sm">
+                        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <ClipboardList size={40} className="text-slate-200" />
+                        </div>
+                        <h3 className="text-xl font-black text-slate-900 mb-2">No Records Yet</h3>
+                        <p className="text-slate-500 font-medium max-w-sm mx-auto mb-8">Start your first assessment to begin tracking your mental wellness journey.</p>
+                        <button onClick={start} className="text-indigo-600 font-black text-sm uppercase tracking-[0.2em] hover:opacity-70 transition-opacity">Get Started Now</button>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {history.map((item: any, i: number) => (
+                            <motion.button key={item._id} onClick={() => fetchDetail(item._id)}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                                className="bg-white border border-slate-100 rounded-[28px] p-8 text-left hover:shadow-2xl hover:translate-y-[-8px] transition-all group relative overflow-hidden">
+                                
+                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                    <Activity size={80} />
+                                </div>
+
+                                <div className="relative z-10 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-lg">
+                                            {item.wellnessAspect || 'Wellness'}
+                                        </span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.date ? new Date(item.date).toLocaleDateString() : 'Recent'}</span>
+                                    </div>
+                                    
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-900 leading-tight">Mental Health <br />Self-Check</h3>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-slate-50 grid grid-cols-2 gap-4">
+                                        <div>
+                                            <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Score</div>
+                                            <div className="text-lg font-black text-indigo-600">{item.totalScore} <span className="text-xs text-slate-400 font-bold">pts</span></div>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Progress</div>
+                                            <div className="text-lg font-black text-emerald-500">{item.percentage}%</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between pt-2">
+                                        <span className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                            View Report <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                                        </span>
+                                    </div>
+                                </div>
+                            </motion.button>
+                        ))}
+                    </div>
+                )}
+            </motion.div>
+        </div>
+    );
+
+    // ══ QUIZ (Two-Panel Layout) ══════════════════════════════════════════
+    if (view === 'quiz' && q) return (
+        <div className="flex h-full bg-slate-50/50 overflow-hidden">
+            
+            {/* ── Left Sidebar: Question Navigation ── */}
+            <div className="hidden lg:flex w-72 bg-white border-r border-slate-100 flex-col shrink-0">
+                <div className="p-8 border-b border-slate-50">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg"
+                             style={{ backgroundColor: cat.color }}>
+                            <Ico name={cat.icon} size={20} color="white" />
+                        </div>
+                        <div>
+                            <h2 className="font-black text-slate-900 text-sm leading-tight">{cat.label}</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Assessment</p>
+                        </div>
+                    </div>
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-slate-400">
+                            <span>Progress</span>
+                            <span style={{ color: cat.color }}>{Math.round(progress)}%</span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <motion.div className="h-full rounded-full"
+                                style={{ backgroundColor: cat.color }}
+                                animate={{ width: `${progress}%` }} />
+                        </div>
+                    </div>
                 </div>
-                <div className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                    {filteredCategories.length} Assessment{filteredCategories.length !== 1 ? 's' : ''} Available
+
+                <div className="flex-1 overflow-auto p-6 space-y-8">
+                    <div>
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Questions</h3>
+                        <div className="grid grid-cols-4 gap-2">
+                            {questions.map((_, i) => {
+                                const isCurrent = i === idx;
+                                const isDone = answers[questions[i].questionId as number] !== undefined;
+                                return (
+                                    <button key={i} onClick={() => setIdx(i)}
+                                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all ${
+                                            isCurrent ? 'scale-110 shadow-md ring-2 ring-offset-2' : ''
+                                        }`}
+                                        style={{
+                                            backgroundColor: isCurrent ? cat.color : (isDone ? hex2rgba(cat.color, 0.1) : 'white'),
+                                            color: isCurrent ? 'white' : (isDone ? cat.color : '#94a3b8'),
+                                            borderColor: isCurrent ? 'transparent' : (isDone ? 'transparent' : '#f1f5f9'),
+                                            borderWidth: isDone ? 0 : 2,
+                                            boxShadow: isCurrent ? `0 4px 12px ${hex2rgba(cat.color, 0.3)}` : 'none',
+                                            '--tw-ring-color': cat.color
+                                        } as any}>
+                                        {i + 1}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-6 border-t border-slate-50">
+                    <button onClick={reset} className="w-full py-3 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-slate-600 transition-colors flex items-center justify-center gap-2">
+                        <ChevronLeft size={14} /> Abandon Session
+                    </button>
                 </div>
             </div>
 
-            {/* Assessment Grid */}
-            {isLoading ? (
-                <div className="flex justify-center py-20">
-                    <Activity className="animate-spin text-indigo-600" size={40} />
+            {/* ── Main Content Area ── */}
+            <div className="flex-1 flex flex-col min-w-0">
+                
+                {/* Mobile Header (Hidden on LG) */}
+                <div className="lg:hidden bg-white border-b border-slate-100 p-4 shrink-0">
+                    <div className="flex items-center justify-between mb-3">
+                         <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Question {idx + 1} / {questions.length}</span>
+                         <span className="px-2 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-500 uppercase">{cat.label}</span>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div className="h-full" style={{ backgroundColor: cat.color }} animate={{ width: `${progress}%` }} />
+                    </div>
                 </div>
-            ) : filteredCategories.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredCategories.map((category, index) => {
-                        const colorClasses = getColorClasses(category.color || 'indigo');
-                        return (
-                            <motion.div
-                                key={category.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.04 }}
-                                className="card-premium p-8 group flex flex-col h-full"
-                            >
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${colorClasses.split(' ')[0]} ${colorClasses.split(' ')[2]}`}>
-                                        {getIcon(category.icon || 'Brain', category.color || 'indigo')}
+
+                {/* Question Display Area */}
+                <div className="flex-1 overflow-auto py-8 lg:py-16 px-6 lg:px-12">
+                    <div className="max-w-4xl mx-auto space-y-12">
+                        <AnimatePresence mode="wait">
+                            <motion.div key={idx}
+                                initial={{ opacity: 0, scale: 0.98, x: 20 }}
+                                animate={{ opacity: 1, scale: 1, x: 0 }}
+                                exit={{ opacity: 0, scale: 0.98, x: -20 }}
+                                transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}>
+                                
+                                <div className="space-y-10">
+                                    <div className="space-y-4">
+                                        <div className="inline-flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-[0.2em]">
+                                            <div className="w-8 h-1 bg-indigo-600 rounded-full" />
+                                            Active Inquiry
+                                        </div>
+                                        <h2 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight">
+                                            {q.text}
+                                        </h2>
                                     </div>
-                                    {index === 0 && (
-                                        <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
-                                            <CheckCircle2 size={12} /> Recommended
-                                        </span>
+
+                                    {/* Options Grid */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {(q.options || []).map((opt: any, oi: number) => {
+                                            const optId = opt._id;
+                                            const isSelected = selOpt === optId;
+                                            return (
+                                                <motion.button key={optId} onClick={() => pick(optId)}
+                                                    whileHover={{ scale: 1.01 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    className={`group relative p-6 rounded-[24px] border-2 text-left transition-all ${
+                                                        isSelected ? 'shadow-xl' : 'hover:border-slate-200 hover:bg-white'
+                                                    }`}
+                                                    style={{
+                                                        backgroundColor: isSelected ? 'white' : 'transparent',
+                                                        borderColor: isSelected ? cat.color : '#f1f5f9',
+                                                    }}>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                                            isSelected ? '' : 'group-hover:border-slate-300'
+                                                        }`}
+                                                        style={{ 
+                                                            borderColor: isSelected ? cat.color : '#e2e8f0',
+                                                            backgroundColor: isSelected ? cat.color : 'transparent'
+                                                        }}>
+                                                            {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className={`font-black tracking-tight transition-colors ${
+                                                                isSelected ? 'text-slate-900' : 'text-slate-500'
+                                                            }`}>{opt.text}</p>
+                                                        </div>
+                                                        {opt.score !== undefined && (
+                                                            <div className={`text-[10px] font-black px-2 py-1 rounded-lg transition-colors ${
+                                                                isSelected ? 'bg-slate-50 text-slate-400' : 'bg-white text-slate-300'
+                                                            }`}>
+                                                                +{opt.score}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </motion.button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Notes - Only on last question or long form? Let's keep it consistent. */}
+                                    {isLast && (
+                                        <div className="bg-white rounded-3xl border border-slate-100 p-8 space-y-4 shadow-sm">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                                                    <ClipboardList size={18} />
+                                                </div>
+                                                <h3 className="font-black text-slate-900 text-sm tracking-tight">Personal Context (Optional)</h3>
+                                            </div>
+                                            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4}
+                                                placeholder="Write any specific observations or feelings you'd like to include..."
+                                                className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-4 transition-all"
+                                                style={{ '--tw-ring-color': hex2rgba(cat.color, 0.1) } as any} />
+                                        </div>
                                     )}
                                 </div>
-
-                                <h3 className="text-xl font-black text-slate-900 mb-2">{category.name}</h3>
-                                <p className="text-sm text-slate-500 font-medium leading-relaxed flex-1 mb-8">
-                                    {category.description}
-                                </p>
-
-                                <div className="flex gap-3 mt-auto">
-                                    <Button
-                                        variant="outline"
-                                        className="flex-1 rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50 py-3"
-                                        onClick={() => navigate(`/history?category=${category.slug}`)}
-                                        leftIcon={<Clock size={16} />}
-                                    >
-                                        History
-                                    </Button>
-                                    <Button
-                                        variant="primary"
-                                        className="flex-[1.5] rounded-2xl py-3"
-                                        onClick={() => navigate(`/assessments/${category.slug}`)}
-                                        rightIcon={<ChevronRight size={18} />}
-                                    >
-                                        Start
-                                    </Button>
-                                </div>
                             </motion.div>
-                        );
-                    })}
-                </div>
-            ) : (
-                <div className="text-center py-20">
-                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        {fetchError ? <AlertCircle size={32} className="text-red-400" /> : <Search size={32} className="text-slate-400" />}
+                        </AnimatePresence>
                     </div>
-                    <h3 className="text-xl font-black text-slate-900 mb-2">
-                        {fetchError ? 'Unable to Load Assessments' : 'No Assessments Found'}
-                    </h3>
-                    <p className="text-slate-500">
-                        {fetchError || 'No assessment questionnaires are available at this time.'}
-                    </p>
-                    {fetchError && (
-                        <Button className="mt-6" onClick={() => window.location.reload()}>Retry</Button>
-                    )}
                 </div>
-            )}
+
+                {/* Footer Controls */}
+                <div className="bg-white border-t border-slate-100 p-6 lg:px-12 shrink-0">
+                    <div className="max-w-4xl mx-auto flex items-center justify-between gap-6">
+                        <div className="hidden lg:block">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Step {idx + 1} of {questions.length}</p>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 w-full lg:w-auto">
+                            {idx > 0 && (
+                                <button onClick={() => setIdx(i => i - 1)}
+                                    className="px-8 py-4 text-slate-500 font-black hover:text-indigo-600 transition-colors">
+                                    Previous
+                                </button>
+                            )}
+                            <button onClick={handleNext}
+                                disabled={!selOpt || submitting || (isLast && !allDone)}
+                                className="flex-1 lg:flex-none px-12 py-4 bg-slate-900 text-white font-black rounded-2xl shadow-xl shadow-slate-200 hover:bg-slate-800 disabled:opacity-30 disabled:shadow-none transition-all flex items-center justify-center gap-3"
+                                style={{ backgroundColor: selOpt ? '#1e293b' : undefined }}>
+                                {submitting ? <Activity className="animate-spin" /> : (isLast ? 'Complete Assessment' : 'Continue')}
+                                <ArrowRight size={20} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Success Overlay / Snackbar */}
+            <AnimatePresence>
+                {showSuccess && (
+                    <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
+                        className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 px-8 py-4 rounded-2xl text-white font-black shadow-2xl flex items-center gap-4">
+                        <CheckCircle2 size={24} />
+                        Generating your wellness report...
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
-};
 
-export default AssessmentCenter;
+    // ══ SUCCESS / DETAIL (Split Layout) ══════════════════════════════════════
+    const isDetail = view === 'detail';
+    
+    return (
+        <div className="min-h-full bg-white flex flex-col">
+            
+            {/* Top Navigation Bar */}
+            <div className="bg-white border-b border-slate-100 px-8 py-6 shrink-0 z-20">
+                <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
+                    <div className="flex items-center gap-5">
+                        <button onClick={isDetail ? fetchHistory : reset} 
+                                className="w-12 h-12 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 transition-colors">
+                            <ChevronLeft size={24} />
+                        </button>
+                        <div>
+                            <h1 className="text-xl lg:text-3xl font-black text-slate-900 leading-tight">
+                                {isDetail ? 'Assessment Insights' : 'Great work, your report is ready!'}
+                            </h1>
+                        </div>
+                    </div>
+                    {!isDetail && (
+                        <div className="hidden md:flex items-center gap-3">
+                            <div className="w-px h-10 bg-slate-100 mx-2" />
+                            <button onClick={reset} className="px-6 py-3 bg-slate-900 text-white font-black rounded-xl shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2">
+                                <Sparkles size={18} /> New Check-in
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+                
+                {/* ── Left Panel: Summary Score ── */}
+                <div className="lg:w-[400px] border-r border-slate-100 p-8 lg:p-12 overflow-auto shrink-0 bg-slate-50/30">
+                    <div className="space-y-10 max-w-sm mx-auto lg:mx-0">
+                        
+                        {/* Summary Card */}
+                        <div className="bg-white rounded-[32px] p-8 lg:p-10 shadow-2xl shadow-indigo-100/50 border border-slate-50 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-5 translate-x-2 -translate-y-2 group-hover:scale-110 transition-transform">
+                                <Brain size={120} />
+                            </div>
+                            <div className="relative z-10 text-center space-y-6">
+                                <div className="flex justify-center">
+                                    <div className="w-20 h-20 bg-indigo-600 rounded-[24px] flex items-center justify-center text-white shadow-xl rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                                        <Star size={40} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Wellness Points</div>
+                                    <div className="text-6xl font-black text-slate-900 tracking-tight">
+                                        {result?.totalScore ?? result?.score ?? '-'}
+                                    </div>
+                                    <div className="text-sm font-bold text-slate-400 mt-2 uppercase">out of {result?.maxPossibleScore ?? result?.maxScore ?? '100'}</div>
+                                </div>
+                                <div className="pt-6 border-t border-slate-50">
+                                     <div className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-xs font-black uppercase tracking-widest">
+                                         <Shield size={14} /> {result?.interpretation ?? result?.severity ?? 'Optimized'}
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Quick Stats Grid */}
+                        <div className="grid grid-cols-2 gap-4">
+                            {[
+                                { label: 'Status', val: result?.status ?? 'Checked', color: 'text-blue-600' },
+                                { label: 'Category', val: result?.wellnessAspect ?? 'General', color: 'text-indigo-600' },
+                            ].map(s => (
+                                <div key={s.label} className="bg-white p-5 rounded-3xl border border-slate-50 shadow-sm">
+                                    <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1.5">{s.label}</div>
+                                    <div className={`text-sm font-black ${s.color} truncate`}>{s.val}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {!isDetail && (
+                            <div className="p-1 text-center">
+                                <p className="text-xs font-medium text-slate-400 max-w-[240px] mx-auto">
+                                    Tracking your wellness regularly helps identify patterns and improve resilience.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Right Panel: Full Breakdown ── */}
+                <div className="flex-1 bg-white overflow-auto p-8 lg:p-12">
+                    <div className="max-w-4xl mx-auto space-y-12">
+                        
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-6">
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Full Response Breakdown</h2>
+                            <span className="px-4 py-2 bg-slate-50 rounded-xl text-xs font-black text-slate-400 uppercase tracking-widest">
+                                {result?.responses?.length || 0} Responses
+                            </span>
+                        </div>
+
+                        <div className="space-y-4">
+                            {result?.responses ? result.responses.map((r: any, i: number) => {
+                                // Priority: answerText -> selectedOption (if not an ID) -> 'N/A'
+                                const isId = (val: string) => /^[0-9a-fA-F]{24}$/.test(val || '');
+                                const displayAnswer = r.answerText || (!isId(r.selectedOption) ? r.selectedOption : 'Option Selected');
+                                const score = r.score ?? 0;
+                                
+                                return (
+                                    <motion.div 
+                                        key={i} 
+                                        initial={{ opacity: 0, y: 10 }} 
+                                        animate={{ opacity: 1, y: 0 }} 
+                                        transition={{ delay: i * 0.03 }}
+                                        className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-50/30 transition-all group"
+                                    >
+                                        <div className="flex items-start gap-5 flex-1 max-w-2xl">
+                                            <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:border-indigo-200 transition-colors">
+                                                <span className="text-[11px] font-black text-slate-400 group-hover:text-indigo-500 transition-colors">
+                                                    {String(i + 1).padStart(2, '0')}
+                                                </span>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <h3 className="text-sm font-bold text-slate-900 leading-snug group-hover:text-indigo-900 transition-colors">
+                                                    {r.questionText || `Clinical Inquiry ${r.questionId}`}
+                                                </h3>
+                                                <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-white border border-slate-100 rounded-lg shadow-sm">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-indigo-400 transition-colors" />
+                                                    <span className="text-xs font-black text-slate-600 uppercase tracking-tight">
+                                                        {displayAnswer}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="shrink-0 flex items-center gap-4 pl-14 md:pl-0">
+                                            <div className="h-8 w-[1px] bg-slate-100 hidden md:block" />
+                                            <div className={`px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[64px] border transition-all ${
+                                                score > 0 ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100 opacity-60'
+                                            }`}>
+                                                <span className={`text-sm font-black leading-none ${score > 0 ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                    {score > 0 ? `+${score}` : score}
+                                                </span>
+                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">pts</span>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            }) : (
+                                <div className="text-center py-20 bg-slate-50/50 rounded-[32px] border border-dashed border-slate-200">
+                                    <ClipboardList size={40} className="mx-auto text-slate-200 mb-4" />
+                                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No detailed breakdown available</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Recommendation section if available */}
+                        {(result?.recommendation || result?.notes) && (
+                            <div className="pt-12 border-t border-slate-100">
+                                <h3 className="text-xl font-black text-slate-900 tracking-tight mb-6">Recommendations & Notes</h3>
+                                <div className="bg-indigo-600 rounded-[32px] p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden">
+                                     <div className="absolute top-0 right-0 p-8 opacity-10">
+                                         <Activity size={100} />
+                                     </div>
+                                     <div className="relative z-10 space-y-4">
+                                         <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                                             <Sparkles size={20} />
+                                         </div>
+                                         <p className="text-lg font-medium leading-relaxed italic opacity-90">
+                                             "{result.recommendation || result.notes}"
+                                         </p>
+                                     </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

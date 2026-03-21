@@ -102,10 +102,11 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}
         >
-            <div className="p-6 flex items-center justify-between h-20 border-b border-slate-50 shrink-0">
+            <div className={`p-6 flex items-center justify-between border-b border-slate-50 shrink-0 h-20 transition-all duration-300`}>
                 <AnimatePresence mode="wait">
                     {!isCollapsed && (
                         <motion.div
+                            key="default-header"
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
@@ -211,11 +212,19 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
             <div className="p-5 border-t border-slate-50 bg-slate-50/30 space-y-3">
                 <div className={`flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm transition-all ${isCollapsed ? 'justify-center border-none shadow-none bg-transparent' : ''}`}>
                     <div className="w-10 h-10 bg-indigo-50 rounded-xl overflow-hidden border border-slate-200">
-                        <img
-                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`}
-                            alt="avatar"
-                            className="w-full h-full object-cover"
-                        />
+                        {user?.profileImage ? (
+                            <img
+                                src={`${user.profileImage}${user.profileImage.includes('?') ? '&' : '?'}t=${new Date().getTime()}`}
+                                alt="avatar"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <img
+                                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`}
+                                alt="avatar"
+                                className="w-full h-full object-cover"
+                            />
+                        )}
                     </div>
                     {!isCollapsed && (
                         <div className="flex-1 min-w-0">

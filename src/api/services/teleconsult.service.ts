@@ -40,7 +40,7 @@ export const TeleConsultService = {
         return response.data;
     },
     rescheduleConsultation: async (id: string, newTime: string) => {
-        const response = await api.patch(`/resource/consults/${id}/reschedule`, { new_scheduled_at: newTime });
+        const response = await api.patch(`/resource/consults/${id}/reschedule`, { scheduled_at: newTime });
         return response.data;
     },
     getBilling: async (id: string) => {

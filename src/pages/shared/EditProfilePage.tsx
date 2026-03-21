@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
     ChevronLeft, Camera, User, Mail, Phone, Calendar, MapPin, 
     ShieldCheck, Bell, CheckCircle, Smartphone, UserCircle, AlertCircle,
-    Navigation, Crosshair
+    Navigation, Crosshair, Loader2, Briefcase, Info, List, MessageCircle, Sparkles
 } from 'lucide-react';
 import type { RootState, AppDispatch } from '../../store';
 import { setUser } from '../../features/auth/store/authSlice';
@@ -28,23 +28,32 @@ const EditProfilePage = () => {
         dateOfBirth: user?.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
         city: user?.city || '',
         address: user?.address || '',
+        emergencyContact: user?.emergencyContact || '',
+        bloodGroup: user?.bloodGroup || '',
+        about: user?.about || '',
+        specialization: user?.specialization || '',
+        experienceYears: user?.experienceYears || 0,
+        consultationFee: user?.consultationFee || 0,
+        languages: Array.isArray(user?.languages) ? user.languages.join(', ') : '',
+        skills: Array.isArray(user?.skills) ? user.skills.join(', ') : '',
         is2fa: user?.is2fa || false,
         communicationPreferences: user?.communicationPreferences || {
             email: true,
             sms: false,
             push: true
         },
-        coordinates: user?.coordinates || {
-            lat: 0,
-            lng: 0
+        coordinates: {
+            lat: user?.coordinates?.lat ?? 0,
+            lng: user?.coordinates?.lng ?? 0
         }
     });
 
     const [isLocating, setIsLocating] = useState(false);
-
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -91,6 +100,40 @@ const EditProfilePage = () => {
         );
     };
 
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setError('Please upload an image file');
+            return;
+        }
+
+        // Validate file size (e.g., 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Image size should be less than 5MB');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('profileImage', file);
+
+        setIsUploading(true);
+        setError(null);
+
+        try {
+            const updatedUser = await UserService.updateProfileImage(formData);
+            dispatch(setUser(updatedUser));
+            setSuccess(true);
+            setTimeout(() => setSuccess(false), 3000);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to upload profile image');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
@@ -98,7 +141,16 @@ const EditProfilePage = () => {
         setSuccess(false);
 
         try {
-            const updatedUser = await UserService.updateMyProfile(formData);
+            // Convert comma-separated strings back to arrays
+            const submissionData = {
+                ...formData,
+                languages: formData.languages.split(',').map(s => s.trim()).filter(s => !!s),
+                skills: formData.skills.split(',').map(s => s.trim()).filter(s => !!s),
+                experienceYears: Number(formData.experienceYears),
+                consultationFee: Number(formData.consultationFee)
+            };
+
+            const updatedUser = await UserService.updateMyProfile(submissionData);
             dispatch(setUser(updatedUser));
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
@@ -140,20 +192,40 @@ const EditProfilePage = () => {
                     <div className="flex flex-col items-center">
                         <div className="relative group">
                             <div className="w-32 h-32 rounded-[3rem] bg-indigo-50 border-4 border-white shadow-xl flex items-center justify-center text-indigo-600 overflow-hidden relative">
-                                {user?.profileImage ? (
-                                    <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                {isUploading ? (
+                                    <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                                ) : user?.profileImage ? (
+                                    <img 
+                                        src={`${user.profileImage}${user.profileImage.includes('?') ? '&' : '?'}t=${new Date().getTime()}`} 
+                                        alt="Profile" 
+                                        className="w-full h-full object-cover" 
+                                    />
                                 ) : (
                                     <User size={48} />
                                 )}
-                                <div className="absolute inset-0 bg-indigo-600/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div className="absolute inset-0 bg-indigo-600/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                                     <Camera size={24} className="text-white" />
                                 </div>
                             </div>
-                            <button type="button" className="absolute -bottom-2 -right-2 w-10 h-10 bg-white border border-slate-100 rounded-2xl shadow-lg flex items-center justify-center text-indigo-600 hover:scale-110 transition-transform">
+                            <button 
+                                type="button" 
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading}
+                                className="absolute -bottom-2 -right-2 w-10 h-10 bg-white border border-slate-100 rounded-2xl shadow-lg flex items-center justify-center text-indigo-600 hover:scale-110 transition-transform disabled:opacity-50 disabled:scale-100"
+                            >
                                 <Camera size={18} />
                             </button>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageChange}
+                                accept="image/*"
+                                className="hidden"
+                            />
                         </div>
-                        <p className="mt-4 text-xs font-black text-indigo-600 uppercase tracking-widest">Change Profile Photo</p>
+                        <p className="mt-4 text-xs font-black text-indigo-600 uppercase tracking-widest">
+                            {isUploading ? 'Uploading...' : 'Change Profile Photo'}
+                        </p>
                     </div>
 
                     <div className="grid gap-10">
@@ -248,6 +320,99 @@ const EditProfilePage = () => {
                                     placeholder="+91 00000 00000"
                                 />
                             </div>
+
+                            {/* Essential Medical Details (All Users) */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-50">
+                                <InputField
+                                    label="Emergency Contact"
+                                    name="emergencyContact"
+                                    value={formData.emergencyContact}
+                                    onChange={handleChange}
+                                    leftIcon={<Phone size={18} className="text-rose-500" />}
+                                    placeholder="Name or Phone Number"
+                                />
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Blood Group</label>
+                                    <select 
+                                        name="bloodGroup"
+                                        value={formData.bloodGroup}
+                                        onChange={handleChange}
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                                    >
+                                        <option value="">Select Blood Group</option>
+                                        {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                                            <option key={bg} value={bg}>{bg}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Professional-Specific Fields */}
+                            {user?.role !== 'patient' && (
+                                <div className="space-y-6 pt-6 border-t border-slate-50">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <InputField
+                                            label="Specialization"
+                                            name="specialization"
+                                            value={formData.specialization}
+                                            onChange={handleChange}
+                                            leftIcon={<Briefcase size={18} />}
+                                            placeholder="e.g. Clinical Psychologist"
+                                        />
+                                        <InputField
+                                            label="Years of Experience"
+                                            name="experienceYears"
+                                            type="number"
+                                            value={String(formData.experienceYears)}
+                                            onChange={handleChange}
+                                            leftIcon={<Calendar size={18} />}
+                                        />
+                                        <InputField
+                                            label="Consultation Fee (₹)"
+                                            name="consultationFee"
+                                            type="number"
+                                            value={String(formData.consultationFee)}
+                                            onChange={handleChange}
+                                            leftIcon={<List size={18} className="text-emerald-500" />}
+                                            placeholder="Standard rate"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <InputField
+                                            label="Languages Spoken"
+                                            name="languages"
+                                            value={formData.languages}
+                                            onChange={handleChange}
+                                            leftIcon={<MessageCircle size={18} />}
+                                            placeholder="e.g. English, Tamil, Hindi"
+                                            helperText="Separate with commas"
+                                        />
+                                        <InputField
+                                            label="Core Skills & Therapeutic Modalities"
+                                            name="skills"
+                                            value={formData.skills}
+                                            onChange={handleChange}
+                                            leftIcon={<Sparkles size={18} />}
+                                            placeholder="e.g. CBT, DBT, Mindfulness"
+                                            helperText="Separate with commas"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Professional Bio</label>
+                                        <div className="relative">
+                                            <textarea
+                                                name="about"
+                                                value={formData.about}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, about: e.target.value }))}
+                                                rows={4}
+                                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none resize-none"
+                                                placeholder="Tell us about your professional background..."
+                                            />
+                                            <Info size={18} className="absolute top-4 right-4 text-slate-300" />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </section>
 
                         {/* Location Details */}
@@ -285,11 +450,11 @@ const EditProfilePage = () => {
                                         <p className="font-black text-slate-900 text-sm tracking-tight">Precision GPS Basis</p>
                                         <div className="flex items-center gap-2 mt-1">
                                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                                Lat: {formData.coordinates.lat.toFixed(4)}
+                                                Lat: {(formData.coordinates?.lat ?? 0).toFixed(4)}
                                             </p>
                                             <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                                Lng: {formData.coordinates.lng.toFixed(4)}
+                                                Lng: {(formData.coordinates?.lng ?? 0).toFixed(4)}
                                             </p>
                                         </div>
                                     </div>

@@ -170,7 +170,7 @@ const PatientRecord = () => {
                             <Button variant="outline" leftIcon={<HeartPulse size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/health`)}>Health</Button>
                             <Button variant="outline" leftIcon={<ClipboardList size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/clinical-hub`)}>Clinical Hub</Button>
                             <Button variant="outline" leftIcon={<MessageCircle size={18} />}>Message</Button>
-                            <Button variant="outline" leftIcon={<Video size={18} />} onClick={() => navigate('/clinical-schedule')}>Teleconsult</Button>
+                            <Button variant="outline" leftIcon={<Video size={18} />} onClick={() => navigate(`/clinical-schedule?patientId=${patient.userId || id}`)}>Teleconsult</Button>
                             <Button variant="primary" leftIcon={<Plus size={18} />} onClick={handleRequestAssessment}>Request Assessment</Button>
                         </>
                     )}

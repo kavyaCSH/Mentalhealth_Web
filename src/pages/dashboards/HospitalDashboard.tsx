@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useSelector } from 'react-redux';
 import {
     Activity,
     Users,
@@ -20,14 +19,13 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
-import type { RootState } from '../../store';
 import api from '../../api/client';
 import type { UserStats } from '../../types/user.types';
 import type { Notification } from '../../types/common.types';
 
 const HospitalDashboard = () => {
     const navigate = useNavigate();
-    const { user } = useSelector((state: RootState) => state.auth);
+    // const { user } = useSelector((state: RootState) => state.auth);
     const [stats, setStats] = useState<UserStats | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
 

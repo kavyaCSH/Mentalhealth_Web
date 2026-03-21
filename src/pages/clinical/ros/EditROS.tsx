@@ -67,6 +67,10 @@ const EditROS = () => {
     const { patientId: userId, rosId } = useParams<{ patientId: string; rosId: string }>();
     const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const isPatient = (currentUser as any)?.role === 'patient' || 
+                      (currentUser as any)?.role === 'PATIENT' || 
+                      (currentUser as any)?.group === 'PATIENT' ||
+                      (currentUser as any)?.group === 'patient';
     
     const [sections, setSections] = useState<ROSSection[]>([]);
     const [currentStep, setCurrentStep] = useState(0);

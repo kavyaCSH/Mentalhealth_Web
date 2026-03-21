@@ -15,6 +15,41 @@ export interface AssessmentQuestion {
     }[];
 }
 
+export interface SelfAssessmentQuestion extends AssessmentQuestion {
+    topic?: string;
+}
+
+export interface SelfAssessmentSubmission {
+    responses: AssessmentResponse[];
+    date?: string;
+    time?: string;
+    notes?: string;
+    wellnessAspect?: string;
+}
+
+export interface SelfAssessmentResult {
+    assessmentId: number;
+    totalScore: number;
+    percentage: number;
+}
+
+export interface ProfessionalAssessmentPatientInfo {
+    userId: number;
+    firstName: string;
+    age: number;
+    gender: string;
+}
+
+export type ProfessionalAssessmentTopics = Record<string, AssessmentQuestion[]>;
+
+export interface ProfessionalAssessmentSubmission {
+    patientId: string | number;
+    consultId?: string | number;
+    category: string;
+    responses: AssessmentResponse[];
+    notes?: string;
+}
+
 export interface AssessmentMaster {
     id?: string;
     _id?: string;
@@ -46,9 +81,11 @@ export interface AssessmentResult {
     _id?: string;
     id?: string;
     patientId?: string | number;
+    assessmentId?: number;
     slug?: string;
     category?: string;
     type?: string;
+    assessment_type?: string;
     date?: string;
     time?: string;
     notes?: string;
@@ -57,24 +94,29 @@ export interface AssessmentResult {
     totalScore?: number;
     maxScore?: number;
     maxPossibleScore?: number;
+    totalPossibleScore?: number;
     percentage?: number;
     interpretation?: string;
     severity?: string;
     tScore?: number;
     clinicalResults?: Record<string, Record<string, unknown>>;
     recommendations?: string[];
-    recommendation?: string; // UI fallback
+    recommendation?: string;
+    status?: string;
+    isSelfAssessment?: boolean;
     responses?: {
         questionId: string | number;
         optionId: string;
+        question?: string;
         questionText?: string;
+        answerText?: string;
         selectedOption?: string;
         score?: number;
+        _id?: string;
     }[];
-    status?: string;
-    colorClass?: string; // UI augmentation
-    severityStyle?: Record<string, unknown>; // UI augmentation (contains icons)
-    source?: string; // UI augmentation
+    colorClass?: string;
+    severityStyle?: Record<string, unknown>;
+    source?: string;
     createdAt?: string;
     updatedAt?: string;
 }

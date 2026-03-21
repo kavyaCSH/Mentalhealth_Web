@@ -15,6 +15,8 @@ import {
     FileText,
     Stethoscope
 } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../../store';
 import Button from '../../../components/ui/Button';
 import { ROSService } from '../../../api/services/ros.service';
 import { UserService } from '../../../api/services/user.service';
@@ -22,6 +24,8 @@ import type { ROSSection, ROSResponse } from '../../../types/ros.types';
 
 
 const AddROS = () => {
+    const { patientId: userId } = useParams<{ patientId: string }>();
+    const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
     const isPatient = (currentUser as any)?.role === 'patient' || 
                       (currentUser as any)?.role === 'PATIENT' || 

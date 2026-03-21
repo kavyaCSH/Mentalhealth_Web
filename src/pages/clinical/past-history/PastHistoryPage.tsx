@@ -582,7 +582,7 @@ const PastHistoryPage = () => {
                                             {result.risk_flags?.map((item, idx) => (
                                                 <div key={idx} className="p-4 bg-white rounded-2xl border border-rose-100 shadow-sm flex items-start gap-4 group">
                                                     <div className="w-1.5 h-6 bg-rose-500 rounded-full shrink-0" />
-                                                    <p className="text-[11px] font-black text-slate-700 leading-tight uppercase tracking-tight">{item}</p>
+                                                    <p className="text-[11px] font-black text-slate-700 leading-tight uppercase tracking-tight">{(item as any)}</p>
                                                 </div>
                                             ))}
                                             {(!result.risk_flags || result.risk_flags.length === 0) && (

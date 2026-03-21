@@ -47,6 +47,8 @@ export interface User {
     languages?: string[];
     skills?: string[];
     qualifications?: string;
+    emergencyContact?: string;
+    bloodGroup?: string;
     timezoneId?: string;
     coordinates?: {
         lat: number;

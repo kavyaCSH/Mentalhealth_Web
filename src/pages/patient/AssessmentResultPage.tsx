@@ -57,12 +57,24 @@ const AssessmentResultPage = () => {
         const load = async () => {
             if (!id) return;
             setIsLoading(true);
+            setError(null);
             try {
-                const data = await AssessmentService.getDetail(id);
-                setAssessment(data);
-            } catch (err: unknown) {
-                const error = err as { message?: string };
-                setError(error.message || 'Failed to load assessment result.');
+                // Attempt to fetch from modern self-assessment first, then fallback to generic
+                let rawData;
+                try {
+                    const res = await AssessmentService.getSelfAssessmentDetail(id);
+                    rawData = res.data || res;
+                } catch {
+                    rawData = await AssessmentService.getDetail(id);
+                }
+
+                if (rawData && (rawData.id || rawData._id || rawData.slug || rawData.score !== undefined)) {
+                    setAssessment(rawData);
+                } else {
+                    setError('The requested assessment record could not be found or is empty.');
+                }
+            } catch (err: any) {
+                setError(err.response?.data?.message || err.message || 'Failed to load assessment result.');
             } finally {
                 setIsLoading(false);
             }
@@ -92,8 +104,6 @@ const AssessmentResultPage = () => {
 
     const style = getSeverityStyle(assessment.severity, assessment.interpretation);
     const SeverityIcon = style.icon;
-    const displayVal = assessment.percentage ?? assessment.score ?? assessment.totalScore ?? 0;
-    const scoreDisplay = typeof displayVal === 'number' ? Math.round(displayVal * 100) / 100 : displayVal;
     const recs = assessment.recommendations || [];
 
     return (
@@ -120,7 +130,7 @@ const AssessmentResultPage = () => {
                     <div className="flex items-center gap-4 mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                         <span className="flex items-center gap-1.5">
                             <Calendar size={14} className="text-slate-300" />
-                            {new Date(assessment.date || assessment.createdAt || '').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                            {assessment.date}
                         </span>
                         {assessment.time && (
                             <span className="flex items-center gap-1.5">
@@ -149,17 +159,19 @@ const AssessmentResultPage = () => {
                     </div>
                     <div className="flex flex-col items-center gap-4">
                         <div className={`px-8 py-6 rounded-2xl border flex flex-col items-center justify-center min-w-[140px] ${style.bg} ${style.color} ${style.border}`}>
-                            <span className="text-4xl font-black">{scoreDisplay}</span>
-                            {assessment.maxScore && (
+                            <span className="text-4xl font-black">
+                                {assessment.score ?? assessment.totalScore ?? 0}
+                            </span>
+                            {(assessment.maxScore || assessment.maxPossibleScore || assessment.totalPossibleScore) && (
                                 <span className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-60">
-                                    / {assessment.maxScore}
+                                    / {assessment.maxScore || assessment.maxPossibleScore || assessment.totalPossibleScore}
                                 </span>
                             )}
                             <span className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-80">Raw Score</span>
                         </div>
 
                         {assessment.tScore !== undefined && assessment.tScore !== null && (
-                            <div className={`px-8 py-4 rounded-2xl border flex flex-col items-center justify-center min-w-[140px] bg-slate-50 border-slate-100`}>
+                            <div className={`px-8 py-4 rounded-2xl border flex flex-col items-center justify-center min-w-[140px] bg-white border-slate-100 shadow-sm`}>
                                 <span className="text-3xl font-black text-slate-800">{assessment.tScore}</span>
                                 <span className="text-[10px] font-black uppercase tracking-widest mt-1 text-slate-400">T-Score</span>
                             </div>
@@ -210,31 +222,56 @@ const AssessmentResultPage = () => {
 
             {/* Question Responses */}
             {assessment.responses && assessment.responses.length > 0 && (
-                <div className="glass-card p-8">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mb-5">
-                        <FileText size={14} /> Response Breakdown
+                <div className="space-y-6">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-2 ml-1">
+                        <FileText size={14} className="text-indigo-500" /> Full Response Breakdown
                     </h3>
-                    <div className="space-y-3">
-                        {assessment.responses.map((resp, i) => (
-                            <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                                    <span className="text-xs font-black">{i + 1}</span>
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-bold text-slate-800">{resp.questionText || `Question ${i + 1}`}</p>
-                                    <div className="flex items-center gap-3 mt-2">
-                                        <span className="text-xs font-bold text-slate-500">
-                                            Answer: <span className="text-indigo-600">{String(resp.selectedOption || resp.optionId)}</span>
-                                        </span>
-                                        {resp.score != null && (
-                                            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${style.bg} ${style.color}`}>
-                                                {resp.score} pts
+                    <div className="grid grid-cols-1 gap-4">
+                        {assessment.responses.map((resp, i) => {
+                            const isId = (val: string) => /^[0-9a-fA-F]{24}$/.test(val || '');
+                            const displayAnswer = resp.answerText || (!isId(String(resp.selectedOption || resp.optionId)) ? String(resp.selectedOption || resp.optionId) : 'Value Recorded');
+                            
+                            return (
+                                <motion.div 
+                                    key={i}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.03 }}
+                                    className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-50/30 transition-all"
+                                >
+                                    <div className="flex items-start gap-5 flex-1 max-w-2xl">
+                                        <div className="w-10 h-10 bg-slate-50 border border-slate-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-colors">
+                                            <span className="text-[10px] font-black text-slate-400 group-hover:text-indigo-600">
+                                                {String(i + 1).padStart(2, '0')}
                                             </span>
-                                        )}
+                                        </div>
+                                        <div className="space-y-3">
+                                            <p className="text-sm font-bold text-slate-900 leading-snug group-hover:text-indigo-900 transition-colors">
+                                                {resp.questionText || `Clinical Item Inquiry ${i + 1}`}
+                                            </p>
+                                            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-slate-50/50 border border-slate-50 rounded-lg group-hover:bg-white group-hover:border-indigo-50 transition-all">
+                                                <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mr-1">Answer</div>
+                                                <span className="text-xs font-black text-indigo-600">
+                                                    {displayAnswer}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        ))}
+                                    
+                                    <div className="shrink-0 flex items-center gap-4 pl-14 md:pl-0">
+                                        <div className="h-8 w-[1px] bg-slate-100 hidden md:block" />
+                                        <div className={`px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[70px] border transition-all ${
+                                            resp.score ? 'bg-indigo-50 border-indigo-100 shadow-sm shadow-indigo-50' : 'bg-slate-50 border-slate-50 opacity-40'
+                                        }`}>
+                                            <span className={`text-sm font-black leading-none ${resp.score ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                {resp.score ? `+${resp.score}` : '0'}
+                                            </span>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">pts</span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -249,11 +286,8 @@ const AssessmentResultPage = () => {
 
             {/* Footer */}
             <div className="flex flex-col sm:flex-row gap-4">
-                <Button variant="outline" className="flex-1 py-4" onClick={() => navigate(patientId ? `/patients/${patientId}?view=focused` : '/history')}>
+                <Button variant="outline" className="flex-1 py-4 border-slate-200 text-slate-600 hover:bg-slate-50 rounded-2xl" onClick={() => navigate(patientId ? `/patients/${patientId}?view=focused` : '/history')}>
                     {patientId ? 'Back to Patient Record' : 'Back to History'}
-                </Button>
-                <Button variant="primary" className="flex-1 py-4" onClick={() => navigate(patientId ? `/clinical/assessments?patientId=${patientId}` : '/assessments')}>
-                    {patientId ? 'Assign Another' : 'Take Another Assessment'}
                 </Button>
             </div>
         </div>

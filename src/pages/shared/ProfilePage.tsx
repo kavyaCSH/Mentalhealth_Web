@@ -61,7 +61,11 @@ const ProfilePage = () => {
                         <div className="relative">
                             <div className="w-24 h-24 rounded-[40%] bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center overflow-hidden">
                                 {user?.profileImage ? (
-                                    <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                    <img 
+                                        src={`${user.profileImage}${user.profileImage.includes('?') ? '&' : '?'}t=${new Date().getTime()}`} 
+                                        alt="Profile" 
+                                        className="w-full h-full object-cover" 
+                                    />
                                 ) : (
                                     <User size={40} className="text-white/80" />
                                 )}

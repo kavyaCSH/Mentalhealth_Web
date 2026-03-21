@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar as CalendarIcon,
@@ -14,11 +13,16 @@ import {
     UserCheck,
     Clock,
     FileText,
-    ArrowLeft
+    ArrowLeft,
+    Settings,
+    RefreshCw
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import api from '../../api/client';
 import { TeleConsultService } from '../../api/services/teleconsult.service';
 import { UserService } from '../../api/services/user.service';
+import { SpecialistService } from '../../api/services/specialist.service';
 import type { RootState } from '../../store';
 import type { Consultation } from '../../types/common.types';
 import type { Patient } from '../../types/user.types';
@@ -27,6 +31,7 @@ import Button from '../../components/ui/Button';
 const ClinicalSchedulePage = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [viewDate, setViewDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [appointments, setAppointments] = useState<Consultation[]>([]);
@@ -37,10 +42,23 @@ const ClinicalSchedulePage = () => {
     const [bookingStep, setBookingStep] = useState<'patient' | 'details'>('patient');
     const [bookingReason, setBookingReason] = useState('');
     const [bookingDate, setBookingDate] = useState(new Date().toISOString().split('T')[0]);
-    const [bookingTime, setBookingTime] = useState('10:00');
+    const [bookingTime, setBookingTime] = useState('');
+    const [availableSlots, setAvailableSlots] = useState<any[]>([]);
+    const [isLoadingSlots, setIsLoadingSlots] = useState(false);
     const [isBooking, setIsBooking] = useState(false);
     const [bookingSuccess, setBookingSuccess] = useState(false);
-    const [bookingError, setBookingError] = useState('');
+    const [bookingError, setBookingError] = useState(''); 
+
+    // Reschedule State
+    const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+    const [rescheduleData, setRescheduleData] = useState<Consultation | null>(null);
+    const [rescheduleDate, setRescheduleDate] = useState(new Date().toISOString().split('T')[0]);
+    const [rescheduleTime, setRescheduleTime] = useState('');
+    const [rescheduleAvailableSlots, setRescheduleAvailableSlots] = useState<any[]>([]);
+    const [isLoadingRescheduleSlots, setIsLoadingRescheduleSlots] = useState(false);
+    const [isRescheduling, setIsRescheduling] = useState(false);
+    const [rescheduleError, setRescheduleError] = useState(''); 
+    const [rescheduleSuccess, setRescheduleSuccess] = useState(false);
 
     // Patient Selection State
     const [patients, setPatients] = useState<Patient[]>([]);
@@ -69,6 +87,83 @@ const ClinicalSchedulePage = () => {
         fetchSchedule();
     }, [fetchSchedule]);
 
+    const openBookingModalWithPatient = useCallback((patient: Patient) => {
+        setBookingStep('details');
+        setBookingReason('');
+        setSelectedPatient(patient);
+        setBookingError('');
+        setBookingSuccess(false);
+        setPatientSearch('');
+        const today = new Date();
+        setBookingDate(today.toISOString().split('T')[0]);
+        setBookingTime('');
+        setIsModalOpen(true);
+    }, []);
+
+    useEffect(() => {
+        const patientId = searchParams.get('patientId');
+        if (patientId && !selectedPatient) {
+            const fetchAndSelect = async () => {
+                try {
+                    const res = await api.get(`/users/${patientId}`);
+                    const patient = res.data?.data || res.data;
+                    if (patient) {
+                        openBookingModalWithPatient(patient as Patient);
+                    }
+                } catch (err) {
+                    console.error('Failed to preselect patient', err);
+                }
+            };
+            fetchAndSelect();
+        } else if (searchParams.get('action') === 'book' && !isModalOpen) {
+            openBookingModal();
+        }
+    }, [searchParams, isModalOpen, selectedPatient, openBookingModalWithPatient]);
+
+    useEffect(() => {
+        if (bookingStep === 'details' && (user?.userId || user?.id)) {
+            const fetchSlots = async () => {
+                setIsLoadingSlots(true);
+                try {
+                    const res = await SpecialistService.getAvailableSlots({
+                        specialist_id: user.userId || user.id,
+                        date: bookingDate,
+                    });
+                    const slotsData = (res as any).data?.slots || (res as any).slots || [];
+                    setAvailableSlots(Array.isArray(slotsData) ? slotsData : []);
+                } catch (err) {
+                    console.error('Failed to fetch slots', err);
+                    setAvailableSlots([]);
+                } finally {
+                    setIsLoadingSlots(false);
+                }
+            };
+            fetchSlots();
+        }
+    }, [bookingDate, bookingStep, user]);
+
+    useEffect(() => {
+        if (isRescheduleModalOpen && (user?.userId || user?.id)) {
+            const fetchSlots = async () => {
+                setIsLoadingRescheduleSlots(true); 
+                try {
+                    const res = await SpecialistService.getAvailableSlots({
+                        specialist_id: user.userId || user.id, 
+                        date: rescheduleDate,
+                    });
+                    const slotsData = (res as any).data?.slots || (res as any).slots || [];
+                    setRescheduleAvailableSlots(Array.isArray(slotsData) ? slotsData : []);
+                } catch (err) {
+                    console.error('Failed to fetch slots', err);
+                    setRescheduleAvailableSlots([]);
+                } finally {
+                    setIsLoadingRescheduleSlots(false);
+                }
+            };
+            fetchSlots();
+        }
+    }, [rescheduleDate, isRescheduleModalOpen, user]);
+
     const fetchPatients = async (searchTerm = '') => {
         try {
             const res = await UserService.listUsers({ 
@@ -93,7 +188,7 @@ const ClinicalSchedulePage = () => {
         setPatientSearch('');
         const today = new Date();
         setBookingDate(today.toISOString().split('T')[0]);
-        setBookingTime(today.toLocaleTimeString('default', { hour: '2-digit', minute: '2-digit', hour12: false }));
+        setBookingTime('');
         setIsModalOpen(true);
         fetchPatients('');
     };
@@ -115,18 +210,15 @@ const ClinicalSchedulePage = () => {
         
         if (token) {
             try {
-                // Determine type based on user role or session info
                 const validation = await TeleConsultService.tokenValidate(token, 'publisher');
                 if (validation.success || validation.code === 200) {
                     const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
                     window.location.href = `${baseUrl}${token}?hideMenu=true`;
                 } else {
-                    console.error('Token validation failed', validation);
                     const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
                     window.location.href = `${baseUrl}${token}?hideMenu=true`;
                 }
             } catch (err) {
-                console.error('Validation error', err);
                 const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
                 window.location.href = `${baseUrl}${token}?hideMenu=true`;
             }
@@ -138,6 +230,10 @@ const ClinicalSchedulePage = () => {
     const handleBookAppointment = async () => {
         if (!selectedPatient || !bookingReason.trim()) {
             setBookingError('Please select a patient and provide a reason');
+            return;
+        }
+        if (!bookingTime) {
+            setBookingError('Please select an available time slot');
             return;
         }
 
@@ -173,7 +269,46 @@ const ClinicalSchedulePage = () => {
         }
     };
 
+    const handleRescheduleClick = (appt: Consultation) => {
+        setRescheduleData(appt);
+        const apptDate = appt.scheduled_at ? new Date(appt.scheduled_at) : new Date();
+        setRescheduleDate(apptDate.toISOString().split('T')[0]);
+        setRescheduleTime('');
+        setRescheduleError('');
+        setRescheduleSuccess(false);
+        setIsRescheduleModalOpen(true);
+    };
 
+    const submitReschedule = async () => {
+        if (!rescheduleData) return;
+        if (!rescheduleTime) {
+            setRescheduleError('Please select an available time slot');
+            return;
+        }
+
+        setIsRescheduling(true);
+        try {
+            const [y, m, d] = rescheduleDate.split('-').map(Number);
+            const [h, min] = rescheduleTime.split(':').map(Number);
+            const newScheduledAt = new Date(y, m - 1, d, h, min).toISOString();
+            const apptId = rescheduleData.id || rescheduleData.consult_id || (rescheduleData as any)._id;
+
+            const res = await TeleConsultService.rescheduleConsultation(String(apptId), newScheduledAt);
+            if (res.success || (res as any).code === 200) {
+                setRescheduleSuccess(true);
+                setTimeout(() => {
+                    setIsRescheduleModalOpen(false);
+                    fetchSchedule(true);
+                }, 2000);
+            } else {
+                 setRescheduleError((res as any).message || 'Failed to reschedule');
+            }
+        } catch (err: any) {
+            setRescheduleError(err.response?.data?.message || err.message || 'Error occurred while rescheduling');
+        } finally {
+            setIsRescheduling(false);
+        }
+    };
 
     const isSameDate = (d1: Date, d2: Date) => d1.toDateString() === d2.toDateString();
 
@@ -192,6 +327,7 @@ const ClinicalSchedulePage = () => {
     const dayAppointments = appointments.filter((e) => isSameDate(new Date(e.scheduled_at || ''), selectedDate));
 
     return (
+        <>
         <div className="p-8 max-w-7xl animate-fade-in pb-20 space-y-10">
             {/* Premium Header */}
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -204,6 +340,14 @@ const ClinicalSchedulePage = () => {
                     <p className="text-slate-500 font-semibold text-sm">Review, manage and launch your patient sessions.</p>
                 </div>
                 <div className="flex gap-4">
+                    <Button
+                        variant="secondary"
+                        leftIcon={<Settings size={20} />}
+                        onClick={() => navigate('/clinical/availability')}
+                        className="rounded-2xl shadow-xl shadow-slate-100 py-3.5"
+                    >
+                        Manage Availability
+                    </Button>
                     <Button
                         variant="primary"
                         leftIcon={<Plus size={20} />}
@@ -237,7 +381,7 @@ const ClinicalSchedulePage = () => {
                             const d = new Date(viewDate);
                             d.setDate(d.getDate() - 7);
                             setViewDate(d);
-                        }} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-indigo-600 transition-all">
+                        }} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 host:text-indigo-600 transition-all">
                             <ChevronLeft size={20} />
                         </button>
                         <button onClick={() => setViewDate(new Date())} className="px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all">Today</button>
@@ -379,7 +523,14 @@ const ClinicalSchedulePage = () => {
                                                     Start Session
                                                 </Button>
                                             )}
-                                            <button className="p-4 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all"><X size={20} /></button>
+                                            <button 
+                                                className="p-4 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-2xl transition-all"
+                                                onClick={() => handleRescheduleClick(appt)}
+                                                title="Reschedule Session"
+                                            >
+                                                <RefreshCw size={20} />
+                                            </button>
+                                            <button className="p-4 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all" title="Cancel Session"><X size={20} /></button>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -532,20 +683,92 @@ const ClinicalSchedulePage = () => {
                                                 <button onClick={() => setBookingStep('patient')} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline px-4 py-2 bg-white rounded-xl shadow-sm">Change</button>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-8">
+                                            <div className="space-y-8 bg-slate-50/50 p-6 rounded-[2.5rem] border border-slate-100">
+                                                {/* Date Selector */}
                                                 <div className="space-y-4">
-                                                    <div className="flex items-center gap-2 px-2">
-                                                        <CalendarIcon size={14} className="text-slate-400" />
-                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Date</label>
+                                                    <div className="flex items-center justify-between px-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-xl bg-indigo-100/50 text-indigo-600 flex items-center justify-center">
+                                                                <CalendarIcon size={16} />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none mb-1">Session Date</label>
+                                                                <span className="text-[10px] font-semibold text-slate-400">Choose a day for consultation</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <input type="date" value={bookingDate} onChange={e => setBookingDate(e.target.value)} className="w-full bg-slate-50 rounded-2xl py-4 px-6 text-sm font-bold border-2 border-transparent focus:border-indigo-500/20 focus:bg-white transition-all outline-none" />
+                                                    <input 
+                                                        type="date" 
+                                                        value={bookingDate} 
+                                                        onChange={e => setBookingDate(e.target.value)} 
+                                                        className="w-full bg-white rounded-2xl py-4 px-6 text-slate-700 text-sm font-bold border-2 border-slate-100 focus:border-indigo-500/30 focus:shadow-xl focus:shadow-indigo-500/10 transition-all outline-none" 
+                                                    />
                                                 </div>
-                                                <div className="space-y-4">
-                                                    <div className="flex items-center gap-2 px-2">
-                                                        <Clock size={14} className="text-slate-400" />
-                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Time</label>
+                                                
+                                                <div className="h-px bg-slate-200/50 w-full" />
+
+                                                {/* Slot Selector */}
+                                                <div className="space-y-5">
+                                                    <div className="flex items-center justify-between px-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-xl bg-indigo-100/50 text-indigo-600 flex items-center justify-center">
+                                                                <Clock size={16} />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none mb-1">Available Slots</label>
+                                                                <span className="text-[10px] font-semibold text-slate-400">Select an open timeframe</span>
+                                                            </div>
+                                                        </div>
+                                                        {availableSlots.length > 0 && !isLoadingSlots && (
+                                                            <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full">
+                                                                {availableSlots.filter(s => s.available !== false).length} Slots
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                    <input type="time" value={bookingTime} onChange={e => setBookingTime(e.target.value)} className="w-full bg-slate-50 rounded-2xl py-4 px-6 text-sm font-bold border-2 border-transparent focus:border-indigo-500/20 focus:bg-white transition-all outline-none" />
+                                                    
+                                                    {isLoadingSlots ? (
+                                                        <div className="flex flex-col items-center justify-center p-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm">
+                                                            <Activity className="animate-spin text-indigo-500 mb-3" size={28} />
+                                                            <span className="text-xs font-bold text-slate-400 animate-pulse">Scanning schedule...</span>
+                                                        </div>
+                                                    ) : availableSlots.length > 0 ? (
+                                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[16rem] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {availableSlots.map((slot: any, idx) => {
+                                                                const isSelected = bookingTime === slot.startTime;
+                                                                const disabled = slot.available === false;
+                                                                return (
+                                                                    <button
+                                                                        key={idx}
+                                                                        type="button"
+                                                                        onClick={() => setBookingTime(slot.startTime)}
+                                                                        disabled={disabled}
+                                                                        className={`relative overflow-hidden py-3 px-2 rounded-2xl border text-xs transition-all duration-300 ${
+                                                                            disabled
+                                                                                ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed opacity-60'
+                                                                                : isSelected
+                                                                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-105 z-10'
+                                                                                    : 'bg-white border-slate-200 text-slate-600 font-bold hover:border-indigo-400 hover:text-indigo-700 hover:shadow-md hover:-translate-y-0.5'
+                                                                        }`}
+                                                                    >
+                                                                        {isSelected && <div className="absolute inset-0 bg-white/20" />}
+                                                                        <span className={`relative z-10 ${isSelected ? 'font-black' : ''}`}>
+                                                                            {slot.startTime} {slot.endTime ? `\n- ${slot.endTime}` : ''}
+                                                                        </span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="bg-white rounded-[2rem] py-8 px-6 text-center border border-slate-100 shadow-sm flex flex-col items-center gap-3">
+                                                            <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                                                                <CalendarIcon size={24} />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-black text-slate-700">Fully Booked</p>
+                                                                <p className="text-xs font-semibold text-slate-400 mt-1">No open slots on this date.</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -591,7 +814,103 @@ const ClinicalSchedulePage = () => {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Reschedule Modal */}
+            <AnimatePresence>
+                {isRescheduleModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsRescheduleModalOpen(false)} />
+
+                        {rescheduleSuccess ? (
+                            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative bg-white rounded-[4rem] p-16 text-center shadow-2xl space-y-8 max-w-md w-full border border-indigo-50">
+                                <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-xl shadow-emerald-100/50"><CheckCircle2 size={48} /></div>
+                                <div>
+                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Success!</h3>
+                                    <p className="text-slate-500 font-semibold mt-2">The session has been successfully rescheduled.</p>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="relative bg-white rounded-[3rem] shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] border border-slate-100">
+                                <header className="p-8 border-b border-slate-50 flex items-center justify-between shrink-0 glass-surface relative z-10">
+                                    <div>
+                                        <h3 className="font-black text-slate-900 text-xl tracking-tight uppercase">Reschedule Session</h3>
+                                        <p className="text-sm text-slate-500 font-semibold">Select a new date and time</p>
+                                    </div>
+                                    <button onClick={() => setIsRescheduleModalOpen(false)} className="p-3 bg-slate-50 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-all"><X size={20} /></button>
+                                </header>
+
+                                <div className="flex-1 overflow-y-auto p-10 space-y-8">
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none mb-1">New Date</label>
+                                        <input 
+                                            type="date" 
+                                            value={rescheduleDate} 
+                                            onChange={e => setRescheduleDate(e.target.value)} 
+                                            className="w-full bg-slate-50 rounded-2xl py-4 px-6 text-slate-700 text-sm font-bold border-2 border-slate-100 focus:border-indigo-500/30 focus:shadow-xl focus:shadow-indigo-500/10 transition-all outline-none" 
+                                        />
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none">Available Slots</label>
+                                            {rescheduleAvailableSlots.length > 0 && !isLoadingRescheduleSlots && (
+                                                <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full">
+                                                    {rescheduleAvailableSlots.filter(s => s.available !== false).length} Slots
+                                                </span>
+                                            )}
+                                        </div>
+                                        
+                                        {isLoadingRescheduleSlots ? (
+                                            <div className="flex justify-center p-8"><Activity className="animate-spin text-indigo-500" size={24} /></div>
+                                        ) : rescheduleAvailableSlots.length > 0 ? (
+                                            <div className="grid grid-cols-2 gap-3 max-h-[16rem] overflow-y-auto pr-2 custom-scrollbar">
+                                                {rescheduleAvailableSlots.map((slot: any, idx) => {
+                                                    const isSelected = rescheduleTime === slot.startTime;
+                                                    const disabled = slot.available === false;
+                                                    return (
+                                                        <button
+                                                            key={idx}
+                                                            type="button"
+                                                            onClick={() => setRescheduleTime(slot.startTime)}
+                                                            disabled={disabled}
+                                                            className={`relative py-3 px-2 rounded-2xl border text-xs transition-all ${
+                                                                disabled ? 'bg-slate-50 border-slate-100 text-slate-300 opacity-60' :
+                                                                isSelected ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' :
+                                                                'bg-white border-slate-200 text-slate-600 hover:border-indigo-400'
+                                                            }`}
+                                                        >
+                                                            <span className={isSelected ? 'font-black' : 'font-bold'}>{slot.startTime}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="p-8 text-center text-slate-400 text-sm font-semibold">No open slots on this date.</div>
+                                        )}
+                                    </div>
+
+                                    {rescheduleError && (
+                                        <div className="bg-rose-50 p-4 rounded-2xl border border-rose-100 flex items-center gap-3">
+                                            <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">{rescheduleError}</p>
+                                        </div>
+                                    )}
+
+                                    <Button 
+                                        variant="primary" 
+                                        className="w-full rounded-[2rem] py-6 flex items-center justify-center text-sm font-black uppercase tracking-widest shadow-xl" 
+                                        onClick={submitReschedule} 
+                                        disabled={isRescheduling}
+                                    >
+                                        {isRescheduling ? <Activity className="animate-spin" size={24} /> : 'Confirm Reschedule'}
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
+        </>
     );
 };
 
