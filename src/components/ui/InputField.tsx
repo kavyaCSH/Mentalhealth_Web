@@ -23,22 +23,22 @@ const InputField: React.FC<InputFieldProps> = ({
     return (
         <div className={`space-y-2 ${containerClassName}`}>
             {label && (
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-xs font-black text-muted uppercase tracking-widest px-1">
                     {label}
                 </label>
             )}
 
             <div className="relative group">
                 {leftIcon && (
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors duration-200">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-indigo-500 transition-colors duration-200">
                         {leftIcon}
                     </div>
                 )}
 
                 <input
                     className={`
-                        w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 transition-all duration-200 text-sm font-medium outline-none
-                        focus:border-emerald-500 focus:bg-white
+                        w-full bg-page border-2 border-transparent rounded-2xl py-4 transition-all duration-200 text-sm font-medium outline-none text-main
+                        focus:border-emerald-500 focus:bg-card
                         ${leftIcon ? 'pl-12' : 'px-5'}
                         ${rightIcon ? 'pr-12' : 'px-5'}
                         ${error ? 'border-red-200 bg-red-50 focus:border-red-500' : ''}
@@ -48,7 +48,7 @@ const InputField: React.FC<InputFieldProps> = ({
                 />
 
                 {rightIcon && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted">
                         {rightIcon}
                     </div>
                 )}
@@ -65,7 +65,7 @@ const InputField: React.FC<InputFieldProps> = ({
                         {error}
                     </motion.p>
                 ) : helperText ? (
-                    <p className="text-[10px] font-bold text-slate-400 px-1">
+                    <p className="text-[10px] font-bold text-muted px-1">
                         {helperText}
                     </p>
                 ) : null}

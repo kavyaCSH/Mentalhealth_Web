@@ -31,9 +31,9 @@ const AdminDashboard = () => {
         const fetchData = async () => {
             try {
                 const [statsRes, healthRes, notifyRes] = await Promise.allSettled([
-                    api.get('/users/stats'),
-                    api.get('/health'),
-                    api.get('/notifications')
+                    api.get('users/stats'),
+                    api.get('health'),
+                    api.get('notifications')
                 ]);
 
                 if (statsRes.status === 'fulfilled') {

@@ -4,32 +4,37 @@ import type { ApiResponse } from '../../types/common.types';
 
 export const MSEService = {
     getQuestions: async (): Promise<ApiResponse<MSESection[]>> => {
-        const response = await api.get('/mse/questions');
+        const response = await api.get('mse/questions');
         return response.data;
     },
 
     createMSE: async (data: MSESubmission): Promise<ApiResponse<MSEResponse>> => {
-        const response = await api.post('/mse', data);
+        const response = await api.post('mse', data);
         return response.data;
     },
 
     listMSEByPatient: async (patient_id: string | number): Promise<ApiResponse<MSEResponse[]>> => {
-        const response = await api.get('/mse', { params: { patient_id } });
+        const response = await api.get('mse', { params: { patient_id } });
         return response.data;
     },
 
     getMSEById: async (id: string | number): Promise<ApiResponse<MSEResponse>> => {
-        const response = await api.get(`/mse/${id}`);
+        const response = await api.get(`mse/${id}`);
         return response.data;
     },
 
     updateMSE: async (id: string | number, data: Partial<MSESubmission>): Promise<ApiResponse<MSEResponse>> => {
-        const response = await api.patch(`/mse/${id}`, data);
+        const response = await api.patch(`mse/${id}`, data);
         return response.data;
     },
 
     deleteMSE: async (id: string | number): Promise<ApiResponse<unknown>> => {
-        const response = await api.delete(`/mse/${id}`);
+        const response = await api.delete(`mse/${id}`);
+        return response.data;
+    },
+
+    extractFromNarrative: async (narrative: string, patientId: string | number): Promise<ApiResponse<any>> => {
+        const response = await api.post('mse/extract', { narrative, patientId });
         return response.data;
     }
 };

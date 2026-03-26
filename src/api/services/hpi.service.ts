@@ -33,12 +33,12 @@ export interface HPIResponse {
 
 export const HPIService = {
     createHPI: async (data: { patient_id: string; consultId?: string; narrative: string }): Promise<ApiResponse<HPIResponse>> => {
-        const response = await api.post('/hpis', data);
+        const response = await api.post('history-of-illness', data);
         return response.data;
     },
 
     getHPIList: async (params: { patient_id: string }): Promise<ApiResponse<HPIResponse[]>> => {
-        const response = await api.get('/hpis', { params });
+        const response = await api.get('history-of-illness', { params });
         return response.data;
     },
 
@@ -47,30 +47,45 @@ export const HPIService = {
             try {
                 const listRes = await HPIService.getHPIList({ patient_id });
                 const list = listRes?.data || listRes || [];
-                const item = (list as HPIResponse[]).find(h => 
-                    String(h.id) === String(id) || 
-                    String(h._id) === String(id) || 
+                const item = (list as HPIResponse[]).find(h =>
+                    String(h.id) === String(id) ||
+                    String(h._id) === String(id) ||
                     String(h.hpiId) === String(id)
                 );
-                
+
                 if (item) return { success: true, message: "Found in list", data: item };
             } catch (e) {
                 console.warn('[HPIService] List fallback failed:', e);
             }
         }
-        
-        // Fallback or Direct fetch (though Postman says it might not exist)
-        const response = await api.get(`/hpis/${id}`);
+
+        const response = await api.get(`history-of-illness/${id}`);
         return response.data;
     },
 
     updateHPI: async (id: string | number, data: { narrative: string }): Promise<ApiResponse<HPIResponse>> => {
-        const response = await api.patch(`/hpis/${id}`, data);
+        const response = await api.patch(`history-of-illness/${id}`, data);
         return response.data;
     },
 
     deleteHPI: async (id: string | number): Promise<ApiResponse<unknown>> => {
-        const response = await api.delete(`/hpis/${id}`);
+        const response = await api.delete(`history-of-illness/${id}`);
         return response.data;
-    }
+    },
+
+    // ── AI Extraction & Detailed Saving Flow (Mobile Parity) ───────────────────────────────────
+    extractHPI: async (data: { patient_id: string | number; narrative: string }): Promise<ApiResponse<any>> => {
+        const response = await api.post('history-of-illness/extract', data);
+        return response.data;
+    },
+
+    extractFromNarrative: async (narrative: string, patient_id?: string | number): Promise<any> => {
+        const response = await api.post('history-of-illness/extract', { narrative, patient_id });
+        return response.data;
+    },
+
+    submitHPI: async (data: any): Promise<ApiResponse<HPIResponse>> => {
+        const response = await api.post('history-of-illness', data);
+        return response.data;
+    },
 };

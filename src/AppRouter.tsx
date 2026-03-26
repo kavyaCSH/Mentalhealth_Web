@@ -40,6 +40,7 @@ import RosAssessmentPage from './pages/clinical/ros/ROSList'; // Renamed from RO
 import AddROS from './pages/clinical/ros/AddROS';
 import ROSDetail from './pages/clinical/ros/ROSDetail';
 import EditROS from './pages/clinical/ros/EditROS';
+import ConsultSymptomsPage from './pages/clinical/ConsultSymptomsPage';
 import MessagesPortal from './pages/clinical/MessagesPortal';
 import ClinicalAssessmentCenter from './pages/clinical/ClinicalAssessmentCenter';
 import ProfessionalHistoryPage from './pages/clinical/ProfessionalHistoryPage';
@@ -48,6 +49,7 @@ import CreateUser from './pages/admin/CreateUser';
 import CreateConsultation from './pages/hospital/CreateConsultation';
 import StatisticsPage from './pages/patient/StatisticsPage';
 import SpecialistsPage from './pages/patient/SpecialistsPage';
+import NeuroVitalsPage from './pages/patient/NeuroVitalsPage';
 import StaffDirectory from './pages/hospital/StaffDirectory';
 import FacilityStatus from './pages/hospital/FacilityStatus';
 import BillingCentral from './pages/hospital/BillingCentral';
@@ -59,6 +61,7 @@ import InitializeTreatmentPage from './pages/clinical/treatment/InitializeTreatm
 import ClinicalRecordsHub from './pages/clinical/ClinicalRecordsHub';
 import ClinicalSchedulePage from './pages/clinical/ClinicalSchedulePage';
 import ClinicalAvailabilityPage from './pages/clinical/ClinicalAvailabilityPage';
+import Teleconsult from './pages/clinical/Teleconsult';
 
 const AppRouter = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -73,7 +76,7 @@ const AppRouter = () => {
 
     if (isLoading && !user) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#F9FBFA]">
+            <div className="min-h-screen flex items-center justify-center bg-page">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Hydrating Clinical Session...</p>
@@ -103,7 +106,13 @@ const AppRouter = () => {
                     element={!isAuthenticated ? <ResetPasswordPage /> : <Navigate to="/" replace />}
                 />
 
-                {/* Protected Routes */}
+                {/* Secure Teleconsult Route (Full Screen, No Main Layout) */}
+                <Route
+                    path="/teleconsult/:id"
+                    element={<ProtectedRoute><Teleconsult /></ProtectedRoute>}
+                />
+
+                {/* Protected Routes (Within Main Layout) */}
                 <Route path="/*" element={
                     <ProtectedRoute>
                         <MainLayout>
@@ -112,6 +121,7 @@ const AppRouter = () => {
                                 <Route path="profile" element={<ProfilePage />} />
                                 <Route path="profile/edit" element={<EditProfilePage />} />
                                 <Route path="notifications" element={<SharedNotificationsPage />} />
+                                <Route path="neuro-vitals" element={<NeuroVitalsPage />} />
 
                                 {/* Patient Portal Routes */}
                                 <Route element={<ProtectedRoute allowedGroup="PATIENT" />}>
@@ -151,6 +161,7 @@ const AppRouter = () => {
                                 <Route path="patients/:patientId/ros/new" element={<AddROS />} />
                                 <Route path="patients/:patientId/ros/:rosId" element={<ROSDetail />} />
                                 <Route path="patients/:patientId/ros/edit/:rosId" element={<EditROS />} />
+                                <Route path="patients/:patientId/symptoms" element={<ConsultSymptomsPage />} />
                                 <Route path="patients/:patientId/treatment" element={<TreatmentPlanPage />} />
                                 <Route path="patients/:patientId/treatment/new" element={<InitializeTreatmentPage />} />
                                 <Route path="clinical/assessments" element={<ClinicalAssessmentCenter />} />

@@ -2,6 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import type { RootState } from '../../store';
+import api from '../../api/client';
+import Button from '../../components/ui/Button';
+import type { Consultation, Participant } from '../../types/common.types';
+import { TeleConsultService } from '../../api/services/teleconsult.service';
+import { ChiefComplaintService, type ChiefComplaintResponse } from '../../api/services/chiefComplaint.service';
+import { AssessmentService } from '../../api/services/assessment.service';
+import type { AssessmentResult } from '../../types/assessment.types';
 import {
     Users,
     UserCheck,
@@ -15,20 +23,21 @@ import {
     AlertCircle,
     Info,
     ChevronUp,
-    Settings
+    Settings,
+    Bot,
+    Plus,
+    Mic,
+    Brain,
+    ChevronRight
 } from 'lucide-react';
-import type { RootState } from '../../store';
-import api from '../../api/client';
-import Button from '../../components/ui/Button';
-import type { Consultation, Participant } from '../../types/common.types';
-import { TeleConsultService } from '../../api/services/teleconsult.service';
 
 
 const PractitionerDashboard = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
-    const [stats, setStats] = useState<{ activePatients?: number; totalSessions?: number; totalRevenue?: number } | null>(null);
+    const [stats, setStats] = useState<{ activePatients?: number; totalSessions?: number; totalRevenue?: number; alerts?: number } | null>(null);
     const [todaySessions, setTodaySessions] = useState<Consultation[]>([]);
+    const [recentInsights, setRecentInsights] = useState<ChiefComplaintResponse[]>([]);
     const [expandedSession, setExpandedSession] = useState<string | null>(null);
     const [isStatsLoading, setIsStatsLoading] = useState(true);
     const [isSessionsLoading, setIsSessionsLoading] = useState(true);
@@ -58,25 +67,25 @@ const PractitionerDashboard = () => {
             console.warn('[API] fetchStats blocked: No user object found.');
             return;
         }
-        
+
         setIsStatsLoading(true);
         setStatsError(false);
         setConnectionStatus('stable');
         console.info('[API] >>> TRIGGER: Requesting Specialist Stats...');
-        
+
         try {
             // Increased timeout specifically for poor local server performance
-            const res = await api.get('/dashboards/specialist', { timeout: 45000 });
+            const res = await api.get('dashboards/specialist', { timeout: 45000 });
             console.info('[API] <<< SUCCESS: Data Received:', res.data);
-            
+
             const responseData = res.data;
             const data = responseData.data || responseData;
-            
+
             if (data.stats) {
                 setStats(data.stats);
-                localStorage.setItem('practitioner_stats', JSON.stringify({ 
-                    data: data.stats, 
-                    timestamp: new Date().toISOString() 
+                localStorage.setItem('practitioner_stats', JSON.stringify({
+                    data: data.stats,
+                    timestamp: new Date().toISOString()
                 }));
                 setStatsError(false);
                 setConnectionStatus('stable');
@@ -99,24 +108,24 @@ const PractitionerDashboard = () => {
         if (!user) return;
         setIsSessionsLoading(true);
         try {
-            const res = await api.get('/resource/consults', { 
-                params: { 
-                    page: 1, 
-                    limit: 100, 
+            const res = await api.get('resource/consults', {
+                params: {
+                    page: 1,
+                    limit: 100,
                     userId: user?.userId || user?.id,
-                    role: 'publisher' 
-                } 
+                    role: 'publisher'
+                }
             });
             const data = res.data.data || res.data;
             const allSessions = data.consults || data;
-            
+
             // Filter for today's sessions
             const today = new Date().toDateString();
             const filtered = (Array.isArray(allSessions) ? allSessions : []).filter(s => {
                 if (!s.scheduled_at) return false;
                 return new Date(s.scheduled_at).toDateString() === today;
             });
-            
+
             setTodaySessions(filtered);
         } catch (error) {
             console.error('Failed to fetch practitioner sessions:', error);
@@ -125,18 +134,28 @@ const PractitionerDashboard = () => {
         }
     }, [user]);
 
+    const fetchInsights = useCallback(async () => {
+        try {
+            const res = await ChiefComplaintService.listComplaints({ limit: 10 });
+            const data = (res as any)?.data || res;
+            setRecentInsights(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to fetch insights:', error);
+        }
+    }, []);
     useEffect(() => {
         const userId = user?.userId || user?.id || user?._id;
         console.warn('[PractitionerDashboard] useEffect fired. User Found:', !!user, 'ID:', userId);
-        
+
         if (user) {
             console.warn('[PractitionerDashboard] Initializing data fetch sequence...');
             fetchStats();
             fetchSessions();
+            fetchInsights();
         } else {
             console.log('[PractitionerDashboard] Waiting for user authentication...');
         }
-    }, [user, fetchStats, fetchSessions]); // Use the whole user object as dependency for maximum reliability
+    }, [user, fetchStats, fetchSessions, fetchInsights]);
 
     const getConsultStatusColor = (status: string) => {
         const s = status?.toLowerCase() || '';
@@ -150,38 +169,38 @@ const PractitionerDashboard = () => {
     };
 
     const metrics = [
-        { 
+        {
             id: 'active_patients',
-            label: 'Active Patients', 
+            label: 'Active Patients',
             // Show ... so user knows it's triggering/loading
-            value: stats?.activePatients !== undefined ? stats.activePatients.toString() : (isStatsLoading ? '...' : '0'), 
-            icon: Users, 
-            color: 'text-indigo-600', 
-            bg: 'bg-indigo-50' 
+            value: stats?.activePatients !== undefined ? stats.activePatients.toString() : (isStatsLoading ? '...' : '0'),
+            icon: Users,
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50'
         },
-        { 
+        {
             id: 'total_sessions',
-            label: 'Total Sessions', 
-            value: stats?.totalSessions !== undefined ? stats.totalSessions.toString() : (isStatsLoading ? '...' : '0'), 
-            icon: ClipboardList, 
-            color: 'text-orange-600', 
-            bg: 'bg-orange-50' 
+            label: 'Total Sessions',
+            value: stats?.totalSessions !== undefined ? stats.totalSessions.toString() : (isStatsLoading ? '...' : '0'),
+            icon: ClipboardList,
+            color: 'text-orange-600',
+            bg: 'bg-orange-50'
         },
-        { 
+        {
             id: 'today_sessions',
-            label: 'Today\'s Sessions', 
-            value: todaySessions.length.toString(), 
-            icon: Calendar, 
-            color: 'text-emerald-600', 
-            bg: 'bg-emerald-50' 
+            label: 'Today\'s Sessions',
+            value: todaySessions.length.toString(),
+            icon: Calendar,
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50'
         },
-        { 
+        {
             id: 'total_revenue',
-            label: 'Total Revenue', 
-            value: stats?.totalRevenue !== undefined ? `₹${stats.totalRevenue}` : (isStatsLoading ? '...' : '₹0'), 
-            icon: MapPin, 
-            color: 'text-teal-600', 
-            bg: 'bg-teal-50' 
+            label: 'Total Revenue',
+            value: stats?.totalRevenue !== undefined ? `₹${stats.totalRevenue}` : (isStatsLoading ? '...' : '₹0'),
+            icon: MapPin,
+            color: 'text-teal-600',
+            bg: 'bg-teal-50'
         },
     ];
 
@@ -197,24 +216,24 @@ const PractitionerDashboard = () => {
                     </div>
                     <div className="flex items-center gap-4">
                         <h1 className="text-4xl font-black tracking-tight text-slate-900">Welcome, Dr. {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : (user?.name || user?.username || 'Practitioner')}.</h1>
-                                <div className="flex flex-col gap-1 mt-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">
-                                            {user?.role?.includes('psych') ? 'Specialist' : user?.role?.replace('_', ' ')}
-                                        </span>
-                                        {connectionStatus !== 'stable' && (
-                                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter border ${connectionStatus === 'unresponsive' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                                                {connectionStatus === 'unresponsive' ? 'Server Unresponsive' : 'Sync Delay'}
-                                            </span>
-                                        )}
-                                    </div>
-                                    {isStatsLoading && (
-                                        <div className="flex items-center gap-2 px-2 animate-pulse mt-1">
-                                            <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" />
-                                            <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Awaiting Server Response...</span>
-                                        </div>
-                                    )}
+                        <div className="flex flex-col gap-1 mt-1">
+                            <div className="flex items-center gap-2">
+                                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+                                    {user?.role?.includes('psych') ? 'Specialist' : user?.role?.replace('_', ' ')}
+                                </span>
+                                {connectionStatus !== 'stable' && (
+                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter border ${connectionStatus === 'unresponsive' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                                        {connectionStatus === 'unresponsive' ? 'Server Unresponsive' : 'Sync Delay'}
+                                    </span>
+                                )}
+                            </div>
+                            {isStatsLoading && (
+                                <div className="flex items-center gap-2 px-2 animate-pulse mt-1">
+                                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" />
+                                    <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Awaiting Server Response...</span>
                                 </div>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <div className="flex gap-4">
@@ -229,7 +248,7 @@ const PractitionerDashboard = () => {
 
             {/* Troubleshooting Guide (Visible when connection issues occur) */}
             {(connectionStatus !== 'stable' || statsError) && (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     className="p-6 bg-amber-50 border border-amber-100 rounded-3xl"
@@ -248,7 +267,7 @@ const PractitionerDashboard = () => {
                             {showTroubleshoot ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </div>
                     </div>
-                    
+
                     {showTroubleshoot && (
                         <div className="mt-6 space-y-4 text-xs font-bold text-slate-600 leading-relaxed border-t border-amber-100 pt-6">
                             <p>We detected that your browser sent the request (GET /dashboards/specialist), but your <span className="text-amber-700">backend server at :5000</span> failed to respond in time.</p>
@@ -260,7 +279,7 @@ const PractitionerDashboard = () => {
                                     <li>Ensure the database is connected and responding to queries.</li>
                                 </ul>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => fetchStats()}
                                 className="w-full py-3 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-xl font-black uppercase tracking-widest transition-all"
                             >
@@ -296,7 +315,7 @@ const PractitionerDashboard = () => {
                                     {metric.value}
                                 </h3>
                                 {(statsError && metric.id !== 'today_sessions') && !isStatsLoading && (
-                                    <button 
+                                    <button
                                         onClick={(e) => { e.stopPropagation(); fetchStats(); }}
                                         className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
                                         title="Retry"
@@ -315,6 +334,103 @@ const PractitionerDashboard = () => {
                     </motion.div>
                 ))}
             </div>
+
+            {/* Recent Patient Insights (Parity with Mobile) */}
+            <section className="space-y-6">
+                <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-4">
+                        <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
+                        <h2 className="text-xl font-black text-slate-900 tracking-tight">Recent Patient Insights</h2>
+                    </div>
+                    <button onClick={() => navigate('/clinical/assessments/history')} className="text-xs font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-700">View History</button>
+                </div>
+
+                {/* Mobile-Parity Quick Actions */}
+                <div className="flex gap-4 px-2">
+                    <button
+                        onClick={() => navigate('/patients')}
+                        className="flex-1 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-[10px] hover:bg-indigo-700 transition-all active:scale-95"
+                    >
+                        <Plus size={16} />
+                        New Clinical Entry
+                    </button>
+                    <button
+                        onClick={() => navigate('/patients')} // Practitioners must pick a patient first
+                        className="flex-1 flex items-center justify-center gap-3 p-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all active:scale-95"
+                    >
+                        <Mic size={16} className="text-rose-500" />
+                        Quick Voice Note
+                    </button>
+                </div>
+
+                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-2 px-2">
+                    {recentInsights.length > 0 ? recentInsights.map((insight: any, i) => (
+                        <motion.div
+                            key={insight.id || i}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            onClick={() => {
+                                // Robust ID extraction for clinical navigation
+                                const pId = insight.patient_id ||
+                                    (typeof insight.patient === 'string' && insight.patient.length > 5 ? insight.patient : null) ||
+                                    (insight.patient?.id || insight.patient?._id || insight.patient?.userId) ||
+                                    (insight.user?.id || insight.user?._id || insight.user?.userId) ||
+                                    (insight.subscriber?.id || insight.subscriber?._id) ||
+                                    insight.userId ||
+                                    insight.id ||
+                                    insight.ref_number;
+
+                                const ccId = insight.id || insight._id || insight.chiefComplaintId;
+
+                                if (pId && ccId && String(pId) !== 'undefined') {
+                                    navigate(`/patients/${pId}/chief-complaint/${ccId}`);
+                                } else {
+                                    console.warn('[Dashboard] Navigation parameters incomplete:', { pId, ccId, insight });
+                                    // Fallback to directory if specific record can't be mapped
+                                    navigate('/patients');
+                                }
+                            }}
+                            className="min-w-[300px] max-w-[300px] p-6 card-premium bg-white border-slate-100 hover:border-indigo-100 transition-all cursor-pointer shadow-sm flex flex-col gap-4"
+                        >
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-1.5 h-6 rounded-full" style={{ backgroundColor: insight.risk_markers?.risk_level === 'high' ? '#f43f5e' : insight.risk_markers?.risk_level === 'medium' ? '#f59e0b' : '#10b981' }} />
+                                    <h4 className="font-black text-slate-900 line-clamp-1">
+                                        {insight.patient_name ||
+                                            (typeof insight.patient === 'object' && insight.patient?.firstName
+                                                ? `${insight.patient.firstName} ${insight.patient.lastName || ''}`
+                                                : (typeof insight.patient === 'string' && insight.patient.length > 5
+                                                    ? `Patient: ${insight.patient.toUpperCase()}`
+                                                    : (insight.patient?.username || insight.patient_id || insight.userId || insight.id || 'Clinical Record')))}
+                                    </h4>
+                                </div>
+                                {insight.ai_extraction_metadata && (
+                                    <Bot size={14} className="text-indigo-400 opacity-60" />
+                                )}
+                            </div>
+                            <p className="text-xs font-medium text-slate-500 line-clamp-2 italic leading-relaxed">
+                                "{insight.ai_summary || insight.narrative || 'Clinical observation logged...'}"
+                            </p>
+                            <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
+                                <div className="px-2 py-0.5 rounded bg-slate-50 border border-slate-100 text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                                    {insight.risk_markers?.risk_level || 'Normal'} Risk
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-400">
+                                    {new Date(insight.createdAt).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                                </span>
+                            </div>
+                        </motion.div>
+                    )) : (
+                        <div className="flex-1 text-center p-12 bg-slate-50/50 rounded-[2.5rem] border border-dashed border-slate-200">
+                            <Bot size={32} className="mx-auto text-slate-300 mb-2" />
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">AI Insights will appear as cases are processed</p>
+                        </div>
+                    )}
+                </div>
+            </section>
+
+
 
             <div className="grid gap-8">
                 {/* Appointment Queue */}
@@ -353,10 +469,10 @@ const PractitionerDashboard = () => {
                                 ))
                             ) : recentSessions.length > 0 ? (
                                 recentSessions.map((session, i) => {
-                                    const patient = session.participants?.find((p: Participant) => 
-                                        p.role === 'subscriber' || 
+                                    const patient = session.participants?.find((p: Participant) =>
+                                        p.role === 'subscriber' ||
                                         p.role === 'patient' ||
-                                        p.participant_type?.code === 'patient' || 
+                                        p.participant_type?.code === 'patient' ||
                                         p.participant_type?.code === 'subscriber' ||
                                         p.participant_type?.code === 'customer'
                                     );
@@ -364,7 +480,7 @@ const PractitionerDashboard = () => {
                                     const statusObj = session.consult_current_status || session.consult_status || session.status;
                                     const statusName = typeof statusObj === 'string' ? statusObj : statusObj?.name || 'Scheduled';
                                     const statusSlug = typeof statusObj === 'string' ? statusObj.toLowerCase() : statusObj?.slug || 'scheduled';
-                                    
+
                                     // Robust name extraction favoring First + Last name combinations
                                     const pInfo = patient?.participant_info;
                                     const pName = String(
@@ -373,11 +489,11 @@ const PractitionerDashboard = () => {
                                         (patient?.first_name ? `${patient.first_name} ${patient.last_name || ''}`.trim() : null) ||
                                         (pInfo?.firstName ? `${pInfo.firstName} ${pInfo.lastName || ''}`.trim() : null) ||
                                         (pInfo?.first_name ? `${pInfo.first_name} ${pInfo.last_name || ''}`.trim() : null) ||
-                                        patient?.name || 
+                                        patient?.name ||
                                         patient?.additional_info?.x_name ||
                                         'Assigned Patient'
                                     );
-                                    
+
                                     const isVirtual = session.consult_type === 'virtual';
                                     const isExpanded = expandedSession === String(session.id || session._id);
 
@@ -411,7 +527,7 @@ const PractitionerDashboard = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="flex items-center gap-4">
                                                     <div className="flex flex-col items-end gap-2">
                                                         <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border shadow-sm ${getConsultStatusColor(statusSlug)}`}>
@@ -427,35 +543,33 @@ const PractitionerDashboard = () => {
 
                                                     <div className="flex items-center gap-2">
                                                         {isVirtual && (
-                                                            <button 
+                                                            <button
                                                                 className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95"
-                                                                 onClick={async (e) => { 
-                                                                    e.stopPropagation(); 
-                                                                    
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+
                                                                     const getPublisherToken = () => {
-                                                                        const publisher = session.participants?.find((p: Participant) => 
-                                                                            p.role === 'publisher' || 
+                                                                        const publisher = session.participants?.find((p: Participant) =>
+                                                                            p.role === 'publisher' ||
                                                                             p.participant_type?.code === 'professional' ||
                                                                             String(p.ref_number) === String(user?.userId || user?.id)
                                                                         );
                                                                         return publisher?.token || session.publisher_token || session.token;
                                                                     };
-                                                                    
+
                                                                     const token = getPublisherToken();
-                                                                    
+
                                                                     if (token) {
                                                                         try {
                                                                             const validation = await TeleConsultService.tokenValidate(token, 'publisher');
                                                                             if (validation.success || validation.code === 200) {
-                                                                                const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
-                                                                                window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                                                                                navigate(`/teleconsult/${session.id || session._id}`, { state: { appointment: session, token } });
                                                                             } else {
                                                                                 alert('Could not validate session. Please try again.');
                                                                             }
                                                                         } catch (err) {
                                                                             console.error('Validation failed', err);
-                                                                            const baseUrl = import.meta.env.VITE_TELECONSULT_PUBLISHER_URL || 'https://teleconsult.a2zhealth.in/teleconsult-v3/';
-                                                                            window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                                                                            navigate(`/teleconsult/${session.id || session._id}`, { state: { appointment: session, token } });
                                                                         }
                                                                     } else {
                                                                         alert('Consultation token not found.');
@@ -472,11 +586,11 @@ const PractitionerDashboard = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             {isExpanded && (
-                                                <motion.div 
-                                                    initial={{ height: 0, opacity: 0 }} 
-                                                    animate={{ height: 'auto', opacity: 1 }} 
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
                                                     className="mt-6 pt-6 border-t border-slate-50 space-y-4"
                                                 >
                                                     <div className="grid grid-cols-2 gap-4">
@@ -492,25 +606,61 @@ const PractitionerDashboard = () => {
                                                             <p className="text-sm font-mono font-bold text-slate-700">#{String(session.id || session._id).slice(-8).toUpperCase()}</p>
                                                         </div>
                                                     </div>
-                                                    
-                                                    <div className="flex gap-3">
-                                                        <button 
-                                                            className="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all shadow-sm"
-                                                            onClick={(e) => { e.stopPropagation(); navigate(`/patients/${patient?.id || patient?._id || ''}/clinical-hub`); }}
+
+                                                    <div className="flex gap-4 pt-4 mt-2">
+                                                        <Button
+                                                            variant="primary"
+                                                            className="flex-1 rounded-2xl py-6 shadow-xl shadow-emerald-100 font-black uppercase tracking-widest text-xs"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                // Extract token logic
+                                                                const getPublisherToken = () => {
+                                                                    const publisher = session.participants?.find((p: Participant) =>
+                                                                        p.role === 'publisher' ||
+                                                                        p.participant_type?.code === 'professional' ||
+                                                                        String(p.ref_number) === String(user?.userId || user?.id)
+                                                                    );
+                                                                    return publisher?.token || session.publisher_token || session.token;
+                                                                };
+                                                                const token = getPublisherToken();
+                                                                if (token) {
+                                                                    navigate(`/teleconsult/${session.id || session._id}`, { state: { appointment: session, token } });
+                                                                } else {
+                                                                    alert('Session token not found.');
+                                                                }
+                                                            }}
+                                                            leftIcon={<Video size={18} />}
                                                         >
-                                                            Access Clinical Hub
-                                                        </button>
+                                                            Join Session
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            className="flex-1 rounded-2xl py-6 font-black uppercase tracking-widest text-xs border-slate-200"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const patient = session.participants?.find((p: Participant) => p.role === 'subscriber' || p.role === 'patient');
+                                                                const pId = patient?.ref_number || patient?.id || patient?._id;
+                                                                if (pId) {
+                                                                    navigate(`/patients/${pId}/clinical-hub`);
+                                                                } else {
+                                                                    navigate('/patients');
+                                                                }
+                                                            }}
+                                                            leftIcon={<Info size={18} />}
+                                                        >
+                                                            Clinical Profile
+                                                        </Button>
                                                     </div>
                                                 </motion.div>
                                             )}
                                         </motion.div>
                                     );
-                                })  
-                        ) : (
-                            <div className="text-center p-8 bg-slate-50 rounded-[1.5rem] border border-slate-100 text-slate-400 text-sm font-bold">
-                                No sessions scheduled for today
-                            </div>
-                        )}
+                                })
+                            ) : (
+                                <div className="text-center p-8 bg-slate-50 rounded-[1.5rem] border border-slate-100 text-slate-400 text-sm font-bold">
+                                    No sessions scheduled for today
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -519,4 +669,4 @@ const PractitionerDashboard = () => {
     );
 };
 
-export default PractitionerDashboard;
+export default PractitionerDashboard; 

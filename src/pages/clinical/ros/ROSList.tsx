@@ -3,12 +3,11 @@ import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
-import { 
-    ChevronLeft, 
-    Stethoscope, 
-    AlertCircle, 
-    Plus, 
-    Trash2,
+import {
+    ChevronLeft,
+    Stethoscope,
+    AlertCircle,
+    Plus,
     Edit3
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
@@ -21,30 +20,16 @@ const ROSList = () => {
     const { patientId: userId } = useParams<{ patientId: string }>();
     const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
-    const isPatient = (currentUser as any)?.role === 'patient' || 
-                      (currentUser as any)?.role === 'PATIENT' || 
-                      (currentUser as any)?.group === 'PATIENT' ||
-                      (currentUser as any)?.group === 'patient';
-    
+    const isPatient = (currentUser as any)?.role === 'patient' ||
+        (currentUser as any)?.role === 'PATIENT' ||
+        (currentUser as any)?.group === 'PATIENT' ||
+        (currentUser as any)?.group === 'patient';
+
     // State
     const [patient, setPatient] = useState<User | Patient | null>(null);
     const [history, setHistory] = useState<ROSResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const handleDelete = async (rosId: string | number) => {
-        if (!window.confirm('Are you sure you want to delete this clinical review? This action cannot be undone.')) {
-            return;
-        }
-
-        try {
-            await ROSService.deleteROS(rosId);
-            setHistory(prev => prev.filter(item => (item as any).id !== rosId && (item as any)._id !== rosId));
-        } catch (err) {
-            console.error('Failed to delete ROS:', err);
-            alert('Failed to delete the record. Please try again.');
-        }
-    };
 
     useEffect(() => {
         if (userId) {
@@ -62,7 +47,7 @@ const ROSList = () => {
             }
 
             let hexId = userId;
-            
+
             // Optimization: Bypass unauthorized lookup if patient is viewing self
             if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
                 hexId = currentUser?._id || currentUser?.id || hexId;
@@ -83,15 +68,15 @@ const ROSList = () => {
             }
 
             const queryData = await ROSService.getROSByPatient(hexId);
-            
+
             const rosRecords = queryData?.data || queryData || [];
             const rosArray = Array.isArray(rosRecords) ? rosRecords : [rosRecords];
-            
+
             // Sort by createdAt descending
             rosArray.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-            
+
             setHistory(rosArray);
-            
+
             if (rosArray.length > 0 && (rosArray[0] as any).patient_data && !patient) {
                 setPatient((rosArray[0] as any).patient_data);
             }
@@ -163,70 +148,61 @@ const ROSList = () => {
                     history.map((item, idx) => {
                         const rosId = (item as any).id || (item as any)._id;
                         return (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            key={rosId}
-                            onClick={() => navigate(`/patients/${userId}/ros/${rosId}`)}
-                            className="card-premium p-8 bg-white border-slate-100 hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-                                    <Stethoscope size={16} />
-                                </div>
-                                 <div className="flex items-center gap-3">
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigate(`/patients/${userId}/ros/edit/${rosId}`);
-                                        }}
-                                        className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl shadow-sm transition-all"
-                                        title="Edit Review"
-                                    >
-                                        <Edit3 size={16} />
-                                    </button>
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(rosId);
-                                        }}
-                                        className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl shadow-sm transition-all"
-                                        title="Delete Record"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
-                                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric'
-                                        }) : 'Recently'}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="pt-2 flex-1">
-                                {(item as any).ai_notes ? (
-                                    <p className="text-slate-700 font-bold leading-relaxed line-clamp-4">
-                                        {(item as any).ai_notes}
-                                    </p>
-                                ) : (
-                                    <div className="space-y-2">
-                                        {Object.keys(item).filter(k => !['id', '_id', 'patient_id', 'consult_id', 'createdAt', 'updatedAt', '__v', 'ai_notes'].includes(k) && typeof (item as any)[k] === 'object').slice(0, 3).map(section => (
-                                            <div key={section} className="flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                                                <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{section}</span>
-                                            </div>
-                                        ))}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: idx * 0.05 }}
+                                key={rosId}
+                                onClick={() => navigate(`/patients/${userId}/ros/${rosId}`)}
+                                className="card-premium p-8 bg-white border-slate-100 hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                                        <Stethoscope size={16} />
                                     </div>
-                                )}
-                            </div>
-                            <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">View Details</span>
-                                <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-colors" />
-                            </div>
-                        </motion.div>
-                    )})
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(`/patients/${userId}/ros/edit/${rosId}`);
+                                            }}
+                                            className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl shadow-sm transition-all"
+                                            title="Edit Review"
+                                        >
+                                            <Edit3 size={16} />
+                                        </button>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+                                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                year: 'numeric'
+                                            }) : 'Recently'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="pt-2 flex-1">
+                                    {(item as any).ai_notes ? (
+                                        <p className="text-slate-700 font-bold leading-relaxed line-clamp-4">
+                                            {(item as any).ai_notes}
+                                        </p>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {Object.keys(item).filter(k => !['id', '_id', 'patient_id', 'consult_id', 'createdAt', 'updatedAt', '__v', 'ai_notes'].includes(k) && typeof (item as any)[k] === 'object').slice(0, 3).map(section => (
+                                                <div key={section} className="flex items-center gap-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                                                    <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{section}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">View Details</span>
+                                    <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                </div>
+                            </motion.div>
+                        )
+                    })
                 ) : (
                     <div className="col-span-full card-premium p-20 text-center border-dashed border-slate-200 bg-slate-50/50">
                         <Stethoscope size={48} className="mx-auto text-slate-300 mb-6 opacity-50" />
@@ -237,7 +213,7 @@ const ROSList = () => {
                     </div>
                 )}
             </div>
-            
+
             {error && (
                 <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold mt-8">
                     <AlertCircle size={18} />

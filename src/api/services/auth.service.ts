@@ -16,25 +16,25 @@ export interface RegisterData extends Partial<User> {
 
 export const AuthService = {
     login: async (data: LoginData): Promise<{ user: User; token: string }> => {
-        const response = await api.post('/auth/login', data);
+        const response = await api.post('auth/login', data);
         return response.data?.data ?? response.data;
     },
 
     register: async (userData: RegisterData): Promise<ApiResponse<User>> => {
-        const response = await api.post('/auth/register', userData);
+        const response = await api.post('auth/register', userData);
         return response.data?.data ?? response.data;
     },
 
     forgotPassword: async (email: string): Promise<ApiResponse<void>> => {
-        return await api.post('/auth/forgot-password', { email });
+        return await api.post('auth/forgot-password', { email });
     },
 
     resetPassword: async (token: string, data: { password?: string }): Promise<ApiResponse<void>> => {
-        return await api.post(`/auth/reset-password/${token}`, data);
+        return await api.post(`auth/reset-password/${token}`, data);
     },
 
     getMe: async (): Promise<User> => {
-        const response = await api.get('/auth/me');
+        const response = await api.get('auth/me');
         return response.data?.data ?? response.data;
     },
 };

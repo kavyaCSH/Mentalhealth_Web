@@ -1,4 +1,4 @@
-export type PastHistoryQuestionType = 'select' | 'multiselect' | 'text' | 'boolean' | 'number' | 'date';
+export type PastHistoryQuestionType = 'select' | 'multiselect' | 'text' | 'textarea' | 'boolean' | 'number' | 'date' | 'array' | 'boolean_group';
 
 export interface PastHistoryFollowUp {
     key: string;
@@ -13,6 +13,8 @@ export interface PastHistoryFollowUp {
 export interface PastHistoryQuestion {
     key: string;
     label: string;
+    professional_label?: string;
+    patient_label?: string;
     type: PastHistoryQuestionType;
     description?: string;
     options?: string[];
@@ -21,12 +23,14 @@ export interface PastHistoryQuestion {
     min?: number;
     max?: number;
     follow_up?: PastHistoryFollowUp[];
+    fields?: PastHistoryQuestion[]; // For boolean_group
+    item_structure?: PastHistoryQuestion[]; // For array type
 }
 
 export interface PastHistorySection {
     section: string;
     title: string;
-    description: string;
+    description?: string;
     questions: PastHistoryQuestion[];
 }
 

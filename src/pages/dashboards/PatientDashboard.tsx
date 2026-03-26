@@ -10,7 +10,6 @@ import {
     Brain,
     Video,
     MapPin,
-    User,
     Bot,
     Sparkles,
     Activity,
@@ -24,12 +23,9 @@ import {
     Shield,
     Eye,
     Crosshair,
-    Coffee,
-    Dice1,
-    LineChart,
-    ChevronDown
+    Dice1
 } from 'lucide-react';
-import CircularProgress from '../../components/common/CircularProgress';
+// import CircularProgress from '../../components/common/CircularProgress';
 import TrendAreaChart from '../../components/common/TrendAreaChart';
 import QuickCheckIn from '../../components/dashboard/QuickCheckIn';
 import DailyTasks from '../../components/dashboard/DailyTasks';
@@ -37,15 +33,14 @@ import { useRealTimeClock } from '../../hooks/useRealTime';
 import Button from '../../components/ui/Button';
 import type { RootState } from '../../store';
 import api from '../../api/client';
-import { TeleConsultService } from '../../api/services/teleconsult.service';
-import type { Consultation, Notification, Participant, ConsultStatus } from '../../types/common.types';
+import type { Consultation, Notification as ClinicalNotification } from '../../types/common.types';
 import type { AssessmentMaster } from '../../types/assessment.types';
 
 const PatientDashboard = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
     const { timeString, dateString } = useRealTimeClock();
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [notifications, setNotifications] = useState<ClinicalNotification[]>([]);
     const [appointments, setAppointments] = useState<Consultation[]>([]);
     const [masters, setMasters] = useState<AssessmentMaster[]>([]);
 
@@ -54,9 +49,9 @@ const PatientDashboard = () => {
             try {
                 // Fetch all 3 endpoints in parallel — same as mobile DashboardScreen
                 const [dashRes, consultRes, mastersRes] = await Promise.allSettled([
-                    api.get('/dashboards/patient'),
-                    api.get('/resource/consults', { params: { page: 1, limit: 5 } }),
-                    api.get(`/resource/masters/all/${user?.id || ''}`, {
+                    api.get('dashboards/patient'),
+                    api.get('resource/consults', { params: { page: 1, limit: 5 } }),
+                    api.get(`resource/masters/all/${user?.id || ''}`, {
                         params: { page: 1, limit: 10, is_active: 1, master_type_slug: 'mental_health' }
                     })
                 ]);
@@ -109,7 +104,7 @@ const PatientDashboard = () => {
         anxiety: { icon: 'Activity', color: '#6366F1' }, // indigo
         sleep: { icon: 'Moon', color: '#EC4899' }, // pink
         mania: { icon: 'Zap', color: '#F97316' }, // orange
-        bipolar: { icon: 'Zap', color: '#F97316' }, 
+        bipolar: { icon: 'Zap', color: '#F97316' },
         anger: { icon: 'Flame', color: '#EF4444' }, // red
         anger_pediatric: { icon: 'Flame', color: '#EF4444' },
         substance_use: { icon: 'Pill', color: '#64748B' }, // slate
@@ -142,7 +137,7 @@ const PatientDashboard = () => {
     const getIcon = (iconName: string) => {
         const props = { size: 24, fill: "currentColor", className: "opacity-90" };
         switch (iconName) {
-            case 'Heart': return <Activity {...props} />; 
+            case 'Heart': return <Activity {...props} />;
             case 'Activity': return <Activity {...props} />;
             case 'Moon': return <Moon {...props} />;
             case 'Zap': return <Zap {...props} />;
@@ -194,44 +189,64 @@ const PatientDashboard = () => {
             </header>
 
 
-            {/* Skyheal AI Hero Card */}
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 shadow-2xl shadow-indigo-500/30 text-white cursor-pointer group"
-                onClick={() => navigate('/chat')}
-            >
-                {/* Decorative glowing blobs matching mobile */}
-                <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700" />
-                <div className="absolute -bottom-24 -left-10 w-80 h-80 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000" />
-                
-                <div className="relative z-10 p-8 md:p-10 flex flex-col md:flex-row items-center gap-8">
-                    {/* Icon section with pulse */}
-                    <div className="relative flex-shrink-0">
-                        <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center relative z-10 border border-white/20 shadow-xl">
-                            <Bot size={40} className="text-white drop-shadow-md" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Skyheal AI Hero Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 shadow-xl shadow-indigo-500/20 text-white cursor-pointer group"
+                    onClick={() => navigate('/chat')}
+                >
+                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700" />
+                    <div className="relative z-10 p-8 flex flex-col md:flex-row items-center gap-6">
+                        <div className="relative flex-shrink-0">
+                            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center relative z-10 border border-white/20">
+                                <Bot size={32} className="text-white" />
+                            </div>
                         </div>
-                        <div className={`absolute inset-0 bg-white/20 rounded-3xl border border-white/40 transition-all duration-1000 ease-out ${pulse ? 'scale-125 opacity-0' : 'scale-100 opacity-100'}`} />
-                    </div>
-
-                    {/* Content Section */}
-                    <div className="flex-1 text-center md:text-left">
-                        <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-lg mb-4 border border-white/10 shadow-sm">
-                            <Sparkles size={12} className="text-purple-200" />
-                            <span className="text-[9px] font-black tracking-[0.2em] text-purple-100 uppercase">Virtual Companion</span>
-                        </div>
-                        <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-3 drop-shadow-md">Skyheal AI</h2>
-                        <p className="text-white/80 font-medium leading-relaxed max-w-xl text-sm md:text-base mb-6">
-                            Your personal mental wellness guide, available 24/7 for support and insights based on your medical profile.
-                        </p>
-                        <div className="flex items-center justify-center md:justify-start gap-4">
-                            <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-6 py-3 rounded-2xl flex items-center gap-2 font-black text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 border border-white/10 shadow-lg">
-                                Start Conversation <ChevronRight size={16} />
+                        <div className="flex-1 text-center md:text-left">
+                            <h2 className="text-2xl font-black tracking-tight mb-2">Skyheal AI</h2>
+                            <p className="text-white/70 font-medium text-xs leading-relaxed mb-4">
+                                Virtual companion for instant mental wellness support.
+                            </p>
+                            <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 rounded-xl flex items-center gap-2 font-black text-[10px] uppercase tracking-widest transition-all">
+                                Chat Now <ChevronRight size={14} />
                             </button>
                         </div>
                     </div>
-                </div>
-            </motion.div>
+                </motion.div>
+
+                {/* NeuroVitals Clinical Hero Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 border border-slate-800 shadow-xl shadow-slate-900/20 text-white cursor-pointer group"
+                    onClick={() => navigate('/neuro-vitals')}
+                >
+                    <div className="absolute -bottom-24 -right-10 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700" />
+                    <div className="relative z-10 p-8 flex flex-col md:flex-row items-center gap-6">
+                        <div className="relative flex-shrink-0">
+                            <div className="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center relative z-10 border border-indigo-500/30">
+                                <Activity size={32} className="text-indigo-400" />
+                            </div>
+                        </div>
+                        <div className="flex-1 text-center md:text-left">
+                            <div className="inline-flex items-center gap-2 bg-indigo-500/10 px-2 py-1 rounded-md mb-2 border border-indigo-500/20">
+                                <Sparkles size={10} className="text-indigo-400" />
+                                <span className="text-[8px] font-black tracking-widest text-indigo-400 uppercase">New Update</span>
+                            </div>
+                            <h2 className="text-2xl font-black tracking-tight mb-2 text-indigo-100">NeuroVitals™</h2>
+                            <p className="text-slate-400 font-medium text-xs leading-relaxed mb-4">
+                                Scan clinical biomarkers using AI Deep Phenotyping.
+                            </p>
+                            <button className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl flex items-center gap-2 font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20">
+                                Start Scan <ChevronRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
             {/* Dashboard Protocol Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Main Content Area (8 Cols) */}
@@ -245,25 +260,35 @@ const PatientDashboard = () => {
                                 <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
                                 <h2 className="text-xl font-black text-slate-900 tracking-tight">Upcoming Sessions</h2>
                             </div>
-                            <button 
-                                onClick={() => navigate('/teleconsult')}
+                            <button
+                                onClick={() => navigate('/schedule')}
                                 className="text-indigo-600 font-bold text-sm hover:text-indigo-700 transition-colors"
                             >
                                 Open Portal
                             </button>
                         </div>
-                        
+
                         {appointments.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {appointments.slice(0, 2).map((appt: Consultation, i: number) => {
                                     const dt = new Date(appt.scheduled_at);
                                     const isVirtual = appt.consult_type === 'virtual';
                                     const statusStyle = getConsultStatusColor(appt.status);
-                                    
+
                                     return (
-                                        <div 
-                                            key={appt.id || appt._id || i} 
-                                            onClick={() => navigate(`/teleconsult/${appt.id || appt._id}`)}
+                                        <div
+                                            key={appt.id || appt._id || i}
+                                            onClick={() => {
+                                                const subscriber = appt.participants?.find((p: any) =>
+                                                    p.role === 'subscriber' ||
+                                                    p.participant_type?.code === 'patient' ||
+                                                    String(p.ref_number || p.userId) === String(user?.userId || user?.id)
+                                                );
+                                                const token = subscriber?.token || appt.subscriber_token || appt.token;
+                                                navigate(`/teleconsult/${appt.id || appt._id}`, {
+                                                    state: { appointment: appt, token }
+                                                });
+                                            }}
                                             className="p-6 bg-slate-50/50 border border-slate-100 rounded-[2rem] hover:bg-white hover:border-indigo-100 hover:shadow-xl transition-all group cursor-pointer relative overflow-hidden"
                                         >
                                             <div className="flex items-start justify-between mb-5">
@@ -284,7 +309,7 @@ const PatientDashboard = () => {
                                             <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100/50">
                                                 <div className="flex items-center gap-2 text-slate-500 font-bold text-xs">
                                                     <Clock size={14} className="text-slate-300" />
-                                                    {!isNaN(dt.getTime()) 
+                                                    {!isNaN(dt.getTime())
                                                         ? dt.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) + ' at ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                                         : 'Schedule TBD'}
                                                 </div>
@@ -302,7 +327,7 @@ const PatientDashboard = () => {
                                     <Video size={32} className="text-slate-200" />
                                 </div>
                                 <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No sessions scheduled for this period</p>
-                                <button 
+                                <button
                                     onClick={() => navigate('/schedule?action=book')}
                                     className="mt-4 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:text-indigo-700"
                                 >
@@ -311,7 +336,7 @@ const PatientDashboard = () => {
                             </div>
                         )}
                     </section>
-                    
+
                     {/* Wellness Assessments — from masters API */}
                     <section className="card-premium p-8 bg-white border-slate-100">
                         <div className="flex items-center justify-between mb-8 pl-2">
@@ -374,13 +399,13 @@ const PatientDashboard = () => {
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Balance Score</span>
                             </div>
                         </div>
-                        <TrendAreaChart 
+                        <TrendAreaChart
                             data={[
                                 { label: 'Mon', value: 65 }, { label: 'Tue', value: 72 }, { label: 'Wed', value: 68 },
                                 { label: 'Thu', value: 75 }, { label: 'Fri', value: 82 }, { label: 'Sat', value: 78 }, { label: 'Sun', value: 85 },
-                            ]} 
-                            height={180} 
-                            color="#6366f1" 
+                            ]}
+                            height={180}
+                            color="#6366f1"
                         />
                     </section>
                 </div>

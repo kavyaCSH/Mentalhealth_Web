@@ -3,13 +3,18 @@ import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
-import { 
-    ChevronLeft, 
-    Stethoscope, 
-    AlertCircle, 
-    Mic, 
-    MicOff, 
-    Save 
+import {
+    ChevronLeft,
+    Stethoscope,
+    AlertCircle,
+    Mic,
+    MicOff,
+    Save,
+    Brain,
+    ShieldAlert,
+    Activity,
+    ChevronRight,
+    Edit2
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { ChiefComplaintService } from '../../../api/services/chiefComplaint.service';
@@ -18,12 +23,15 @@ import { UserService } from '../../../api/services/user.service';
 const AddChiefComplaint = () => {
     const { patientId: userId } = useParams<{ patientId: string }>();
     const navigate = useNavigate();
-    
+
     const [narrative, setNarrative] = useState('');
+    const [step, setStep] = useState(0); // 0: Input, 1: AI Review
+    const [extractionData, setExtractionData] = useState<any>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isExtracting, setIsExtracting] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
+
     const recognitionRef = useRef<any>(null);
 
     useEffect(() => {
@@ -62,6 +70,34 @@ const AddChiefComplaint = () => {
         };
     }, []);
 
+    const handleAIReview = async () => {
+        if (!narrative.trim() || narrative.length < 10) {
+            setError('Please provide a more detailed narrative for AI analysis (min 10 chars).');
+            return;
+        }
+
+        setIsExtracting(true);
+        setError(null);
+        try {
+            const hexId = userId || currentUser?._id || currentUser?.id;
+            const res = await ChiefComplaintService.extractChiefComplaint({
+                patient_id: hexId as string,
+                narrative: narrative.trim()
+            });
+
+            const data = res.data || res;
+            setExtractionData(data);
+            setStep(1); // Move to Review
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err: any) {
+            console.error('AI Extraction failed:', err);
+            setError('AI extraction failed. You can still save manually, but structured insights will be missing.');
+            // Fallback: If AI fails, we might still want to allow saving, but here we just show error
+        } finally {
+            setIsExtracting(false);
+        }
+    };
+
     const handleToggleRecording = () => {
         if (!recognitionRef.current) {
             setError('Speech recognition is not supported in this browser.');
@@ -86,7 +122,7 @@ const AddChiefComplaint = () => {
     const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT' ||
         (currentUser as any)?.group === 'PATIENT' || (currentUser as any)?.group === 'patient';
 
-    const handleSave = async () => { 
+    const handleSave = async () => {
         if (!narrative.trim()) {
             setError('Please provide a narrative for the complaint.');
             return;
@@ -96,47 +132,64 @@ const AddChiefComplaint = () => {
         setError(null);
 
         try {
-            // 1. Resolve hex ID for authorization and submission
+            // 1. Resolve identity
             let hexId = userId || '';
-            
-            // Optimization: Use session context for patients
             if (isPatient && (currentUser?._id || currentUser?.id)) {
                 hexId = currentUser?._id || currentUser?.id || hexId;
-                console.log(`[AddChiefComplaint] Using session identity for submission: ${hexId}`);
-            } else {
+            } else if (userId) {
                 try {
-                    if (userId && userId !== 'undefined') {
-                        const userProfile = await UserService.getUserById(userId);
-                        if (userProfile) {
-                            hexId = userProfile._id || userProfile.id || hexId;
-                            console.log(`[AddChiefComplaint] Resolved Hex ID for submission: ${hexId}`);
-                        }
-                    }
-                } catch (profileError) {
-                    console.warn('[AddChiefComplaint] Profile lookup failed, using parameter ID:', profileError);
+                    const userProfile = await UserService.getUserById(userId);
+                    if (userProfile) hexId = userProfile._id || userProfile.id || hexId;
+                } catch (e) {
+                    console.warn('[AddChiefComplaint] Identity resolution failed:', e);
                 }
             }
 
-            const formData = new FormData();
-            
-            // Standardize on the resolved hex ID
-            formData.append('patient', hexId);
-            formData.append('patient_id', hexId);
+            if (!hexId) throw new Error('Patient ID is required for submission.');
 
-            formData.append('narrative', narrative.trim());
-            
-            console.log(`[AddChiefComplaint] Submitting: patient=${hexId}, narrative_length=${narrative.length}`);
-            
-            const response = await ChiefComplaintService.createComplaint(formData); 
-            
+
+            // Sanitize extraction data to satisfy backend enum validations and remove stale IDs
+            const sanitizedExtracted = JSON.parse(JSON.stringify(extractionData || {}));
+
+            // PURGE ALL POTENTIAL STALE IDs FROM ANALYSIS SOURCE
+            delete sanitizedExtracted.id;
+            delete sanitizedExtracted._id;
+            delete sanitizedExtracted.chiefComplaintId;
+            delete sanitizedExtracted.chief_complaint_id;
+
+            if (sanitizedExtracted.structured) {
+                // Remove problematic AI placeholders that trigger enum validation failures
+                const enumKeys = ['onset_pattern', 'severity', 'duration'];
+                enumKeys.forEach(key => {
+                    const val = sanitizedExtracted.structured[key];
+                    if (val === 'Unknown' || val === 'N/A' || !val) {
+                        delete sanitizedExtracted.structured[key];
+                    }
+                });
+            }
+
+            // Ensure numeric patient_id for backend compatibility
+            const numericId = /^\d+$/.test(String(hexId)) ? Number(hexId) : hexId;
+
+            const payload = {
+                ...sanitizedExtracted,
+                patient_id: numericId,
+                narrative: narrative.trim(),
+                consult_id: Number(sanitizedExtracted.consult_id) || 1
+            };
+
+            console.log(`[AddChiefComplaint] Finalizing Entry:`, payload);
+
+            const response = await ChiefComplaintService.createComplaint(payload as any);
+
             const createdData = response?.data || response;
             const newId = (createdData as any)?.chiefComplaintId || (createdData as any)?.id || (createdData as any)?._id;
-            
+
             alert('Chief complaint saved successfully!');
-            
+
             const basePath = isPatient ? `/records/chief-complaint` : `/patients/${userId}/chief-complaint`;
             if (newId) {
-                navigate(`${basePath}/${newId}`);
+                navigate(`${basePath}/${newId}?new=true`);
             } else {
                 navigate(basePath);
             }
@@ -165,86 +218,193 @@ const AddChiefComplaint = () => {
                 </div>
             </header>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="card-premium p-10 bg-white border-slate-100 space-y-8"
-            >
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl">
-                            <Stethoscope size={24} />
+            {step === 0 ? (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="card-premium p-10 bg-white border-slate-100 space-y-8"
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl">
+                                <Stethoscope size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-slate-900">Patient Complaint</h2>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Capture present symptoms</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-xl font-black text-slate-900">Patient Complaint</h2>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Capture present symptoms</p>
-                        </div>
+
+                        <button
+                            onClick={handleToggleRecording}
+                            className={`p-4 rounded-2xl transition-all flex items-center gap-3 active:scale-95 border-2 ${isRecording
+                                ? 'bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-200 animate-pulse'
+                                : 'bg-indigo-50/50 text-indigo-600 border-indigo-100 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 hover:shadow-lg hover:shadow-indigo-200'
+                                }`}
+                        >
+                            {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+                            <span className="text-xs font-black uppercase tracking-widest">
+                                {isRecording ? 'Stop Recording' : 'ADD VIA VOICE'}
+                            </span>
+                        </button>
                     </div>
 
-                    <button
-                        onClick={handleToggleRecording}
-                        className={`p-4 rounded-2xl transition-all flex items-center gap-3 active:scale-95 border-2 ${
-                            isRecording 
-                            ? 'bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-200 animate-pulse' 
-                            : 'bg-indigo-50/50 text-indigo-600 border-indigo-100 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 hover:shadow-lg hover:shadow-indigo-200'
-                        }`}
-                    >
-                        {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-                        <span className="text-xs font-black uppercase tracking-widest">
-                            {isRecording ? 'Stop Recording' : 'ADD VIA VOICE'}
-                        </span>
-                    </button>
-                </div>
+                    <div className="relative group">
+                        <textarea
+                            value={narrative}
+                            onChange={(e) => setNarrative(e.target.value)}
+                            placeholder="Describe the patient's primary symptoms and duration..."
+                            className="w-full min-h-[300px] p-8 bg-slate-50/50 border-2 border-slate-100 rounded-[2.5rem] text-lg font-semibold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all resize-none leading-relaxed"
+                        />
+                        {isRecording && (
+                            <div className="absolute bottom-6 right-6 flex items-center gap-2 text-rose-500 font-bold text-[10px] uppercase tracking-widest">
+                                <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
+                                Listening...
+                            </div>
+                        )}
+                    </div>
 
-                <div className="relative group">
-                    <textarea
-                        value={narrative}
-                        onChange={(e) => setNarrative(e.target.value)}
-                        placeholder="Describe the patient's primary symptoms and duration..."
-                        className="w-full min-h-[300px] p-8 bg-slate-50/50 border-2 border-slate-100 rounded-[2.5rem] text-lg font-semibold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all resize-none leading-relaxed"
-                    />
-                    {isRecording && (
-                        <div className="absolute bottom-6 right-6 flex items-center gap-2 text-rose-500 font-bold text-[10px] uppercase tracking-widest">
-                            <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
-                            Listening...
+                    {error && (
+                        <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold">
+                            <AlertCircle size={18} />
+                            {error}
                         </div>
                     )}
-                </div>
 
-                {error && (
-                    <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold">
-                        <AlertCircle size={18} />
-                        {error}
+                    <div className="flex justify-end gap-4 pt-4">
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            className="px-14 rounded-2xl shadow-xl shadow-indigo-100 font-black uppercase tracking-widest text-xs"
+                            onClick={handleAIReview}
+                            isLoading={isExtracting}
+                            rightIcon={<ChevronRight size={18} />}
+                        >
+                            Review AI Analysis
+                        </Button>
                     </div>
-                )}
+                </motion.div>
+            ) : (
+                <div className="space-y-8 animate-fade-in">
+                    {/* Step 2: AI Review UI */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-600 text-white rounded-xl">
+                                <Brain size={20} />
+                            </div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">AI Clinical Insight Preview</h2>
+                        </div>
+                        <Button variant="outline" size="sm" leftIcon={<Edit2 size={16} />} onClick={() => setStep(0)}>Edit Narrative</Button>
+                    </div>
 
-                <div className="flex justify-end gap-4 pt-4">
-                    <Button
-                        variant="outline"
-                        size="lg"
-                        className="px-10 rounded-2xl border-slate-200 text-slate-500 font-black uppercase tracking-widest text-xs"
-                        onClick={() => {
-                            setNarrative('');
-                            if (isRecording) {
-                                recognitionRef.current?.stop();
-                                setIsRecording(false);
-                            }
-                        }}
-                    >
-                        Clear
-                    </Button>
-                    <Button
-                        variant="primary"
-                        size="lg"
-                        className="px-14 rounded-2xl shadow-xl shadow-indigo-100 font-black uppercase tracking-widest text-xs"
-                        onClick={handleSave}
-                        isLoading={isSaving}
-                        leftIcon={<Save size={18} />}
-                    >
-                        Save Complaint
-                    </Button>
+                    {/* Risk Level Alert */}
+                    {extractionData?.risk_markers?.risk_level === 'High' && (
+                        <div className="p-6 bg-rose-600 text-white rounded-[2rem] shadow-xl shadow-rose-200 flex items-center gap-6 border-b-4 border-rose-800">
+                            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center animate-pulse">
+                                <ShieldAlert size={32} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black uppercase tracking-tight">Critical Risk Marker Detected</h3>
+                                <p className="text-xs font-bold text-rose-100">AI has flagged potential self-harm or acute psychotic features. Clinical prioritize required.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-8">
+                            {/* Structured summary */}
+                            <div className="card-premium p-8 bg-indigo-50 border-indigo-100 space-y-4">
+                                <h3 className="text-[10px] font-black text-indigo-900 uppercase tracking-[0.2em] border-b border-indigo-200 pb-4">Clinical Abstract</h3>
+                                <p className="text-sm font-semibold text-indigo-900 leading-relaxed italic">
+                                    "{extractionData?.ai_summary || extractionData?.narrative}"
+                                </p>
+                            </div>
+
+                            {/* MSE Detected */}
+                            <div className="card-premium p-8 bg-white border-slate-100 space-y-6">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-4">Mental Status Findings</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {Object.entries(extractionData?.structured?.mse_observations || {}).map(([key, value]) => (
+                                        <div key={key}>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">{key.replace('_', ' ')}</p>
+                                            <p className="text-xs font-bold text-slate-700">{String(value) || 'Stable'}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-8">
+                            {/* Risks grid */}
+                            <div className="card-premium p-8 bg-white border-slate-100 space-y-6">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-4">Risk Profiling</h3>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                                        <span className="text-xs font-bold text-slate-600">Self Harm detected</span>
+                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${extractionData?.risk_markers?.self_harm_detected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                            {extractionData?.risk_markers?.self_harm_detected ? 'Detected' : 'Negative'}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                                        <span className="text-xs font-bold text-slate-600">Psychosis detected</span>
+                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${extractionData?.risk_markers?.psychosis_detected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                            {extractionData?.risk_markers?.psychosis_detected ? 'Detected' : 'Negative'}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                                        <span className="text-xs font-bold text-slate-600">Violence risk</span>
+                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${extractionData?.risk_markers?.violence_detected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                            {extractionData?.risk_markers?.violence_detected ? 'Detected' : 'Negative'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="card-premium p-8 bg-emerald-50 border-emerald-100 flex flex-col gap-4">
+                                <h3 className="text-xs font-black text-emerald-900 uppercase tracking-widest flex items-center gap-2">
+                                    <Activity size={16} /> Clinical Impressions
+                                </h3>
+                                <div className="space-y-3">
+                                    {extractionData?.structured?.potential_diagnoses?.slice(0, 3).map((dx: string) => (
+                                        <div key={dx} className="flex items-center gap-2 text-xs font-bold text-emerald-800 bg-white/50 p-2 rounded-lg border border-emerald-200">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                            {dx}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {error && (
+                        <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold">
+                            <AlertCircle size={18} />
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="flex justify-end gap-4 pt-10">
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            className="px-10 rounded-2xl"
+                            onClick={() => setStep(0)}
+                        >
+                            Back To Edit
+                        </Button>
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            className="px-16 rounded-2xl shadow-xl shadow-indigo-200 font-black uppercase tracking-widest text-xs"
+                            onClick={handleSave}
+                            isLoading={isSaving}
+                            leftIcon={<Save size={18} />}
+                        >
+                            Finalize Clinical Entry
+                        </Button>
+                    </div>
                 </div>
-            </motion.div>
+            )}
         </div>
     );
 };

@@ -33,14 +33,14 @@ const HospitalDashboard = () => {
         const fetchData = async () => {
             try {
                 const [statsRes, notifyRes] = await Promise.allSettled([
-                    api.get('/users/stats'),
-                    api.get('/notifications')
+                    api.get('users/stats'),
+                    api.get('notifications')
                 ]);
 
                 if (statsRes.status === 'fulfilled') {
                     const fullData = statsRes.value.data;
                     console.log('[HospitalDashboard] Raw stats response:', fullData);
-                    
+
                     // Resiliently extract stats object
                     // Based on user provided JSON: { code: 200, message: "...", data: { byRole: {...}, activeCount: 14, totalCount: 14 } }
                     const extractedStats = fullData?.data || fullData;
@@ -62,14 +62,14 @@ const HospitalDashboard = () => {
     // Helper to safely get counts from stats supporting plural/singular and nested structures
     const getCount = (key: keyof UserStats | string): number => {
         if (!stats) return 0;
-        
+
         const s = stats as any;
-        
+
         // Try exact key at top level or in byRole
         const val = s[key] !== undefined ? s[key] : s.byRole?.[key];
         if (typeof val === 'number') return val;
         if (typeof val === 'string' && !isNaN(Number(val))) return Number(val);
-        
+
         // Try common variations (plural/singular)
         const variations: Record<string, string[]> = {
             'patient': ['patients', 'totalPatients'],
@@ -86,7 +86,7 @@ const HospitalDashboard = () => {
 
         const currentKey = key.toString();
         const fallbackKeys = variations[currentKey] || [];
-        
+
         for (const fbKey of fallbackKeys) {
             const fbVal = s[fbKey] !== undefined ? s[fbKey] : s.byRole?.[fbKey];
             if (typeof fbVal === 'number') return fbVal;
@@ -210,7 +210,7 @@ const HospitalDashboard = () => {
                         {staffComposition.map((staff, i) => {
                             const totalStaff = staffComposition.reduce((sum, item) => sum + item.count, 0) || 1;
                             const percentage = (staff.count / totalStaff) * 100;
-                            
+
                             return (
                                 <div key={i} className="group">
                                     <div className="flex items-center justify-between mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">

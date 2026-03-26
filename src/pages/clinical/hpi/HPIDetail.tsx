@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
-import { 
-    ChevronLeft, 
-    History as HistoryIcon, 
-    AlertCircle, 
+import {
+    ChevronLeft,
+    History as HistoryIcon,
+    AlertCircle,
     Brain,
     ShieldAlert,
     FileText,
@@ -24,7 +24,7 @@ const HPIDetail = () => {
     const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
 
-    
+
     const [hpi, setHpi] = useState<HPIResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -45,7 +45,7 @@ const HPIDetail = () => {
             setHpi(data);
         } catch (err: any) {
             console.error('Failed to fetch HPI detail:', err);
-            
+
             // Suppress 403 for patients
             if (isPatient && err.response?.status === 403) {
                 setError('Detailed clinical analysis is restricted to authorized providers.');
@@ -255,7 +255,7 @@ const HPIDetail = () => {
                                     </div>
                                     <div className="px-4 py-2 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center gap-3">
                                         <span className="text-xl font-black text-indigo-600">{dsm5_mapping.length}</span>
-                                        <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest leading-none">Diagnostic<br/>Markers</span>
+                                        <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest leading-none">Diagnostic<br />Markers</span>
                                     </div>
                                 </div>
 
@@ -275,7 +275,7 @@ const HPIDetail = () => {
                                         </motion.div>
                                     ))}
                                 </div>
-                                
+
                                 <div className="mt-8 p-4 bg-slate-900 rounded-2xl flex items-center justify-between overflow-hidden relative">
                                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-transparent" />
                                     <div className="flex items-center gap-3 relative z-10">
@@ -300,25 +300,25 @@ const HPIDetail = () => {
                         transition={{ delay: 0.3 }}
                         className="card-premium p-6 flex flex-col gap-5 relative overflow-hidden"
                     >
-                        <div 
-                            className="absolute inset-0 opacity-10" 
+                        <div
+                            className="absolute inset-0 opacity-10"
                             style={{ backgroundColor: color_code || '#6366f1' }}
                         />
                         <div className="flex items-center justify-between relative">
                             <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">Severity Index</h2>
                             <ShieldAlert size={18} style={{ color: color_code || '#6366f1' }} />
                         </div>
-                        
+
                         <div className="flex flex-col items-center gap-3 relative">
                             <div className="text-5xl font-black tabular-nums tracking-tighter" style={{ color: color_code || '#6366f1' }}>
                                 {severity_index}
-                                <span className="text-base text-slate-300 ml-1">/100</span>
+                                <span className="text-base text-slate-300 ml-1">/10</span>
                             </div>
                             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                <div 
-                                    className="h-full transition-all duration-1000" 
-                                    style={{ 
-                                        width: `${severity_index}%`,
+                                <div
+                                    className="h-full transition-all duration-1000"
+                                    style={{
+                                        width: `${(severity_index || 0) * 10}%`,
                                         backgroundColor: color_code || '#6366f1'
                                     }}
                                 />

@@ -28,7 +28,7 @@ const Transactions = () => {
             setIsLoading(true);
             try {
                 // Fetching from consults as they represent the primary financial activity
-                const res = await api.get('/resource/consults');
+                const res = await api.get('resource/consults');
                 setTransactions(Array.isArray(res.data.data) ? res.data.data : []);
             } catch (error) {
                 console.error('Failed to fetch transactions:', error);

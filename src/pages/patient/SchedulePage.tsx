@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar as CalendarIcon,
-    Clock,
     ChevronLeft,
     ChevronRight,
     MapPin,
@@ -25,6 +24,7 @@ import type { User } from '../../types/user.types';
 
 const SchedulePage = () => {
     const { user } = useSelector((state: RootState) => state.auth);
+    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -34,7 +34,6 @@ const SchedulePage = () => {
     // Booking Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectionStep, setSelectionStep] = useState<'date' | 'specialist' | 'time' | 'details'>('date');
-    const [selectedRole, setSelectedRole] = useState<'psychiatrist' | 'psychologist' | 'counselor' | 'therapist' | null>(null);
     const [bookingReason, setBookingReason] = useState('');
     const [bookingDate, setBookingDate] = useState(new Date().toISOString().split('T')[0]);
     const [bookingTime, setBookingTime] = useState('10:00');
@@ -180,7 +179,6 @@ const SchedulePage = () => {
         setBookingReason('');
         setSelectedSpecialist(preselected || null);
         setSelectionStep('date');
-        setSelectedRole(null);
         setSearchQuery('');
         setBookingError('');
         setBookingSuccess(false);
@@ -249,15 +247,23 @@ const SchedulePage = () => {
                     try {
                         const res = await TeleConsultService.tokenValidate(token, 'subscriber');
                         if (res.success || res.code === 200) {
-                            const baseUrl = import.meta.env.VITE_TELECONSULT_SUBSCRIBER_URL || 'https://teleconsult.a2zhealth.in/consult/';
-                            window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                            navigate(`/teleconsult/${apptId}`, { 
+                                state: { 
+                                    appointment: appt, 
+                                    token 
+                                } 
+                            });
                         } else {
                             alert(res.message || 'Call is not yet active. Please wait for the specialist.');
                         }
                     } catch (err) {
                         console.error('Validation error', err);
-                        const baseUrl = import.meta.env.VITE_TELECONSULT_SUBSCRIBER_URL || 'https://teleconsult.a2zhealth.in/consult/';
-                        window.location.href = `${baseUrl}${token}?hideMenu=true`;
+                        navigate(`/teleconsult/${apptId}`, { 
+                            state: { 
+                                appointment: appt, 
+                                token 
+                            } 
+                        });
                     }
                 } else {
                     alert('Join link not ready. Please wait for the specialist to start the session.');

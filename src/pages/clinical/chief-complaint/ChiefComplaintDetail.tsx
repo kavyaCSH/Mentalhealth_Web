@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
 import { 
     ChevronLeft, 
-    Stethoscope, 
     AlertCircle, 
     Activity,
     Brain,
     ShieldAlert,
     FileText,
-    Loader2
+    Loader2,
+    Sparkles,
+    Bot
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { ChiefComplaintService } from '../../../api/services/chiefComplaint.service';
@@ -19,6 +20,8 @@ import { ChiefComplaintService } from '../../../api/services/chiefComplaint.serv
 const ChiefComplaintDetail = () => {
     const { patientId: userId, ccId } = useParams<{ patientId: string; ccId: string }>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isNew = searchParams.get('new') === 'true';
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
     const isPatient = (currentUser as any)?.role === 'patient' || 
                       (currentUser as any)?.role === 'PATIENT' || 
@@ -85,40 +88,47 @@ const ChiefComplaintDetail = () => {
         );
     }
 
-    const { structured, risk_markers, ai_summary, ai_extraction_metadata, narrative } = complaint;
+    const { structured, risk_markers, ai_summary, narrative } = complaint;
 
     return (
         <div className="p-8 max-w-5xl  space-y-10 animate-fade-in pb-24">
-            <header className="flex items-start gap-6">
-                <button
-                    onClick={() => navigate(isPatient ? '/records' : `/patients/${userId}/chief-complaint`)}
-                    className="p-3 mt-1 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
-                >
-                    <ChevronLeft size={20} />
-                </button>
-                <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-                            <Stethoscope size={20} />
+            <header className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative">
+                <div className="flex items-start gap-6">
+                    <button
+                        onClick={() => navigate(isPatient ? '/records' : `/patients/${userId}/chief-complaint`)}
+                        className="p-3 mt-1 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95 group"
+                    >
+                        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                    </button>
+                    <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Bot size={16} className="text-indigo-600" />
+                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+                                Automated Clinical Insight
+                            </span>
                         </div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                            Clinical  Detail
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-1">
+                            Insight Summary
                         </h1>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Structured Review of Clinical Findings</p>
                     </div>
-                    {ai_extraction_metadata && (
-                        <div className="flex items-center gap-2 mt-2">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">AI Extraction Engine:</span>
-                            <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-                                {ai_extraction_metadata.model}
-                            </span>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Processed:</span>
-                            <span className="text-xs font-bold text-slate-600">
-                                {new Date(complaint.createdAt).toLocaleString()}
-                            </span>
-                        </div>
-                    )}
                 </div>
 
+                {isNew && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="bg-emerald-500 text-white px-8 py-5 rounded-[2rem] shadow-xl shadow-emerald-100 flex items-center gap-4 border-b-4 border-emerald-700"
+                    >
+                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center animate-bounce">
+                            <Sparkles size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest opacity-80">Sync Complete</p>
+                            <h3 className="text-sm font-black whitespace-nowrap">Generation Success</h3>
+                        </div>
+                    </motion.div>
+                )}
             </header>
 
             <div className="grid lg:grid-cols-3 gap-8">

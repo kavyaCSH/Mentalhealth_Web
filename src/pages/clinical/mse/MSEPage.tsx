@@ -3,11 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
-import { 
-    ChevronLeft, 
-    ChevronRight, 
-    Save, 
-    AlertCircle, 
+import {
+    ChevronLeft,
+    ChevronRight,
+    Save,
+    AlertCircle,
     Activity,
     CheckCircle2,
     Brain,
@@ -16,14 +16,17 @@ import {
     Target,
     User,
     Mic,
+    MicOff,
+    Bot,
+    Eye,
+    Shield,
+    Database,
+    History,
     Smile,
     Heart,
     Workflow,
-    ClipboardList,
     FileText,
-    Eye,
-    Shield,
-    Database
+    ClipboardList
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { MSEService } from '../../../api/services/mse.service';
@@ -31,14 +34,14 @@ import { UserService } from '../../../api/services/user.service';
 import { MSE_FALLBACK_QUESTIONNAIRE } from '../../../constants/mse.constants';
 import type { MSESection, MSEQuestion, MSEResponse } from '../../../types/mse.types';
 
-const FindingItem = ({ label, value }: { label: string; value: any }) => {
+const FindingItem: React.FC<{ label: string; value: any }> = ({ label, value }) => {
     if (value === null || value === undefined || value === '') return null;
-    
+
     // Strict filtering for "unremarkable" or "absent" findings
     if (value === false) return null;
     if (value === 'None') return null;
     if (Array.isArray(value) && value.length === 0) return null;
-    
+
     let displayValue = '';
     if (typeof value === 'boolean') {
         displayValue = value ? 'Present / Normal' : 'Absent / Noted';
@@ -47,9 +50,9 @@ const FindingItem = ({ label, value }: { label: string; value: any }) => {
     } else if (typeof value === 'object') {
         const activeEntries = Object.entries(value)
             .filter(([_, v]) => v === true || (typeof v === 'string' && v.length > 0 && v !== 'None'));
-            
+
         if (activeEntries.length === 0) return null;
-        
+
         displayValue = activeEntries
             .map(([k, _]) => k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '))
             .join(', ');
@@ -71,7 +74,7 @@ const MSEPage = () => {
     const { patientId: userId, mseId } = useParams<{ patientId: string; mseId?: string }>();
     const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
-    
+
     const [sections, setSections] = useState<MSESection[]>([]);
     const [currentStep, setCurrentStep] = useState(0);
     const [responses, setResponses] = useState<Record<string, any>>({});
@@ -79,6 +82,42 @@ const MSEPage = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<MSEResponse | null>(null);
+    const [patient, setPatient] = useState<any>(null);
+
+    // AI Assistant State
+    const [useAssistant, setUseAssistant] = useState(false);
+    const [narrative, setNarrative] = useState('');
+    const [isExtracting, setIsExtracting] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const recognitionRef = React.useRef<any>(null);
+
+    useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = true;
+            recognitionRef.current.interimResults = true;
+
+            recognitionRef.current.onresult = (event: any) => {
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        setNarrative(prev => prev + ' ' + event.results[i][0].transcript);
+                    }
+                }
+            };
+            recognitionRef.current.onend = () => setIsRecording(false);
+        }
+    }, []);
+
+    const toggleRecording = () => {
+        if (!recognitionRef.current) return alert('Voice recognition not supported in this browser.');
+        if (isRecording) {
+            recognitionRef.current.stop();
+        } else {
+            recognitionRef.current.start();
+            setIsRecording(true);
+        }
+    };
 
     useEffect(() => {
         const fetchQuestionnaire = async () => {
@@ -99,26 +138,40 @@ const MSEPage = () => {
             }
         };
 
-        const fetchExistingRecord = async () => {
-            if (!mseId) return;
+        const fetchData = async () => {
+            setIsLoading(true);
+            setError(null);
             try {
-                setIsLoading(true);
-                const res = await MSEService.getMSEById(mseId);
-                const data = res.data || res;
-                setResult(data as MSEResponse);
-            } catch (err) {
-                console.error('Failed to fetch specific MSE record:', err);
-                setError('Could not load the specified evaluation record.');
+                if (!userId || userId === 'undefined') {
+                    setIsLoading(false);
+                    return;
+                }
+
+                // Resolve Patient Profile
+                try {
+                    const userProfile = await UserService.getUserById(userId);
+                    if (userProfile) setPatient(userProfile);
+                } catch (e) {
+                    console.warn('[MSE] Profile fetch failed:', e);
+                }
+
+                await fetchQuestionnaire();
+
+                if (mseId) {
+                    const res = await MSEService.getMSEById(mseId);
+                    const data = res.data || res;
+                    setResult(data as MSEResponse);
+                }
+            } catch (err: any) {
+                console.error('[MSE] Fetch failed:', err);
+                setError('Could not load clinical evaluation components.');
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchQuestionnaire();
-        if (mseId) {
-            fetchExistingRecord();
-        }
-    }, [mseId]);
+        fetchData();
+    }, [userId, mseId]);
 
     const handleValueChange = (section: string, key: string, value: any) => {
         setResponses(prev => ({
@@ -134,10 +187,10 @@ const MSEPage = () => {
         setResponses(prev => {
             const currentSection = prev[section] || {};
             const currentArr = Array.isArray(currentSection[key]) ? [...currentSection[key]] : [];
-            const newArr = currentArr.includes(option) 
+            const newArr = currentArr.includes(option)
                 ? currentArr.filter((o: string) => o !== option)
                 : [...currentArr, option];
-            
+
             return {
                 ...prev,
                 [section]: {
@@ -344,11 +397,46 @@ const MSEPage = () => {
         }
     };
 
+    const handleNarrativeExtract = async () => {
+        if (!narrative.trim() || narrative.length < 20) {
+            setError('Please provide a more detailed narrative for meaningful extraction.');
+            return;
+        }
+
+        setIsExtracting(true);
+        setError(null);
+        try {
+            const activeId = userId || currentUser?._id || currentUser?.id;
+            // The service handles both numeric and hex IDs for patient resolution
+            const res = await MSEService.extractFromNarrative(narrative, activeId!);
+            const data = (res as any).data || res;
+
+            // Map the extracted JSON to our responses state
+            const newResponses: Record<string, any> = {};
+            sections.forEach(s => {
+                const sectionData = (data as any)[s.section];
+                if (sectionData) {
+                    newResponses[s.section] = sectionData;
+                }
+            });
+
+            setResponses(newResponses);
+            setUseAssistant(false); // Move to form view to review
+            setCurrentStep(0);
+            alert('AI Extraction Complete. Please review and finalize the findings.');
+        } catch (err) {
+            console.error('AI Extraction failed:', err);
+            setError('AI extraction could not process the narrative. Please use manual entry.');
+        } finally {
+            setIsExtracting(false);
+        }
+    };
+
     const handleSubmit = async () => {
         if (!userId) return;
         setIsSaving(true);
         setError(null);
-        
+
         try {
             // 1. Resolve hex ID from user profile
             let hexId = userId;
@@ -372,7 +460,7 @@ const MSEPage = () => {
 
             // Flatten the responses
             const flattenedResponses: { questionCode: string; value: any }[] = [];
-            
+
             // Final submission: Flatten everything
             Object.values(responses).forEach((sectionData) => {
                 Object.entries(sectionData).forEach(([questionKey, value]) => {
@@ -391,10 +479,10 @@ const MSEPage = () => {
                 patient_id: hexId,
                 responses: flattenedResponses
             });
-            
+
             // Handle both ApiResponse wrapper and direct response
             const responseData = (res as any).data || res;
-            
+
             // Final submission
             setResult(responseData as MSEResponse);
         } catch (err: any) {
@@ -426,11 +514,10 @@ const MSEPage = () => {
                             <button
                                 key={option}
                                 onClick={() => handleValueChange(section, question.key, option)}
-                                className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                                    value === option 
-                                    ? theme.active 
+                                className={`p-4 rounded-2xl border-2 text-left transition-all ${value === option
+                                    ? theme.active
                                     : `bg-slate-50 border-transparent text-slate-600 ${theme.hoverBorder}`
-                                }`}
+                                    }`}
                             >
                                 <span className="text-xs font-black uppercase tracking-tight">{option}</span>
                             </button>
@@ -447,11 +534,10 @@ const MSEPage = () => {
                                 <button
                                     key={option}
                                     onClick={() => handleMultiselectToggle(section, question.key, option)}
-                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                                        isSelected 
-                                        ? theme.active 
+                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${isSelected
+                                        ? theme.active
                                         : `bg-slate-50 border-transparent text-slate-600 ${theme.hoverBorder}`
-                                    }`}
+                                        }`}
                                 >
                                     <span className="text-xs font-black uppercase tracking-tight">{option}</span>
                                 </button>
@@ -468,18 +554,17 @@ const MSEPage = () => {
                                 <button
                                     key={v ? 'Yes' : 'No'}
                                     onClick={() => handleValueChange(section, question.key, v)}
-                                    className={`flex-1 p-4 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] ${
-                                        value === v 
+                                    className={`flex-1 p-4 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] ${value === v
                                         ? (v ? theme.active : 'bg-slate-800 border-slate-800 text-white shadow-md')
                                         : 'bg-slate-50 border-transparent text-slate-400 hover:bg-slate-100'
-                                    }`}
+                                        }`}
                                 >
                                     {v ? 'Yes / Present' : 'No / Absent'}
                                 </button>
                             ))}
                         </div>
                         {value === true && question.follow_up && (
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 className={`pl-6 border-l-4 ${theme.borderSoft} space-y-6 mt-4`}
@@ -580,7 +665,7 @@ const MSEPage = () => {
             return !lackOfAssessmentMarkers.some(marker => text.toLowerCase().includes(marker));
         };
 
-        const pendingSections = sections.filter(s => 
+        const pendingSections = sections.filter(s =>
             !assessedSections.find(as => as.section === s.section)
         );
 
@@ -603,7 +688,7 @@ const MSEPage = () => {
                     </div>
                     <div className="flex items-center gap-4">
 
-                        <Button 
+                        <Button
                             variant="primary"
                             onClick={navigateBack}
                             className="rounded-2xl h-12 px-8 font-black uppercase text-xs tracking-widest bg-slate-900 border-none shadow-xl shadow-slate-200"
@@ -618,7 +703,7 @@ const MSEPage = () => {
                         <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12">
                             <Brain size={240} />
                         </div>
-                        
+
                         <div className="relative space-y-12">
                             <header className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-50 pb-8">
                                 <div className="flex items-center gap-4">
@@ -631,7 +716,7 @@ const MSEPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    {result.ai_analysis.emotional_tone_mapping.map((tone, idx) => (
+                                    {result.ai_analysis?.emotional_tone_mapping?.map((tone, idx) => (
                                         <span key={idx} className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-tight border border-slate-100 italic">
                                             {tone}
                                         </span>
@@ -648,18 +733,18 @@ const MSEPage = () => {
                                             Clinical Formulation
                                         </h3>
                                         <p className="text-xl font-black text-slate-800 leading-relaxed tracking-tight">
-                                            "{result.ai_analysis.clinical_formulation}"
+                                            "{result.ai_analysis?.clinical_formulation || 'No specific diagnostic formulation provided by the analysis engine.'}"
                                         </p>
                                     </div>
 
                                     <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-slate-50">
-                                        {isAiAnalysisMeaningful(result.ai_analysis.affect_recognition) && (
+                                        {result.ai_analysis && isAiAnalysisMeaningful(result.ai_analysis.affect_recognition) && (
                                             <div className="space-y-3">
                                                 <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Affective State</h4>
                                                 <p className="text-sm font-bold text-slate-600 leading-relaxed">{result.ai_analysis.affect_recognition}</p>
                                             </div>
                                         )}
-                                        {isAiAnalysisMeaningful(result.ai_analysis.speech_tempo_analysis) && (
+                                        {result.ai_analysis && isAiAnalysisMeaningful(result.ai_analysis.speech_tempo_analysis) && (
                                             <div className="space-y-3">
                                                 <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Speech Dynamics</h4>
                                                 <p className="text-sm font-bold text-slate-600 leading-relaxed">{result.ai_analysis.speech_tempo_analysis}</p>
@@ -676,13 +761,13 @@ const MSEPage = () => {
                                             Diagnostic Impressions
                                         </h3>
                                         <div className="space-y-3">
-                                            {result.ai_analysis.diagnostic_impressions?.map((item, idx) => (
+                                            {result.ai_analysis?.diagnostic_impressions?.map((item, idx) => (
                                                 <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4 group hover:border-indigo-200 transition-colors">
                                                     <div className="w-1.5 h-6 bg-indigo-500 rounded-full shrink-0" />
                                                     <p className="text-[11px] font-black text-slate-700 leading-tight uppercase tracking-tight">{item}</p>
                                                 </div>
                                             ))}
-                                            {(!result.ai_analysis.diagnostic_impressions || result.ai_analysis.diagnostic_impressions.length === 0) && (
+                                            {(!result.ai_analysis?.diagnostic_impressions || result.ai_analysis.diagnostic_impressions.length === 0) && (
                                                 <p className="text-[10px] font-bold text-slate-400 italic">No diagnostic impressions recorded.</p>
                                             )}
                                         </div>
@@ -691,7 +776,7 @@ const MSEPage = () => {
                                     <div className="space-y-4 pt-6 mt-6 border-t border-slate-100">
                                         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Psychomotor Markers</h3>
                                         <div className="flex flex-wrap gap-2">
-                                            {result.ai_analysis.psychomotor_markers.map((marker, idx) => (
+                                            {result.ai_analysis?.psychomotor_markers?.map((marker, idx) => (
                                                 <div key={idx} className="px-3 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[9px] font-black uppercase tracking-tight flex items-center gap-2">
                                                     <Activity size={12} />
                                                     {marker}
@@ -703,6 +788,7 @@ const MSEPage = () => {
                             </div>
                         </div>
                     </section>
+
 
                     <div className="grid lg:grid-cols-12 gap-10">
                         {/* Domain Coverage Summary */}
@@ -720,7 +806,7 @@ const MSEPage = () => {
                                     ))}
                                 </div>
                             </div>
-                            
+
                             <div className="card-premium p-8 bg-slate-50 border-slate-200/50">
                                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
                                     <AlertCircle size={14} />
@@ -742,12 +828,12 @@ const MSEPage = () => {
                                 <div className="w-1.5 h-6 bg-slate-900 rounded-full" />
                                 <h2 className="text-xs font-black text-slate-900 uppercase tracking-[0.3em]">Detailed Findings</h2>
                             </div>
-                            
+
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {assessedSections.map(s => {
                                     const sectionData = (result as any)[s.section];
                                     if (!sectionData) return null;
-                                    
+
                                     // Pre-filter section data to see if there's anything to show
                                     const hasData = Object.values(sectionData).some(v => {
                                         if (v === null || v === undefined || v === '' || v === false || v === 'None') return false;
@@ -759,7 +845,7 @@ const MSEPage = () => {
                                     });
 
                                     if (!hasData) return null;
-                                    
+
                                     return (
                                         <div key={s.section} className="card-premium p-8 bg-white border-slate-100 group transition-all">
                                             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-50">
@@ -788,199 +874,278 @@ const MSEPage = () => {
 
     return (
         <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in pb-24">
-            <header className="flex items-center gap-6">
-                <button
-                    onClick={navigateBack}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
-                >
-                    <ChevronLeft size={20} />
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <Brain className="text-indigo-600" size={32} />
-                        Clinical Evaluation
-                    </h1>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Mental Status Examination Framework (MSE)</p>
-                </div>
-            </header>
-
-            <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar snap-x px-2">
-                {sections.map((s, idx) => {
-                    const theme = getTheme(s.section);
-                    const isActive = idx === currentStep;
-                    const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
-                    
-                    return (
-                        <button
-                            key={s.section}
-                            onClick={() => setCurrentStep(idx)}
-                            className={`flex-shrink-0 snap-start px-8 py-6 rounded-[2rem] border-2 transition-all duration-300 flex flex-col items-center justify-center gap-3 min-w-[200px] relative ${
-                                isActive 
-                                ? `${theme.active} -translate-y-1` 
-                                : isDone 
-                                    ? `${theme.done}` 
-                                    : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
-                            }`}
-                        >
-                            <div className={`${isActive ? theme.iconActive : isDone ? theme.iconDone : 'text-slate-300'}`}>
-                                {getSectionIcon(s.section)}
-                            </div>
-                            <span className="text-[10px] font-black whitespace-nowrap uppercase tracking-widest">{s.title}</span>
-                            
-                            {isDone && !isActive && (
-                                <div className={`absolute top-3 right-3 w-2 h-2 rounded-full ${theme.dot} shadow-sm`} />
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
-
-            <div className="grid lg:grid-cols-4 gap-12">
-                <div className="lg:col-span-3 space-y-8">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentSection.section}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="card-premium p-12 bg-white border-slate-100 relative overflow-hidden ring-1 ring-slate-100 shadow-xl shadow-slate-100/50"
-                        >
-                            {/* Decorative Icon Background */}
-                            <div className={`absolute top-0 right-0 p-8 opacity-[0.03] ${getTheme(currentSection.section).textSoft}`}>
-                                {React.cloneElement(getSectionIcon(currentSection.section) as React.ReactElement<any>, { size: 120 })}
-                            </div>
-
-                            <div className="relative space-y-12">
-                                {/* Section Header */}
-                                <header className="space-y-4 pb-8 border-b border-slate-50">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-2xl ${getTheme(currentSection.section).bgSoft} flex items-center justify-center ${getTheme(currentSection.section).textSoft}`}>
-                                            {getSectionIcon(currentSection.section)}
-                                        </div>
-                                        <div>
-                                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">{currentSection.title}</h2>
-                                            <p className="text-slate-500 font-medium max-w-2xl leading-relaxed text-sm">{currentSection.description}</p>
-                                        </div>
-                                    </div>
-                                </header>
-
-                                {/* Questions List */}
-                                <div className="space-y-12 py-4">
-                                    {currentSection.questions.map(q => (
-                                        <div key={q.key} className="space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-1.5 h-6 ${getTheme(currentSection.section).dot} rounded-full`} />
-                                                <label className="text-xs font-black text-slate-800 uppercase tracking-[0.1em]">{q.label}</label>
-                                            </div>
-                                            <div className="max-w-2xl">
-                                                {renderQuestion(currentSection.section, q)}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Navigation Buttons */}
-                                <div className="flex items-center gap-4 pt-12 border-t border-slate-50">
-                                    <Button
-                                        variant="outline"
-                                        disabled={currentStep === 0}
-                                        onClick={() => setCurrentStep(prev => prev - 1)}
-                                        leftIcon={<ChevronLeft size={18} />}
-                                        className="h-14 px-10 rounded-2xl border-2 font-bold hover:bg-slate-50 transition-colors"
-                                    >
-                                        Previous
-                                    </Button>
-
-                                    {currentStep < sections.length - 1 ? (
-                                        <Button
-                                            variant="primary"
-                                            onClick={() => setCurrentStep(prev => prev + 1)}
-                                            rightIcon={<ChevronRight size={18} />}
-                                            className={`h-14 px-12 rounded-2xl ${getTheme(currentSection.section).active} font-black tracking-widest uppercase text-[10px] shadow-lg transition-transform active:scale-95 ml-auto`}
-                                        >
-                                            Next Section
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            variant="primary"
-                                            className="h-14 px-14 rounded-2xl bg-slate-900 border-slate-900 hover:bg-black shadow-2xl shadow-slate-200 font-black tracking-widest uppercase text-[10px] ml-auto"
-                                            onClick={() => handleSubmit()}
-                                            isLoading={isSaving}
-                                            leftIcon={<Save size={18} />}
-                                        >
-                                            Finalize Assessment
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-
-                <div className="space-y-8">
-                    <div className="card-premium p-10 bg-slate-900 border-none shadow-2xl relative overflow-hidden h-fit sticky top-12 ring-1 ring-white/5">
-                        <div className="relative">
-                            <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
-                                <div>
-                                    <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-1">Clinical Intake</h3>
-                                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Evaluation Framework Progress</p>
-                                </div>
-                                <div className="text-slate-700">
-                                    <ClipboardList size={20} strokeWidth={1.5} />
-                                </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                                {sections.map((s, idx) => {
-                                    const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
-                                    const isActive = idx === currentStep;
-                                    const theme = getTheme(s.section);
-                                    
-                                    return (
-                                        <div 
-                                            key={s.section} 
-                                            className={`relative flex items-center gap-4 py-3.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer group ${
-                                                isActive ? 'bg-white/10 ring-1 ring-white/10' : 'hover:bg-white/5'
-                                            }`}
-                                            onClick={() => setCurrentStep(idx)}
-                                        >
-                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-500 scale-90 ${
-                                                isActive 
-                                                ? `${theme.dot} shadow-xl ${theme.shadow} scale-100` 
-                                                : isDone 
-                                                    ? 'bg-emerald-500/10 text-emerald-500' 
-                                                    : 'bg-slate-800 text-slate-600'
-                                            }`}>
-                                                {isDone && !isActive ? <CheckCircle2 size={14} /> : React.cloneElement(getSectionIcon(s.section) as React.ReactElement<any>, { size: 14, strokeWidth: 2.5 })}
-                                            </div>
-
-                                            <div className="flex-1 min-w-0">
-                                                <span className={`text-[10px] font-black tracking-widest uppercase whitespace-nowrap transition-all ${
-                                                    isActive ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
-                                                }`}>
-                                                    {s.title}
-                                                </span>
-                                            </div>
-
-                                            {isActive && (
-                                                <motion.div 
-                                                    layoutId="active-indicator-mse"
-                                                    className={`w-1 h-3 rounded-full ${theme.dot}`}
-                                                />
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                        </div>
+            <header className="flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                    <button
+                        onClick={navigateBack}
+                        className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+                    <div>
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                            <Brain className="text-indigo-600" size={32} />
+                            Mental Status Exam
+                        </h1>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 ml-11">
+                            {patient ? `Evaluating: ${patient.firstName} ${patient.lastName}` : 'Clinical Evaluation Protocol'}
+                        </p>
                     </div>
                 </div>
-            </div>
+
+                <button
+                    onClick={() => setUseAssistant(!useAssistant)}
+                    className={`px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 border-2 transition-all shadow-xl ${useAssistant
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-200'
+                        : 'bg-white border-indigo-100 text-indigo-600 shadow-indigo-100/50 hover:bg-indigo-50'
+                        }`}
+                >
+                    <Bot size={16} />
+                    {useAssistant ? 'FORM VIEW' : 'AI ASSISTANT'}
+                </button>
+            </header>
+
+            {useAssistant ? (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="card-premium p-12 bg-white space-y-8 relative overflow-hidden"
+                >
+                    <div className="absolute top-0 right-0 p-12 opacity-[0.03]">
+                        <Sparkles size={180} />
+                    </div>
+
+                    <div className="flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-4">
+                            <div className="p-4 bg-indigo-50 text-indigo-600 rounded-full">
+                                <Sparkles size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Narrative Evaluation</h2>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Observe and describe the mental state naturally</p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={toggleRecording}
+                            className={`p-4 rounded-2xl flex items-center gap-3 border-2 transition-all duration-500 ${isRecording
+                                ? 'bg-rose-500 text-white border-rose-500 animate-pulse shadow-xl shadow-rose-200'
+                                : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-indigo-200'
+                                }`}
+                        >
+                            {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+                            <span className="text-[10px] font-black uppercase tracking-widest">
+                                {isRecording ? 'Listening...' : 'Voice Record'}
+                            </span>
+                        </button>
+                    </div>
+
+                    <div className="relative">
+                        <textarea
+                            value={narrative}
+                            onChange={(e) => setNarrative(e.target.value)}
+                            placeholder="Describe patient's appearance, behavior, speech, mood, and cognitive orientation... AI will extract structured findings."
+                            className="w-full min-h-[400px] p-10 bg-slate-50 border-2 border-transparent rounded-[3rem] text-lg font-bold text-slate-700 focus:bg-white focus:border-indigo-600 outline-none transition-all resize-none shadow-inner leading-relaxed"
+                        />
+                        <div className="absolute bottom-8 right-8">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                <Shield size={12} /> Secure Clinical Uplink
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-4">
+                        <Button
+                            variant="primary"
+                            className="px-16 h-16 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-indigo-100 group"
+                            onClick={handleNarrativeExtract}
+                            isLoading={isExtracting}
+                            rightIcon={<ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />}
+                        >
+                            Extract Structured Findings
+                        </Button>
+                    </div>
+                </motion.div>
+            ) : (
+                <>
+                    <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar snap-x px-2">
+                        {sections.map((s, idx) => {
+                            const theme = getTheme(s.section);
+                            const isActive = idx === currentStep;
+                            const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
+
+                            return (
+                                <button
+                                    key={s.section}
+                                    onClick={() => setCurrentStep(idx)}
+                                    className={`flex-shrink-0 snap-start px-8 py-6 rounded-[2rem] border-2 transition-all duration-300 flex flex-col items-center justify-center gap-3 min-w-[200px] relative ${isActive
+                                        ? `${theme.active} -translate-y-1`
+                                        : isDone
+                                            ? `${theme.done}`
+                                            : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
+                                        }`}
+                                >
+                                    <div className={`${isActive ? theme.iconActive : isDone ? theme.iconDone : 'text-slate-300'}`}>
+                                        {getSectionIcon(s.section)}
+                                    </div>
+                                    <span className="text-[10px] font-black whitespace-nowrap uppercase tracking-widest">{s.title}</span>
+
+                                    {isDone && !isActive && (
+                                        <div className={`absolute top-3 right-3 w-2 h-2 rounded-full ${theme.dot} shadow-sm`} />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="grid lg:grid-cols-4 gap-12">
+                        <div className="lg:col-span-3 space-y-8">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={currentSection.section}
+                                    initial={{ opacity: 0, scale: 0.98, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.98, y: -20 }}
+                                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                    className="card-premium p-12 bg-white border-slate-100 relative overflow-hidden ring-1 ring-slate-100 shadow-xl shadow-slate-100/50"
+                                >
+                                    {/* Decorative Icon Background */}
+                                    <div className={`absolute top-0 right-0 p-8 opacity-[0.03] ${getTheme(currentSection.section).textSoft}`}>
+                                        {React.cloneElement(getSectionIcon(currentSection.section) as React.ReactElement<any>, { size: 120 })}
+                                    </div>
+
+                                    <div className="relative space-y-12">
+                                        {/* Section Header */}
+                                        <header className="space-y-4 pb-8 border-b border-slate-50">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-2xl ${getTheme(currentSection.section).bgSoft} flex items-center justify-center ${getTheme(currentSection.section).textSoft}`}>
+                                                    {getSectionIcon(currentSection.section)}
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">{currentSection.title}</h2>
+                                                    <p className="text-slate-500 font-medium max-w-2xl leading-relaxed text-sm">{currentSection.description}</p>
+                                                </div>
+                                            </div>
+                                        </header>
+
+                                        {/* Questions List */}
+                                        <div className="space-y-12 py-4">
+                                            {currentSection.questions.map(q => (
+                                                <div key={q.key} className="space-y-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-1.5 h-6 ${getTheme(currentSection.section).dot} rounded-full`} />
+                                                        <label className="text-xs font-black text-slate-800 uppercase tracking-[0.1em]">{q.label}</label>
+                                                    </div>
+                                                    <div className="max-w-2xl">
+                                                        {renderQuestion(currentSection.section, q)}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Navigation Buttons */}
+                                        <div className="flex items-center gap-4 pt-12 border-t border-slate-50">
+                                            <Button
+                                                variant="outline"
+                                                disabled={currentStep === 0}
+                                                onClick={() => setCurrentStep(prev => prev - 1)}
+                                                leftIcon={<ChevronLeft size={18} />}
+                                                className="h-14 px-10 rounded-2xl border-2 font-bold hover:bg-slate-50 transition-colors"
+                                            >
+                                                Previous Domain
+                                            </Button>
+
+                                            {currentStep < sections.length - 1 ? (
+                                                <Button
+                                                    variant="primary"
+                                                    onClick={() => setCurrentStep(prev => prev + 1)}
+                                                    rightIcon={<ChevronRight size={18} />}
+                                                    className={`h-14 px-12 rounded-2xl ${getTheme(currentSection.section).active} font-black tracking-widest uppercase text-[10px] shadow-lg transition-transform active:scale-95 ml-auto`}
+                                                >
+                                                    Next Assessment
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="primary"
+                                                    className="h-14 px-14 rounded-2xl bg-slate-900 border-slate-900 hover:bg-black shadow-2xl shadow-slate-200 font-black tracking-widest uppercase text-[10px] ml-auto"
+                                                    onClick={() => handleSubmit()}
+                                                    isLoading={isSaving}
+                                                    leftIcon={<Save size={18} />}
+                                                >
+                                                    Finalize Evaluation
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+
+                        <div className="space-y-8">
+                            <div className="card-premium p-10 bg-slate-900 border-none shadow-2xl relative overflow-hidden h-fit sticky top-12 ring-1 ring-white/5">
+                                <div className="relative">
+                                    <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
+                                        <div>
+                                            <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-1">Clinical Evaluation</h3>
+                                            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Protocol Hydration</p>
+                                        </div>
+                                        <div className="text-slate-700">
+                                            <ClipboardList size={20} strokeWidth={1.5} />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        {sections.map((s, idx) => {
+                                            const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
+                                            const isActive = idx === currentStep;
+                                            const theme = getTheme(s.section);
+
+                                            return (
+                                                <div
+                                                    key={s.section}
+                                                    className={`relative flex items-center gap-4 py-3.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer group ${isActive ? 'bg-white/10 ring-1 ring-white/10' : 'hover:bg-white/5'
+                                                        }`}
+                                                    onClick={() => setCurrentStep(idx)}
+                                                >
+                                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-500 scale-90 ${isActive
+                                                        ? `${theme.dot} shadow-xl ${theme.shadow} scale-100`
+                                                        : isDone
+                                                            ? 'bg-emerald-500/10 text-emerald-500'
+                                                            : 'bg-slate-800 text-slate-600'
+                                                        }`}>
+                                                        {isDone && !isActive ? <CheckCircle2 size={14} /> : React.cloneElement(getSectionIcon(s.section) as React.ReactElement<any>, { size: 14, strokeWidth: 2.5 })}
+                                                    </div>
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <span className={`text-[10px] font-black tracking-widest uppercase whitespace-nowrap transition-all ${isActive ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
+                                                            }`}>
+                                                            {s.title}
+                                                        </span>
+                                                    </div>
+
+                                                    {isActive && (
+                                                        <motion.div
+                                                            layoutId="active-indicator-mse"
+                                                            className={`w-1 h-3 rounded-full ${theme.dot}`}
+                                                        />
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
 
             {error && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold shadow-2xl animate-shake">
-                    <AlertCircle size={18} />
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-rose-500 text-white p-5 rounded-[1.5rem] flex items-center gap-4 text-xs font-black uppercase tracking-widest shadow-2xl z-[200]">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                        <AlertCircle size={20} />
+                    </div>
                     {error}
                 </div>
             )}

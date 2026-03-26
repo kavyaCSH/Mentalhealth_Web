@@ -21,10 +21,8 @@ export interface ChiefComplaintResponse {
 
 export const ChiefComplaintService = {
     // ── Clinical / Admin routes ────────────────────────────────────────────────
-    createComplaint: async (formData: FormData): Promise<ApiResponse<ChiefComplaintResponse>> => {
-        const response = await api.post('/chief-complaints', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
+    createComplaint: async (data: any): Promise<ApiResponse<ChiefComplaintResponse>> => {
+        const response = await api.post('chief-complaints', data);
         return response.data;
     },
 
@@ -36,7 +34,7 @@ export const ChiefComplaintService = {
         page?: number;
         limit?: number;
     }) => {
-        const response = await api.get('/chief-complaints', { params });
+        const response = await api.get('chief-complaints', { params });
         return response.data;
     },
 
@@ -54,7 +52,7 @@ export const ChiefComplaintService = {
                 console.warn('[ChiefComplaintService] List fallback failed:', e);
             }
         }
-        const response = await api.get(`/chief-complaints/${id}`);
+        const response = await api.get(`chief-complaints/${id}`);
         return response.data;
     },
 
@@ -63,7 +61,7 @@ export const ChiefComplaintService = {
         data: Partial<ChiefComplaintResponse>,
         patient_id?: string | number
     ): Promise<ApiResponse<ChiefComplaintResponse>> => {
-        const response = await api.patch(`/chief-complaints/${id}`, data, {
+        const response = await api.patch(`chief-complaints/${id}`, data, {
             params: patient_id ? { patient_id } : {},
         });
         return response.data;
@@ -73,7 +71,7 @@ export const ChiefComplaintService = {
         id: string | number,
         patient_id?: string | number
     ): Promise<ApiResponse<unknown>> => {
-        const response = await api.delete(`/chief-complaints/${id}`, {
+        const response = await api.delete(`chief-complaints/${id}`, {
             params: patient_id ? { patient_id } : {},
         });
         return response.data;
@@ -83,7 +81,7 @@ export const ChiefComplaintService = {
     // Backend authorizes these endpoints for the patient role.
 
     listPatientComplaints: async (patientId: string): Promise<ApiResponse<ChiefComplaintResponse[]>> => {
-        const response = await api.get(`/chief-complaints`, { params: { patient_id: patientId } });
+        const response = await api.get(`chief-complaints`, { params: { patient_id: patientId } });
         return response.data;
     },
 
@@ -104,7 +102,7 @@ export const ChiefComplaintService = {
         } catch (e) {
             console.warn('[ChiefComplaintService] Patient list fallback failed:', e);
         }
-        const response = await api.get(`/chief-complaints/${ccId}`, {
+        const response = await api.get(`chief-complaints/${ccId}`, {
             params: { patient_id: patientId }
         });
         return response.data;
@@ -114,7 +112,7 @@ export const ChiefComplaintService = {
         patientId: string,
         narrative: string
     ): Promise<ApiResponse<ChiefComplaintResponse>> => {
-        const response = await api.post(`/chief-complaints`, { patient_id: patientId, narrative });
+        const response = await api.post(`chief-complaints`, { patient_id: patientId, narrative });
         return response.data;
     },
 
@@ -123,7 +121,7 @@ export const ChiefComplaintService = {
         ccId: string | number,
         data: { narrative: string }
     ): Promise<ApiResponse<ChiefComplaintResponse>> => {
-        const response = await api.patch(`/chief-complaints/${ccId}`, data, {
+        const response = await api.patch(`chief-complaints/${ccId}`, data, {
             params: { patient_id: patientId }
         });
         return response.data;
@@ -133,9 +131,20 @@ export const ChiefComplaintService = {
         patientId: string,
         ccId: string | number
     ): Promise<ApiResponse<unknown>> => {
-        const response = await api.delete(`/chief-complaints/${ccId}`, {
+        const response = await api.delete(`chief-complaints/${ccId}`, {
             params: { patient_id: patientId }
         });
+        return response.data;
+    },
+
+    // ── AI Extraction Flow (Mobile Parity) ───────────────────────────────────
+    extractChiefComplaint: async (data: { patient_id: string | number; narrative: string }): Promise<ApiResponse<any>> => {
+        const response = await api.post('chief-complaints/extract', data);
+        return response.data;
+    },
+
+    extractFromNarrative: async (narrative: string, patient_id?: string | number): Promise<any> => {
+        const response = await api.post('chief-complaints/extract', { narrative, patient_id });
         return response.data;
     },
 };

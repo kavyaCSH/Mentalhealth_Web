@@ -51,16 +51,16 @@ const PatientHealthRecords = () => {
     const fetchRecords = useCallback(async () => {
         setIsLoading(true);
         setError(null);
-        
+
         try {
             console.log('[PatientHealthRecords] Hydration cycle triggered...');
-            
+
             // 1. Resolve Definitive IDs
             let resolvedHexId = user?._id || user?.id || '';
             let resolvedNumericId = user?.userId || '';
-            
+
             const isMongoId = (id: unknown) => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
-            
+
             // Optimization: If we already have a Mongo ID, skip profile resolution
             if (!isMongoId(resolvedHexId) && resolvedHexId) {
                 console.log('[PatientHealthRecords] Initial ID is not hex, resolving profile from backend...');
@@ -128,14 +128,14 @@ const PatientHealthRecords = () => {
 
             // Parallelized non-blocking cards
             Promise.allSettled([
-                withTimeout(ChiefComplaintService.listComplaints({ 
+                withTimeout(ChiefComplaintService.listComplaints({
                     patient: resolvedHexId,
-                    patientId: resolvedHexId, 
+                    patientId: resolvedHexId,
                     patient_id: resolvedHexId,
-                    limit: 1 
+                    limit: 1
                 }), 5000, 'Complaints'),
-                withTimeout(HPIService.getHPIList({ 
-                    patient_id: resolvedHexId 
+                withTimeout(HPIService.getHPIList({
+                    patient_id: resolvedHexId
                 }), 5000, 'HPI'),
                 withTimeout(MSEService.listMSEByPatient(resolvedHexId), 5000, 'MSE'),
                 withTimeout(PastHistoryService.getPastHistoryByPatient(resolvedHexId), 5000, 'History'),
@@ -164,8 +164,8 @@ const PatientHealthRecords = () => {
         if (hasFullUser && !fetchLock.current) {
             fetchLock.current = true;
             fetchRecords();
-        } 
-        
+        }
+
         // Escape loading if no user object exists at all (e.g. not logged in)
         if (!user && isLoading) {
             setIsLoading(false);
@@ -202,7 +202,7 @@ const PatientHealthRecords = () => {
                 </div>
                 <h2 className="text-xl font-black text-slate-900 mb-2">Sync Interrupted</h2>
                 <p className="text-slate-500 font-medium mb-8 leading-relaxed">{error}</p>
-                <button 
+                <button
                     onClick={() => { setError(null); fetchRecords(); }}
                     className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-100"
                 >
@@ -222,6 +222,8 @@ const PatientHealthRecords = () => {
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 ml-11">Comprehensive Clinical Profile Journey</p>
             </header>
 
+
+
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                 {/* Chief Complaint Card */}
                 <motion.div
@@ -231,11 +233,14 @@ const PatientHealthRecords = () => {
                     onClick={() => navigate(`/patients/${resolvedUserId}/chief-complaint`)}
                     className="card-premium p-5 border-slate-100 hover:border-rose-200 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl group-hover:scale-110 transition-transform">
-                            <Stethoscope size={20} />
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl group-hover:scale-110 transition-transform">
+                                <Stethoscope size={20} />
+                            </div>
+                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Chief Complaint History</h2>
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Chief Complaint</h2>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Primary Symptom</p>
@@ -244,7 +249,7 @@ const PatientHealthRecords = () => {
                         </p>
                     </div>
                 </motion.div>
-                
+
                 {/* HPI history Card */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -253,11 +258,14 @@ const PatientHealthRecords = () => {
                     onClick={() => navigate(`/patients/${resolvedUserId}/hpi`)}
                     className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
-                            <HistoryIcon size={20} />
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
+                                <HistoryIcon size={20} />
+                            </div>
+                            <h2 className="text-sm font-black text-slate-900 tracking-tight">HPI history</h2>
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">HPI history</h2>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Clinical Narrative</p>
@@ -266,6 +274,7 @@ const PatientHealthRecords = () => {
                         </p>
                     </div>
                 </motion.div>
+
 
                 {/* Mental Status Card */}
                 <motion.div
@@ -306,8 +315,8 @@ const PatientHealthRecords = () => {
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Historical Intake</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                            {latestHistory 
-                                ? `Last intake documented on ${new Date((latestHistory as { createdAt: string }).createdAt).toLocaleDateString()}` 
+                            {latestHistory
+                                ? `Last intake documented on ${new Date((latestHistory as { createdAt: string }).createdAt).toLocaleDateString()}`
                                 : 'No previous records found.'}
                         </p>
                     </div>
@@ -330,14 +339,36 @@ const PatientHealthRecords = () => {
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Systems Review</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                            {latestROS 
-                                ? `Last review completed on ${new Date((latestROS as { createdAt: string }).createdAt).toLocaleDateString()}` 
+                            {latestROS
+                                ? `Last review completed on ${new Date((latestROS as { createdAt: string }).createdAt).toLocaleDateString()}`
                                 : 'No systematic review recorded.'}
                         </p>
                     </div>
                 </motion.div>
 
 
+
+                {/* Symptom History Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    onClick={() => navigate(`/patients/${resolvedUserId}/symptoms?tab=history`)}
+                    className="card-premium p-5 border-slate-100 hover:border-amber-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                >
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <Activity size={20} />
+                        </div>
+                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Symptom history</h2>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Longitudinal Trends</p>
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                            Review your psychological and physical trends over time.
+                        </p>
+                    </div>
+                </motion.div>
 
                 {/* Treatment Journey Card */}
                 <motion.div
@@ -364,7 +395,7 @@ const PatientHealthRecords = () => {
                                         <span className="text-emerald-600">{treatmentProgress.overall_progress}%</span>
                                     </div>
                                     <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden">
-                                        <div 
+                                        <div
                                             className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
                                             style={{ width: `${treatmentProgress.overall_progress}%` }}
                                         />

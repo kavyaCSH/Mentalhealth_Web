@@ -17,7 +17,10 @@ import {
     Users,
     History,
     Shield,
-    FileText
+    FileText,
+    Bot,
+    Mic,
+    MicOff
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { PastHistoryService } from '../../../api/services/pastHistory.service';
@@ -29,7 +32,29 @@ const FindingItem = ({ label, value }: { label: string; value: any }) => {
     
     if (value === false) return null;
     if (value === 'None') return null;
-    if (Array.isArray(value) && value.length === 0) return null;
+    if (Array.isArray(value)) {
+        if (value.length === 0) return null;
+        if (typeof value[0] === 'object') {
+            // Render complex array objects (from the new history format)
+            return (
+                <div className="flex flex-col py-4 border-b border-slate-50 last:border-none group">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{label.replace(/_/g, ' ')}</span>
+                    <div className="space-y-4">
+                        {value.map((item: any, idx: number) => (
+                            <div key={idx} className="bg-slate-50 p-4 rounded-xl space-y-2">
+                                {Object.entries(item).map(([k, v]) => (
+                                    <div key={k} className="flex justify-between items-center text-xs">
+                                        <span className="text-slate-500 uppercase tracking-tighter">{k.replace(/_/g, ' ')}</span>
+                                        <span className="font-bold text-slate-800">{String(v)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+    }
     
     let displayValue = '';
     if (typeof value === 'boolean') {
@@ -59,6 +84,563 @@ const FindingItem = ({ label, value }: { label: string; value: any }) => {
     );
 };
 
+const PAST_HISTORY_QUESTIONS = [
+    {
+        "section": "psychiatric_past",
+        "title": "Psychiatric History",
+        "questions": [
+            {
+                "key": "previous_diagnosis",
+                "professional_label": "Prior Psychiatric Diagnoses",
+                "patient_label": "Past Diagnoses",
+                "type": "multiselect",
+                "options": [
+                    "Depression",
+                    "Anxiety",
+                    "Bipolar",
+                    "Schizophrenia",
+                    "PTSD",
+                    "OCD",
+                    "ADHD",
+                    "Eating Disorder",
+                    "Personality Disorder",
+                    "Other"
+                ],
+                "allow_custom": true,
+                "label": "Prior Psychiatric Diagnoses"
+            },
+            {
+                "key": "hospitalizations",
+                "professional_label": "Prior Psychiatric Hospitalizations",
+                "patient_label": "Prior Hospital Stays",
+                "type": "array",
+                "item_structure": [
+                    {
+                        "key": "year",
+                        "label": "Year",
+                        "type": "text"
+                    },
+                    {
+                        "key": "reason",
+                        "label": "Reason",
+                        "type": "text"
+                    },
+                    {
+                        "key": "location",
+                        "label": "Location",
+                        "type": "text"
+                    },
+                    {
+                        "key": "duration",
+                        "label": "Duration",
+                        "type": "text"
+                    }
+                ],
+                "label": "Prior Psychiatric Hospitalizations"
+            },
+            {
+                "key": "suicide_attempts",
+                "professional_label": "Suicide Attempts / Self-Harm History",
+                "patient_label": "History of Self-Harm",
+                "type": "array",
+                "item_structure": [
+                    {
+                        "key": "year",
+                        "label": "Year",
+                        "type": "text"
+                    },
+                    {
+                        "key": "method",
+                        "label": "Method",
+                        "type": "text"
+                    },
+                    {
+                        "key": "intent",
+                        "label": "Intent",
+                        "type": "text"
+                    }
+                ],
+                "label": "Suicide Attempts / Self-Harm History"
+            },
+            {
+                "key": "medication_trials",
+                "professional_label": "Medication History",
+                "patient_label": "Past Medications",
+                "type": "array",
+                "item_structure": [
+                    {
+                        "key": "name",
+                        "label": "Medication Name",
+                        "type": "text"
+                    },
+                    {
+                        "key": "dose",
+                        "label": "Dose",
+                        "type": "text"
+                    },
+                    {
+                        "key": "duration",
+                        "label": "How long?",
+                        "type": "text"
+                    },
+                    {
+                        "key": "response",
+                        "label": "Response (Helpful?)",
+                        "type": "text"
+                    },
+                    {
+                        "key": "side_effects",
+                        "label": "Side Effects",
+                        "type": "text"
+                    }
+                ],
+                "label": "Medication History"
+            },
+            {
+                "key": "psychotherapy_history",
+                "professional_label": "Psychotherapy History",
+                "patient_label": "History of Therapy",
+                "type": "textarea",
+                "placeholder": "Types of therapy, duration, and helpfulness",
+                "label": "Psychotherapy History"
+            }
+        ]
+    },
+    {
+        "section": "medical_surgical",
+        "title": "Medical & Surgical History",
+        "questions": [
+            {
+                "key": "chronic_conditions",
+                "professional_label": "Chronic Medical Conditions",
+                "patient_label": "Ongoing Health Issues",
+                "type": "multiselect",
+                "options": [
+                    "Hypertension",
+                    "Diabetes",
+                    "Thyroid Disorder",
+                    "Seizures",
+                    "Asthma",
+                    "Heart Disease",
+                    "Migraines",
+                    "Chronic Pain",
+                    "None"
+                ],
+                "allow_custom": true,
+                "label": "Chronic Medical Conditions"
+            },
+            {
+                "key": "surgeries",
+                "professional_label": "Surgical History",
+                "patient_label": "Past Operations",
+                "type": "array",
+                "item_structure": [
+                    {
+                        "key": "procedure",
+                        "label": "Procedure",
+                        "type": "text"
+                    },
+                    {
+                        "key": "year",
+                        "label": "Year",
+                        "type": "text"
+                    }
+                ],
+                "label": "Surgical History"
+            },
+            {
+                "key": "head_injury",
+                "professional_label": "History of Head Injury",
+                "patient_label": "Any Head Injuries?",
+                "type": "boolean_group",
+                "fields": [
+                    {
+                        "key": "detected",
+                        "label": "Have you ever had a head injury?",
+                        "type": "boolean"
+                    },
+                    {
+                        "key": "loss_of_consciousness",
+                        "label": "Did you lose consciousness?",
+                        "type": "boolean"
+                    },
+                    {
+                        "key": "details",
+                        "label": "Details",
+                        "type": "text"
+                    }
+                ],
+                "label": "History of Head Injury"
+            },
+            {
+                "key": "seizures",
+                "professional_label": "Seizure History",
+                "patient_label": "History of Seizures",
+                "type": "boolean_group",
+                "fields": [
+                    {
+                        "key": "detected",
+                        "label": "Ever had a seizure?",
+                        "type": "boolean"
+                    },
+                    {
+                        "key": "frequency",
+                        "label": "Frequency",
+                        "type": "text"
+                    },
+                    {
+                        "key": "last_seizure",
+                        "label": "Last Seizure Date",
+                        "type": "text"
+                    }
+                ],
+                "label": "Seizure History"
+            },
+            {
+                "key": "allergies",
+                "professional_label": "Allergies",
+                "patient_label": "Allergies",
+                "type": "multiselect",
+                "options": [
+                    "Drug Allergies",
+                    "Food Allergies",
+                    "Environmental Allergies",
+                    "Latex",
+                    "None"
+                ],
+                "allow_custom": true,
+                "label": "Allergies"
+            }
+        ]
+    },
+    {
+        "section": "family_history",
+        "title": "Family History",
+        "questions": [
+            {
+                "key": "conditions",
+                "professional_label": "Family Mental Health / Substance History",
+                "patient_label": "Family Health History",
+                "type": "array",
+                "item_structure": [
+                    {
+                        "key": "relative",
+                        "label": "Relative (e.g. Mother)",
+                        "type": "text"
+                    },
+                    {
+                        "key": "condition",
+                        "label": "Condition (e.g. Bipolar)",
+                        "type": "text"
+                    },
+                    {
+                        "key": "outcome",
+                        "label": "Outcome/Notes",
+                        "type": "text"
+                    }
+                ],
+                "label": "Family Mental Health / Substance History"
+            },
+            {
+                "key": "suicide_in_family",
+                "professional_label": "Family History of Suicide",
+                "patient_label": "Family History of Suicide",
+                "type": "boolean",
+                "label": "Family History of Suicide"
+            },
+            {
+                "key": "substance_abuse_in_family",
+                "professional_label": "Family History of Substance Abuse",
+                "patient_label": "Family History of Drug/Alcohol Problems",
+                "type": "boolean",
+                "label": "Family History of Substance Abuse"
+            }
+        ]
+    },
+    {
+        "section": "substance_history",
+        "title": "Substance Use History",
+        "questions": [
+            {
+                "key": "alcohol",
+                "professional_label": "Alcohol Use",
+                "patient_label": "Alcohol consumption",
+                "type": "boolean_group",
+                "fields": [
+                    {
+                        "key": "status",
+                        "label": "Current Status",
+                        "type": "select",
+                        "options": [
+                            "Current",
+                            "Past",
+                            "Never"
+                        ]
+                    },
+                    {
+                        "key": "quantity",
+                        "label": "Quantity (drinks/week)",
+                        "type": "text"
+                    },
+                    {
+                        "key": "frequency",
+                        "label": "Frequency",
+                        "type": "text"
+                    },
+                    {
+                        "key": "last_use",
+                        "label": "Last Drink",
+                        "type": "text"
+                    }
+                ],
+                "label": "Alcohol Use"
+            },
+            {
+                "key": "tobacco_nicotine",
+                "professional_label": "Tobacco / Nicotine",
+                "patient_label": "Smoking / Vaping",
+                "type": "boolean_group",
+                "fields": [
+                    {
+                        "key": "status",
+                        "label": "Status",
+                        "type": "select",
+                        "options": [
+                            "Current",
+                            "Past",
+                            "Never"
+                        ]
+                    },
+                    {
+                        "key": "type",
+                        "label": "Type",
+                        "type": "text"
+                    },
+                    {
+                        "key": "quantity",
+                        "label": "Pack years / daily use",
+                        "type": "text"
+                    }
+                ],
+                "label": "Tobacco / Nicotine"
+            },
+            {
+                "key": "illicit_drugs",
+                "professional_label": "Illicit Drug Use",
+                "patient_label": "Recreational Drugs",
+                "type": "array",
+                "item_structure": [
+                    {
+                        "key": "drug",
+                        "label": "Drug Name",
+                        "type": "text"
+                    },
+                    {
+                        "key": "status",
+                        "label": "Status",
+                        "type": "select",
+                        "options": [
+                            "Current",
+                            "Past"
+                        ]
+                    },
+                    {
+                        "key": "frequency",
+                        "label": "Frequency",
+                        "type": "text"
+                    },
+                    {
+                        "key": "last_use",
+                        "label": "Last Use",
+                        "type": "text"
+                    }
+                ],
+                "label": "Illicit Drug Use"
+            },
+            {
+                "key": "caffeine",
+                "professional_label": "Caffeine Intake",
+                "patient_label": "Daily Caffeine",
+                "type": "text",
+                "label": "Caffeine Intake"
+            },
+            {
+                "key": "prescription_misuse",
+                "professional_label": "Prescription Misuse",
+                "patient_label": "Misuse of prescribed meds?",
+                "type": "text",
+                "label": "Prescription Misuse"
+            }
+        ]
+    },
+    {
+        "section": "developmental_history",
+        "title": "Developmental History",
+        "questions": [
+            {
+                "key": "pregnancy_complications",
+                "professional_label": "Birth/Pregnancy Complications",
+                "patient_label": "Birth Issues",
+                "type": "text",
+                "label": "Birth/Pregnancy Complications"
+            },
+            {
+                "key": "delivery_type",
+                "professional_label": "Delivery Type",
+                "type": "select",
+                "options": [
+                    "Normal",
+                    "C-Section",
+                    "Forceps",
+                    "Other"
+                ],
+                "label": "Delivery Type"
+            },
+            {
+                "key": "milestones",
+                "professional_label": "Developmental Milestones",
+                "type": "select",
+                "options": [
+                    "On-time",
+                    "Delayed",
+                    "Early"
+                ],
+                "label": "Developmental Milestones"
+            },
+            {
+                "key": "childhood_behavior",
+                "professional_label": "Childhood Behavior/Temperament",
+                "type": "text",
+                "label": "Childhood Behavior/Temperament"
+            },
+            {
+                "key": "school_performance",
+                "professional_label": "Academic Performance",
+                "type": "text",
+                "label": "Academic Performance"
+            }
+        ]
+    },
+    {
+        "section": "social_history",
+        "title": "Personal & Social History",
+        "questions": [
+            {
+                "key": "education",
+                "professional_label": "Highest Education",
+                "type": "select",
+                "options": [
+                    "Primary",
+                    "High School",
+                    "Vocational",
+                    "Undergraduate",
+                    "Graduate",
+                    "Doctorate"
+                ],
+                "label": "Highest Education"
+            },
+            {
+                "key": "employment",
+                "professional_label": "Current Employment",
+                "type": "text",
+                "label": "Current Employment"
+            },
+            {
+                "key": "marital_status",
+                "professional_label": "Relationship Status",
+                "type": "select",
+                "options": [
+                    "Single",
+                    "Married",
+                    "Partnered",
+                    "Divorced",
+                    "Widowed"
+                ],
+                "label": "Relationship Status"
+            },
+            {
+                "key": "living_situation",
+                "professional_label": "Living Situation",
+                "type": "text",
+                "label": "Living Situation"
+            },
+            {
+                "key": "legal_history",
+                "professional_label": "Legal History",
+                "patient_label": "Any Legal Issues?",
+                "type": "boolean_group",
+                "fields": [
+                    {
+                        "key": "legal_issues",
+                        "label": "Any Legal Issues?",
+                        "type": "boolean"
+                    },
+                    {
+                        "key": "legal_details",
+                        "label": "Details",
+                        "type": "text"
+                    }
+                ],
+                "label": "Legal History"
+            },
+            {
+                "key": "spiritual_beliefs",
+                "professional_label": "Spiritual/Cultural Beliefs",
+                "type": "text",
+                "label": "Spiritual/Cultural Beliefs"
+            },
+            {
+                "key": "strengths_hobbies",
+                "professional_label": "Strengths & Hobbies",
+                "type": "text",
+                "label": "Strengths & Hobbies"
+            }
+        ]
+    },
+    {
+        "section": "trauma_history",
+        "title": "Trauma & Abuse History",
+        "questions": [
+            {
+                "key": "physical_abuse",
+                "professional_label": "History of Physical Abuse",
+                "type": "boolean",
+                "label": "History of Physical Abuse"
+            },
+            {
+                "key": "emotional_abuse",
+                "professional_label": "History of Emotional Abuse",
+                "type": "boolean",
+                "label": "History of Emotional Abuse"
+            },
+            {
+                "key": "sexual_abuse",
+                "professional_label": "History of Sexual Abuse",
+                "type": "boolean",
+                "label": "History of Sexual Abuse"
+            },
+            {
+                "key": "significant_losses",
+                "professional_label": "Significant Losses / Grief",
+                "type": "text",
+                "label": "Significant Losses / Grief"
+            },
+            {
+                "key": "military_service",
+                "professional_label": "Military Service History",
+                "type": "boolean",
+                "label": "Military Service History"
+            },
+            {
+                "key": "trauma_notes",
+                "professional_label": "Additional Trauma Notes",
+                "type": "textarea",
+                "label": "Additional Trauma Notes"
+            }
+        ]
+    }
+] as any;
+
 const PastHistoryPage = () => {
     const { patientId: userId, historyId } = useParams<{ patientId: string; historyId?: string }>();
     const navigate = useNavigate();
@@ -68,26 +650,62 @@ const PastHistoryPage = () => {
                       (currentUser as any)?.group === 'PATIENT' ||
                       (currentUser as any)?.group === 'patient';
     
-    const [sections, setSections] = useState<PastHistorySection[]>([]);
+    const [sections, setSections] = useState<PastHistorySection[]>(PAST_HISTORY_QUESTIONS);
     const [currentStep, setCurrentStep] = useState(0);
     const [responses, setResponses] = useState<Record<string, any>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<PastHistoryResponse | null>(null);
-    const [patient, setPatient] = useState<any>(null);
+    
+    // AI Assistant State
+    const [useAssistant, setUseAssistant] = useState(false);
+    const [narrative, setNarrative] = useState('');
+    const [isExtracting, setIsExtracting] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const recognitionRef = React.useRef<any>(null);
+
+    useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = true;
+            recognitionRef.current.interimResults = true;
+
+            recognitionRef.current.onresult = (event: any) => {
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        setNarrative(prev => prev + ' ' + event.results[i][0].transcript);
+                    }
+                }
+            };
+            recognitionRef.current.onend = () => setIsRecording(false);
+        }
+    }, []);
+
+    const toggleRecording = () => {
+        if (!recognitionRef.current) return alert('Voice recognition not supported.');
+        if (isRecording) {
+            recognitionRef.current.stop();
+        } else {
+            recognitionRef.current.start();
+            setIsRecording(true);
+        }
+    };
 
     useEffect(() => {
         const fetchQuestionnaire = async () => {
             try {
                 const res = await PastHistoryService.getQuestions();
                 const data = res.data || res;
-                if (Array.isArray(data)) {
+                if (Array.isArray(data) && data.length > 0) {
                     setSections(data);
+                } else {
+                    console.warn('[PastHistory] API returned empty questions, using defaults.');
                 }
             } catch (err) {
                 console.error('Failed to fetch Past History questionnaire:', err);
-                setError('Failed to load questionnaire components.');
+                // We keep the defaults set in useState
             }
         };
 
@@ -102,27 +720,22 @@ const PastHistoryPage = () => {
                     }
                 }
 
-                // 1. Resolve Identity
                 let hexId = userId;
                 if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
                     hexId = currentUser?._id || currentUser?.id || hexId;
-                    if (currentUser) setPatient(currentUser);
                 } else if (userId && userId !== 'undefined') {
                     try {
                         const userProfile = await UserService.getUserById(userId);
                         if (userProfile) {
                             hexId = userProfile._id || userProfile.id || hexId;
-                            setPatient(userProfile);
                         }
                     } catch (e) {
                         console.warn('[PastHistory] Profile fetch failed:', e);
                     }
                 }
 
-                // 2. Fetch Questionnaire
                 await fetchQuestionnaire();
 
-                // 3. Fetch Existing Record if ID provided
                 if (historyId) {
                     const res = await PastHistoryService.getPastHistoryById(historyId!);
                     const data = res.data || res;
@@ -130,11 +743,7 @@ const PastHistoryPage = () => {
                 }
             } catch (err: any) {
                 console.error('[PastHistory] Fetch failed:', err);
-                if (isPatient && err.response?.status === 403) {
-                    setError('You do not have permission to view this clinical record.');
-                } else {
-                    setError('Could not load clinical history components. Please check connectivity.');
-                }
+                setError('Could not load clinical history components.');
             } finally {
                 setIsLoading(false);
             }
@@ -171,681 +780,432 @@ const PastHistoryPage = () => {
         });
     };
 
-    const THEMES: Record<string, any> = {
-        indigo: {
-            active: 'bg-indigo-600 border-indigo-600 text-white',
-            done: 'bg-indigo-50 border-indigo-100 text-indigo-700',
-            iconActive: 'text-white',
-            iconDone: 'text-indigo-600',
-            dot: 'bg-indigo-500',
-            bgSoft: 'bg-indigo-50',
-            textSoft: 'text-indigo-600',
-            borderSoft: 'border-indigo-100',
-            borderFocus: 'focus:border-indigo-500',
-            hoverBorder: 'hover:border-indigo-200',
-            shadow: 'ring-indigo-400/20'
-        },
-        rose: {
-            active: 'bg-rose-600 border-rose-600 text-white',
-            done: 'bg-rose-50 border-rose-100 text-rose-700',
-            iconActive: 'text-white',
-            iconDone: 'text-rose-600',
-            dot: 'bg-rose-500',
-            bgSoft: 'bg-rose-50',
-            textSoft: 'text-rose-600',
-            borderSoft: 'border-rose-100',
-            borderFocus: 'focus:border-rose-500',
-            hoverBorder: 'hover:border-rose-200',
-            shadow: 'ring-rose-400/20'
-        },
-        amber: {
-            active: 'bg-amber-600 border-amber-600 text-white',
-            done: 'bg-amber-50 border-amber-100 text-amber-700',
-            iconActive: 'text-white',
-            iconDone: 'text-amber-600',
-            dot: 'bg-amber-500',
-            bgSoft: 'bg-amber-50',
-            textSoft: 'text-amber-600',
-            borderSoft: 'border-amber-100',
-            borderFocus: 'focus:border-amber-500',
-            hoverBorder: 'hover:border-amber-200',
-            shadow: 'ring-amber-400/20'
-        },
-        emerald: {
-            active: 'bg-emerald-600 border-emerald-600 text-white',
-            done: 'bg-emerald-50 border-emerald-100 text-emerald-700',
-            iconActive: 'text-white',
-            iconDone: 'text-emerald-600',
-            dot: 'bg-emerald-500',
-            bgSoft: 'bg-emerald-50',
-            textSoft: 'text-emerald-600',
-            borderSoft: 'border-emerald-100',
-            borderFocus: 'focus:border-emerald-500',
-            hoverBorder: 'hover:border-emerald-200',
-            shadow: 'ring-emerald-400/20'
+    const handleArrayAdd = (section: string, key: string, structure: any[]) => {
+        setResponses(prev => {
+            const currentSection = prev[section] || {};
+            const currentArr = Array.isArray(currentSection[key]) ? [...currentSection[key]] : [];
+            const newItem = structure.reduce((acc, field) => ({ ...acc, [field.key]: '' }), {});
+            
+            return {
+                ...prev,
+                [section]: {
+                    ...currentSection,
+                    [key]: [...currentArr, newItem]
+                }
+            };
+        });
+    };
+
+    const handleArrayItemChange = (section: string, key: string, index: number, fieldKey: string, value: any) => {
+        setResponses(prev => {
+            const currentSection = prev[section] || {};
+            const currentArr = Array.isArray(currentSection[key]) ? [...currentSection[key]] : [];
+            const updatedItem = { ...currentArr[index], [fieldKey]: value };
+            const newArr = [...currentArr];
+            newArr[index] = updatedItem;
+            
+            return {
+                ...prev,
+                [section]: {
+                    ...currentSection,
+                    [key]: newArr
+                }
+            };
+        });
+    };
+
+    const handleArrayRemove = (section: string, key: string, index: number) => {
+        setResponses(prev => {
+            const currentSection = prev[section] || {};
+            const currentArr = Array.isArray(currentSection[key]) ? [...currentSection[key]] : [];
+            const newArr = currentArr.filter((_, i) => i !== index);
+            
+            return {
+                ...prev,
+                [section]: {
+                    ...currentSection,
+                    [key]: newArr
+                }
+            };
+        });
+    };
+
+    const handleBooleanGroupChange = (section: string, key: string, fieldKey: string, value: any) => {
+        setResponses(prev => {
+            const currentSection = prev[section] || {};
+            const currentGroup = currentSection[key] || {};
+            
+            return {
+                ...prev,
+                [section]: {
+                    ...currentSection,
+                    [key]: {
+                        ...currentGroup,
+                        [fieldKey]: value
+                    }
+                }
+            };
+        });
+    };
+
+    const handleNarrativeExtract = async () => {
+        if (!narrative.trim() || narrative.length < 20) {
+            setError('Please provide a more detailed narrative (min 20 chars).');
+            return;
+        }
+
+        setIsExtracting(true);
+        setError(null);
+        try {
+            const activeId = userId || currentUser?._id || currentUser?.id;
+            const res = await PastHistoryService.extractFromNarrative(narrative, activeId!);
+            const data = (res as any).data || res;
+            
+            const newResponses: Record<string, any> = {};
+            sections.forEach(s => {
+                const sectionData = (data as any)[s.section];
+                if (sectionData) newResponses[s.section] = sectionData;
+            });
+            
+            setResponses(newResponses);
+            setUseAssistant(false);
+            setCurrentStep(0);
+        } catch (err) {
+            console.error('AI Extraction failed:', err);
+            setError('AI extraction failed. Please enter data manually.');
+        } finally {
+            setIsExtracting(false);
         }
     };
 
-    const getSectionColor = (section: string) => {
-        switch (section?.toLowerCase()) {
-            case 'psychiatric_history': return 'indigo';
-            case 'medical_history': return 'rose';
-            case 'substance_use': return 'amber';
-            case 'family_history': return 'emerald';
-            default: return 'indigo';
-        }
+    const THEMES: Record<string, any> = {
+        indigo: { active: 'bg-indigo-600 border-indigo-600 text-white', done: 'bg-indigo-50 border-indigo-100 text-indigo-700', iconActive: 'text-white', iconDone: 'text-indigo-600', dot: 'bg-indigo-500', bgSoft: 'bg-indigo-50', textSoft: 'text-indigo-600', borderSoft: 'border-indigo-100', borderFocus: 'focus:border-indigo-500', hoverBorder: 'hover:border-indigo-200', shadow: 'ring-indigo-400/20' },
+        rose: { active: 'bg-rose-600 border-rose-600 text-white', done: 'bg-rose-50 border-rose-100 text-rose-700', iconActive: 'text-white', iconDone: 'text-rose-600', dot: 'bg-rose-500', bgSoft: 'bg-rose-50', textSoft: 'text-rose-600', borderSoft: 'border-rose-100', borderFocus: 'focus:border-rose-500', hoverBorder: 'hover:border-rose-200', shadow: 'ring-rose-400/20' },
+        amber: { active: 'bg-amber-600 border-amber-600 text-white', done: 'bg-amber-50 border-amber-100 text-amber-700', iconActive: 'text-white', iconDone: 'text-amber-600', dot: 'bg-amber-500', bgSoft: 'bg-amber-50', textSoft: 'text-amber-600', borderSoft: 'border-amber-100', borderFocus: 'focus:border-amber-500', hoverBorder: 'hover:border-amber-200', shadow: 'ring-amber-400/20' },
+        emerald: { active: 'bg-emerald-600 border-emerald-600 text-white', done: 'bg-emerald-50 border-emerald-100 text-emerald-700', iconActive: 'text-white', iconDone: 'text-emerald-600', dot: 'bg-emerald-500', bgSoft: 'bg-emerald-50', textSoft: 'text-emerald-600', borderSoft: 'border-emerald-100', borderFocus: 'focus:border-emerald-500', hoverBorder: 'hover:border-emerald-200', shadow: 'ring-emerald-400/20' }
     };
 
     const getTheme = (section: string) => {
-        const color = getSectionColor(section);
-        return THEMES[color] || THEMES.indigo;
+        const colors: Record<string, string> = { 
+            psychiatric_past: 'indigo', 
+            medical_surgical: 'rose', 
+            substance_history: 'amber', 
+            family_history: 'emerald',
+            developmental_history: 'indigo',
+            social_history: 'emerald',
+            trauma_history: 'rose'
+        };
+        return THEMES[colors[section.toLowerCase()] || 'indigo'];
     };
 
     const getSectionIcon = (section: string) => {
-        switch (section?.toLowerCase()) {
-            case 'psychiatric_history': return <Brain size={18} />;
-            case 'medical_history': return <Activity size={18} />;
-            case 'substance_use': return <Zap size={18} />;
+        switch (section.toLowerCase()) {
+            case 'psychiatric_past': return <Brain size={18} />;
+            case 'medical_surgical': return <Activity size={18} />;
+            case 'substance_history': return <Zap size={18} />;
             case 'family_history': return <Users size={18} />;
-            default: return <ClipboardList size={18} />; // Changed from History to ClipboardList as History was removed
+            case 'developmental_history': return <Sparkles size={18} />;
+            case 'social_history': return <FileText size={18} />;
+            case 'trauma_history': return <Shield size={18} />;
+            default: return <ClipboardList size={18} />;
         }
     };
 
     const handleSubmit = async () => {
         setIsSaving(true);
         setError(null);
-        
         try {
-            // Resolve Hex ID
             let hexId = userId || currentUser?._id || currentUser?.id;
-            
-            if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
-                hexId = currentUser?._id || currentUser?.id || hexId;
-                console.log(`[PastHistory] Using session identity for submission: ${hexId}`);
-            } else if (userId && userId !== 'undefined') {
-                try {
-                    const userProfile = await UserService.getUserById(userId);
-                    if (userProfile) {
-                        hexId = userProfile._id || userProfile.id || hexId;
-                        console.log(`[PastHistory] Resolved Hex ID for submission: ${hexId}`);
-                    }
-                } catch (profileError) {
-                    console.warn('[PastHistory] Profile lookup failed, using parameter ID:', profileError);
-                }
-            }
+            if (!hexId) throw new Error('Patient identity missing.');
 
-            if (!hexId) throw new Error('Patient identity could not be verified.');
-
-            const flattenedResponses: { questionCode: string; value: any }[] = [];
-            
-            Object.values(responses).forEach((sectionData) => {
-                Object.entries(sectionData).forEach(([questionKey, value]) => {
-                    if (value !== undefined && value !== null && value !== '') {
-                        if (Array.isArray(value) && value.length === 0) return;
-                        flattenedResponses.push({ questionCode: questionKey, value });
-                    }
+            const flattenedResponses: any[] = [];
+            Object.values(responses).forEach(sData => {
+                Object.entries(sData).forEach(([qKey, val]) => {
+                    if (val !== undefined && val !== null && val !== '') flattenedResponses.push({ questionCode: qKey, value: val });
                 });
             });
 
-            if (flattenedResponses.length === 0) {
-                throw new Error('Please enter clinical history data before submitting.');
-            }
+            if (flattenedResponses.length === 0) throw new Error('Please enter history data.');
 
-            const res = await PastHistoryService.createPastHistory({
-                patient_id: hexId!,
-                responses: flattenedResponses
-            });
-            
-            const responseData = (res as any).data || res;
-            setResult(responseData as PastHistoryResponse);
+            const res = await PastHistoryService.createPastHistory({ patient_id: hexId, responses: flattenedResponses });
+            setResult((res as any).data || res);
         } catch (err: any) {
-            console.error('Failed to save Past History:', err);
-            setError(err.response?.data?.message || err.message || 'Failed to save clinical history.');
-        } finally {
-            setIsSaving(false);
-        }
+            setError(err.message || 'Failed to save clinical history.');
+        } finally { setIsSaving(false); }
     };
 
-
-    const navigateBack = () => {
-        if (currentUser?.role === 'patient' || (currentUser as any)?.group === 'PATIENT') {
-            navigate('/records');
-        } else {
-            navigate(`/patients/${userId}/health`);
-        }
-    };
+    const navigateBack = () => navigate(isPatient ? '/records' : `/patients/${userId}/health`);
 
     const renderQuestion = (section: string, question: any) => {
         const value = responses[section]?.[question.key];
         const theme = getTheme(section);
+        const labelText = question.patient_label || question.professional_label || question.label || question.key;
 
         switch (question.type) {
             case 'select':
-                return (
-                    <div className="grid grid-cols-2 gap-3 mt-4">
-                        {question.options?.map((option: string) => (
-                            <button
-                                key={option}
-                                onClick={() => handleValueChange(section, question.key, option)}
-                                className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                                    value === option 
-                                    ? theme.active 
-                                    : `bg-slate-50 border-transparent text-slate-600 ${theme.hoverBorder}`
-                                }`}
-                            >
-                                <span className="text-xs font-black uppercase tracking-tight">{option}</span>
-                            </button>
-                        ))}
-                    </div>
-                );
-
             case 'multiselect':
                 return (
-                    <div className="grid grid-cols-2 gap-3 mt-4">
-                        {question.options?.map((option: string) => {
-                            const isSelected = Array.isArray(value) && value.includes(option);
-                            return (
-                                <button
-                                    key={option}
-                                    onClick={() => handleMultiselectToggle(section, question.key, option)}
-                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                                        isSelected 
-                                        ? theme.active 
-                                        : `bg-slate-50 border-transparent text-slate-600 ${theme.hoverBorder}`
-                                    }`}
-                                >
-                                    <span className="text-xs font-black uppercase tracking-tight">{option}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                );
-
-            case 'boolean':
-                return (
-                    <div className="space-y-4 mt-4">
-                        <div className="flex gap-4">
-                            {[true, false].map(v => (
-                                <button
-                                    key={v ? 'Yes' : 'No'}
-                                    onClick={() => handleValueChange(section, question.key, v)}
-                                    className={`flex-1 p-4 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] ${
-                                        value === v 
-                                        ? (v ? theme.active : 'bg-slate-800 border-slate-800 text-white')
-                                        : 'bg-slate-50 border-transparent text-slate-400'
-                                    }`}
-                                >
-                                    {v ? 'Yes / Present' : 'No / Denied'}
-                                </button>
-                            ))}
+                    <div className="space-y-4 mt-2">
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                            {question.options?.map((opt: string) => {
+                                const isSel = question.type === 'select' ? value === opt : (Array.isArray(value) && value.includes(opt));
+                                return (
+                                    <button key={opt} onClick={() => question.type === 'select' ? handleValueChange(section, question.key, opt) : handleMultiselectToggle(section, question.key, opt)}
+                                        className={`p-4 rounded-2xl border-2 text-left transition-all relative overflow-hidden group/opt ${isSel ? theme.active + ' shadow-lg shadow-indigo-100' : `bg-slate-50 border-slate-50/50 text-slate-500 hover:border-indigo-200 hover:bg-white`}`}>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-black uppercase tracking-tight">{opt}</span>
+                                            {isSel && <CheckCircle2 size={14} className="opacity-80" />}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
-                        {value === true && question.follow_up && (
-                            <motion.div 
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                className={`pl-6 border-l-4 ${theme.borderSoft} space-y-6 mt-4`}
-                            >
-                                {question.follow_up.map((fu: any) => (
-                                    <div key={fu.key} className="space-y-3">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{fu.label}</p>
-                                        {renderQuestion(section, fu)}
-                                    </div>
-                                ))}
-                            </motion.div>
+                        {question.allow_custom && (
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    placeholder="Add other..." 
+                                    className="px-4 py-2 bg-slate-50 border-2 border-transparent rounded-xl text-xs font-bold focus:bg-white focus:border-indigo-300 outline-none transition-all flex-1"
+                                    onKeyDown={(e: any) => {
+                                        if (e.key === 'Enter' && e.target.value.trim()) {
+                                            handleMultiselectToggle(section, question.key, e.target.value.trim());
+                                            e.target.value = '';
+                                        }
+                                    }}
+                                />
+                            </div>
                         )}
                     </div>
                 );
-
+            case 'boolean':
+                return (
+                    <div className="space-y-4 mt-2">
+                        <div className="flex gap-4">
+                            {[true, false].map(v => (
+                                <button key={v ? 'y' : 'n'} onClick={() => handleValueChange(section, question.key, v)}
+                                    className={`flex-1 p-4 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 ${value === v ? (v ? theme.active : 'bg-slate-800 border-slate-800 text-white') : 'bg-slate-50 border-transparent text-slate-400'}`}>
+                                    {v ? 'Confirmed' : 'Denied'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            case 'textarea':
+                return (
+                    <textarea 
+                        value={value || ''} 
+                        onChange={e => handleValueChange(section, question.key, e.target.value)} 
+                        placeholder={question.placeholder || "Enter details..."}
+                        className={`w-full min-h-[120px] p-6 bg-slate-50 border-2 border-transparent rounded-3xl text-sm font-bold text-slate-700 focus:bg-white focus:border-indigo-300 outline-none transition-all resize-none mt-2`} 
+                    />
+                );
             case 'text':
                 return (
-                    <div className="mt-4">
-                        <textarea
-                            value={value || ''}
-                            onChange={(e) => handleValueChange(section, question.key, e.target.value)}
-                            placeholder={question.placeholder}
-                            className={`w-full min-h-[100px] p-6 bg-slate-50 border-2 border-transparent rounded-3xl text-sm font-medium ${theme.borderFocus} focus:bg-white outline-none transition-all resize-none font-bold`}
-                        />
-                    </div>
+                    <input 
+                        type="text"
+                        value={value || ''} 
+                        onChange={e => handleValueChange(section, question.key, e.target.value)} 
+                        placeholder={question.placeholder || "Describe..."}
+                        className={`w-full p-6 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:border-indigo-300 outline-none transition-all mt-2`} 
+                    />
                 );
-
-            case 'number':
+            case 'boolean_group':
                 return (
-                    <div className="mt-4 flex items-center gap-6">
-                        <input
-                            type="number"
-                            value={value || ''}
-                            min={question.min}
-                            max={question.max}
-                            onChange={(e) => handleValueChange(section, question.key, e.target.value)}
-                            placeholder={question.placeholder}
-                            className={`w-32 p-5 bg-slate-50 border-2 border-transparent rounded-[1.5rem] text-sm font-black ${theme.borderFocus} focus:bg-white outline-none transition-all shadow-sm`}
-                        />
+                    <div className={`space-y-6 mt-4 p-6 bg-slate-50/50 rounded-3xl border border-slate-100`}>
+                        {question.fields?.map((f: any) => (
+                            <div key={f.key} className="space-y-3">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">{f.label}</label>
+                                {f.type === 'boolean' ? (
+                                    <div className="flex gap-2">
+                                        {[true, false].map(boolVal => {
+                                            const isSel = responses[section]?.[question.key]?.[f.key] === boolVal;
+                                            return (
+                                                <button key={boolVal ? 'y' : 'n'} 
+                                                    onClick={() => handleBooleanGroupChange(section, question.key, f.key, boolVal)}
+                                                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isSel ? (boolVal ? theme.active : 'bg-slate-600 border-slate-600 text-white') : 'bg-white border-slate-100 text-slate-400 border-2 hover:border-indigo-200'}`}>
+                                                    {boolVal ? 'Yes' : 'No'}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="bg-white rounded-xl overflow-hidden border border-slate-100">
+                                        {f.type === 'select' ? (
+                                            <select 
+                                                value={responses[section]?.[question.key]?.[f.key] || ''}
+                                                onChange={e => handleBooleanGroupChange(section, question.key, f.key, e.target.value)}
+                                                className="w-full p-3 text-xs font-bold text-slate-700 outline-none bg-transparent"
+                                            >
+                                                <option value="">Select Option</option>
+                                                {f.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        ) : (
+                                            <input 
+                                                type="text" 
+                                                placeholder={f.label}
+                                                value={responses[section]?.[question.key]?.[f.key] || ''}
+                                                onChange={e => handleBooleanGroupChange(section, question.key, f.key, e.target.value)}
+                                                className="w-full p-3 text-xs font-bold text-slate-700 outline-none bg-transparent"
+                                            />
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 );
-
-            case 'date':
+            case 'array':
+                const items = responses[section]?.[question.key] || [];
                 return (
-                    <div className="mt-4 flex items-center gap-6">
-                        <input
-                            type="date"
-                            value={value || ''}
-                            onChange={(e) => handleValueChange(section, question.key, e.target.value)}
-                            className={`p-5 bg-slate-50 border-2 border-transparent rounded-[1.5rem] text-sm font-black ${theme.borderFocus} focus:bg-white outline-none transition-all shadow-sm text-slate-700`}
-                        />
+                    <div className="space-y-4 mt-4">
+                        <div className="space-y-3">
+                            {items.map((item: any, idx: number) => (
+                                <div key={idx} className="bg-white border-2 border-slate-100 rounded-3xl p-6 relative group/row hover:border-indigo-100 transition-all">
+                                    <button 
+                                        onClick={() => handleArrayRemove(section, question.key, idx)}
+                                        className="absolute -top-2 -right-2 w-8 h-8 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all shadow-lg hover:bg-rose-600"
+                                    >
+                                        <AlertCircle size={14} />
+                                    </button>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {question.item_structure?.map((field: any) => (
+                                            <div key={field.key} className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">{field.label}</label>
+                                                {field.type === 'select' ? (
+                                                    <select 
+                                                        value={item[field.key] || ''}
+                                                        onChange={e => handleArrayItemChange(section, question.key, idx, field.key, e.target.value)}
+                                                        className="w-full p-4 bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:bg-indigo-50/50 focus:ring-2 ring-indigo-200"
+                                                    >
+                                                        <option value="">Choose...</option>
+                                                        {field.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                                                    </select>
+                                                ) : (
+                                                    <input 
+                                                        type="text"
+                                                        value={item[field.key] || ''}
+                                                        onChange={e => handleArrayItemChange(section, question.key, idx, field.key, e.target.value)}
+                                                        placeholder={field.label}
+                                                        className="w-full p-4 bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:bg-indigo-50/50 focus:ring-2 ring-indigo-200"
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <button 
+                            onClick={() => handleArrayAdd(section, question.key, question.item_structure || [])}
+                            className="w-full py-4 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all font-black uppercase text-[10px] flex items-center justify-center gap-2"
+                        >
+                            <Sparkles size={14} /> Add Entry to {labelText}
+                        </button>
                     </div>
                 );
-
-            default:
-                return null;
+            default: return null;
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Compiling Historical Framework...</p>
-            </div>
-        );
-    }
+    if (isLoading) return <div className="flex flex-col items-center justify-center min-h-[60vh]"><Activity className="animate-spin text-indigo-600 mb-4" size={40} /><p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Compiling Framework...</p></div>;
 
-    if (!sections.length) {
-        return (
-            <div className="p-8 max-w-6xl space-y-10">
-                <header className="flex items-center gap-6">
-                    <button
-                        onClick={navigateBack}
-                        className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <div className="flex-1">
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                            <History className="text-indigo-600" size={32} />
-                            Past Clinical History
-                        </h1>
-                    </div>
-                </header>
-                <div className="card-premium p-20 text-center border-dashed border-slate-200 bg-slate-50/50">
-                    <Activity size={48} className="mx-auto text-slate-300 mb-6 opacity-50" />
-                    <h3 className="text-xl font-black text-slate-900 mb-2">Framework Discovery Failed</h3>
-                    <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto italic">
-                        {error || 'The clinical history questionnaire framework could not be initialized at this time.'}
-                    </p>
+    if (result) return (
+        <div className="p-8 max-w-6xl animate-fade-in pb-24 space-y-12">
+            <header className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3"><History className="text-indigo-600" size={32} />Past Clinical History</h1>
                 </div>
-            </div>
-        );
-    }
-
-    if (result) {
-        const isValueMeaningful = (v: any): boolean => {
-            if (v === null || v === undefined || v === '' || v === false || v === 'None') return false;
-            if (Array.isArray(v) && v.length === 0) return false;
-            return true;
-        };
-
-        const assessedSections = sections.filter(s => {
-            const sectionData = (result as any)[s.section];
-            if (!sectionData) return false;
-            return Object.values(sectionData).some(v => isValueMeaningful(v));
-        });
-
-        return (
-            <div className="p-8 max-w-6xl animate-fade-in pb-24 space-y-12">
-                <header className="flex items-center justify-between">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ring-indigo-100">
-                                History Analysis Complete
-                            </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest tabular-nums">
-                                ID: {userId?.slice(-8).toUpperCase()} • {new Date().toLocaleDateString()}
-                            </span>
-                        </div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                            <History className="text-indigo-600" size={32} />
-                            Past Clinical History
-                        </h1>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Identity:</span>
-                            <span className="text-xs font-bold text-indigo-600">
-                                {patient ? `${patient.firstName} ${patient.lastName || ''}` : `Patient #${userId}`}
-                            </span>
-                        </div>
+                <Button variant="primary" onClick={navigateBack} className="rounded-2xl px-8 font-black uppercase text-xs tracking-widest">Return to Profile</Button>
+            </header>
+            <section className="card-premium p-12 bg-white border-slate-100 shadow-2xl">
+                <div className="space-y-8">
+                    <div className="flex items-center gap-4 border-b pb-8">
+                        <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white"><History size={28} /></div>
+                        <div><h2 className="text-xs font-black text-indigo-500 uppercase tracking-[0.4em] mb-1">AI Clinical Extraction</h2><p className="text-xl font-black text-slate-900">Historical Profile Complete</p></div>
                     </div>
-                    <div className="flex items-center gap-4">
-
-                        <Button 
-                            variant="primary"
-                            onClick={navigateBack}
-                            className="rounded-2xl h-12 px-8 font-black uppercase text-xs tracking-widest bg-slate-900 border-none shadow-xl shadow-slate-200"
-                        >
-                            Return to Profile
-                        </Button>
+                    <div className="grid lg:grid-cols-2 gap-12">
+                        <div className="space-y-4"><h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clinical Summary</h3><p className="text-xl font-black text-slate-800 leading-relaxed italic">"{result.ai_notes || 'No overview available.'}"</p></div>
+                        <div className="bg-slate-50 p-8 rounded-[2rem]"><h3 className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-4">Risk Factors</h3><div className="flex flex-wrap gap-2">{result.risk_flags?.length ? result.risk_flags?.map((f: any, i: number) => <span key={i} className="px-3 py-1 bg-white border border-rose-100 text-rose-600 text-[10px] font-black rounded-lg uppercase">{f}</span>) : <span className="text-xs font-bold text-slate-400">No major risks identified</span>}</div></div>
                     </div>
-                </header>
-
-                <div className="grid gap-10">
-                    <section className="card-premium p-12 bg-white border-slate-100 relative overflow-hidden shadow-2xl shadow-indigo-50/50 ring-1 ring-slate-100">
-                        <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12">
-                            <Sparkles size={240} />
-                        </div>
-                        
-                        <div className="relative space-y-12">
-                            <header className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-50 pb-8">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                                        <History size={28} />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xs font-black text-indigo-500 uppercase tracking-[0.4em] mb-1">AI Clinical History Extraction</h2>
-                                        <p className="text-xl font-black text-slate-900 tracking-tight">Risk Profile & Historical Summary</p>
+                    
+                    <div className="pt-12 border-t">
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-8">Clinical Markers & Findings</h3>
+                        <div className="grid md:grid-cols-2 gap-x-12 gap-y-4">
+                            {sections.map(s => (
+                                <div key={s.section} className="space-y-4">
+                                    <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.25em] flex items-center gap-2">
+                                        {getSectionIcon(s.section)} {s.title}
+                                    </h4>
+                                    <div className="space-y-1">
+                                        {s.questions.map(q => {
+                                            const val = (result as any)[s.section]?.[q.key] || responses[s.section]?.[q.key];
+                                            return <FindingItem key={q.key} label={q.professional_label || q.label} value={val} />;
+                                        })}
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <span className="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-tight border border-rose-100 italic">
-                                        Treatment Resistance: {result.treatment_resistance_risk}
-                                    </span>
-                                </div>
-                            </header>
-
-                            <div className="grid lg:grid-cols-12 gap-12">
-                                <div className="lg:col-span-7 space-y-10">
-                                    <div className="space-y-4">
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                            <FileText size={14} />
-                                            Clinical History Notes
-                                        </h3>
-                                        <p className="text-xl font-black text-slate-800 leading-relaxed tracking-tight">
-                                            "{result.ai_notes}"
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-4 pt-8 border-t border-slate-50">
-                                        <h3 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
-                                            <Shield size={14} />
-                                            Genetic Risk Summary
-                                        </h3>
-                                        <p className="text-sm font-bold text-slate-600 leading-relaxed">
-                                            {result.genetic_risk_summary}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="lg:col-span-5 space-y-8 bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100">
-                                    <div className="space-y-6">
-                                        <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                            <AlertCircle size={14} className="text-rose-600" />
-                                            Clinical Risk Flags
-                                        </h3>
-                                        <div className="space-y-3">
-                                            {result.risk_flags?.map((item, idx) => (
-                                                <div key={idx} className="p-4 bg-white rounded-2xl border border-rose-100 shadow-sm flex items-start gap-4 group">
-                                                    <div className="w-1.5 h-6 bg-rose-500 rounded-full shrink-0" />
-                                                    <p className="text-[11px] font-black text-slate-700 leading-tight uppercase tracking-tight">{(item as any)}</p>
-                                                </div>
-                                            ))}
-                                            {(!result.risk_flags || result.risk_flags.length === 0) && (
-                                                <p className="text-[10px] font-bold text-emerald-600 bg-emerald-50 p-4 rounded-2xl border border-emerald-100 uppercase tracking-widest text-center">No immediate risk markers detected.</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <div className="grid lg:grid-cols-12 gap-10">
-                        <div className="lg:col-span-4 space-y-6">
-                            <div className="card-premium p-8 bg-emerald-50/50 border-emerald-100">
-                                <h3 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <CheckCircle2 size={14} />
-                                    Captured History ({assessedSections.length})
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {assessedSections.map(s => (
-                                        <span key={s.section} className="px-3 py-1.5 bg-white border border-emerald-200 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-tight shadow-sm">
-                                            {s.title}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="lg:col-span-8 space-y-8">
-                            <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-slate-900 rounded-full" />
-                                <h2 className="text-xs font-black text-slate-900 uppercase tracking-[0.3em] font-bold">Historical Documentation</h2>
-                            </div>
-                            
-                            <div className="grid md:grid-cols-2 gap-6">
-                                {assessedSections.map(s => {
-                                    const sectionData = (result as any)[s.section];
-                                    if (!sectionData) return null;
-                                    
-                                    return (
-                                        <div key={s.section} className="card-premium p-8 bg-white border-slate-100 group transition-all">
-                                            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-50">
-                                                <div className={`p-2 rounded-lg ${getTheme(s.section).bgSoft} ${getTheme(s.section).textSoft}`}>
-                                                    {getSectionIcon(s.section)}
-                                                </div>
-                                                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{s.title}</h3>
-                                            </div>
-                                            <div className="space-y-1">
-                                                {Object.entries(sectionData).map(([key, value]) => (
-                                                    <FindingItem key={key} label={key} value={value} />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>
-            </div>
-        );
-    }
+            </section>
+        </div>
+    );
 
     const currentSection = sections[currentStep];
 
     return (
         <div className="p-8 max-w-6xl space-y-10 animate-fade-in pb-24">
-            <header className="flex items-center gap-6">
-                <button
-                    onClick={navigateBack}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
-                >
-                    <ChevronLeft size={20} />
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <History className="text-indigo-600" size={32} />
-                        Past Clinical History
-                    </h1>
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Identity:</span>
-                        <span className="text-xs font-bold text-indigo-600">
-                            {patient ? `${patient.firstName} ${patient.lastName || ''}` : `Patient #${userId}`}
-                        </span>
-                    </div>
+            <header className="flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                    <button onClick={navigateBack} className="p-3 bg-white border rounded-2xl text-slate-500 hover:bg-slate-50"><ChevronLeft size={20} /></button>
+                    <div><h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3"><History className="text-indigo-600" size={32} />Past History</h1></div>
                 </div>
+                <button onClick={() => setUseAssistant(!useAssistant)} className={`px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 border-2 transition-all ${useAssistant ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-indigo-100 text-indigo-600'}`}><Bot size={16} />{useAssistant ? 'FORM VIEW' : 'AI ASSISTANT'}</button>
             </header>
 
-            <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar snap-x px-2">
-                {sections.map((s, idx) => {
-                    const theme = getTheme(s.section);
-                    const isActive = idx === currentStep;
-                    const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
-                    
-                    return (
-                        <button
-                            key={s.section}
-                            onClick={() => setCurrentStep(idx)}
-                            className={`flex-shrink-0 snap-start px-8 py-6 rounded-[2rem] border-2 transition-all duration-300 flex flex-col items-center justify-center gap-3 min-w-[200px] relative ${
-                                isActive 
-                                ? `${theme.active} -translate-y-1` 
-                                : isDone 
-                                    ? `${theme.done}` 
-                                    : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
-                            }`}
-                        >
-                            <div className={`${isActive ? theme.iconActive : isDone ? theme.iconDone : 'text-slate-300'}`}>
-                                {getSectionIcon(s.section)}
-                            </div>
-                            <span className="text-[10px] font-black whitespace-nowrap uppercase tracking-widest">{s.title}</span>
-                            
-                            {isDone && !isActive && (
-                                <div className={`absolute top-3 right-3 w-2 h-2 rounded-full ${theme.dot} shadow-sm`} />
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
-
-            <div className="grid lg:grid-cols-4 gap-12">
-                <div className="lg:col-span-3 space-y-8">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentSection.section}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="card-premium p-12 bg-white border-slate-100 relative overflow-hidden ring-1 ring-slate-100"
-                        >
-                            <div className={`absolute top-0 right-0 p-8 opacity-[0.03] ${getTheme(currentSection.section).textSoft}`}>
-                                {getSectionIcon(currentSection.section)}
-                            </div>
-
-                            <div className="relative space-y-12">
-                                <header className="space-y-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-2xl ${getTheme(currentSection.section).bgSoft} flex items-center justify-center ${getTheme(currentSection.section).textSoft}`}>
-                                            {getSectionIcon(currentSection.section)}
-                                        </div>
-                                        <div>
-                                            <h2 className="text-3xl font-black text-slate-900 tracking-tight font-bold">{currentSection.title}</h2>
-                                            <p className="text-slate-500 font-medium max-w-2xl leading-relaxed text-sm">{currentSection.description}</p>
-                                        </div>
-                                    </div>
-                                </header>
-
-                                <div className="space-y-12">
-                                    {currentSection.questions.map(q => (
-                                        <div key={q.key} className="space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-1.5 h-6 ${getTheme(currentSection.section).dot} rounded-full`} />
-                                                <label className="text-xs font-black text-slate-800 uppercase tracking-[0.1em]">{q.label}</label>
-                                            </div>
-                                            {renderQuestion(currentSection.section, q)}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="flex items-center gap-4 pt-12 border-t border-slate-100">
-                                    <Button
-                                        variant="outline"
-                                        disabled={currentStep === 0}
-                                        onClick={() => setCurrentStep(prev => prev - 1)}
-                                        leftIcon={<ChevronLeft size={18} />}
-                                        className="h-14 px-10 rounded-2xl border-2 font-bold hover:bg-slate-50 transition-colors"
-                                    >
-                                        Previous
-                                    </Button>
-
-                                    {currentStep < sections.length - 1 ? (
-                                        <Button
-                                            variant="primary"
-                                            onClick={() => setCurrentStep(prev => prev + 1)}
-                                            rightIcon={<ChevronRight size={18} />}
-                                            className={`h-14 px-12 rounded-2xl ${getTheme(currentSection.section).active} font-black tracking-widest uppercase text-[10px] shadow-lg transition-transform active:scale-95 ml-auto`}
-                                        >
-                                            Next Section
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            variant="primary"
-                                            className="h-14 px-14 rounded-2xl bg-slate-900 border-slate-900 hover:bg-black shadow-2xl shadow-slate-200 font-black tracking-widest uppercase text-[10px] ml-auto"
-                                            onClick={() => handleSubmit()}
-                                            isLoading={isSaving}
-                                            leftIcon={<Save size={18} />}
-                                        >
-                                            Finalize Clinical History
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-
-                <div className="space-y-8">
-                    <div className="card-premium p-10 bg-slate-900 border-none shadow-2xl relative overflow-hidden h-fit sticky top-12 ring-1 ring-white/5">
-                        <div className="relative">
-                            <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
-                                <div>
-                                    <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-1">Clinical Intake</h3>
-                                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">History Framework Progress</p>
-                                </div>
-                                <div className="text-slate-700">
-                                    <ClipboardList size={20} strokeWidth={1.5} />
-                                </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                                {sections.map((s, idx) => {
-                                    const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
-                                    const isActive = idx === currentStep;
-                                    const theme = getTheme(s.section);
-                                    
-                                    return (
-                                        <div 
-                                            key={s.section} 
-                                            className={`relative flex items-center gap-4 py-3.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer group ${
-                                                isActive ? 'bg-white/10 ring-1 ring-white/10' : 'hover:bg-white/5'
-                                            }`}
-                                            onClick={() => setCurrentStep(idx)}
-                                        >
-                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-500 scale-90 ${
-                                                isActive 
-                                                ? `${theme.dot} shadow-xl ${theme.shadow} scale-100` 
-                                                : isDone 
-                                                    ? 'bg-emerald-500/10 text-emerald-500' 
-                                                    : 'bg-slate-800 text-slate-600'
-                                            }`}>
-                                                {isDone && !isActive ? <CheckCircle2 size={14} /> : React.cloneElement(getSectionIcon(s.section) as React.ReactElement<any>, { size: 14, strokeWidth: 2.5 })}
-                                            </div>
-
-                                            <div className="flex-1 min-w-0">
-                                                <span className={`text-[10px] font-black tracking-widest uppercase whitespace-nowrap transition-all ${
-                                                    isActive ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
-                                                }`}>
-                                                    {s.title}
-                                                </span>
-                                            </div>
-
-                                            {isActive && (
-                                                <motion.div 
-                                                    layoutId="active-indicator-ph"
-                                                    className={`w-1 h-3 rounded-full ${theme.dot}`}
-                                                />
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                        </div>
+            {useAssistant ? (
+                <div className="card-premium p-12 bg-white space-y-8">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4"><div className="p-4 bg-indigo-50 text-indigo-600 rounded-full"><Sparkles size={24} /></div><div><h2 className="text-2xl font-black text-slate-900">Narrative Intake</h2><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Describe your clinical history in your own words</p></div></div>
+                        <button onClick={toggleRecording} className={`p-4 rounded-2xl flex items-center gap-3 border-2 ${isRecording ? 'bg-rose-500 text-white border-rose-500 animate-pulse' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>{isRecording ? <MicOff size={20} /> : <Mic size={20} />}<span className="text-[10px] font-black uppercase tracking-widest">{isRecording ? 'Listening...' : 'Voice Record'}</span></button>
                     </div>
+                    <textarea value={narrative} onChange={e => setNarrative(e.target.value)} placeholder="Type or record your medical and psychiatric history here..." className="w-full min-h-[300px] p-8 bg-slate-50 border-2 border-transparent rounded-[2.5rem] text-lg font-bold text-slate-700 focus:bg-white focus:border-indigo-600 outline-none transition-all resize-none shadow-inner" />
+                    <div className="flex justify-end"><Button variant="primary" className="px-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-100" onClick={handleNarrativeExtract} isLoading={isExtracting} rightIcon={<ChevronRight size={18} />}>Extract with AI</Button></div>
                 </div>
-            </div>
-
-            {error && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold shadow-2xl animate-shake">
-                    <AlertCircle size={18} />
-                    {error}
-                </div>
+            ) : (
+                <>
+                    <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar px-2">
+                        {sections.map((s, i) => <button key={s.section} onClick={() => setCurrentStep(i)} className={`px-8 py-6 rounded-[2rem] border-2 transition-all min-w-[200px] ${i === currentStep ? getTheme(s.section).active : 'bg-white border-slate-100 text-slate-400'}`}>{getSectionIcon(s.section)}<span className="text-[10px] font-black uppercase tracking-widest mt-2 block">{s.title}</span></button>)}
+                    </div>
+                    <div className="grid lg:grid-cols-4 gap-12">
+                        <div className="lg:col-span-3">
+                            <AnimatePresence mode="wait"><motion.div key={currentSection.section} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="card-premium p-12 bg-white border-slate-100 ring-1 ring-slate-100">
+                                <header className="mb-12"><h2 className="text-3xl font-black text-slate-900">{currentSection.title}</h2><p className="text-slate-500 text-sm mt-2">{currentSection.description}</p></header>
+                                <div className="space-y-12">
+                                    {currentSection.questions.map(q => {
+                                        const labelText = q.patient_label || q.professional_label || q.label || q.key;
+                                        return (
+                                            <div key={q.key} className="space-y-2">
+                                                <label className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 group">
+                                                    <div className={`w-1.5 h-6 ${getTheme(currentSection.section).dot} rounded-full group-hover:scale-y-125 transition-transform`} />
+                                                    {labelText}
+                                                </label>
+                                                {renderQuestion(currentSection.section, q)}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="flex items-center gap-4 pt-12 border-t mt-12">
+                                    <Button variant="outline" disabled={currentStep === 0} onClick={() => setCurrentStep(prev => prev - 1)} leftIcon={<ChevronLeft size={18} />}>Back</Button>
+                                    {currentStep < sections.length - 1 ? <Button variant="primary" className={`ml-auto rounded-2xl ${getTheme(currentSection.section).active}`} onClick={() => setCurrentStep(prev => prev + 1)} rightIcon={<ChevronRight size={18} />}>Next Section</Button> : <Button variant="primary" className="ml-auto rounded-2xl bg-black border-black text-white px-10" onClick={handleSubmit} isLoading={isSaving} leftIcon={<Save size={18} />}>Finalize History</Button>}
+                                </div>
+                            </motion.div></AnimatePresence>
+                        </div>
+                        <div className="lg:col-span-1 border-l pl-8 space-y-4"><h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Section List</h3>{sections.map((s, i) => <div key={s.section} className={`p-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${i === currentStep ? 'bg-indigo-600 text-white' : 'text-slate-500'}`} onClick={() => setCurrentStep(i)}>{s.title}</div>)}</div>
+                    </div>
+                </>
             )}
+            {error && <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-rose-500 text-white p-4 rounded-2xl flex items-center gap-3 text-sm font-black uppercase shadow-2xl"><AlertCircle size={20} />{error}</div>}
         </div>
     );
 };

@@ -39,11 +39,11 @@ const Health = () => {
         setIsLoading(true);
         try {
             console.log(`[Health] Resolving health overview for: ${userId}`);
-            
+
             // 1. Fetch user profile to resolve both hex and numeric IDs
             let hexId = userId || '';
             let numericId: string | number | undefined = undefined;
-            
+
             // Optimization: If viewing own profile as patient, we already have the IDs
             if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
                 hexId = currentUser?._id || currentUser?.id || hexId;
@@ -74,13 +74,13 @@ const Health = () => {
             // 3. Fetch Treatment Progress (using numeric ID)
             try {
                 let resolvedTreatmentId: string | number = numericId || userId || '';
-                
+
                 // If we don't have a numeric ID yet, try to resolve it
                 if (typeof resolvedTreatmentId === 'string' && resolvedTreatmentId.length > 20) {
-                     const assessmentData = await AssessmentService.getQuestions(resolvedTreatmentId);
-                     if (assessmentData.profile?.userId) {
-                         resolvedTreatmentId = Number(assessmentData.profile.userId);
-                     }
+                    const assessmentData = await AssessmentService.getQuestions(resolvedTreatmentId);
+                    if (assessmentData.profile?.userId) {
+                        resolvedTreatmentId = Number(assessmentData.profile.userId);
+                    }
                 }
 
                 console.log(`[Health] Fetching treatment progress with ID: ${resolvedTreatmentId}`);
@@ -300,7 +300,7 @@ const Health = () => {
                                     <span className="text-emerald-600">{treatmentProgress.overall_progress}%</span>
                                 </div>
                                 <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                    <div 
+                                    <div
                                         className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
                                         style={{ width: `${treatmentProgress.overall_progress}%` }}
                                     />
@@ -315,6 +315,37 @@ const Health = () => {
                 </motion.div>
 
 
+
+                {/* NeuroVitals Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    onClick={() => navigate(`/neuro-vitals`)}
+                    className="card-premium p-5 border-slate-100 bg-slate-900 border-none hover:shadow-2xl hover:shadow-cyan-100/50 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] relative overflow-hidden"
+                >
+                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                        <Activity size={80} className="text-cyan-400" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-4 relative z-10">
+                        <div className="p-2.5 bg-cyan-500/20 text-cyan-400 rounded-xl group-hover:scale-110 transition-transform border border-cyan-500/30">
+                            <Brain size={20} />
+                        </div>
+                        <h2 className="text-sm font-black text-white tracking-tight">NeuroVitals™</h2>
+                    </div>
+                    <div className="flex-1 relative z-10">
+                        <p className="text-[10px] font-black text-cyan-400/60 uppercase tracking-widest mb-2">Deep Phenotyping</p>
+                        <p className="text-sm font-semibold text-slate-300 leading-relaxed italic">
+                            "Extract medical-grade biomarkers via AI video plethysmography..."
+                        </p>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-white/5 relative z-10">
+                        <div className="flex items-center justify-between text-[9px] font-black text-white/40 uppercase tracking-widest">
+                            <span>Scan Engine v4.0</span>
+                            <span className="text-emerald-400">Ready</span>
+                        </div>
+                    </div>
+                </motion.div>
 
                 {/* Clinical Assessments Card */}
                 <motion.div
@@ -336,18 +367,43 @@ const Health = () => {
                         </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        <button 
+                        <button
                             onClick={() => navigate(`/clinical/assessments?patientId=${userId}`)}
                             className="py-3 px-4 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
                         >
                             Start New
                         </button>
-                        <button 
+                        <button
                             onClick={() => navigate(`/clinical/assessments/history?patientId=${userId}`)}
                             className="py-3 px-4 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-colors"
                         >
                             View History
                         </button>
+                    </div>
+                </motion.div>
+
+                {/* Symptom Snapshot Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.55 }}
+                    onClick={() => navigate(`/patients/${userId}/symptoms`)}
+                    className="card-premium p-5 border-slate-100 hover:border-amber-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                >
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <Activity size={20} />
+                        </div>
+                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Symptom Snapshots</h2>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Patient Monitoring</p>
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                            Track mood, anxiety, and physiological vital signs across time.
+                        </p>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-slate-50">
+                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Open Analytics</span>
                     </div>
                 </motion.div>
 

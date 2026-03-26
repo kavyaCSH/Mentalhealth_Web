@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
@@ -7,32 +6,33 @@ import {
     Globe
 } from 'lucide-react';
 import type { RootState } from '../../store';
+import { useTheme } from '../../context/ThemeContext';
 
 
 const MenuItem = ({ icon: IconComp, label, value, onClick, color = "text-indigo-600", bg = "bg-indigo-50" }: any) => (
     <button 
         onClick={onClick}
-        className="w-full flex items-center justify-between p-6 hover:bg-slate-50 transition-all group"
+        className="w-full flex items-center justify-between p-6 hover:bg-page/50 transition-all group"
     >
         <div className="flex items-center gap-5">
             <div className={`w-12 h-12 ${bg} ${color} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
                 <IconComp size={22} />
             </div>
             <div className="text-left">
-                <p className="font-black text-slate-900 text-[15px] tracking-tight">{label}</p>
-                {value && <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{value}</p>}
+                <p className="font-black text-main text-[15px] tracking-tight">{label}</p>
+                {value && <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-0.5">{value}</p>}
             </div>
         </div>
-        <ChevronRight className="text-slate-300 group-hover:text-indigo-600 transition-colors" size={20} />
+        <ChevronRight className="text-muted group-hover:text-indigo-600 transition-colors" size={20} />
     </button>
 );
 
 const Section = ({ title, children }: any) => (
-    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden mb-10">
+    <div className="bg-card rounded-[2.5rem] border border-border-card shadow-sm overflow-hidden mb-10">
         <div className="px-8 pt-8 pb-4">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{title}</h2>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted">{title}</h2>
         </div>
-        <div className="divide-y divide-slate-50">
+        <div className="divide-y divide-border-card/50">
             {children}
         </div>
     </div>
@@ -42,15 +42,14 @@ const ProfilePage = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
 
-    // Mock theme - in real app, connect to ThemeContext
-    const [themeType, setThemeType] = React.useState<'light' | 'dark' | 'auto'>('light');
+    const { theme, setTheme } = useTheme();
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] p-6 md:p-12 pb-32">
+        <div className="min-h-screen bg-page p-6 md:p-12 pb-32">
             <div className="max-w-4xl mx-auto">
                 <header className="mb-12">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Account Hub</h1>
-                    <p className="text-slate-500 font-medium">Manage your clinical identity and app preferences.</p>
+                    <h1 className="text-4xl font-black text-main tracking-tighter">Account Hub</h1>
+                    <p className="text-muted font-medium">Manage your clinical identity and app preferences.</p>
                 </header>
 
                 {/* Profile Hero Card */}
@@ -90,21 +89,21 @@ const ProfilePage = () => {
                 </div>
 
                 {/* Appearance Grid */}
-                <div className="bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm mb-10">
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Visual Appearance</h2>
+                <div className="bg-card rounded-[2.5rem] border border-border-card p-8 shadow-sm mb-10">
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted mb-6">Visual Appearance</h2>
                     <div className="grid grid-cols-3 gap-4">
                         {[
                             { id: 'light', label: 'Light', icon: Sun },
                             { id: 'dark', label: 'Dark', icon: Moon },
-                            { id: 'auto', label: 'Auto', icon: Monitor },
+                            { id: 'system', label: 'System', icon: Monitor },
                         ].map(opt => (
                             <button
                                 key={opt.id}
-                                onClick={() => setThemeType(opt.id as any)}
+                                onClick={() => setTheme(opt.id as any)}
                                 className={`flex flex-col items-center gap-3 p-6 rounded-3xl transition-all border
-                                    ${themeType === opt.id 
-                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-100' 
-                                        : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-indigo-200'}
+                                    ${theme === opt.id 
+                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-600/20' 
+                                        : 'bg-page text-muted border-border-card hover:border-indigo-400'}
                                 `}
                             >
                                 <opt.icon size={20} />
@@ -179,17 +178,17 @@ const ProfilePage = () => {
                 <Section title="Version Control">
                     <div className="p-8 flex items-center justify-between">
                         <div>
-                            <p className="font-black text-slate-900 text-sm">Skyheal Web Platform</p>
-                            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mt-1">Stable Release v1.0.4 (Build 402)</p>
+                            <p className="font-black text-main text-sm">Skyheal Web Platform</p>
+                            <p className="text-[11px] text-muted font-bold uppercase tracking-widest mt-1">Stable Release v1.0.4 (Build 402)</p>
                         </div>
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300">
+                        <div className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted">
                             <Info size={20} />
                         </div>
                     </div>
                 </Section>
 
 
-                <p className="mt-12 text-center text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
+                <p className="mt-12 text-center text-[10px] font-black text-muted/50 uppercase tracking-[0.3em]">
                     © 2026 A2Z Health & Consultancy • All Clinical Data Encrypted
                 </p>
             </div>

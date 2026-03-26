@@ -50,15 +50,17 @@ const ProfessionalHistoryPage = () => {
     const [showFilters, setShowFilters] = useState(false);
 
     const loadHistory = useCallback(async () => {
-        if (!patientId) {
-            setIsLoading(false);
-            return;
-        }
-
         setIsLoading(true);
         try {
-            const res = await AssessmentService.getPatientProfessionalHistory(patientId);
-            setHistory(res.data || []);
+            let res;
+            if (patientId) {
+                res = await AssessmentService.getPatientProfessionalHistory(patientId);
+                setHistory(res.data || []);
+            } else {
+                // Global view: fetch all clinical assessments
+                const response = await AssessmentService.getAllAdmin();
+                setHistory(Array.isArray(response) ? response : (response as any).data || []);
+            }
         } catch (err: any) {
             console.error('Failed to load professional history:', err);
         } finally {
@@ -80,32 +82,34 @@ const ProfessionalHistoryPage = () => {
 
     const uniqueCategories = Array.from(new Set(history.map(h => h.category).filter(Boolean)));
 
-    if (!patientId) return (
-        <div className="p-8 text-center py-20">
-            <AlertCircle className="mx-auto text-red-400 mb-4" size={48} />
-            <h2 className="text-2xl font-black text-slate-900 mb-2">Patient ID Missing</h2>
-            <p className="text-slate-500 mb-8">Please navigate from a specific patient's record.</p>
-            <Button onClick={() => navigate('/patients')}>Back to Patients</Button>
-        </div>
-    );
-
     return (
         <div className="p-8 max-w-6xl  space-y-8 animate-fade-in pb-20">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <button
-                        onClick={() => navigate(`/patients/${patientId}?view=focused`)}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
-                    >
-                        <ChevronLeft size={14} /> Back to Patient Record
-                    </button>
+                    {patientId ? (
+                        <button
+                            onClick={() => navigate(`/patients/${patientId}?view=focused`)}
+                            className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
+                        >
+                            <ChevronLeft size={14} /> Back to Patient Record
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => navigate('/')}
+                            className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
+                        >
+                            <ChevronLeft size={14} /> Back to Dashboard
+                        </button>
+                    )}
                     <div className="flex items-center gap-3 text-indigo-600 mb-2">
                         <ClipboardList size={18} />
-                        <span className="text-xs font-black uppercase tracking-widest">Professional Assessment History</span>
+                        <span className="text-xs font-black uppercase tracking-widest">{patientId ? 'Patient Assessment History' : 'Global Clinical History'}</span>
                     </div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">Clinical Records</h1>
                     <p className="text-slate-500 font-medium max-w-xl mt-1">
-                        Longitudinal tracking of clinical assessments performed by practitioners.
+                        {patientId 
+                            ? 'Longitudinal tracking of clinical assessments performed for this patient.' 
+                            : 'A comprehensive history of clinical assessments performed across your practice.'}
                     </p>
                 </div>
                 <div className="flex gap-4">

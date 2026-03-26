@@ -413,7 +413,7 @@ export default function AssessmentCenter() {
 
                                     {/* Options Grid */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {(q.options || []).map((opt: any, oi: number) => {
+                                        {(q.options || []).map((opt: any) => {
                                             const optId = opt._id;
                                             const isSelected = selOpt === optId;
                                             return (

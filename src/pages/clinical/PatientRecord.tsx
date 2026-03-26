@@ -12,7 +12,6 @@ import {
     ClipboardList,
     Plus,
     Video,
-    MessageCircle,
     Send,
     HeartPulse
 } from 'lucide-react';
@@ -62,12 +61,12 @@ const PatientRecord = () => {
                             if (assessmentData.profile?.userId) {
                                 const resolvedId = String(assessmentData.profile.userId);
                                 console.log(`[PatientRecord] Identity resolved via fallback: ${resolvedId}`);
-                                
+
                                 [patientData, assessmentHistory] = await Promise.all([
                                     UserService.getUserById(resolvedId),
                                     AssessmentService.getPatientHistory(resolvedId)
                                 ]);
-                                
+
                                 // Merge hex ID back to patient object as 'id' or '_id' to ensure link compatibility
                                 if (patientData) {
                                     patientData._id = id;
@@ -169,7 +168,6 @@ const PatientRecord = () => {
                         <>
                             <Button variant="outline" leftIcon={<HeartPulse size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/health`)}>Health</Button>
                             <Button variant="outline" leftIcon={<ClipboardList size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/clinical-hub`)}>Clinical Hub</Button>
-                            <Button variant="outline" leftIcon={<MessageCircle size={18} />}>Message</Button>
                             <Button variant="outline" leftIcon={<Video size={18} />} onClick={() => navigate(`/clinical-schedule?patientId=${patient.userId || id}`)}>Teleconsult</Button>
                             <Button variant="primary" leftIcon={<Plus size={18} />} onClick={handleRequestAssessment}>Request Assessment</Button>
                         </>

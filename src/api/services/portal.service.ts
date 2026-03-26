@@ -17,11 +17,11 @@ export interface HelpContent {
 
 export const PortalService = {
     getHelpCenter: async () => {
-        const response = await api.get('/portal/help-center');
+        const response = await api.get('portal/help-center');
         return response.data?.data ?? response.data;
     },
     getPortalContent: async (slug: string) => {
-        const response = await api.get(`/portal/content/${slug}`);
+        const response = await api.get(`portal/content/${slug}`);
         return response.data?.data ?? response.data;
     }
 };
