@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
 import { Stethoscope, History as HistoryIcon, Activity, Brain } from 'lucide-react';
@@ -213,8 +213,7 @@ const Health = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    onClick={() => navigate(`/patients/${userId}/mse`)}
-                    className="card-premium p-5 border-slate-100 hover:border-violet-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-slate-100 hover:border-violet-100 transition-all group h-full flex flex-col"
                 >
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl group-hover:scale-110 transition-transform">
@@ -223,10 +222,24 @@ const Health = () => {
                         <h2 className="text-sm font-black text-slate-900 tracking-tight">Mental Status</h2>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Examination Status</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                            {latestMSE ? `Last evaluated on ${new Date(latestMSE.createdAt).toLocaleDateString()}` : 'No mental status exam conducted.'}
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Examination History</p>
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic mb-6">
+                            {latestMSE ? `Last assessed on ${new Date(latestMSE.createdAt).toLocaleDateString()}` : 'No mental status exam conducted.'}
                         </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Link
+                            to={`/patients/${userId}/mse/new`}
+                            className="py-3 px-4 bg-violet-600 text-white rounded-xl text-[10px] flex items-center justify-center font-black uppercase tracking-widest hover:bg-violet-700 transition-colors shadow-lg shadow-violet-100"
+                        >
+                            Start New
+                        </Link>
+                        <Link
+                            to={`/patients/${userId}/mse`}
+                            className="py-3 px-4 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-[10px] flex items-center justify-center font-black uppercase tracking-widest hover:bg-slate-100 transition-colors"
+                        >
+                            View List
+                        </Link>
                     </div>
                 </motion.div>
 

@@ -3,11 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
-import { 
-    ChevronLeft, 
-    ChevronRight, 
-    Save, 
-    AlertCircle, 
+import {
+    ChevronLeft,
+    ChevronRight,
+    Save,
+    AlertCircle,
     Activity,
     CheckCircle2,
     Brain,
@@ -29,7 +29,7 @@ import type { PastHistorySection, PastHistoryResponse } from '../../../types/pas
 
 const FindingItem = ({ label, value }: { label: string; value: any }) => {
     if (value === null || value === undefined || value === '') return null;
-    
+
     if (value === false) return null;
     if (value === 'None') return null;
     if (Array.isArray(value)) {
@@ -55,7 +55,7 @@ const FindingItem = ({ label, value }: { label: string; value: any }) => {
             );
         }
     }
-    
+
     let displayValue = '';
     if (typeof value === 'boolean') {
         displayValue = value ? 'Confirmed / Present' : 'Denied / Absent';
@@ -64,9 +64,9 @@ const FindingItem = ({ label, value }: { label: string; value: any }) => {
     } else if (typeof value === 'object') {
         const activeEntries = Object.entries(value)
             .filter(([_, v]) => v === true || (typeof v === 'string' && v.length > 0 && v !== 'None'));
-            
+
         if (activeEntries.length === 0) return null;
-        
+
         displayValue = activeEntries
             .map(([k, _]) => k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '))
             .join(', ');
@@ -97,7 +97,9 @@ const PAST_HISTORY_QUESTIONS = [
                 "options": [
                     "Depression",
                     "Anxiety",
-                    "Bipolar",
+                    "Insomnia",
+                    "Sleep Disorder",
+                    "Bipolar Disorder",
                     "Schizophrenia",
                     "PTSD",
                     "OCD",
@@ -441,7 +443,9 @@ const PAST_HISTORY_QUESTIONS = [
                         "type": "select",
                         "options": [
                             "Current",
-                            "Past"
+                            "Past",
+                            "Never",
+                            "Unknown"
                         ]
                     },
                     {
@@ -645,11 +649,11 @@ const PastHistoryPage = () => {
     const { patientId: userId, historyId } = useParams<{ patientId: string; historyId?: string }>();
     const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
-    const isPatient = (currentUser as any)?.role === 'patient' || 
-                      (currentUser as any)?.role === 'PATIENT' || 
-                      (currentUser as any)?.group === 'PATIENT' ||
-                      (currentUser as any)?.group === 'patient';
-    
+    const isPatient = (currentUser as any)?.role === 'patient' ||
+        (currentUser as any)?.role === 'PATIENT' ||
+        (currentUser as any)?.group === 'PATIENT' ||
+        (currentUser as any)?.group === 'patient';
+
     const [sections, setSections] = useState<PastHistorySection[]>(PAST_HISTORY_QUESTIONS);
     const [currentStep, setCurrentStep] = useState(0);
     const [responses, setResponses] = useState<Record<string, any>>({});
@@ -657,7 +661,7 @@ const PastHistoryPage = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<PastHistoryResponse | null>(null);
-    
+
     // AI Assistant State
     const [useAssistant, setUseAssistant] = useState(false);
     const [narrative, setNarrative] = useState('');
@@ -766,10 +770,10 @@ const PastHistoryPage = () => {
         setResponses(prev => {
             const currentSection = prev[section] || {};
             const currentArr = Array.isArray(currentSection[key]) ? [...currentSection[key]] : [];
-            const newArr = currentArr.includes(option) 
+            const newArr = currentArr.includes(option)
                 ? currentArr.filter((o: string) => o !== option)
                 : [...currentArr, option];
-            
+
             return {
                 ...prev,
                 [section]: {
@@ -785,7 +789,7 @@ const PastHistoryPage = () => {
             const currentSection = prev[section] || {};
             const currentArr = Array.isArray(currentSection[key]) ? [...currentSection[key]] : [];
             const newItem = structure.reduce((acc, field) => ({ ...acc, [field.key]: '' }), {});
-            
+
             return {
                 ...prev,
                 [section]: {
@@ -803,7 +807,7 @@ const PastHistoryPage = () => {
             const updatedItem = { ...currentArr[index], [fieldKey]: value };
             const newArr = [...currentArr];
             newArr[index] = updatedItem;
-            
+
             return {
                 ...prev,
                 [section]: {
@@ -819,7 +823,7 @@ const PastHistoryPage = () => {
             const currentSection = prev[section] || {};
             const currentArr = Array.isArray(currentSection[key]) ? [...currentSection[key]] : [];
             const newArr = currentArr.filter((_, i) => i !== index);
-            
+
             return {
                 ...prev,
                 [section]: {
@@ -834,7 +838,7 @@ const PastHistoryPage = () => {
         setResponses(prev => {
             const currentSection = prev[section] || {};
             const currentGroup = currentSection[key] || {};
-            
+
             return {
                 ...prev,
                 [section]: {
@@ -860,14 +864,78 @@ const PastHistoryPage = () => {
             const activeId = userId || currentUser?._id || currentUser?.id;
             const res = await PastHistoryService.extractFromNarrative(narrative, activeId!);
             const data = (res as any).data || res;
-            
-            const newResponses: Record<string, any> = {};
-            sections.forEach(s => {
-                const sectionData = (data as any)[s.section];
-                if (sectionData) newResponses[s.section] = sectionData;
-            });
-            
-            setResponses(newResponses);
+            const newRes: Record<string, any> = { ...responses };
+
+            // 1. Psychiatric Mapping (Mobile Parity)
+            if (data.psychiatric_history) {
+                const diagnoses = Array.isArray(data.psychiatric_history.previous_diagnosis) ? data.psychiatric_history.previous_diagnosis : [];
+                // Ensure sleep-related findings from episodes/other fields are promoted to diagnoses
+                if (data.psychiatric_history.previous_episodes && String(data.psychiatric_history.previous_episodes).toLowerCase().includes('insomnia')) {
+                    if (!diagnoses.includes('Insomnia')) diagnoses.push('Insomnia');
+                }
+
+                newRes['psychiatric_past'] = {
+                    previous_diagnosis: diagnoses.join(', '),
+                    hospitalizations: Array.isArray(data.psychiatric_history.hospitalizations) ? data.psychiatric_history.hospitalizations.map((h: any) => `${h.year || ''} ${h.reason || ''}`).join(' | ') : '',
+                    suicide_attempts: Array.isArray(data.psychiatric_history.suicide_attempts) ? data.psychiatric_history.suicide_attempts.map((s: any) => `${s.year || ''} ${s.method || ''}`).join(' | ') : '',
+                    psychotherapy_history: data.psychiatric_history.psychotherapy_history || ''
+                };
+            }
+
+            // 2. Medical & Surgical Mapping
+            if (data.medical_history) {
+                newRes['medical_surgical'] = {
+                    chronic_conditions: Array.isArray(data.medical_history.chronic_conditions) ? data.medical_history.chronic_conditions.join(', ') : '',
+                    surgeries: Array.isArray(data.medical_history.surgeries) ? data.medical_history.surgeries.map((s: any) => `${s.year || ''} ${s.procedure || ''}`).join(', ') : '',
+                    allergies: Array.isArray(data.medical_history.allergies) ? data.medical_history.allergies.join(', ') : '',
+                    head_injury: data.medical_history.head_injury?.details || '',
+                    seizures: data.medical_history.seizures?.frequency || ''
+                };
+            }
+
+            // 3. Family Mapping
+            if (data.family_history) {
+                newRes['family_history'] = {
+                    conditions: Array.isArray(data.family_history.conditions) ? data.family_history.conditions.map((c: any) => `${c.relative || ''}: ${c.condition || ''}`).join(', ') : '',
+                    suicide_in_family: !!data.family_history.suicide_in_family,
+                    substance_abuse_in_family: !!data.family_history.substance_abuse_in_family
+                };
+            }
+
+            // 4. Substance Use
+            if (data.substance_use) {
+                const sub = data.substance_use;
+                newRes['substance_history'] = {
+                    alcohol_status: sub.alcohol?.status || 'Never',
+                    tobacco_status: sub.tobacco_nicotine?.status || 'Never',
+                    illicit_drugs: Array.isArray(sub.illicit_drugs) ? sub.illicit_drugs.map((d: any) => `${d.drug || ''} (${d.status || ''})`).join(', ') : ''
+                };
+            }
+
+            // 5. Personal / Social / Trauma
+            if (data.social_history) {
+                newRes['social_history'] = {
+                    living_situation: data.social_history.living_situation || '',
+                    employment: data.social_history.employment || '',
+                    legal_history: data.social_history.legal_history?.legal_details || ''
+                };
+            }
+
+            if (data.trauma_history) {
+                newRes['trauma_history'] = {
+                    trauma_notes: data.trauma_history.trauma_notes || '',
+                    significant_losses: data.trauma_history.significant_losses || ''
+                };
+            }
+
+            if (data.developmental_history) {
+                newRes['developmental_history'] = {
+                    milestones: data.developmental_history.milestones || '',
+                    childhood_behavior: data.developmental_history.childhood_behavior || ''
+                };
+            }
+
+            setResponses(newRes);
             setUseAssistant(false);
             setCurrentStep(0);
         } catch (err) {
@@ -886,10 +954,10 @@ const PastHistoryPage = () => {
     };
 
     const getTheme = (section: string) => {
-        const colors: Record<string, string> = { 
-            psychiatric_past: 'indigo', 
-            medical_surgical: 'rose', 
-            substance_history: 'amber', 
+        const colors: Record<string, string> = {
+            psychiatric_past: 'indigo',
+            medical_surgical: 'rose',
+            substance_history: 'amber',
             family_history: 'emerald',
             developmental_history: 'indigo',
             social_history: 'emerald',
@@ -918,16 +986,60 @@ const PastHistoryPage = () => {
             let hexId = userId || currentUser?._id || currentUser?.id;
             if (!hexId) throw new Error('Patient identity missing.');
 
-            const flattenedResponses: any[] = [];
-            Object.values(responses).forEach(sData => {
-                Object.entries(sData).forEach(([qKey, val]) => {
-                    if (val !== undefined && val !== null && val !== '') flattenedResponses.push({ questionCode: qKey, value: val });
-                });
-            });
+            // Build structured payload for backend (Mobile Parity)
+            const payload: any = {
+                patient_id: hexId,
+                narrative: narrative,
+                status: 'completed',
+                psychiatric_history: {
+                    previous_diagnosis: (() => {
+                        const val = responses.psychiatric_past?.previous_diagnosis;
+                        if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
+                        if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+                        return [];
+                    })(),
+                    hospitalizations: responses.psychiatric_past?.hospitalizations ? (Array.isArray(responses.psychiatric_past.hospitalizations) ? responses.psychiatric_past.hospitalizations : responses.psychiatric_past.hospitalizations.split('|').map((s: string) => ({ reason: s.trim() }))) : [],
+                    psychotherapy_history: responses.psychiatric_past?.psychotherapy_history || ''
+                },
+                medical_history: {
+                    chronic_conditions: (() => {
+                        const val = responses.medical_surgical?.chronic_conditions;
+                        if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
+                        if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+                        return [];
+                    })(),
+                    surgeries: responses.medical_surgical?.surgeries ? (Array.isArray(responses.medical_surgical.surgeries) ? responses.medical_surgical.surgeries : responses.medical_surgical.surgeries.split(',').map((s: string) => ({ procedure: s.trim() }))) : [],
+                    allergies: (() => {
+                        const val = responses.medical_surgical?.allergies;
+                        if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
+                        if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+                        return [];
+                    })()
+                },
+                substance_use: {
+                    alcohol: { status: responses.substance_history?.alcohol_status || 'Never' },
+                    tobacco_nicotine: { status: responses.substance_history?.tobacco_status || 'Never' },
+                    illicit_drugs: responses.substance_history?.illicit_drugs ? (Array.isArray(responses.substance_history.illicit_drugs) ? responses.substance_history.illicit_drugs.map((d: any) => typeof d === 'string' ? { drug: d, status: 'Past' } : d) : responses.substance_history.illicit_drugs.split(',').map((s: string) => ({ drug: s.trim(), status: 'Past' }))) : []
+                },
+                family_history: {
+                    conditions: responses.family_history?.conditions ? responses.family_history.conditions.split(',').map((s: string) => ({ condition: s.trim() })) : [],
+                    suicide_in_family: !!responses.family_history?.suicide_in_family,
+                    substance_abuse_in_family: !!responses.family_history?.substance_abuse_in_family
+                },
+                social_history: {
+                    living_situation: responses.social_history?.living_situation || '',
+                    employment: responses.social_history?.employment || ''
+                },
+                trauma_history: {
+                    trauma_notes: responses.trauma_history?.trauma_notes || '',
+                    significant_losses: responses.trauma_history?.significant_losses || ''
+                },
+                developmental_history: {
+                    milestones: responses.developmental_history?.milestones || 'On-time'
+                }
+            };
 
-            if (flattenedResponses.length === 0) throw new Error('Please enter history data.');
-
-            const res = await PastHistoryService.createPastHistory({ patient_id: hexId, responses: flattenedResponses });
+            const res = await PastHistoryService.createPastHistory(payload);
             setResult((res as any).data || res);
         } catch (err: any) {
             setError(err.message || 'Failed to save clinical history.');
@@ -947,24 +1059,30 @@ const PastHistoryPage = () => {
                 return (
                     <div className="space-y-4 mt-2">
                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                            {question.options?.map((opt: string) => {
-                                const isSel = question.type === 'select' ? value === opt : (Array.isArray(value) && value.includes(opt));
-                                return (
-                                    <button key={opt} onClick={() => question.type === 'select' ? handleValueChange(section, question.key, opt) : handleMultiselectToggle(section, question.key, opt)}
-                                        className={`p-4 rounded-2xl border-2 text-left transition-all relative overflow-hidden group/opt ${isSel ? theme.active + ' shadow-lg shadow-indigo-100' : `bg-slate-50 border-slate-50/50 text-slate-500 hover:border-indigo-200 hover:bg-white`}`}>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-black uppercase tracking-tight">{opt}</span>
-                                            {isSel && <CheckCircle2 size={14} className="opacity-80" />}
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                            {(() => {
+                                const baseOpts = question.options || [];
+                                const currentVals = Array.isArray(value) ? value : (value ? [value] : []);
+                                const allDisplayOpts = Array.from(new Set([...baseOpts, ...currentVals]));
+
+                                return allDisplayOpts.map((opt: string) => {
+                                    const isSel = question.type === 'select' ? value === opt : currentVals.includes(opt);
+                                    return (
+                                        <button key={opt} onClick={() => question.type === 'select' ? handleValueChange(section, question.key, opt) : handleMultiselectToggle(section, question.key, opt)}
+                                            className={`p-4 rounded-2xl border-2 text-left transition-all relative overflow-hidden group/opt ${isSel ? theme.active + ' shadow-lg shadow-indigo-100' : `bg-slate-50 border-slate-50/50 text-slate-500 hover:border-indigo-200 hover:bg-white`}`}>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-black uppercase tracking-tight">{opt}</span>
+                                                {isSel && <CheckCircle2 size={14} className="opacity-80" />}
+                                            </div>
+                                        </button>
+                                    );
+                                });
+                            })()}
                         </div>
                         {question.allow_custom && (
                             <div className="flex gap-2">
-                                <input 
-                                    type="text" 
-                                    placeholder="Add other..." 
+                                <input
+                                    type="text"
+                                    placeholder="Add other..."
                                     className="px-4 py-2 bg-slate-50 border-2 border-transparent rounded-xl text-xs font-bold focus:bg-white focus:border-indigo-300 outline-none transition-all flex-1"
                                     onKeyDown={(e: any) => {
                                         if (e.key === 'Enter' && e.target.value.trim()) {
@@ -992,21 +1110,21 @@ const PastHistoryPage = () => {
                 );
             case 'textarea':
                 return (
-                    <textarea 
-                        value={value || ''} 
-                        onChange={e => handleValueChange(section, question.key, e.target.value)} 
+                    <textarea
+                        value={value || ''}
+                        onChange={e => handleValueChange(section, question.key, e.target.value)}
                         placeholder={question.placeholder || "Enter details..."}
-                        className={`w-full min-h-[120px] p-6 bg-slate-50 border-2 border-transparent rounded-3xl text-sm font-bold text-slate-700 focus:bg-white focus:border-indigo-300 outline-none transition-all resize-none mt-2`} 
+                        className={`w-full min-h-[120px] p-6 bg-slate-50 border-2 border-transparent rounded-3xl text-sm font-bold text-slate-700 focus:bg-white focus:border-indigo-300 outline-none transition-all resize-none mt-2`}
                     />
                 );
             case 'text':
                 return (
-                    <input 
+                    <input
                         type="text"
-                        value={value || ''} 
-                        onChange={e => handleValueChange(section, question.key, e.target.value)} 
+                        value={value || ''}
+                        onChange={e => handleValueChange(section, question.key, e.target.value)}
                         placeholder={question.placeholder || "Describe..."}
-                        className={`w-full p-6 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:border-indigo-300 outline-none transition-all mt-2`} 
+                        className={`w-full p-6 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold text-slate-700 focus:bg-white focus:border-indigo-300 outline-none transition-all mt-2`}
                     />
                 );
             case 'boolean_group':
@@ -1020,7 +1138,7 @@ const PastHistoryPage = () => {
                                         {[true, false].map(boolVal => {
                                             const isSel = responses[section]?.[question.key]?.[f.key] === boolVal;
                                             return (
-                                                <button key={boolVal ? 'y' : 'n'} 
+                                                <button key={boolVal ? 'y' : 'n'}
                                                     onClick={() => handleBooleanGroupChange(section, question.key, f.key, boolVal)}
                                                     className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isSel ? (boolVal ? theme.active : 'bg-slate-600 border-slate-600 text-white') : 'bg-white border-slate-100 text-slate-400 border-2 hover:border-indigo-200'}`}>
                                                     {boolVal ? 'Yes' : 'No'}
@@ -1031,7 +1149,7 @@ const PastHistoryPage = () => {
                                 ) : (
                                     <div className="bg-white rounded-xl overflow-hidden border border-slate-100">
                                         {f.type === 'select' ? (
-                                            <select 
+                                            <select
                                                 value={responses[section]?.[question.key]?.[f.key] || ''}
                                                 onChange={e => handleBooleanGroupChange(section, question.key, f.key, e.target.value)}
                                                 className="w-full p-3 text-xs font-bold text-slate-700 outline-none bg-transparent"
@@ -1040,8 +1158,8 @@ const PastHistoryPage = () => {
                                                 {f.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
                                             </select>
                                         ) : (
-                                            <input 
-                                                type="text" 
+                                            <input
+                                                type="text"
                                                 placeholder={f.label}
                                                 value={responses[section]?.[question.key]?.[f.key] || ''}
                                                 onChange={e => handleBooleanGroupChange(section, question.key, f.key, e.target.value)}
@@ -1061,7 +1179,7 @@ const PastHistoryPage = () => {
                         <div className="space-y-3">
                             {items.map((item: any, idx: number) => (
                                 <div key={idx} className="bg-white border-2 border-slate-100 rounded-3xl p-6 relative group/row hover:border-indigo-100 transition-all">
-                                    <button 
+                                    <button
                                         onClick={() => handleArrayRemove(section, question.key, idx)}
                                         className="absolute -top-2 -right-2 w-8 h-8 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all shadow-lg hover:bg-rose-600"
                                     >
@@ -1072,7 +1190,7 @@ const PastHistoryPage = () => {
                                             <div key={field.key} className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">{field.label}</label>
                                                 {field.type === 'select' ? (
-                                                    <select 
+                                                    <select
                                                         value={item[field.key] || ''}
                                                         onChange={e => handleArrayItemChange(section, question.key, idx, field.key, e.target.value)}
                                                         className="w-full p-4 bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 outline-none focus:bg-indigo-50/50 focus:ring-2 ring-indigo-200"
@@ -1081,7 +1199,7 @@ const PastHistoryPage = () => {
                                                         {field.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
                                                     </select>
                                                 ) : (
-                                                    <input 
+                                                    <input
                                                         type="text"
                                                         value={item[field.key] || ''}
                                                         onChange={e => handleArrayItemChange(section, question.key, idx, field.key, e.target.value)}
@@ -1095,7 +1213,7 @@ const PastHistoryPage = () => {
                                 </div>
                             ))}
                         </div>
-                        <button 
+                        <button
                             onClick={() => handleArrayAdd(section, question.key, question.item_structure || [])}
                             className="w-full py-4 border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all font-black uppercase text-[10px] flex items-center justify-center gap-2"
                         >
@@ -1127,7 +1245,7 @@ const PastHistoryPage = () => {
                         <div className="space-y-4"><h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clinical Summary</h3><p className="text-xl font-black text-slate-800 leading-relaxed italic">"{result.ai_notes || 'No overview available.'}"</p></div>
                         <div className="bg-slate-50 p-8 rounded-[2rem]"><h3 className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-4">Risk Factors</h3><div className="flex flex-wrap gap-2">{result.risk_flags?.length ? result.risk_flags?.map((f: any, i: number) => <span key={i} className="px-3 py-1 bg-white border border-rose-100 text-rose-600 text-[10px] font-black rounded-lg uppercase">{f}</span>) : <span className="text-xs font-bold text-slate-400">No major risks identified</span>}</div></div>
                     </div>
-                    
+
                     <div className="pt-12 border-t">
                         <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-8">Clinical Markers & Findings</h3>
                         <div className="grid md:grid-cols-2 gap-x-12 gap-y-4">
@@ -1160,51 +1278,16 @@ const PastHistoryPage = () => {
                     <button onClick={navigateBack} className="p-3 bg-white border rounded-2xl text-slate-500 hover:bg-slate-50"><ChevronLeft size={20} /></button>
                     <div><h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3"><History className="text-indigo-600" size={32} />Past History</h1></div>
                 </div>
-                <button onClick={() => setUseAssistant(!useAssistant)} className={`px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 border-2 transition-all ${useAssistant ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-indigo-100 text-indigo-600'}`}><Bot size={16} />{useAssistant ? 'FORM VIEW' : 'AI ASSISTANT'}</button>
             </header>
 
-            {useAssistant ? (
-                <div className="card-premium p-12 bg-white space-y-8">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4"><div className="p-4 bg-indigo-50 text-indigo-600 rounded-full"><Sparkles size={24} /></div><div><h2 className="text-2xl font-black text-slate-900">Narrative Intake</h2><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Describe your clinical history in your own words</p></div></div>
-                        <button onClick={toggleRecording} className={`p-4 rounded-2xl flex items-center gap-3 border-2 ${isRecording ? 'bg-rose-500 text-white border-rose-500 animate-pulse' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>{isRecording ? <MicOff size={20} /> : <Mic size={20} />}<span className="text-[10px] font-black uppercase tracking-widest">{isRecording ? 'Listening...' : 'Voice Record'}</span></button>
-                    </div>
-                    <textarea value={narrative} onChange={e => setNarrative(e.target.value)} placeholder="Type or record your medical and psychiatric history here..." className="w-full min-h-[300px] p-8 bg-slate-50 border-2 border-transparent rounded-[2.5rem] text-lg font-bold text-slate-700 focus:bg-white focus:border-indigo-600 outline-none transition-all resize-none shadow-inner" />
-                    <div className="flex justify-end"><Button variant="primary" className="px-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-100" onClick={handleNarrativeExtract} isLoading={isExtracting} rightIcon={<ChevronRight size={18} />}>Extract with AI</Button></div>
+            <div className="card-premium p-12 bg-white space-y-8">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4"><div className="p-4 bg-indigo-50 text-indigo-600 rounded-full"><Sparkles size={24} /></div><div><h2 className="text-2xl font-black text-slate-900">Narrative Intake</h2><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Describe patient's clinical history in your own words</p></div></div>
+                    <button onClick={toggleRecording} className={`p-4 rounded-2xl flex items-center gap-3 border-2 ${isRecording ? 'bg-rose-500 text-white border-rose-500 animate-pulse' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>{isRecording ? <MicOff size={20} /> : <Mic size={20} />}<span className="text-[10px] font-black uppercase tracking-widest">{isRecording ? 'Listening...' : 'Voice Record'}</span></button>
                 </div>
-            ) : (
-                <>
-                    <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar px-2">
-                        {sections.map((s, i) => <button key={s.section} onClick={() => setCurrentStep(i)} className={`px-8 py-6 rounded-[2rem] border-2 transition-all min-w-[200px] ${i === currentStep ? getTheme(s.section).active : 'bg-white border-slate-100 text-slate-400'}`}>{getSectionIcon(s.section)}<span className="text-[10px] font-black uppercase tracking-widest mt-2 block">{s.title}</span></button>)}
-                    </div>
-                    <div className="grid lg:grid-cols-4 gap-12">
-                        <div className="lg:col-span-3">
-                            <AnimatePresence mode="wait"><motion.div key={currentSection.section} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="card-premium p-12 bg-white border-slate-100 ring-1 ring-slate-100">
-                                <header className="mb-12"><h2 className="text-3xl font-black text-slate-900">{currentSection.title}</h2><p className="text-slate-500 text-sm mt-2">{currentSection.description}</p></header>
-                                <div className="space-y-12">
-                                    {currentSection.questions.map(q => {
-                                        const labelText = q.patient_label || q.professional_label || q.label || q.key;
-                                        return (
-                                            <div key={q.key} className="space-y-2">
-                                                <label className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2 group">
-                                                    <div className={`w-1.5 h-6 ${getTheme(currentSection.section).dot} rounded-full group-hover:scale-y-125 transition-transform`} />
-                                                    {labelText}
-                                                </label>
-                                                {renderQuestion(currentSection.section, q)}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                <div className="flex items-center gap-4 pt-12 border-t mt-12">
-                                    <Button variant="outline" disabled={currentStep === 0} onClick={() => setCurrentStep(prev => prev - 1)} leftIcon={<ChevronLeft size={18} />}>Back</Button>
-                                    {currentStep < sections.length - 1 ? <Button variant="primary" className={`ml-auto rounded-2xl ${getTheme(currentSection.section).active}`} onClick={() => setCurrentStep(prev => prev + 1)} rightIcon={<ChevronRight size={18} />}>Next Section</Button> : <Button variant="primary" className="ml-auto rounded-2xl bg-black border-black text-white px-10" onClick={handleSubmit} isLoading={isSaving} leftIcon={<Save size={18} />}>Finalize History</Button>}
-                                </div>
-                            </motion.div></AnimatePresence>
-                        </div>
-                        <div className="lg:col-span-1 border-l pl-8 space-y-4"><h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Section List</h3>{sections.map((s, i) => <div key={s.section} className={`p-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${i === currentStep ? 'bg-indigo-600 text-white' : 'text-slate-500'}`} onClick={() => setCurrentStep(i)}>{s.title}</div>)}</div>
-                    </div>
-                </>
-            )}
+                <textarea value={narrative} onChange={e => setNarrative(e.target.value)} placeholder="Type or record medical and psychiatric history here..." className="w-full min-h-[300px] p-8 bg-slate-50 border-2 border-transparent rounded-[2.5rem] text-lg font-bold text-slate-700 focus:bg-white focus:border-indigo-600 outline-none transition-all resize-none shadow-inner" />
+                <div className="flex justify-end"><Button variant="primary" className="px-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-100" onClick={handleNarrativeExtract} isLoading={isExtracting} rightIcon={<ChevronRight size={18} />}>Extract with AI</Button></div>
+            </div>
             {error && <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-rose-500 text-white p-4 rounded-2xl flex items-center gap-3 text-sm font-black uppercase shadow-2xl"><AlertCircle size={20} />{error}</div>}
         </div>
     );

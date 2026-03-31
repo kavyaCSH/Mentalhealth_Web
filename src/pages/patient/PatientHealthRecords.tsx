@@ -274,26 +274,73 @@ const PatientHealthRecords = () => {
                         </p>
                     </div>
                 </motion.div>
+                {/* MSE history Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.18 }}
+                    onClick={() => navigate(`/patients/${resolvedUserId}/mse`)}
+                    className="card-premium p-5 border-slate-100 hover:border-violet-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl group-hover:scale-110 transition-transform">
+                                <Brain size={20} />
+                            </div>
+                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Mental Status</h2>
+                        </div>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Examination Activity</p>
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                            {latestMSE ? `Last assessed on ${new Date((latestMSE as any).createdAt).toLocaleDateString()}` : '"No mental status exam conducted."'}
+                        </p>
+                    </div>
+                </motion.div>
 
-
-                {/* Mental Status Card */}
+                {/* ROS history Card */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    onClick={() => navigate(`/patients/${resolvedUserId}/mse`)}
-                    className="card-premium p-5 border-slate-100 hover:border-violet-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    onClick={() => navigate(`/patients/${resolvedUserId}/ros`)}
+                    className="card-premium p-5 border-slate-100 hover:border-sky-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl group-hover:scale-110 transition-transform">
-                            <Brain size={20} />
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl group-hover:scale-110 transition-transform">
+                                <Stethoscope size={20} />
+                            </div>
+                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Review of Systems</h2>
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Mental Status</h2>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Examination Status</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                            {latestMSE ? `Last evaluated on ${new Date((latestMSE as { createdAt: string }).createdAt).toLocaleDateString()}` : 'No mental status exam conducted.'}
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Systems Scan</p>
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                            {latestROS ? `Last reviewed on ${new Date((latestROS as any).createdAt).toLocaleDateString()}` : '"No systematic review conducted."'}
+                        </p>
+                    </div>
+                </motion.div>
+                {/* Symptom History Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    onClick={() => navigate(`/patients/${resolvedUserId}/symptoms?tab=history`)}
+                    className="card-premium p-5 border-slate-100 hover:border-amber-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                >
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <Activity size={20} />
+                        </div>
+                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Symptom history</h2>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Longitudinal Trends</p>
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                            Review your psychological and physical trends over time.
                         </p>
                     </div>
                 </motion.div>
@@ -314,58 +361,8 @@ const PatientHealthRecords = () => {
                     </div>
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Historical Intake</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                            {latestHistory
-                                ? `Last intake documented on ${new Date((latestHistory as { createdAt: string }).createdAt).toLocaleDateString()}`
-                                : 'No previous records found.'}
-                        </p>
-                    </div>
-                </motion.div>
-
-                {/* Review of Systems Card */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    onClick={() => navigate(`/patients/${resolvedUserId}/ros`)}
-                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
-                >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
-                            <Stethoscope size={20} />
-                        </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Review of Systems</h2>
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Systems Review</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
-                            {latestROS
-                                ? `Last review completed on ${new Date((latestROS as { createdAt: string }).createdAt).toLocaleDateString()}`
-                                : 'No systematic review recorded.'}
-                        </p>
-                    </div>
-                </motion.div>
-
-
-
-                {/* Symptom History Card */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    onClick={() => navigate(`/patients/${resolvedUserId}/symptoms?tab=history`)}
-                    className="card-premium p-5 border-slate-100 hover:border-amber-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
-                >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:scale-110 transition-transform">
-                            <Activity size={20} />
-                        </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Symptom history</h2>
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Longitudinal Trends</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
-                            Review your psychological and physical trends over time.
+                            {latestHistory ? `Last intake documented on ${new Date((latestHistory as any).createdAt).toLocaleDateString()}` : '"No comprehensive history intake performed."'}
                         </p>
                     </div>
                 </motion.div>

@@ -23,6 +23,10 @@ export const PastHistoryService = {
         return response.data;
     },
 
+    getPatientHistory: async (patient_id: string | number): Promise<ApiResponse<PastHistoryResponse[]>> => {
+        return PastHistoryService.getPastHistoryByPatient(patient_id);
+    },
+
     getPastHistoryById: async (id: string | number): Promise<ApiResponse<PastHistoryResponse>> => {
         const response = await api.get(`past-history/${id}`);
         return response.data;

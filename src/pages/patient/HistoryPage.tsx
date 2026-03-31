@@ -20,7 +20,8 @@ import {
     BarChart3,
     X,
     CalendarDays,
-    Settings2
+    Settings2,
+    Sparkles
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { AssessmentService } from '../../api/services/assessment.service';
@@ -84,13 +85,13 @@ const HistoryPage = () => {
 
         try {
             let items: AssessmentResult[] = [];
-            
+
             if (patientId) {
                 // Fetch for specific patient
                 const allAssessments = await AssessmentService.getPatientHistory(patientId);
                 // Filter by category if one is selected
-                items = activeCategory === 'all' 
-                    ? allAssessments 
+                items = activeCategory === 'all'
+                    ? allAssessments
                     : allAssessments.filter(a => a && (a.category === activeCategory || a.slug === activeCategory));
             } else {
                 // Fetch own history
@@ -205,11 +206,20 @@ const HistoryPage = () => {
                 </div>
                 <div className="flex gap-4">
                     <Button
-                        variant="outline"
-                        leftIcon={<Download size={18} />}
-                        className="rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50"
+                        variant="primary"
+                        leftIcon={<Brain size={18} />}
+                        className="rounded-2xl border-none text-white bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-200 font-extrabold uppercase text-[10px] tracking-widest"
+                        onClick={() => navigate('/assessments')}
                     >
-                        Export PDF Report
+                        Start New Assessment
+                    </Button>
+                    <Button
+                        variant="outline"
+                        leftIcon={<Sparkles size={18} />}
+                        className="rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50 font-extrabold uppercase text-[10px] tracking-widest"
+                        onClick={() => navigate('/history/assistant')}
+                    >
+                        History Assistant
                     </Button>
                 </div>
             </header>
@@ -369,7 +379,7 @@ const HistoryPage = () => {
                                         onClick={() => {
                                             const itemId = item._id || item.id;
                                             if (itemId) {
-                                                const path = patientId 
+                                                const path = patientId
                                                     ? `/patients/${patientId}/history/${itemId}`
                                                     : `/history/${itemId}`;
                                                 navigate(path);

@@ -74,7 +74,6 @@ const RegisterPage = () => {
                 address,
                 is2fa,
                 communicationPreferences: commPrefs,
-                timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
                 profileImage: ""
             };
 

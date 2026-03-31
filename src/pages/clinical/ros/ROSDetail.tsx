@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
-import { 
-    ChevronLeft, 
-    AlertCircle, 
+import {
+    ChevronLeft,
+    AlertCircle,
     Activity,
     Brain,
     ClipboardList,
     Sparkles,
     Zap,
     FileText,
-    Stethoscope
+    Stethoscope,
+    Edit3
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { ROSService } from '../../../api/services/ros.service';
@@ -66,11 +67,11 @@ const ROSDetail = () => {
     const { patientId: userId, rosId } = useParams<{ patientId: string; rosId: string }>();
     const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
-    const isPatient = (currentUser as any)?.role === 'patient' || 
-                      (currentUser as any)?.role === 'PATIENT' || 
-                      (currentUser as any)?.group === 'PATIENT' ||
-                      (currentUser as any)?.group === 'patient';
-    
+    const isPatient = (currentUser as any)?.role === 'patient' ||
+        (currentUser as any)?.role === 'PATIENT' ||
+        (currentUser as any)?.group === 'PATIENT' ||
+        (currentUser as any)?.group === 'patient';
+
     const [result, setResult] = useState<ROSResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -90,7 +91,7 @@ const ROSDetail = () => {
             setResult(data as ROSResponse);
         } catch (err: any) {
             console.error('Failed to fetch ROS detail:', err);
-            
+
             // Suppress 403 for patients
             if (isPatient && (err.response?.status === 403 || err.status === 403)) {
                 setError('Review of Systems analysis is restricted to authorized providers.');
@@ -159,7 +160,17 @@ const ROSDetail = () => {
                     </h1>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Button 
+                    {!isPatient && (
+                        <Button
+                            variant="secondary"
+                            onClick={() => navigate(`/patients/${userId}/ros/edit/${rosId}`)}
+                            className="rounded-2xl h-12 px-8 font-black uppercase text-xs tracking-widest bg-emerald-50 text-emerald-600 border-emerald-100 shadow-lg shadow-emerald-50 hover:bg-emerald-600 hover:text-white transition-all mr-4"
+                            leftIcon={<Edit3 size={16} />}
+                        >
+                            Edit Review
+                        </Button>
+                    )}
+                    <Button
                         variant="primary"
                         onClick={navigateBack}
                         className="rounded-2xl h-12 px-8 font-black uppercase text-xs tracking-widest bg-slate-900 border-none shadow-xl shadow-slate-200"
@@ -174,7 +185,7 @@ const ROSDetail = () => {
                     <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12">
                         <Sparkles size={240} />
                     </div>
-                    
+
                     <div className="relative space-y-12">
                         <header className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-50 pb-8">
                             <div className="flex items-center gap-4">
@@ -262,12 +273,12 @@ const ROSDetail = () => {
                             <div className="w-1.5 h-6 bg-slate-900 rounded-full" />
                             <h2 className="text-xs font-black text-slate-900 uppercase tracking-[0.3em]">Detailed Systemic Findings</h2>
                         </div>
-                        
+
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {sections.map(sectionName => {
                                 const sectionData = (result as any)[sectionName];
                                 if (!sectionData) return null;
-                                
+
                                 const findings = Object.entries(sectionData)
                                     .filter(([_, value]) => {
                                         if (value === null || value === undefined || value === '') return false;
@@ -289,7 +300,7 @@ const ROSDetail = () => {
                                             {findings.map(([key, value]) => {
                                                 const label = key.replace(/_/g, ' ');
                                                 let displayValue = '';
-                                                
+
                                                 if (typeof value === 'boolean') {
                                                     displayValue = value ? 'YES / PRESENT' : 'NO / DENIED';
                                                 } else if (Array.isArray(value)) {

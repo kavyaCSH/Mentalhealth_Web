@@ -19,7 +19,8 @@ import {
     Percent,
     LogOut,
     Stethoscope,
-    Brain
+    Brain,
+    Sparkles
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { logout } from '../features/auth/store/authSlice';
@@ -161,16 +162,13 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 {role === 'patient' && (
                     <>
                         <div className="space-y-2">
-                            {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Wellness</p>}
-                            <NavItem to="/assessments" icon={ClipboardList} label="Self Assessments" isCollapsed={isCollapsed} />
-                        </div>
-                        <div className="space-y-2">
-                            {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Care Team</p>}
+                            {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Care Suite</p>}
                             <NavItem to="/appointments" icon={Calendar} label="Appointments" isCollapsed={isCollapsed} />
-                            <NavItem to="/history" icon={BookOpen} label="History" isCollapsed={isCollapsed} />
+                            <NavItem to="/history" icon={ClipboardList} label="Self-Assessments" isCollapsed={isCollapsed} end />
+                            <NavItem to="/history/assistant" icon={Sparkles} label="AI History Assistant" isCollapsed={isCollapsed} />
                             <NavItem to="/notifications" icon={Bell} label="Notifications" isCollapsed={isCollapsed} />
                             <NavItem to="/statistics" icon={BarChart3} label="Statistics" isCollapsed={isCollapsed} />
-                            <NavItem to="/records" icon={ClipboardList} label="Health Records" isCollapsed={isCollapsed} />
+                            <NavItem to="/records" icon={Heart} label="Health Records" isCollapsed={isCollapsed} />
                         </div>
                     </>
                 )}

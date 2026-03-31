@@ -34,7 +34,8 @@ import HPIPage from './pages/clinical/hpi/HPIHistory'; // Renamed from HPIHistor
 import HPIDetail from './pages/clinical/hpi/HPIDetail';
 import AddHPI from './pages/clinical/hpi/AddHPI';
 import EditHPI from './pages/clinical/hpi/EditHPI';
-import MseAssessmentPage from './pages/clinical/mse/MSEPage'; // Renamed from MSEPage
+import MseAssessmentPage from './pages/clinical/mse/MSEPage';
+import MSEHistoryPage from './pages/clinical/mse/MSEHistory';
 import PastHistoryPage from './pages/clinical/past-history/PastHistoryPage';
 import RosAssessmentPage from './pages/clinical/ros/ROSList'; // Renamed from ROSList
 import AddROS from './pages/clinical/ros/AddROS';
@@ -62,6 +63,7 @@ import ClinicalRecordsHub from './pages/clinical/ClinicalRecordsHub';
 import ClinicalSchedulePage from './pages/clinical/ClinicalSchedulePage';
 import ClinicalAvailabilityPage from './pages/clinical/ClinicalAvailabilityPage';
 import Teleconsult from './pages/clinical/Teleconsult';
+import HistoryAssistantPage from './pages/patient/HistoryAssistantPage';
 
 const AppRouter = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -129,6 +131,7 @@ const AppRouter = () => {
                                     <Route path="chat" element={<ChatPage />} />
                                     <Route path="appointments" element={<Navigate to="/schedule" replace />} />
                                     <Route path="history" element={<HistoryPage />} />
+                                    <Route path="history/assistant" element={<HistoryAssistantPage />} />
                                     <Route path="history/:id" element={<AssessmentResultPage />} />
                                     <Route path="statistics" element={<StatisticsPage />} />
                                     <Route path="specialists" element={<SpecialistsPage />} />
@@ -155,7 +158,9 @@ const AppRouter = () => {
                                 <Route path="patients/:patientId/hpi/edit/:hpiId" element={<EditHPI />} />
                                 <Route path="patients/:patientId/hpi/:hpiId" element={<HPIDetail />} />
                                 <Route path="patients/:patientId/hpi" element={<HPIPage />} />
-                                <Route path="patients/:patientId/mse/:mseId?" element={<MseAssessmentPage />} />
+                                <Route path="patients/:patientId/mse/new" element={<MseAssessmentPage />} />
+                                <Route path="patients/:patientId/mse/:mseId" element={<MseAssessmentPage />} />
+                                <Route path="patients/:patientId/mse" element={<MSEHistoryPage />} />
                                 <Route path="patients/:patientId/past-history/:historyId?" element={<PastHistoryPage />} />
                                 <Route path="patients/:patientId/ros" element={<RosAssessmentPage />} />
                                 <Route path="patients/:patientId/ros/new" element={<AddROS />} />

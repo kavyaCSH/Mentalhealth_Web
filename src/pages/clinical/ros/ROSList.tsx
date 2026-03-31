@@ -133,14 +133,16 @@ const ROSList = () => {
                     </div>
                 </div>
 
-                <Button
-                    variant="primary"
-                    className="rounded-2xl px-8 shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-xs"
-                    onClick={() => navigate(`/patients/${userId}/ros/new`)}
-                    leftIcon={<Plus size={18} />}
-                >
-                    Add Review
-                </Button>
+                {!isPatient && (
+                    <Button
+                        variant="primary"
+                        className="rounded-2xl px-8 shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-xs"
+                        onClick={() => navigate(`/patients/${userId}/ros/new`)}
+                        leftIcon={<Plus size={18} />}
+                    >
+                        Add Review
+                    </Button>
+                )}
             </header>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -161,16 +163,18 @@ const ROSList = () => {
                                         <Stethoscope size={16} />
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                navigate(`/patients/${userId}/ros/edit/${rosId}`);
-                                            }}
-                                            className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl shadow-sm transition-all"
-                                            title="Edit Review"
-                                        >
-                                            <Edit3 size={16} />
-                                        </button>
+                                        {!isPatient && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/patients/${userId}/ros/edit/${rosId}`);
+                                                }}
+                                                className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl shadow-sm transition-all"
+                                                title="Edit Review"
+                                            >
+                                                <Edit3 size={16} />
+                                            </button>
+                                        )}
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
                                             {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
                                                 month: 'short',

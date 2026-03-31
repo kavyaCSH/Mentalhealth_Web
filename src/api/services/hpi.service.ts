@@ -37,8 +37,8 @@ export const HPIService = {
         return response.data;
     },
 
-    getHPIList: async (params: { patient_id: string }): Promise<ApiResponse<HPIResponse[]>> => {
-        const response = await api.get('history-of-illness', { params });
+    getHPIList: async (params: { patient_id: string; page?: number; limit?: number }): Promise<ApiResponse<HPIResponse[]>> => {
+        const response = await api.get('history-of-illness', { params: { ...params, page: params.page ?? 1, limit: params.limit ?? 10 } });
         return response.data;
     },
 
@@ -75,16 +75,19 @@ export const HPIService = {
 
     // ── AI Extraction & Detailed Saving Flow (Mobile Parity) ───────────────────────────────────
     extractHPI: async (data: { patient_id: string | number; narrative: string }): Promise<ApiResponse<any>> => {
+        // Step 1 — Preview only, does NOT save to DB
         const response = await api.post('history-of-illness/extract', data);
         return response.data;
     },
 
     extractFromNarrative: async (narrative: string, patient_id?: string | number): Promise<any> => {
+        // Step 1 — Preview only, does NOT save to DB
         const response = await api.post('history-of-illness/extract', { narrative, patient_id });
         return response.data;
     },
 
     submitHPI: async (data: any): Promise<ApiResponse<HPIResponse>> => {
+        // Step 2 — Confirm and persist the extracted/edited HPI
         const response = await api.post('history-of-illness', data);
         return response.data;
     },

@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
-import { 
-    ChevronLeft, 
-    Stethoscope, 
-    AlertCircle, 
-    Plus, 
+import {
+    ChevronLeft,
+    Stethoscope,
+    AlertCircle,
+    Plus,
     Clock,
     Trash2,
     Edit3
@@ -24,11 +24,11 @@ const ChiefComplaint = () => {
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
     const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT' ||
         (currentUser as any)?.group === 'PATIENT' || (currentUser as any)?.group === 'patient';
-    
+
     // For patients accessing via /records/chief-complaint, userId param may be undefined;
     // resolve to their own session ID
     const effectiveUserId = userId || currentUser?._id || currentUser?.id || '';
-    
+
     // State
     const [patient, setPatient] = useState<User | Patient | null>(null);
     const [history, setHistory] = useState<ChiefComplaintResponse[]>([]);
@@ -82,12 +82,12 @@ const ChiefComplaint = () => {
 
             // 1. Resolve hex ID from user profile
             let hexId = userId;
-            
+
             // Optimization: Bypass unauthorized lookup if patient is viewing self
             const isSelf = isPatient && (
-                String(currentUser?.id) === String(userId) || 
-                String((currentUser as any)?._id) === String(userId) || 
-                String((currentUser as any)?.userId) === String(userId) || 
+                String(currentUser?.id) === String(userId) ||
+                String((currentUser as any)?._id) === String(userId) ||
+                String((currentUser as any)?.userId) === String(userId) ||
                 !userId
             );
 
@@ -128,14 +128,14 @@ const ChiefComplaint = () => {
                 const complaints = queryData?.data || queryData || [];
                 complaintsArray = Array.isArray(complaints) ? complaints : [complaints].filter(Boolean);
             }
-            
+
             setHistory(complaintsArray);
             if (complaintsArray.length > 0 && (complaintsArray[0] as any).patient && !patient) {
                 setPatient((complaintsArray[0] as any).patient);
             }
         } catch (err: any) {
             console.error('[ChiefComplaint] All fetch attempts failed:', err);
-            
+
             // Graceful 403 handling for patients
             if (isPatient && err.response?.status === 403) {
                 console.log('[ChiefComplaint] Patient role hit authorization limit, showing empty state.');
@@ -205,7 +205,7 @@ const ChiefComplaint = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: idx * 0.05 }}
                             key={item.chiefComplaintId || item.id || item._id}
-                            onClick={() => navigate(isPatient 
+                            onClick={() => navigate(isPatient
                                 ? `/records/chief-complaint/${item.chiefComplaintId || item.id || item._id}`
                                 : `/patients/${effectiveUserId}/chief-complaint/${item.chiefComplaintId || item.id || item._id}`)}
                             className="card-premium p-8 bg-white border-slate-100 hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
@@ -214,32 +214,8 @@ const ChiefComplaint = () => {
                                 <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
                                     <Clock size={16} />
                                 </div>
-                                 <div className="flex items-center gap-3">
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const id = item.chiefComplaintId || item.id || item._id;
-                                            const path = isPatient 
-                                                ? `/records/chief-complaint/edit/${id}`
-                                                : `/patients/${effectiveUserId}/chief-complaint/edit/${id}`;
-                                            navigate(path);
-                                        }}
-                                        className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl shadow-sm transition-all"
-                                        title="Edit Record"
-                                    >
-                                        <Edit3 size={16} />
-                                    </button>
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete((item.chiefComplaintId || item.id || item._id)!);
-                                        }}
-                                        className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl shadow-sm transition-all"
-                                        title="Delete Record"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                         {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
                                             month: 'short',
                                             day: 'numeric',
@@ -269,7 +245,7 @@ const ChiefComplaint = () => {
 
 
             </div>
-            
+
             {error && (
                 <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold mt-8">
                     <AlertCircle size={18} />

@@ -157,7 +157,7 @@ const MSEPage = () => {
 
                 await fetchQuestionnaire();
 
-                if (mseId) {
+                if (mseId && mseId !== 'new') {
                     const res = await MSEService.getMSEById(mseId);
                     const data = res.data || res;
                     setResult(data as MSEResponse);
@@ -438,56 +438,44 @@ const MSEPage = () => {
         setError(null);
 
         try {
-            // 1. Resolve hex ID from user profile
+            // 1. Resolve hex ID
             let hexId = userId;
             const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
 
-            // Optimization: Bypass unauthorized lookup if patient is submitting for self
             if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
                 hexId = currentUser?._id || currentUser?.id || hexId;
-                console.log(`[MSEPage] Using session identity for submission: ${hexId}`);
             } else {
                 try {
                     const userProfile = await UserService.getUserById(userId);
-                    if (userProfile) {
-                        hexId = userProfile._id || userProfile.id || hexId;
-                        console.log(`[MSEPage] Resolved Hex ID for submission: ${hexId}`);
-                    }
+                    if (userProfile) hexId = userProfile._id || userProfile.id || hexId;
                 } catch (profileError) {
                     console.warn('[MSEPage] Profile lookup failed, using parameter ID:', profileError);
                 }
             }
 
-            // Flatten the responses
-            const flattenedResponses: { questionCode: string; value: any }[] = [];
+            // 2. Build section-structured payload — backend expects section objects directly
+            const sectionKeys = [
+                'appearance', 'behavior', 'speech', 'mood', 'affect',
+                'thought_form', 'thought_content', 'perception',
+                'insight', 'judgment', 'cognition'
+            ];
 
-            // Final submission: Flatten everything
-            Object.values(responses).forEach((sectionData) => {
-                Object.entries(sectionData).forEach(([questionKey, value]) => {
-                    if (value !== undefined && value !== null && value !== '') {
-                        if (Array.isArray(value) && value.length === 0) return;
-                        flattenedResponses.push({ questionCode: questionKey, value });
-                    }
-                });
-            });
-
-            if (flattenedResponses.length === 0) {
+            const hasAnyResponse = sectionKeys.some(k => responses[k] && Object.keys(responses[k]).length > 0);
+            if (!hasAnyResponse) {
                 throw new Error('Please answer at least one question before submitting.');
             }
 
-            const res = await MSEService.createMSE({
-                patient_id: hexId,
-                responses: flattenedResponses
-            });
+            const payload: Record<string, any> = { patient_id: hexId };
+            sectionKeys.forEach(key => { payload[key] = responses[key] || {}; });
 
-            // Handle both ApiResponse wrapper and direct response
+            console.log('[MSEPage] Submitting payload:', JSON.stringify(payload, null, 2));
+
+            const res = await MSEService.createMSE(payload as any);
             const responseData = (res as any).data || res;
-
-            // Final submission
             setResult(responseData as MSEResponse);
         } catch (err: any) {
             console.error('Failed to save MSE:', err);
-            setError(err.response?.data?.message || 'Failed to save the MSE. Please try again.');
+            setError(err.response?.data?.message || err.message || 'Failed to save the MSE. Please try again.');
         } finally {
             setIsSaving(false);
         }

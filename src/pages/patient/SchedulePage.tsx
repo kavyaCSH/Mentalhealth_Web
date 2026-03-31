@@ -83,7 +83,7 @@ const SchedulePage = () => {
 
             const res = await SpecialistService.getDirectory(params) as any;
             const data = res.data || res;
-            
+
             let list: User[] = [];
             if (Array.isArray(data)) {
                 list = data;
@@ -128,10 +128,10 @@ const SchedulePage = () => {
             setIsAvailabilityLoading(true);
             const res = await SpecialistService.getAvailableSlots({ specialist_id: specialistId, date, available: true });
             const slots = res.data?.slots || res.data || [];
-            const slotTimes = Array.isArray(slots) 
+            const slotTimes = Array.isArray(slots)
                 ? slots
                     .filter((s: any) => typeof s === 'string' ? true : s.available !== false)
-                    .map((s: any) => typeof s === 'string' ? s : s.startTime || s.time) 
+                    .map((s: any) => typeof s === 'string' ? s : s.startTime || s.time)
                 : [];
             setAvailableSlots(slotTimes.filter(Boolean) as string[]);
         } catch (err) {
@@ -156,7 +156,10 @@ const SchedulePage = () => {
     }, [isModalOpen, selectionStep, selectedSpecialist, bookingDate]);
 
     useEffect(() => {
+        const action = searchParams.get('action');
         const professionalId = searchParams.get('professionalId');
+        const consultId = searchParams.get('consultId');
+
         if (professionalId && !selectedSpecialist) {
             const fetchAndPreselect = async () => {
                 try {
@@ -164,16 +167,34 @@ const SchedulePage = () => {
                     const prof = res.data?.data || res.data;
                     if (prof) {
                         openBookingModal(prof as User);
+                        navigate('/schedule', { replace: true });
                     }
                 } catch (err) {
                     console.error('Failed to preselect specialist', err);
                 }
             };
             fetchAndPreselect();
-        } else if (searchParams.get('action') === 'book' && !isModalOpen) {
+        } else if (action === 'reschedule' && consultId && !isModalOpen) {
+            // Fetch the appointment then open the reschedule modal at the date step
+            const loadAndReschedule = async () => {
+                try {
+                    const res = await TeleConsultService.getConsultationDetail(consultId);
+                    const appt = res.data as Consultation;
+                    if (appt) {
+                        handleRescheduleClick(appt);
+                        navigate('/schedule', { replace: true });
+                    }
+                } catch (err) {
+                    console.error('Failed to load consultation for reschedule', err);
+                }
+            };
+            loadAndReschedule();
+        } else if (action === 'book' && !isModalOpen) {
             openBookingModal();
+            navigate('/schedule', { replace: true });
         }
-    }, [searchParams, isModalOpen, selectedSpecialist]);
+    }, [searchParams, navigate]);
+
 
     const openBookingModal = (preselected?: User) => {
         setBookingReason('');
@@ -196,21 +217,33 @@ const SchedulePage = () => {
         const dt = new Date(appt.scheduled_at || '');
         if (!isNaN(dt.getTime())) {
             setBookingDate(dt.toISOString().split('T')[0]);
-            setBookingTime(dt.toLocaleTimeString('default', { hour: '2-digit', minute: '2-digit', hour12: false }));
+            const hours = dt.getHours().toString().padStart(2, '0');
+            const minutes = dt.getMinutes().toString().padStart(2, '0');
+            setBookingTime(`${hours}:${minutes}`);
         }
 
-        const professional = appt.participants?.find(p => p.participant_type?.code === 'professional');
-        if (professional) {
+        // Robust specialist lookup so slot fetching works correctly
+        const pub = appt.participants?.find(p => p.role === 'publisher') ||
+            appt.participants?.find(p => p.participant_type?.code === 'professional') ||
+            appt.participants?.[0];
+
+        if (pub) {
+            const firstName = (pub as any).firstName || (pub.participant_info as any)?.firstName || '';
+            const lastName = (pub as any).lastName || (pub.participant_info as any)?.lastName || '';
+            const name = pub.name || (pub.participant_info as any)?.name || `${firstName} ${lastName}`.trim();
+
             setSelectedSpecialist({
-                id: professional.ref_number,
-                name: professional.name,
-                role: 'professional'
-            } as unknown as User);
+                id: pub.ref_number || (pub as any).id || (pub as any)._id || '',
+                name: name || 'Specialist',
+                firstName,
+                lastName,
+                participant_info: pub.participant_info
+            } as any);
         }
 
         setBookingError('');
         setBookingSuccess(false);
-        setSelectionStep('details');
+        setSelectionStep('date');   // Start at date picker so user can select a new slot
         setIsModalOpen(true);
     };
 
@@ -235,7 +268,7 @@ const SchedulePage = () => {
                     alert(error.response?.data?.message || 'Could not fetch billing details.');
                 }
             } else if (action === 'join') {
-                console.log("Joining Consult:", JSON.stringify(appt,null,2));
+                console.log("Joining Consult:", JSON.stringify(appt, null, 2));
                 const subscriber = appt.participants?.find((p: Participant) =>
                     p.role === 'subscriber' ||
                     p.participant_type?.code === 'patient' ||
@@ -247,22 +280,22 @@ const SchedulePage = () => {
                     try {
                         const res = await TeleConsultService.tokenValidate(token, 'subscriber');
                         if (res.success || res.code === 200) {
-                            navigate(`/teleconsult/${apptId}`, { 
-                                state: { 
-                                    appointment: appt, 
-                                    token 
-                                } 
+                            navigate(`/teleconsult/${apptId}`, {
+                                state: {
+                                    appointment: appt,
+                                    token
+                                }
                             });
                         } else {
                             alert(res.message || 'Call is not yet active. Please wait for the specialist.');
                         }
                     } catch (err) {
                         console.error('Validation error', err);
-                        navigate(`/teleconsult/${apptId}`, { 
-                            state: { 
-                                appointment: appt, 
-                                token 
-                            } 
+                        navigate(`/teleconsult/${apptId}`, {
+                            state: {
+                                appointment: appt,
+                                token
+                            }
                         });
                     }
                 } else {
@@ -620,12 +653,12 @@ const SchedulePage = () => {
                                     <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                                         <div className="flex items-center gap-4">
                                             {selectionStep !== 'date' && !reschedulingAppt && (
-                                                <button 
+                                                <button
                                                     onClick={() => {
                                                         if (selectionStep === 'details') setSelectionStep('time');
                                                         else if (selectionStep === 'time') setSelectionStep(selectedSpecialist && searchParams.get('professionalId') ? 'date' : 'specialist');
                                                         else if (selectionStep === 'specialist') setSelectionStep('date');
-                                                    }} 
+                                                    }}
                                                     className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-all"
                                                 >
                                                     <ChevronLeft size={20} />
@@ -633,9 +666,9 @@ const SchedulePage = () => {
                                             )}
                                             <div>
                                                 <h2 className="text-xl font-black text-slate-800 tracking-tight">
-                                                    {selectionStep === 'date' ? 'Select Date' : 
-                                                     selectionStep === 'specialist' ? 'Select Doctor' :
-                                                     selectionStep === 'time' ? 'Select Time Slot' : 'Confirm Details'}
+                                                    {selectionStep === 'date' ? 'Select Date' :
+                                                        selectionStep === 'specialist' ? 'Select Doctor' :
+                                                            selectionStep === 'time' ? 'Select Time Slot' : 'Confirm Details'}
                                                 </h2>
                                                 {!reschedulingAppt && (
                                                     <div className="flex gap-1.5 mt-1">
@@ -653,23 +686,25 @@ const SchedulePage = () => {
                                     </div>
 
                                     <div className="p-6 space-y-6 overflow-y-auto no-scrollbar">
-                                        {selectionStep === 'date' && !reschedulingAppt && (
+                                        {selectionStep === 'date' && (
                                             <div className="space-y-8 animate-fade-in">
                                                 <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100">
-                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4 px-1">Consultation Date</label>
-                                                    <input 
-                                                        type="date" 
-                                                        value={bookingDate} 
-                                                        onChange={(e) => setBookingDate(e.target.value)} 
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4 px-1">
+                                                        {reschedulingAppt ? 'Pick a New Date' : 'Consultation Date'}
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        value={bookingDate}
+                                                        onChange={(e) => setBookingDate(e.target.value)}
                                                         className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-6 text-sm font-black outline-none focus:border-indigo-500"
                                                         min={new Date().toISOString().split('T')[0]}
                                                     />
                                                 </div>
-                                                <button 
-                                                    onClick={() => setSelectionStep(selectedSpecialist && searchParams.get('professionalId') ? 'time' : 'specialist')}
+                                                <button
+                                                    onClick={() => setSelectionStep('time')}
                                                     className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-indigo-200 hover:scale-[1.02] transition-all"
                                                 >
-                                                    Continue to {selectedSpecialist && searchParams.get('professionalId') ? 'Time Selection' : 'Doctor Selection'}
+                                                    Continue to Time Selection
                                                 </button>
                                             </div>
                                         )}
@@ -709,9 +744,9 @@ const SchedulePage = () => {
                                             <div className="space-y-6 animate-fade-in">
                                                 <div className="relative">
                                                     <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                                                    <input 
-                                                        type="text" 
-                                                        placeholder="Quick specialist search..." 
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Quick specialist search..."
                                                         className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold focus:outline-none focus:bg-white focus:border-indigo-200 transition-all shadow-inner"
                                                         value={searchQuery}
                                                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -730,36 +765,36 @@ const SchedulePage = () => {
                                                             return name.includes(searchQuery.toLowerCase());
                                                         }).map((s, idx) => {
                                                             const sId = (s as any).userId || (s as any)._id || s.id;
-                                                        const name = s.name || `${s.firstName || ''} ${s.lastName || ''}`;
-                                                        return (
-                                                            <button
-                                                                key={sId || idx}
-                                                                onClick={() => { setSelectedSpecialist(s); setSelectionStep('time'); }}
-                                                                className="w-full flex items-center gap-4 p-5 rounded-[2rem] border-2 border-slate-50 bg-white hover:border-indigo-100 transition-all shadow-sm group"
-                                                            >
-                                                                <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-black text-xs border border-indigo-100 group-hover:scale-110 transition-transform uppercase">
-                                                                    {name.substring(0, 1)}
-                                                                </div>
-                                                                <div className="text-left flex-1">
-                                                                    <p className="font-black text-slate-900">{name}</p>
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.role || 'Clinical Expert'}</p>
-                                                                </div>
-                                                                <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[8px] font-black uppercase tracking-widest">Available</div>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                    {specialists.length === 0 && !isAvailabilityLoading && (
-                                                        <div className="p-12 text-center opacity-40">
-                                                            <Activity size={48} className="mx-auto mb-4 text-slate-300" />
-                                                            <p className="text-[10px] font-black uppercase tracking-widest">No specialists available for this date</p>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                            const name = s.name || `${s.firstName || ''} ${s.lastName || ''}`;
+                                                            return (
+                                                                <button
+                                                                    key={sId || idx}
+                                                                    onClick={() => { setSelectedSpecialist(s); setSelectionStep('time'); }}
+                                                                    className="w-full flex items-center gap-4 p-5 rounded-[2rem] border-2 border-slate-50 bg-white hover:border-indigo-100 transition-all shadow-sm group"
+                                                                >
+                                                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-black text-xs border border-indigo-100 group-hover:scale-110 transition-transform uppercase">
+                                                                        {name.substring(0, 1)}
+                                                                    </div>
+                                                                    <div className="text-left flex-1">
+                                                                        <p className="font-black text-slate-900">{name}</p>
+                                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.role || 'Clinical Expert'}</p>
+                                                                    </div>
+                                                                    <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[8px] font-black uppercase tracking-widest">Available</div>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                        {specialists.length === 0 && !isAvailabilityLoading && (
+                                                            <div className="p-12 text-center opacity-40">
+                                                                <Activity size={48} className="mx-auto mb-4 text-slate-300" />
+                                                                <p className="text-[10px] font-black uppercase tracking-widest">No specialists available for this date</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
 
-                                        {(selectionStep === 'details' || reschedulingAppt) && (
+                                        {selectionStep === 'details' && (
                                             <div className="space-y-8 animate-fade-in">
                                                 <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
                                                     <div className="relative z-10 flex items-center gap-6">
@@ -768,7 +803,11 @@ const SchedulePage = () => {
                                                         </div>
                                                         <div>
                                                             <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-1">Session Summary</p>
-                                                            <p className="text-xl font-black">{selectedSpecialist?.name || `${selectedSpecialist?.firstName} ${selectedSpecialist?.lastName}`}</p>
+                                                            <p className="text-xl font-black">
+                                                                {selectedSpecialist?.name ||
+                                                                    `${selectedSpecialist?.firstName || ''} ${selectedSpecialist?.lastName || ''}`.trim() ||
+                                                                    'Specialist'}
+                                                            </p>
                                                             <p className="text-xs font-bold opacity-80 mt-1">{new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} at {bookingTime}</p>
                                                         </div>
                                                     </div>
@@ -776,12 +815,12 @@ const SchedulePage = () => {
 
                                                 <div className="space-y-4">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Reason for Visit</label>
-                                                    <textarea 
-                                                        rows={4} 
-                                                        placeholder="Briefly describe what you'd like to discuss..." 
-                                                        value={bookingReason} 
-                                                        onChange={e => setBookingReason(e.target.value)} 
-                                                        className="w-full bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-sm font-semibold focus:outline-none focus:bg-white focus:border-indigo-200 transition-all shadow-inner resize-none" 
+                                                    <textarea
+                                                        rows={4}
+                                                        placeholder="Briefly describe what you'd like to discuss..."
+                                                        value={bookingReason}
+                                                        onChange={e => setBookingReason(e.target.value)}
+                                                        className="w-full bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-sm font-semibold focus:outline-none focus:bg-white focus:border-indigo-200 transition-all shadow-inner resize-none"
                                                     />
                                                 </div>
 
@@ -792,9 +831,9 @@ const SchedulePage = () => {
                                                     </div>
                                                 )}
 
-                                                <button 
-                                                    onClick={handleBookAppointment} 
-                                                    disabled={isBooking} 
+                                                <button
+                                                    onClick={handleBookAppointment}
+                                                    disabled={isBooking}
                                                     className="w-full bg-slate-900 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 hover:bg-indigo-600 active:scale-95 transition-all flex items-center justify-center gap-3"
                                                 >
                                                     {isBooking ? <Activity className="animate-spin" size={20} /> : (reschedulingAppt ? 'Update Session' : 'Confirm Appointment')}
