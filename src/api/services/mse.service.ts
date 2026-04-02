@@ -3,13 +3,25 @@ import type { MSESection, MSESubmission, MSEResponse } from '../../types/mse.typ
 import type { ApiResponse } from '../../types/common.types';
 
 export const MSEService = {
-    getQuestions: async (): Promise<ApiResponse<MSESection[]>> => {
-        const response = await api.get('mse/questions');
+    getQuestions: async (params?: { age?: number; gender?: string; view?: 'professional' | 'patient' }): Promise<ApiResponse<MSESection[]>> => {
+        const response = await api.get('mse/questions', { params });
         return response.data;
     },
 
     createMSE: async (data: MSESubmission): Promise<ApiResponse<MSEResponse>> => {
         const response = await api.post('mse', data);
+        return response.data;
+    },
+
+    listMSE: async (params: { 
+        patient_id?: string | number; 
+        startDate?: string; 
+        endDate?: string; 
+        color_code?: string;
+        insight_level?: string;
+        memory?: string;
+    }): Promise<ApiResponse<MSEResponse[]>> => {
+        const response = await api.get('mse', { params });
         return response.data;
     },
 

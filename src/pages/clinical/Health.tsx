@@ -243,19 +243,19 @@ const Health = () => {
                     </div>
                 </motion.div>
 
-                {/* Past History Card */}
+                {/* AI History Assistant Card */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    onClick={() => navigate(`/patients/${userId}/past-history`)}
+                    onClick={() => navigate(`/patients/${userId}/ai-history-assistant?consult_id=${latestHistory?.consult_id || ''}`)}
                     className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
                             <HistoryIcon size={20} />
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Past History</h2>
+                        <h2 className="text-sm font-black text-slate-900 tracking-tight">AI History Assistant</h2>
                     </div>
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Historical Intake</p>

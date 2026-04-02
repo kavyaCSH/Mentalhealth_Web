@@ -7,16 +7,17 @@ import {
     Save,
     AlertCircle,
     Activity,
-    CheckCircle2,
     Brain,
-    ClipboardList,
     Sparkles,
-    Zap,
-    FileText,
     Stethoscope,
     Bot,
     Mic,
-    MicOff
+    MicOff,
+    Shield,
+    Target,
+    AlertTriangle,
+    Layers,
+    Cpu
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
@@ -253,23 +254,130 @@ const AddROS = () => {
         }
     };
 
+    const navigateBack = () => navigate(-1);
+
     if (isLoading) return <div className="flex flex-col items-center justify-center min-h-[60vh]"><Activity className="animate-spin text-indigo-600 mb-4" size={40} /><p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Hydrating Review...</p></div>;
 
     if (result) return (
-        <div className="p-8 max-w-6xl animate-fade-in pb-24 space-y-12">
-            <header className="flex items-center justify-between">
-                <div><h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3"><Stethoscope className="text-indigo-600" size={32} />Review of Systems</h1></div>
-                <Button variant="primary" onClick={() => navigate(`/patients/${userId}/ros`)} className="rounded-2xl px-8 font-black uppercase text-xs">Return to Profile</Button>
-            </header>
-            <section className="card-premium p-12 bg-white border-slate-100 shadow-2xl">
-                <div className="space-y-8">
-                    <div className="flex items-center gap-4 border-b pb-8">
-                        <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white"><Activity size={28} /></div>
-                        <div><h2 className="text-xs font-black text-indigo-500 uppercase tracking-[0.4em] mb-1">AI Systemic Correlation</h2><p className="text-xl font-black text-slate-900">Review Complete</p></div>
+        <div className="p-10 max-w-[1400px] mx-auto space-y-12 animate-fade-in pb-32">
+            <header className="flex items-end justify-between border-b-2 border-slate-50 pb-12">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-100/20">
+                            <Stethoscope size={28} />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <span className={`px-3 py-1 ${result.color_code === 'Red' ? 'bg-rose-600' : 'bg-emerald-600'} text-white rounded-lg text-[10px] font-bold tracking-tight shadow-lg`}>Record processed</span>
+                                <span className="text-[11px] font-medium text-slate-400 tabular-nums tracking-tight leading-none">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                            </div>
+                            <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Systemic review</h1>
+                        </div>
                     </div>
-                    <div className="space-y-4"><h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clinical Notes</h3><p className="text-xl font-black text-slate-800 leading-relaxed italic">"{result.ai_notes}"</p></div>
                 </div>
-            </section>
+                <Button variant="outline" onClick={navigateBack} className="h-14 px-10 rounded-2xl border border-slate-200 font-bold text-[11px] tracking-tight hover:bg-slate-50">
+                    Exit record
+                </Button>
+            </header>
+
+            <div className="grid lg:grid-cols-12 gap-12">
+                <div className="lg:col-span-12">
+                    <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-16 opacity-[0.03] group-hover:scale-110 transition-transform duration-[3s] text-indigo-600"><Cpu size={240} /></div>
+                        <div className="relative space-y-8">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-1 h-8 ${result.color_code === 'Red' ? 'bg-rose-600' : 'bg-indigo-600'} rounded-full`} />
+                                <h3 className="text-[12px] font-bold text-slate-900 tracking-tight">Clinical systemic formulation</h3>
+                            </div>
+                            <div className="pl-6 border-l-4 border-slate-50 py-1">
+                                <p className="text-2xl font-bold text-slate-800 leading-relaxed tracking-tight italic">
+                                    "{result.ai_notes || 'Systemic correlation pending formal auditor verification.'}"
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div className="lg:col-span-8">
+                    <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] h-full">
+                        <div className="space-y-12">
+                            <header className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-100/40"><AlertTriangle size={22} /></div>
+                                <h3 className="text-[12px] font-bold text-slate-900 tracking-tight">Organic rule-outs & alerts</h3>
+                            </header>
+                            
+                            <div className="grid md:grid-cols-2 gap-10">
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-1.5 h-6 bg-rose-600 rounded-full" />
+                                        <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Organic red flags</h4>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {result.organic_red_flags?.length ? result.organic_red_flags.map((flag: string, i: number) => (
+                                            <div key={i} className="p-5 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-4 text-rose-700 font-bold text-sm tracking-tight">
+                                                <AlertCircle size={18} />
+                                                {flag}
+                                            </div>
+                                        )) : <p className="text-sm font-bold text-slate-400 italic font-medium px-2">No acute organic flags identified.</p>}
+                                    </div>
+                                </div>
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+                                        <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Pharmacological risks</h4>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {result.medication_induced_risk?.length ? result.medication_induced_risk.map((risk: string, i: number) => (
+                                            <div key={i} className="p-5 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-4 text-indigo-700 font-bold text-sm tracking-tight">
+                                                <Shield size={18} />
+                                                {risk}
+                                            </div>
+                                        )) : <p className="text-sm font-bold text-slate-400 italic font-medium px-2">No atypical medication correlations found.</p>}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-10 border-t border-slate-50 flex items-center justify-between">
+                                <div className="space-y-2">
+                                    <h5 className="text-[11px] font-bold text-slate-400 tracking-tight">Substance probability audit</h5>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                            result.substance_induced_probability === 'High' ? 'bg-rose-600 text-white shadow-lg shadow-rose-200' :
+                                            result.substance_induced_probability === 'Moderate' ? 'bg-amber-500 text-white shadow-lg shadow-amber-100' :
+                                            'bg-emerald-600 text-white'
+                                        }`}>
+                                            {result.substance_induced_probability || 'None identified'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <Layers size={24} className="text-slate-100" />
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div className="lg:col-span-4">
+                    <div className="space-y-8">
+                        <header className="flex items-center gap-4 mb-2 p-1">
+                            <Target size={20} className="text-indigo-600" />
+                            <h3 className="text-[12px] font-bold text-slate-900 tracking-tight">Clinical highlights</h3>
+                        </header>
+                        
+                        <div className="grid gap-4">
+                            <div className="p-6 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] flex items-center gap-6 relative group">
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-indigo-600 rounded-r-full" />
+                                <div className="w-10 h-10 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-bold text-xs shrink-0 shadow-lg shadow-slate-100"><Activity size={18} /></div>
+                                <p className="text-sm font-bold text-slate-700 leading-tight tracking-tight">Organic correlation performed</p>
+                            </div>
+                            <div className="p-6 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] flex items-center gap-6 relative group">
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-rose-600 rounded-r-full" />
+                                <div className="w-10 h-10 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-bold text-xs shrink-0 shadow-lg shadow-slate-100"><Shield size={18} /></div>
+                                <p className="text-sm font-bold text-slate-700 leading-tight tracking-tight">Medication cross-audit complete</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 
@@ -279,7 +387,7 @@ const AddROS = () => {
         <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in pb-24">
             <header className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                    <button onClick={() => navigate(`/patients/${userId}/ros`)} className="p-3 bg-white border rounded-2xl text-slate-500"><ChevronLeft size={20} /></button>
+                    <button onClick={navigateBack} className="p-3 bg-white border rounded-2xl text-slate-500"><ChevronLeft size={20} /></button>
                     <div><h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3"><Stethoscope className="text-indigo-600" size={32} />Review of Systems</h1></div>
                 </div>
                 <button onClick={() => setUseAssistant(!useAssistant)} className={`px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 border-2 transition-all ${useAssistant ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-indigo-100 text-indigo-600'}`}><Bot size={16} />{useAssistant ? 'FORM VIEW' : 'AI ASSISTANT'}</button>

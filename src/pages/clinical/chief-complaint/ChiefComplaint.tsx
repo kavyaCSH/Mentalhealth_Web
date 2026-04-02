@@ -229,7 +229,33 @@ const ChiefComplaint = () => {
                             </p>
                             <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
                                 <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">View AI ANALYSIS</span>
-                                <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                <div className="flex items-center gap-2">
+                                    {!isPatient && (
+                                        <>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/patients/${effectiveUserId}/chief-complaint/edit/${(item.chiefComplaintId || item.id || item._id) as string | number}`);
+                                                }}
+                                                className="p-2.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                                title="Edit Record"
+                                            >
+                                                <Edit3 size={14} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDelete((item.chiefComplaintId || item.id || item._id) as string | number);
+                                                }}
+                                                className="p-2.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                                                title="Delete Record"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </>
+                                    )}
+                                    <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                </div>
                             </div>
                         </motion.div>
                     ))

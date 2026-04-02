@@ -12,7 +12,8 @@ import {
     Mail,
     Lock,
     User,
-    Stethoscope
+    Stethoscope,
+    BarChart3
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
@@ -227,6 +228,17 @@ const PatientDirectory = () => {
                                                         title="Clinical Record"
                                                     >
                                                         <Stethoscope size={16} />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/clinical/statistics/${patient.userId || patient.id || patient._id}`);
+                                                        }}
+                                                        className="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm group/btn"
+                                                        title="Wellness Analytics"
+                                                    >
+                                                        <BarChart3 size={16} />
                                                     </button>
 
                                                     <button

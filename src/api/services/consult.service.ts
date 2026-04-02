@@ -2,8 +2,18 @@ import api from '../client';
 import type { Consultation, ApiResponse } from '../../types/common.types';
 
 export const ConsultService = {
-    listConsultations: async (params?: Record<string, unknown>): Promise<Consultation[]> => {
-        const response = await api.get('resource/consults', { params });
+    listConsultations: async (params?: {
+        sort_order?: 'asc' | 'desc';
+        limit?: number;
+        page?: number;
+        [key: string]: unknown;
+    }): Promise<Consultation[]> => {
+        const response = await api.get('resource/consults', { params: {
+            sort_order: 'asc',
+            limit: 10,
+            page: 1,
+            ...params
+        }});
         const data = response.data?.data ?? response.data;
         return Array.isArray(data) ? data : data?.consults || [];
     },

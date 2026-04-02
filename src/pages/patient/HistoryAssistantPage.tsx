@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Sparkles,
@@ -16,18 +17,23 @@ import {
     RotateCcw,
     Mic,
     MicOff,
-    Loader2
+    Loader2,
+    ShieldAlert,
+    X
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { PastHistoryService } from '../../api/services/pastHistory.service';
-import type { PastHistoryResponse } from '../../types/pastHistory.types';
+import type { PastHistoryResponse, PastHistorySection } from '../../types/pastHistory.types';
 import Button from '../../components/ui/Button';
 
-type ViewState = 'list' | 'assistant' | 'detail';
+type ViewState = 'list' | 'assistant' | 'detail' | 'manual';
 
 const HistoryAssistantPage = () => {
     const { user } = useAuth();
-    const patientId = user?.id || user?._id || '';
+    const navigate = useNavigate();
+    const { patientId: urlPatientId } = useParams<{ patientId: string }>();
+    const patientId = urlPatientId || user?.id || user?._id || '';
+    const isProfessional = user?.role && user.role !== 'patient';
 
     // Navigation State
     const [viewState, setViewState] = useState<ViewState>('list');
@@ -45,6 +51,11 @@ const HistoryAssistantPage = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [recognition, setRecognition] = useState<any>(null);
 
+    // Manual Entry State
+    const [questions, setQuestions] = useState<PastHistorySection[]>([]);
+    const [manualResponses, setManualResponses] = useState<Record<string, any>>({});
+    const [fetchingQuestions, setFetchingQuestions] = useState(false);
+
     useEffect(() => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -54,11 +65,21 @@ const HistoryAssistantPage = () => {
             rec.lang = 'en-US';
 
             rec.onresult = (event: any) => {
-                let transcript = '';
+                let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    }
                 }
-                setNarrative(prev => prev.endsWith(' ') || prev === '' ? prev + transcript : prev + ' ' + transcript);
+
+                if (finalTranscript) {
+                    setNarrative(prev => {
+                        const cleanNew = finalTranscript.trim();
+                        if (!prev) return cleanNew;
+                        return prev.trim() + ' ' + cleanNew;
+                    });
+                }
             };
 
             rec.onerror = (event: any) => {
@@ -107,6 +128,99 @@ const HistoryAssistantPage = () => {
         }
     }, [historyList]);
 
+    const handleAddManual = async () => {
+        try {
+            setViewState('manual');
+            setFetchingQuestions(true);
+            const res = await PastHistoryService.getQuestions();
+            const data = (res as any).data || res;
+            if (Array.isArray(data)) {
+                setQuestions(data);
+                const initial: Record<string, any> = {};
+                data.forEach((sec: any) => sec.questions.forEach((q: any) => {
+                    if (q.type === 'boolean') initial[q.key] = false;
+                    else if (q.type === 'multiselect') initial[q.key] = [];
+                    else if (q.type === 'array') initial[q.key] = [];
+                    else if (q.type === 'boolean_group') {
+                        initial[q.key] = {};
+                        q.fields?.forEach((f: any) => {
+                            if (f.type === 'boolean') initial[q.key][f.key] = false;
+                            else if (f.type === 'multiselect') initial[q.key][f.key] = [];
+                            else initial[q.key][f.key] = '';
+                        });
+                    }
+                    else initial[q.key] = '';
+                }));
+                setManualResponses(initial);
+            }
+        } catch (error) {
+            console.error('Manual fetch failed:', error);
+            setViewState('list');
+        } finally {
+            setFetchingQuestions(false);
+        }
+    };
+
+    const handleManualSave = async () => {
+        try {
+            setSaving(true);
+            
+            // Construct structured payload based on section mapping
+            const payload: any = {
+                patient_id: patientId,
+                status: 'completed',
+                psychiatric_history: {},
+                medical_history: {},
+                family_history: {},
+                substance_use: {},
+                developmental_history: {},
+                social_history: {},
+                trauma_history: {}
+            };
+
+            const sectionMap: Record<string, string> = {
+                'psychiatric_past': 'psychiatric_history',
+                'medical_surgical': 'medical_history',
+                'family_history': 'family_history',
+                'substance_history': 'substance_use',
+                'developmental_history': 'developmental_history',
+                'social_history': 'social_history',
+                'trauma_history': 'trauma_history'
+            };
+
+            questions.forEach((sec: any) => {
+                const payloadKey = sectionMap[sec.section] || sec.section;
+                if (!payload[payloadKey]) payload[payloadKey] = {};
+                
+                sec.questions.forEach((q: any) => {
+                    if (manualResponses[q.key] !== undefined) {
+                        payload[payloadKey][q.key] = manualResponses[q.key];
+                    }
+                });
+            });
+
+            console.log('Analyzing Manual Structured Data:', payload);
+
+            // Using analyze endpoint for manual structured data to get findings first
+            const res = await PastHistoryService.analyzeManual(payload);
+            const data = (res as any).data || res;
+            
+            if (data) {
+                // Merge structured data with AI results for extraction preview
+                const mergeResult = {
+                    ...payload,
+                    ...data
+                };
+                setExtractedData(mergeResult);
+                setViewState('assistant'); // Transition to the result view screen
+            }
+        } catch (error) {
+            console.error('Analysis failed:', error);
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const fetchHistory = async () => {
         try {
             setLoadingHistory(true);
@@ -139,13 +253,13 @@ const HistoryAssistantPage = () => {
     };
 
     const handleSave = async () => {
-        if (!extractedData && !narrative.trim()) return;
+        if (!extractedData) return;
         try {
             setSaving(true);
             const payload: any = {
                 ...extractedData,
                 patient_id: patientId,
-                narrative: narrative,
+                narrative: narrative || (extractedData as any).ai_notes || '',
                 status: 'completed'
             };
             const res = await PastHistoryService.createPastHistory(payload);
@@ -154,10 +268,11 @@ const HistoryAssistantPage = () => {
                 setViewState('list');
                 setExtractedData(null);
                 setNarrative('');
+                setManualResponses({});
                 fetchHistory();
             }
         } catch (error) {
-            console.error('Save failed:', error);
+            console.error('Persistence failed:', error);
         } finally {
             setSaving(false);
         }
@@ -172,10 +287,15 @@ const HistoryAssistantPage = () => {
                 if (!item) return null;
                 if (typeof item === 'string') return item;
                 if (typeof item === 'object') {
+                    if (item.procedure) return `${item.procedure}${item.year ? ' (' + item.year + ')' : ''}`;
                     if (item.name) return `${item.name}${item.dose ? ' ' + item.dose : ''}${item.duration ? ' (' + item.duration + ')' : ''}`;
-                    if (item.relative) return `${item.relative}: ${item.condition}`;
+                    if (item.relative) return `${item.relative}: ${item.condition}${item.age ? ' (Age: ' + item.age + ')' : ''}`;
                     if (item.drug) return `${item.drug}${item.frequency ? ' (' + item.frequency + ')' : ''}`;
-                    return formatInsightValue(item);
+                    if (item.diagnosis) return `${item.diagnosis}${item.year ? ' (' + item.year + ')' : ''}`;
+                    
+                    // Fallback to extraction of first string value if it looks like a simple key-value object
+                    const values = Object.values(item).filter(v => typeof v === 'string' && v.length > 0 && v !== 'None' && v !== 'Unknown');
+                    return values.length > 0 ? values[0] : null;
                 }
                 return String(item);
             }).filter(Boolean).join(', ');
@@ -183,24 +303,24 @@ const HistoryAssistantPage = () => {
 
         if (typeof value === 'object') {
             const entries = Object.entries(value)
-                .filter(([_, v]) => v != null && v !== false && v !== '' && v !== 'None' && v !== 'Unknown')
                 .map(([k, v]) => {
-                    if (k === 'detected') return null;
+                    if (k === 'detected' || v == null) return null;
+                    if (v === false) return `No ${k.replace(/_/g, ' ')}`;
+                    if (v === true) return k.replace(/_/g, ' ');
+                    
                     if (Array.isArray(v)) {
                         const subArr = formatInsightValue(v);
                         return subArr ? `${k.replace(/_/g, ' ')}: ${subArr}` : null;
                     }
-                    if (typeof v === 'object' && v !== null) {
-                        const subObj = Object.entries(v)
-                            .filter(([sk, sv]) => sv != null && sv !== '' && sv !== 'Unknown' && sv !== 'None' && sk !== 'detected')
-                            .map(([_, sv]) => sv)
-                            .join(' ');
+                    if (typeof v === 'object') {
+                        const subObj = formatInsightValue(v);
                         return subObj ? `${k.replace(/_/g, ' ')}: ${subObj}` : null;
                     }
+                    if (v === 'None' || v === 'Unknown' || v === 'Not specified') return null;
                     return `${k.replace(/_/g, ' ')}: ${v}`;
                 })
                 .filter(Boolean);
-            return entries.join(' | ');
+            return entries.length > 0 ? entries.join(' | ') : 'No history reported';
         }
         return String(value);
     };
@@ -214,18 +334,26 @@ const HistoryAssistantPage = () => {
                             <ArrowLeft size={20} className="text-slate-600" />
                         </button>
                     )}
-                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] px-3 py-1 bg-indigo-50 rounded-full">Historical Archive</span>
-                    <ChevronRight size={14} className="text-slate-300" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{viewState === 'list' ? 'Clinical Center' : 'Extraction Hub'}</span>
+                    <span className="text-[10px] font-black text-indigo-700 uppercase tracking-[0.2em] px-3 py-1 bg-indigo-50 rounded-full">Historical Archive</span>
+                    <ChevronRight size={14} className="text-slate-400" />
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{viewState === 'list' ? 'Clinical Center' : 'Extraction Hub'}</span>
                 </nav>
                 <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-[0.9] mb-2">{title}</h1>
-                <p className="text-slate-400 font-bold uppercase text-[11px] tracking-widest">{subtitle}</p>
+                <p className="text-slate-600 font-bold uppercase text-[11px] tracking-widest">{subtitle}</p>
             </div>
 
             {viewState === 'list' && (
-                <button onClick={() => setViewState('assistant')} className="h-16 px-10 bg-indigo-600 text-white rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-100 flex items-center gap-4 hover:scale-105 transition-transform active:scale-95">
-                    <Plus size={20} /> Record New History
-                </button>
+                <div className="flex flex-wrap gap-4">
+                    <button 
+                        onClick={handleAddManual}
+                        className="h-16 px-10 bg-white text-slate-700 border border-slate-200 rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-sm flex items-center gap-4 hover:bg-slate-50 transition-all active:scale-95"
+                    >
+                        <Plus size={20} /> Add Manual
+                    </button>
+                    <button onClick={() => setViewState('assistant')} className="h-16 px-10 bg-indigo-600 text-white rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-100 flex items-center gap-4 hover:scale-105 transition-transform active:scale-95">
+                        <Mic size={20} /> Record New History
+                    </button>
+                </div>
             )}
         </header>
     );
@@ -256,19 +384,22 @@ const HistoryAssistantPage = () => {
                                     <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                         <Calendar size={18} />
                                     </div>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{record.createdAt ? new Date(record.createdAt).toLocaleDateString() : 'Snapshot'}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 tracking-widest">{record.createdAt ? new Date(record.createdAt).toLocaleDateString() : 'Snapshot'}</span>
                                 </div>
-                                <div className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-widest rounded-full">Archive Record</div>
+                                <div className="px-3 py-1 bg-slate-100 text-slate-600 text-[8px] font-black tracking-widest rounded-full">Archive Record</div>
                             </div>
 
-                            <h3 className="text-lg font-black text-slate-800 mb-4 line-clamp-2 leading-tight uppercase tracking-tight">
-                                {record.ai_notes || record.narrative || "Clinical Synthesis Snapshot"}
+                            <h3 className="text-xl font-bold text-slate-900 mb-6 line-clamp-3 leading-tight tracking-tight group-hover:text-black">
+                                {record.ai_notes || "Clinical Synthesis Snapshot"}
                             </h3>
 
+
+
                             <div className="flex flex-wrap gap-2 mt-auto pt-6 border-t border-slate-50">
-                                {record.psychiatric_history && <span className="px-3 py-1.5 bg-indigo-50 text-indigo-600 text-[8px] font-black uppercase tracking-widest rounded-lg">Psychiatry</span>}
-                                {record.medical_history && <span className="px-3 py-1.5 bg-rose-50 text-rose-600 text-[8px] font-black uppercase tracking-widest rounded-lg">Medical</span>}
-                                {record.family_history && <span className="px-3 py-1.5 bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-widest rounded-lg">Family</span>}
+                                {record.psychiatric_history && <span className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-indigo-100">Psychiatry</span>}
+                                {record.medical_history && <span className="px-3 py-1.5 bg-rose-50 text-rose-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-rose-100">Medical</span>}
+                                {record.family_history && <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-emerald-100">Family</span>}
+                                {record.trauma_history && <span className="px-3 py-1.5 bg-slate-50 text-slate-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-slate-100">Trauma</span>}
                             </div>
                         </motion.div>
                     ))
@@ -279,14 +410,55 @@ const HistoryAssistantPage = () => {
 
     const renderAssistant = () => (
         <div className="space-y-12">
-            {renderHeader("History Assistant", "AI-Powered clinical entity extraction from your narrative.", true)}
+            {/* Context-Aware Hero Section */}
+            <div className="relative p-10 bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl shadow-indigo-200/20 mb-8 border border-white/5">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600 blur-[120px] opacity-20 -mr-20 -mt-20" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-rose-500 blur-[100px] opacity-10 -ml-20 -mb-20" />
+
+                <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-6">
+                        <div className="p-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-600/30">
+                            <Sparkles size={32} />
+                        </div>
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-black text-white tracking-tight uppercase italic break-all">
+                                {isProfessional ? "Clinical History Assistant" : "Your AI Health History Assistant"}
+                            </h1>
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">
+                                {isProfessional ? "Conducting AI-Augmented Clinical Intake" : "Deep Clinical Synthesis Engine v4.0"}
+                            </p>
+                        </div>
+                    </div>
+                    {isProfessional && (
+                        <Button 
+                            variant="primary" 
+                            size="sm" 
+                            onClick={() => navigate(`/patients/${patientId}/health`)}
+                            className="bg-white/10 hover:bg-white/20 text-white border-none rounded-xl font-black uppercase text-[9px] tracking-widest px-6"
+                        >
+                            Return to Hub
+                        </Button>
+                    )}
+                </div>
+            </div>
+
+            {renderHeader(isProfessional ? "Clinical Extraction" : "History Assistant", "AI-Powered clinical entity extraction from your narrative.", true)}
 
             <AnimatePresence mode="wait">
                 {!extractedData ? (
                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} className="grid lg:grid-cols-12 gap-12">
                         <div className="lg:col-span-8 space-y-8">
                             <div className="card-premium p-12 bg-white min-h-[500px] flex flex-col rounded-[3rem] shadow-xl border border-slate-100 relative">
-                                <div className="absolute top-8 right-8 flex gap-3">
+                                <div className="absolute top-8 right-8 flex gap-4">
+                                    {narrative && !isRecording && (
+                                        <button
+                                            onClick={() => setNarrative('')}
+                                            className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center hover:bg-rose-100 transition-all shadow-lg active:scale-90 group"
+                                            title="Clear Narrative"
+                                        >
+                                            <RotateCcw size={20} className="group-hover:rotate-[-90deg] transition-transform duration-500" />
+                                        </button>
+                                    )}
                                     <button
                                         onClick={toggleRecording}
                                         className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all shadow-lg ${isRecording
@@ -329,20 +501,75 @@ const HistoryAssistantPage = () => {
                         </div>
                     </motion.div>
                 ) : (
-                    <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
-                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {[
-                                { label: 'Psychiatric', value: extractedData.psychiatric_history?.previous_diagnosis || extractedData.psychiatric_history?.previous_episodes, icon: <Brain size={20} />, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                                { label: 'Condition/Meds', value: extractedData.psychiatric_history?.previous_treatments || extractedData.medical_history?.chronic_conditions, icon: <Activity size={20} />, color: 'text-rose-600', bg: 'bg-rose-50' },
-                                { label: 'Family Status', value: extractedData.family_history?.conditions || extractedData.family_history, icon: <Users size={20} />, color: 'text-amber-600', bg: 'bg-amber-50' },
-                                { label: 'Substance Use', value: extractedData.substance_use, icon: <RotateCcw size={20} />, color: 'text-orange-600', bg: 'bg-orange-50' }
-                            ].map((item, idx) => item.value ? (
-                                <div key={idx} className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm">
-                                    <div className={`w-14 h-14 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center mb-6`}>{item.icon}</div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{item.label}</p>
-                                    <p className="text-sm font-black text-slate-800 leading-relaxed uppercase">{formatInsightValue(item.value)}</p>
+                    <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="space-y-12 relative pt-4">
+                        {/* Clinical Risk Accent */}
+                        <div className="absolute top-0 left-0 w-full h-1.5 rounded-full overflow-hidden flex">
+                             <div className="h-full w-full" style={{ backgroundColor: extractedData?.color_code || '#6366f1' }} />
+                        </div>
+
+                        {/* Top Synthesis Dashboard */}
+                        <div className="grid lg:grid-cols-12 gap-8">
+                            <div className="lg:col-span-8">
+                                <div className="p-10 bg-indigo-50 border border-indigo-100 rounded-[3rem] shadow-sm relative overflow-hidden group h-full">
+                                     <div className="absolute top-0 left-0 w-2 h-full bg-indigo-600/20" />
+                                     <div className="flex items-center gap-3 mb-6">
+                                         <Sparkles className="text-indigo-600" size={20} />
+                                         <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Master Clinical Synthesis</h4>
+                                     </div>
+                                     <p className="text-xl font-bold text-indigo-950 leading-relaxed italic">
+                                         "{extractedData?.ai_notes || 'Clinical analysis performed successfully.'}"
+                                     </p>
                                 </div>
-                            ) : null)}
+                            </div>
+                            <div className="lg:col-span-4">
+                                <div className="p-10 bg-slate-900 rounded-[3rem] text-white shadow-2xl relative overflow-hidden h-full">
+                                     <div className="absolute top-0 right-0 w-24 h-24 bg-rose-600 blur-[80px] opacity-20" />
+                                     <h4 className="text-xl font-black mb-6 flex items-center gap-4 uppercase tracking-tighter"><ShieldAlert size={24} className="text-rose-500" /> Clinical Flags</h4>
+                                     
+                                     <div className="flex flex-wrap gap-2 mb-6">
+                                         {extractedData?.risk_flags?.length ? extractedData.risk_flags.map((f: string, i: number) => (
+                                             <span key={i} className="px-3 py-1.5 bg-rose-600/20 border border-rose-500/30 text-rose-200 text-[8px] font-black rounded-xl uppercase tracking-tight">{f}</span>
+                                         )) : <span className="text-[9px] font-bold text-slate-500">Normal profile</span>}
+                                     </div>
+
+                                     <div className="grid grid-cols-2 gap-4">
+                                         {extractedData?.treatment_resistance_risk && (
+                                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                                <p className="text-[7px] font-black text-indigo-400 uppercase mb-1">TRD</p>
+                                                <p className="text-[9px] font-black uppercase">{extractedData.treatment_resistance_risk}</p>
+                                            </div>
+                                         )}
+                                          {extractedData?.genetic_risk_summary && (
+                                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                                <p className="text-[7px] font-black text-emerald-400 uppercase mb-1">Genetic</p>
+                                                <p className="text-[9px] font-black uppercase line-clamp-1">{extractedData.genetic_risk_summary}</p>
+                                            </div>
+                                         )}
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {[
+                                { label: 'Psychiatric', value: extractedData.psychiatric_history, icon: <Brain size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
+                                { label: 'Medical', value: extractedData.medical_history, icon: <HeartPulse size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
+                                { label: 'Substance Use', value: extractedData.substance_use, icon: <RotateCcw size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
+                                { label: 'Family Status', value: extractedData.family_history, icon: <Users size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
+                                { label: 'Developmental', value: extractedData.developmental_history, icon: <Activity size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
+                                { label: 'Social Context', value: extractedData.social_history, icon: <Users size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
+                                { label: 'Trauma Archive', value: extractedData.trauma_history, icon: <Shield size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' }
+                            ].map((item, idx) => {
+                                const formattedValue = formatInsightValue(item.value);
+                                if (!formattedValue || formattedValue === 'Not specified') return null;
+                                return (
+                                    <div key={idx} className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm">
+                                        <div className={`w-14 h-14 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center mb-6`}>{item.icon}</div>
+                                        <p className="text-[10px] font-bold text-slate-400 tracking-widest mb-3">{item.label}</p>
+                                        <p className="text-sm font-bold text-slate-800 leading-relaxed">{formattedValue}</p>
+                                    </div>
+                                );
+                            })}
                         </div>
                         <div className="p-16 bg-slate-900 rounded-[4rem] text-white flex flex-col lg:flex-row items-center justify-between gap-12 text-center lg:text-left">
                             <div className="space-y-4">
@@ -350,8 +577,30 @@ const HistoryAssistantPage = () => {
                                 <p className="text-white/50 font-bold max-w-2xl">Confirming will structure this history into your master clinical record for your providers.</p>
                             </div>
                             <div className="flex gap-6 w-full lg:w-auto">
-                                <Button variant="white" size="lg" className="flex-1 lg:flex-none rounded-full px-12" onClick={() => setExtractedData(null)}>Edit details</Button>
-                                <Button variant="primary" size="lg" className="flex-1 lg:flex-none rounded-full px-16 bg-emerald-500 border-none" onClick={handleSave} isLoading={saving} leftIcon={<Save size={20} />}>Save Record</Button>
+                                <Button 
+                                    variant="white" 
+                                    size="lg" 
+                                    className="flex-1 lg:flex-none rounded-full px-12" 
+                                    onClick={() => {
+                                        setExtractedData(null);
+                                        // If we have manual responses, go back to manual view
+                                        if (Object.keys(manualResponses).length > 0) {
+                                            setViewState('manual');
+                                        }
+                                    }}
+                                >
+                                    Edit Details
+                                </Button>
+                                <Button 
+                                    variant="primary" 
+                                    size="lg" 
+                                    className="flex-1 lg:flex-none rounded-full px-16 bg-emerald-500 border-none" 
+                                    onClick={handleSave} 
+                                    isLoading={saving} 
+                                    leftIcon={<Save size={20} />}
+                                >
+                                    Persist Record
+                                </Button>
                             </div>
                         </div>
                     </motion.div>
@@ -362,48 +611,348 @@ const HistoryAssistantPage = () => {
 
     const renderDetail = () => {
         if (!selectedRecord) return null;
+        const record = selectedRecord as any;
         return (
             <div className="space-y-12">
                 {renderHeader("Record Detailed Analysis", "Complete clinical synthesis record.", true)}
 
-                <div className="card-premium p-12 bg-white rounded-[4rem] border border-slate-100 shadow-2xl relative">
-                    <div className="flex items-center gap-4 mb-12">
-                        <div className="w-16 h-16 rounded-[1.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-2xl shadow-indigo-200">
-                            <Shield size={32} />
+                <div className="card-premium p-12 bg-white rounded-[4rem] border border-slate-100 shadow-2xl relative overflow-hidden">
+                    {/* Status accent bar */}
+                    <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: record.color_code || '#6366f1' }} />
+                    
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12">
+                        <div className="flex items-center gap-6">
+                            <div className="w-20 h-20 rounded-[2rem] bg-indigo-600 text-white flex items-center justify-center shadow-2xl shadow-indigo-200 shrink-0">
+                                <Shield size={40} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-1">Authenticated Synthesis</p>
+                                <h3 className="text-3xl font-black text-slate-900 tracking-tight uppercase leading-none">Clinical Master Record</h3>
+                                <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-widest">{record.createdAt ? new Date(record.createdAt).toLocaleString() : 'Historical Archive'}</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Clinical Record Synthesis</h3>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{selectedRecord.createdAt ? new Date(selectedRecord.createdAt).toLocaleString() : 'Historical Archive'}</p>
-                        </div>
-                    </div>
-
-                    <div className="p-10 bg-slate-50 rounded-[3rem] italic text-slate-600 font-bold mb-12 border-l-8 border-indigo-600 leading-relaxed">
-                        "{selectedRecord.ai_notes || selectedRecord.narrative || 'Detailed narrative history available for clinical review.'}"
-                    </div>
-
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {Object.entries({
-                            'Psychiatric': <Brain size={24} className="text-indigo-600" />,
-                            'Medical': <HeartPulse size={24} className="text-rose-600" />,
-                            'Family': <Users size={24} className="text-emerald-600" />,
-                            'Substance': <RotateCcw size={24} className="text-orange-600" />,
-                            'Social': <Users size={24} className="text-sky-600" />
-                        }).map(([domain, icon]) => {
-                            const dataKey = `${domain.toLowerCase()}_history`;
-                            const domainData = (selectedRecord as any)[dataKey === 'substance_history' ? 'substance_use' : dataKey];
-                            if (!domainData) return null;
-                            return (
-                                <div key={domain} className="p-10 bg-white border border-slate-100 rounded-[3rem] shadow-sm hover:border-indigo-100 transition-all">
-                                    <div className="flex items-center gap-4 mb-6">
-                                        {icon}
-                                        <h5 className="text-[10px] font-black uppercase tracking-widest">{domain} Path</h5>
+                        
+                        {(record.genetic_risk_summary || record.treatment_resistance_risk) && (
+                            <div className="flex flex-wrap gap-4">
+                                {record.treatment_resistance_risk && record.treatment_resistance_risk !== 'None' && (
+                                    <div className="px-6 py-3 bg-rose-50 border border-rose-100 rounded-2xl">
+                                        <p className="text-[8px] font-black text-rose-600 uppercase tracking-widest mb-1">Treatment Resistance</p>
+                                        <p className="text-xs font-black text-rose-700 uppercase">{record.treatment_resistance_risk}</p>
                                     </div>
-                                    <p className="text-xs font-black text-slate-700 leading-relaxed uppercase">{formatInsightValue(domainData)}</p>
+                                )}
+                                {record.genetic_risk_summary && (
+                                     <div className="px-6 py-3 bg-amber-50 border border-amber-100 rounded-2xl">
+                                        <p className="text-[8px] font-black text-amber-600 uppercase tracking-widest mb-1">Genetic Predisposition</p>
+                                        <p className="text-xs font-black text-amber-700 uppercase">{record.genetic_risk_summary}</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="grid lg:grid-cols-12 gap-12">
+                        <div className={record.risk_flags?.length > 0 ? "lg:col-span-8 space-y-12" : "lg:col-span-12 space-y-12"}>
+                            <section>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                                    <Sparkles size={16} className="text-indigo-400" /> AI Clinical Conclusion
+                                </p>
+                                <div className="p-10 bg-indigo-50/50 rounded-[4rem] border border-indigo-100/50 shadow-inner">
+                                    <p className="text-xl font-bold text-indigo-950 leading-relaxed italic">
+                                        "{record.ai_notes || record.narrative || 'Detailed narrative history available for clinical review.'}"
+                                    </p>
                                 </div>
-                            );
-                        })}
+                            </section>
+
+                            <section>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                                    <Shield size={16} className="text-emerald-400" /> Clinical Domain Synthesis
+                                </p>
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {Object.entries({
+                                        'Psychiatric': <Brain size={24} className="text-indigo-600" />,
+                                        'Medical': <HeartPulse size={24} className="text-rose-600" />,
+                                        'Family': <Users size={24} className="text-emerald-600" />,
+                                        'Substance': <RotateCcw size={24} className="text-orange-600" />,
+                                        'Social': <Users size={24} className="text-sky-600" />,
+                                        'Developmental': <Activity size={24} className="text-amber-600" />,
+                                        'Trauma': <Shield size={24} className="text-slate-600" />
+                                    }).map(([domain, icon]) => {
+                                        const domainLower = domain.toLowerCase();
+                                        const dataKey = domainLower === 'substance' ? 'substance_use' :
+                                                    domainLower === 'trauma' ? 'trauma_history' :
+                                                    domainLower === 'developmental' ? 'developmental_history' :
+                                                    `${domainLower}_history`;
+                                                    
+                                        const domainData = record[dataKey];
+                                        const formattedValue = formatInsightValue(domainData);
+                                        if (!domainData || !formattedValue || formattedValue === 'Not specified') return null;
+                                        
+                                        return (
+                                            <div key={domain} className="p-10 bg-white border border-slate-100 rounded-[3rem] shadow-sm hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-50/20 transition-all flex flex-col group">
+                                                <div className="flex items-center gap-4 mb-6">
+                                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
+                                                        {icon}
+                                                    </div>
+                                                    <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-indigo-600">{domain} Path</h5>
+                                                </div>
+                                                <p className="text-xs font-black text-slate-700 leading-relaxed uppercase">{formattedValue}</p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        </div>
+
+                        {record.risk_flags?.length > 0 && (
+                            <div className="lg:col-span-4 space-y-8">
+                                <div className="p-10 bg-rose-600 rounded-[4rem] text-white shadow-2xl shadow-rose-200 sticky top-8">
+                                     <h4 className="text-2xl font-black mb-8 flex items-center gap-4"><ShieldAlert size={32} /> Risk Flags</h4>
+                                     <ul className="space-y-6">
+                                         {record.risk_flags.map((flag: string, i: number) => (
+                                             <li key={i} className="flex items-center gap-4 p-4 bg-white/10 rounded-[1.5rem] border border-white/5">
+                                                 <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                                 <span className="text-[11px] font-black uppercase tracking-widest leading-none">{flag}</span>
+                                             </li>
+                                         ))}
+                                     </ul>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
+            </div>
+        );
+    };
+
+    const renderManualForm = () => {
+        const renderQuestion = (q: any) => {
+            const value = manualResponses[q.key];
+
+            return (
+                <div key={q.key} className="p-10 bg-white border border-slate-100 rounded-[3rem] shadow-sm space-y-6">
+                    <p className="text-lg font-black text-slate-700 block tracking-tight uppercase">
+                        {q.patient_label || q.professional_label || q.label}
+                    </p>
+
+                    {q.type === 'boolean' && (
+                        <div className="flex gap-4">
+                            {[true, false].map((val) => (
+                                <button
+                                    key={val ? 'Yes' : 'No'}
+                                    onClick={() => setManualResponses(prev => ({ ...prev, [q.key]: val }))}
+                                    className={`px-8 py-3 rounded-full font-bold uppercase text-[10px] tracking-widest border transition-all ${
+                                        manualResponses[q.key] === val
+                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
+                                        : 'bg-slate-50 text-slate-500 border-slate-100'
+                                    }`}
+                                >
+                                    {val ? 'Yes' : 'No'}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {(q.type === 'text' || q.type === 'number') && (
+                        <input
+                            type={q.type}
+                            value={value || ''}
+                            onChange={(e) => setManualResponses(prev => ({ ...prev, [q.key]: e.target.value }))}
+                            className="w-full h-16 px-8 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-indigo-600 transition-all font-bold outline-none"
+                            placeholder={q.placeholder || "Provide details..."}
+                        />
+                    )}
+
+                    {q.type === 'textarea' && (
+                        <textarea
+                            value={value || ''}
+                            onChange={(e) => setManualResponses(prev => ({ ...prev, [q.key]: e.target.value }))}
+                            className="w-full h-32 p-8 bg-slate-50 border border-slate-100 rounded-3xl focus:bg-white focus:border-indigo-600 transition-all font-bold outline-none resize-none"
+                            placeholder={q.placeholder || "Provide details..."}
+                        />
+                    )}
+
+                    {q.type === 'select' && (
+                        <div className="relative">
+                            <select
+                                value={value || ''}
+                                onChange={(e) => setManualResponses(prev => ({ ...prev, [q.key]: e.target.value }))}
+                                className="w-full h-16 px-8 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-indigo-600 transition-all font-bold appearance-none cursor-pointer outline-none"
+                            >
+                                <option value="">Select Option</option>
+                                {q.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                            </select>
+                            <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 rotate-90 text-slate-400 pointer-events-none" size={16} />
+                        </div>
+                    )}
+
+                    {q.type === 'multiselect' && (
+                        <div className="flex flex-wrap gap-3">
+                            {q.options?.map((opt: string) => (
+                                <button
+                                    key={opt}
+                                    onClick={() => {
+                                        const current = Array.isArray(value) ? value : [];
+                                        const next = current.includes(opt) 
+                                            ? current.filter((v: any) => v !== opt) 
+                                            : [...current, opt];
+                                        setManualResponses(prev => ({ ...prev, [q.key]: next }));
+                                    }}
+                                    className={`px-6 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest border transition-all ${
+                                        Array.isArray(value) && value.includes(opt)
+                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                                        : 'bg-white text-slate-900 border-slate-100 hover:border-indigo-200'
+                                    }`}
+                                >
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {q.type === 'boolean_group' && (
+                        <div className="space-y-8 pt-6 border-t border-slate-50">
+                            {q.fields?.map((f: any, fIdx: number) => {
+                                const primaryFieldKey = q.fields[0].key;
+                                const primaryValue = manualResponses[q.key]?.[primaryFieldKey];
+                                const isVisible = fIdx === 0 || (primaryValue === true || (typeof primaryValue === 'string' && primaryValue !== 'Never' && primaryValue !== ''));
+
+                                if (!isVisible) return null;
+
+                                return (
+                                   <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={f.key} className="space-y-4">
+                                       <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{f.label}</p>
+                                       {f.type === 'boolean' && (
+                                           <div className="flex gap-4">
+                                               {[true, false].map((val) => (
+                                                   <button
+                                                       key={val ? 'Yes' : 'No'}
+                                                       onClick={() => setManualResponses(prev => ({ 
+                                                           ...prev, 
+                                                           [q.key]: { ...(prev[q.key] || {}), [f.key]: val } 
+                                                       }))}
+                                                       className={`px-8 py-3 rounded-full font-bold uppercase text-[10px] tracking-widest border transition-all ${
+                                                           manualResponses[q.key]?.[f.key] === val
+                                                           ? 'bg-indigo-600 text-white shadow-md'
+                                                           : 'bg-slate-50 text-slate-400'
+                                                       }`}
+                                                   >
+                                                       {val ? 'Yes' : 'No'}
+                                                   </button>
+                                               ))}
+                                           </div>
+                                       )}
+                                       {(f.type === 'text' || f.type === 'textarea') && (
+                                           <input
+                                               type="text"
+                                               value={manualResponses[q.key]?.[f.key] || ''}
+                                               onChange={(e) => setManualResponses(prev => ({ 
+                                                   ...prev, 
+                                                   [q.key]: { ...(prev[q.key] || {}), [f.key]: e.target.value } 
+                                               }))}
+                                               className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white font-bold transition-all outline-none"
+                                               placeholder="Enter details..."
+                                           />
+                                       )}
+                                       {f.type === 'select' && (
+                                            <div className="relative">
+                                                <select
+                                                    value={manualResponses[q.key]?.[f.key] || ''}
+                                                    onChange={(e) => setManualResponses(prev => ({ 
+                                                        ...prev, 
+                                                        [q.key]: { ...(prev[q.key] || {}), [f.key]: e.target.value } 
+                                                    }))}
+                                                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white font-bold outline-none appearance-none"
+                                                >
+                                                    <option value="">Select Option</option>
+                                                    {f.options?.map((o: string) => <option key={o} value={o}>{o}</option>)}
+                                                </select>
+                                                <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-slate-400 pointer-events-none" size={14} />
+                                            </div>
+                                       )}
+                                   </motion.div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {q.type === 'array' && (
+                        <div className="space-y-6">
+                            <div className="space-y-4">
+                                {(Array.isArray(value) ? value : []).map((item: any, idx: number) => (
+                                    <div key={idx} className="p-6 bg-slate-50 rounded-3xl space-y-4 relative group">
+                                        <button 
+                                            onClick={() => {
+                                                const next = value.filter((_: any, i: number) => i !== idx);
+                                                setManualResponses(prev => ({ ...prev, [q.key]: next }));
+                                            }}
+                                            className="absolute -top-2 -right-2 w-8 h-8 bg-rose-600 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            {q.item_structure?.map((field: any) => (
+                                                <div key={field.key}>
+                                                    <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">{field.label}</p>
+                                                    <input
+                                                        type="text"
+                                                        value={item[field.key] || ''}
+                                                        onChange={(e) => {
+                                                            const next = [...value];
+                                                            next[idx] = { ...next[idx], [field.key]: e.target.value };
+                                                            setManualResponses(prev => ({ ...prev, [q.key]: next }));
+                                                        }}
+                                                        className="w-full h-10 px-4 bg-white border border-slate-100 rounded-lg focus:border-indigo-600 transition-all text-xs font-bold"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    const baseItem: any = {};
+                                    q.item_structure?.forEach((f: any) => baseItem[f.key] = '');
+                                    setManualResponses(prev => ({ ...prev, [q.key]: [...(Array.isArray(value) ? value : []), baseItem] }));
+                                }}
+                                className="flex items-center gap-2 text-indigo-600 font-bold hover:gap-4 transition-all uppercase text-[11px] tracking-widest pl-2"
+                            >
+                                <Plus size={16} /> Add {q.label.split(' ')[0]} Entry
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        return (
+            <div className="space-y-12">
+                {renderHeader("Structured Questionnaire", "Provide detailed health observations via clinical form.", true)}
+                
+                {fetchingQuestions ? (
+                    <div className="flex flex-col items-center justify-center py-32 gap-6">
+                        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+                        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Accessing Question Library...</p>
+                    </div>
+                ) : (
+                    <div className="max-w-4xl mx-auto space-y-16">
+                        {questions.map((section: any, sIdx: number) => (
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} key={sIdx} className="space-y-8">
+                                <div className="flex items-center gap-4 border-l-4 border-indigo-600 pl-6 py-2">
+                                    <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{section.title}</h3>
+                                </div>
+                                <div className="grid gap-6">
+                                    {section.questions.map((q: any) => renderQuestion(q))}
+                                </div>
+                            </motion.div>
+                        ))}
+                        
+                        <div className="pt-12 border-t border-slate-100 flex justify-end gap-6">
+                            <Button variant="white" size="lg" className="rounded-full px-12 h-16" onClick={() => setViewState('list')}>Cancel</Button>
+                            <Button variant="primary" size="lg" className="rounded-full px-16 h-16 bg-emerald-600 border-none shadow-xl shadow-emerald-100" onClick={handleManualSave} isLoading={saving}>Finalize Manual Entry</Button>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     };
@@ -413,6 +962,7 @@ const HistoryAssistantPage = () => {
             {viewState === 'list' && renderHistoryList()}
             {viewState === 'assistant' && renderAssistant()}
             {viewState === 'detail' && renderDetail()}
+            {viewState === 'manual' && renderManualForm()}
         </div>
     );
 };

@@ -12,7 +12,9 @@ import {
     FileText,
     Loader2,
     Sparkles,
-    Bot
+    Bot,
+    Edit3,
+    Trash2
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { ChiefComplaintService } from '../../../api/services/chiefComplaint.service';
@@ -65,6 +67,21 @@ const ChiefComplaintDetail = () => {
         }
     };
 
+    const handleDelete = async () => {
+        if (!window.confirm('Are you sure you want to delete this clinical record? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            const hexId = currentUser?._id || currentUser?.id || userId;
+            await ChiefComplaintService.deleteComplaint(ccId!, hexId as string);
+            navigate(`/patients/${userId}/chief-complaint`);
+        } catch (err) {
+            console.error('Failed to delete complaint:', err);
+            alert('Failed to delete the record. Please try again.');
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
@@ -113,6 +130,26 @@ const ChiefComplaintDetail = () => {
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Structured Review of Clinical Findings</p>
                     </div>
                 </div>
+
+                {!isPatient && (
+                    <div className="flex gap-3">
+                        <Button
+                            variant="secondary"
+                            onClick={() => navigate(`/patients/${userId}/chief-complaint/edit/${ccId}`)}
+                            leftIcon={<Edit3 size={18} />}
+                            className="rounded-2xl px-6 bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-600 hover:text-white transition-all font-black uppercase text-xs shadow-sm"
+                        >
+                            Override Analysis
+                        </Button>
+                        <button
+                            onClick={handleDelete}
+                            className="p-4 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-600 hover:text-white transition-all border border-rose-200 shadow-sm"
+                            title="Delete Record"
+                        >
+                            <Trash2 size={20} />
+                        </button>
+                    </div>
+                )}
 
                 {isNew && (
                     <motion.div 

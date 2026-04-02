@@ -57,7 +57,7 @@ const ClinicalRecordsHub = () => {
             // Resolve patient name first
             let profile;
             const isPatient = currentUser?.role === 'patient' || (currentUser as unknown as { group?: string })?.group === 'PATIENT';
-            
+
             if (isPatient && idToUse === (currentUser?.id || currentUser?._id)) {
                 profile = currentUser;
             } else {
@@ -68,7 +68,7 @@ const ClinicalRecordsHub = () => {
                     profile = currentUser;
                 }
             }
-            
+
             if (profile) {
                 setPatientName(`${profile.firstName || ''} ${profile.lastName || ''}`);
             } else {
@@ -186,8 +186,8 @@ const ClinicalRecordsHub = () => {
     };
 
     const filteredRecords = records.filter(r => {
-        const matchesSearch = r.narrative.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                             r.type.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = r.narrative.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            r.type.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesFilter = activeFilter === 'all' || r.type === activeFilter;
         return matchesSearch && matchesFilter;
     });

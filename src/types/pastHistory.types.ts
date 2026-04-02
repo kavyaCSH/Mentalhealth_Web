@@ -41,55 +41,77 @@ export interface PastHistoryResponseItem {
 }
 
 export interface PsychiatricHistory {
-    previous_episodes?: string;
-    hospitalizations?: string;
-    previous_treatments?: string;
     previous_diagnosis?: string[];
-    medication_trials?: any[];
-    suicide_attempts?: any[];
+    hospitalizations?: {
+        year: string;
+        reason: string;
+        location: string;
+        duration: string;
+    }[];
+    suicide_attempts?: {
+        year: string;
+        method: string;
+        intent: string;
+    }[];
+    medication_trials?: {
+        name: string;
+        dose: string;
+        duration: string;
+        response: string;
+        side_effects: string;
+    }[];
     psychotherapy_history?: string;
 }
 
 export interface MedicalHistory {
-    chronic_conditions?: any[];
-    surgeries?: any[];
-    allergies?: any[];
+    chronic_conditions?: string[];
+    surgeries?: {
+        procedure: string;
+        year: string;
+    }[];
     head_injury?: {
         detected: boolean;
         loss_of_consciousness: boolean;
-        details: any;
+        details: string;
     };
     seizures?: {
         detected: boolean;
-        frequency: any;
-        last_seizure: any;
+        frequency: string;
+        last_seizure: string;
     };
+    allergies?: string[];
 }
 
 export interface FamilyHistory {
-    paternal?: string;
-    maternal?: string;
-    siblings?: string;
-    conditions?: any[];
+    conditions?: {
+        relative: string;
+        condition: string;
+        outcome: string;
+    }[];
     suicide_in_family?: boolean;
     substance_abuse_in_family?: boolean;
 }
 
 export interface SubstanceUseHistory {
     alcohol?: {
-        status: string | null;
-        quantity: string | null;
-        frequency: string | null;
-        last_use: string | null;
+        status: string;
+        quantity: string;
+        frequency: string;
+        last_use: string;
     };
     tobacco_nicotine?: {
-        status: string | null;
-        type: string | null;
-        quantity: string | null;
+        status: string;
+        type: string;
+        quantity: string;
     };
-    illicit_drugs?: any[];
-    caffeine?: string | null;
-    prescription_misuse?: string | null;
+    illicit_drugs?: {
+        drug: string;
+        status: string;
+        frequency: string;
+        last_use: string;
+    }[];
+    caffeine?: string;
+    prescription_misuse?: string;
 }
 
 export interface SocialHistory {
@@ -123,18 +145,17 @@ export interface DevelopmentalHistory {
 }
 
 export interface PastHistorySubmission {
-    patient_id: string | number;
+    patient: string | number;
     consult_id?: string | number;
+    status?: string;
     narrative?: string;
     psychiatric_history?: PsychiatricHistory;
     medical_history?: MedicalHistory;
     family_history?: FamilyHistory;
-    substance_use?: string | SubstanceUseHistory;
+    substance_use?: SubstanceUseHistory;
     social_history?: SocialHistory;
-    trauma_history?: string | DetailedTraumaHistory;
+    trauma_history?: DetailedTraumaHistory;
     developmental_history?: DevelopmentalHistory;
-    status?: string;
-    responses?: PastHistoryResponseItem[];
 }
 
 export interface PastHistoryResponse {

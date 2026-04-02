@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-    Search, Moon, Brain, HelpCircle, ShieldCheck, FileText, ChevronRight, BookOpen, MessageCircle, Sparkles
+    Search, Moon, Brain, HelpCircle, ShieldCheck, FileText, ChevronRight, BookOpen, MessageCircle, Sparkles, Clock, Bug
 } from 'lucide-react';
 import { PortalService } from '../../api/services/portal.service';
 import type { HelpTopic } from '../../api/services/portal.service';
@@ -142,6 +142,57 @@ const HelpCenter = () => {
                             </div>
                         </section>
 
+                        {/* Support Options Section */}
+                        <section className="mt-12">
+                            <div className="flex items-center gap-3 mb-8 ml-2">
+                                <div className="w-1 h-6 bg-indigo-600 rounded-full"></div>
+                                <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Still Need Help?</h2>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                                <button 
+                                    onClick={() => navigate('/help/support', { state: { category: 'support' } })}
+                                    className="group bg-indigo-50/50 p-8 rounded-[2.5rem] border border-indigo-100/50 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all text-left flex flex-col gap-6"
+                                >
+                                    <div className="w-16 h-16 shrink-0 rounded-[1.25rem] bg-white flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 transition-transform">
+                                        <MessageCircle size={28} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">Submit Ticket</h3>
+                                        <p className="text-slate-500 text-sm leading-relaxed font-medium">Direct assistance from our clinical agents.</p>
+                                    </div>
+                                </button>
+
+                                <button 
+                                    onClick={() => navigate('/help/tickets')}
+                                    className="group bg-emerald-50/50 p-8 rounded-[2.5rem] border border-emerald-100/50 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all text-left flex flex-col gap-6"
+                                >
+                                    <div className="w-16 h-16 shrink-0 rounded-[1.25rem] bg-white flex items-center justify-center text-emerald-600 shadow-sm group-hover:scale-110 transition-transform">
+                                        <Clock size={28} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">My History</h3>
+                                        <p className="text-slate-500 text-sm leading-relaxed font-medium">Track your recent clinical support requests.</p>
+                                    </div>
+                                </button>
+                            </div>
+
+                            {/* Bug Report CTA */}
+                            <button 
+                                onClick={() => navigate('/help/support', { state: { category: 'bug' } })}
+                                className="w-full bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:border-red-200 transition-all text-left flex items-center gap-6 group"
+                            >
+                                <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 transition-transform group-hover:scale-110">
+                                    <Bug size={24} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-black text-slate-900 text-lg">Report a Technical Bug</h3>
+                                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-0.5">Let our tech team handle the glitches</p>
+                                </div>
+                                <ChevronRight className="text-slate-200 group-hover:text-red-500 transition-all group-hover:translate-x-1" size={24} />
+                            </button>
+                        </section>
+
                         {/* Support CTA */}
                         <div className="bg-slate-900 rounded-[3rem] p-12 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/20 blur-[100px] -mr-48 -mt-48 rounded-full group-hover:bg-indigo-500/30 transition-colors duration-700"></div>
@@ -150,7 +201,10 @@ const HelpCenter = () => {
                                     <h2 className="text-3xl font-black text-white mb-2 tracking-tight">Need direct assistance?</h2>
                                     <p className="text-indigo-200 font-medium">Our clinical support team is here to help you 24/7.</p>
                                 </div>
-                                <button className="bg-white text-slate-900 px-10 py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-xs hover:bg-indigo-50 transition-colors shadow-2xl flex items-center gap-3">
+                                <button 
+                                    onClick={() => navigate('/help/support')}
+                                    className="bg-white text-slate-900 px-10 py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-xs hover:bg-indigo-50 transition-colors shadow-2xl flex items-center gap-3"
+                                >
                                     <MessageCircle size={18} />
                                     Contact Support
                                 </button>

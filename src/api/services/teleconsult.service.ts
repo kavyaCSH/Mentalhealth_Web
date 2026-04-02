@@ -6,8 +6,18 @@ export const TeleConsultService = {
         const response = await api.post('resource/consults', data);
         return response.data;
     },
-    listConsultations: async (params: Record<string, unknown>): Promise<ApiResponse<{ consults: Consultation[] }>> => {
-        const response = await api.get('resource/consults', { params });
+    listConsultations: async (params?: {
+        sort_order?: 'asc' | 'desc';
+        limit?: number;
+        page?: number;
+        [key: string]: unknown;
+    }): Promise<ApiResponse<{ consults: Consultation[] }>> => {
+        const response = await api.get('resource/consults', { params: {
+            sort_order: 'asc',
+            limit: 10,
+            page: 1,
+            ...params
+        }});
         return response.data;
     },
     getBillingPreview: async (id: string) => {

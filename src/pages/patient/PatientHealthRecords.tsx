@@ -7,7 +7,6 @@ import type { RootState } from '../../store';
 import { ChiefComplaintService } from '../../api/services/chiefComplaint.service';
 import { HPIService } from '../../api/services/hpi.service';
 import { MSEService } from '../../api/services/mse.service';
-import { PastHistoryService } from '../../api/services/pastHistory.service';
 import { ROSService } from '../../api/services/ros.service';
 import { TreatmentService } from '../../api/services/treatment.service';
 import { UserService } from '../../api/services/user.service';
@@ -29,7 +28,6 @@ const PatientHealthRecords = () => {
     const [latestComplaint, setLatestComplaint] = useState<unknown>(null);
     const [latestHPI, setLatestHPI] = useState<unknown>(null);
     const [latestMSE, setLatestMSE] = useState<unknown>(null);
-    const [latestHistory, setLatestHistory] = useState<unknown>(null);
     const [latestROS, setLatestROS] = useState<unknown>(null);
     const [treatmentProgress, setTreatmentProgress] = useState<TreatmentProgress | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -138,13 +136,11 @@ const PatientHealthRecords = () => {
                     patient_id: resolvedHexId
                 }), 5000, 'HPI'),
                 withTimeout(MSEService.listMSEByPatient(resolvedHexId), 5000, 'MSE'),
-                withTimeout(PastHistoryService.getPastHistoryByPatient(resolvedHexId), 5000, 'History'),
                 withTimeout(ROSService.getROSByPatient(resolvedHexId), 5000, 'ROS')
-            ]).then(([complaintsRes, hpiRes, mseRes, historyRes, rosRes]) => {
+            ]).then(([complaintsRes, hpiRes, mseRes, rosRes]) => {
                 handleResult(complaintsRes, setLatestComplaint, 'Complaint');
                 handleResult(hpiRes, setLatestHPI, 'HPI');
                 handleResult(mseRes, setLatestMSE, 'MSE');
-                handleResult(historyRes, setLatestHistory, 'History');
                 handleResult(rosRes, setLatestROS, 'ROS');
             });
 
@@ -345,27 +341,6 @@ const PatientHealthRecords = () => {
                     </div>
                 </motion.div>
 
-                {/* Past History Card */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 }}
-                    onClick={() => navigate(`/patients/${resolvedUserId}/past-history`)}
-                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
-                >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
-                            <HistoryIcon size={20} />
-                        </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Past History</h2>
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Historical Intake</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
-                            {latestHistory ? `Last intake documented on ${new Date((latestHistory as any).createdAt).toLocaleDateString()}` : '"No comprehensive history intake performed."'}
-                        </p>
-                    </div>
-                </motion.div>
 
                 {/* Treatment Journey Card */}
                 <motion.div

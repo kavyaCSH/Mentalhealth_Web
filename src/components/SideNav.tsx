@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,23 +7,22 @@ import {
     Heart,
     Calendar,
     Activity,
-    CreditCard,
     BookOpen,
     Settings,
     ShieldCheck,
     Users,
-    MessageCircle,
     ClipboardList,
     BarChart3,
     Bell,
     Percent,
     LogOut,
-    Stethoscope,
     Brain,
-    Sparkles
+    Sparkles,
+    MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { logout } from '../features/auth/store/authSlice';
+import { SystemService } from '../api/services/system.service';
 
 interface NavItemProps {
     to: string;
@@ -80,10 +79,19 @@ interface SideNavProps {
 
 const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [webVersion, setWebVersion] = useState('...');
     const { user } = useAuth();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const role = user?.role;
+
+    useEffect(() => {
+        const fetchVersion = async () => {
+            const v = await SystemService.getWebVersion();
+            setWebVersion(v);
+        };
+        fetchVersion();
+    }, []);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -182,9 +190,8 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                             <NavItem to="/patients" icon={Users} label="Patient Directory" isCollapsed={isCollapsed} end />
                         </div>
                         <div className="space-y-2">
-                            {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Clinical Tools</p>}
-
                             <NavItem to="/neuro-vitals" icon={Brain} label="NeuroVitals™" isCollapsed={isCollapsed} />
+                            <NavItem to="/clinical/statistics" icon={BarChart3} label="Clinical Analytics" isCollapsed={isCollapsed} />
                         </div>
                     </>
                 )}
@@ -209,9 +216,9 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 {(role === 'admin' || role === 'super_admin') && (
                     <div className="space-y-2">
                         {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">IT Governance</p>}
-                        <NavItem to="/users" icon={Users} label="User Management" isCollapsed={isCollapsed} />
-                        <NavItem to="/logs" icon={Activity} label="System Logs" isCollapsed={isCollapsed} />
-                        <NavItem to="/settings" icon={Settings} label="Global Config" isCollapsed={isCollapsed} />
+                        <NavItem to="/admin/users" icon={Users} label="User Management" isCollapsed={isCollapsed} />
+                        <NavItem to="/admin/logs" icon={Activity} label="System Logs" isCollapsed={isCollapsed} />
+                        <NavItem to="/admin/settings" icon={Settings} label="Global Config" isCollapsed={isCollapsed} />
                     </div>
                 )}
             </div>
@@ -255,6 +262,15 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                         </div>
                     )}
                 </button>
+
+                <div className={`mt-4 pt-4 border-t border-slate-100 flex flex-col gap-0.5 ${isCollapsed ? 'items-center' : 'px-4'}`}>
+                    <p className="text-[9px] font-black tracking-widest text-slate-300 uppercase leading-none">
+                        {isCollapsed ? 'V' : 'Version Control'}
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-400">
+                        {isCollapsed ? webVersion : `v${webVersion}`}
+                    </p>
+                </div>
             </div>
         </motion.aside>
     );

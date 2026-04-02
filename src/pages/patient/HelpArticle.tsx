@@ -159,7 +159,10 @@ const HelpArticle = () => {
 
                 {/* Next Steps */}
                 <footer className="mt-12 space-y-4">
-                    <button className="w-full bg-indigo-600 text-white p-6 rounded-[1.5rem] font-black uppercase tracking-[0.15em] text-xs hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 group">
+                    <button 
+                        onClick={() => navigate('/help/support')}
+                        className="w-full bg-indigo-600 text-white p-6 rounded-[1.5rem] font-black uppercase tracking-[0.15em] text-xs hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 group"
+                    >
                         <MessageCircle size={18} />
                         Talk to a Professional
                         <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />

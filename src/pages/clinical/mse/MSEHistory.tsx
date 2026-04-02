@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
@@ -67,7 +67,24 @@ const MSEHistory = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => { if (userId) fetchData(); }, [userId]);
+    // Filters
+    const [filters, setFilters] = useState<{
+        startDate: string;
+        endDate: string;
+        color_code: string;
+        insight_level: string;
+        memory: string;
+    }>({
+        startDate: '',
+        endDate: '',
+        color_code: '',
+        insight_level: '',
+        memory: ''
+    });
+
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+    useEffect(() => { if (userId) fetchData(); }, [userId, filters]);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -87,7 +104,10 @@ const MSEHistory = () => {
                 } catch { /* use param id */ }
             }
 
-            const res = await MSEService.listMSEByPatient(hexId);
+            const res = await MSEService.listMSE({
+                patient_id: hexId,
+                ...filters
+            });
             const data = (res as any).data || res || [];
             const arr: MSEResponse[] = Array.isArray(data) ? data : [data];
             arr.sort((a, b) => new Date((b as any).createdAt || 0).getTime() - new Date((a as any).createdAt || 0).getTime());
@@ -152,6 +172,92 @@ const MSEHistory = () => {
                     </Link>
                 )}
             </header>
+
+            {/* Filter Toggle */}
+            <div className="flex justify-end gap-3">
+                 <button
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isFilterOpen ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200'}`}
+                >
+                    {isFilterOpen ? 'Hide Filters' : 'Show Review Filters'}
+                </button>
+                {Object.values(filters).some(v => v !== '') && (
+                    <button
+                        onClick={() => setFilters({ startDate: '', endDate: '', color_code: '', insight_level: '', memory: '' })}
+                        className="px-6 py-2 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-100"
+                    >
+                        Clear All
+                    </button>
+                )}
+            </div>
+
+            {/* Filter Bar */}
+            <AnimatePresence>
+                {isFilterOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 grid md:grid-cols-4 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Severity / Urgency</label>
+                                <select 
+                                    value={filters.color_code}
+                                    onChange={(e) => setFilters(f => ({ ...f, color_code: e.target.value }))}
+                                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 transition-all"
+                                >
+                                    <option value="">All Triage Color</option>
+                                    <option value="#E53935">Red — Immediate Risk</option>
+                                    <option value="#FB8C00">Orange — Clinical Concern</option>
+                                    <option value="#FDD835">Yellow — Noted Findings</option>
+                                    <option value="#43A047">Green — Unremarkable</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Insight Level</label>
+                                <select 
+                                    value={filters.insight_level}
+                                    onChange={(e) => setFilters(f => ({ ...f, insight_level: e.target.value }))}
+                                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 transition-all"
+                                >
+                                    <option value="">All Insight Levels</option>
+                                    <option value="Good">Good — Full Insight</option>
+                                    <option value="Partial">Partial — Minimizing</option>
+                                    <option value="Poor">Poor — Denial</option>
+                                    <option value="Absent">Absent — No awareness</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Memory Evaluation</label>
+                                <select 
+                                    value={filters.memory}
+                                    onChange={(e) => setFilters(f => ({ ...f, memory: e.target.value }))}
+                                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 transition-all"
+                                >
+                                    <option value="">Any Memory State</option>
+                                    <option value="Intact">Intact</option>
+                                    <option value="Mildly impaired">Mildly impaired</option>
+                                    <option value="Severely impaired">Severely impaired</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Date Window (Start)</label>
+                                <input 
+                                    type="date"
+                                    value={filters.startDate}
+                                    onChange={(e) => setFilters(f => ({ ...f, startDate: e.target.value }))}
+                                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-500"
+                                />
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Error */}
             {error && (

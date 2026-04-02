@@ -8,7 +8,6 @@ import {
     ChevronRight,
     ChevronLeft,
     Search,
-    Download,
     Brain,
     Heart,
     Moon,

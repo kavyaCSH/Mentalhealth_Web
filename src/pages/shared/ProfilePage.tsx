@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { RootState } from '../../store';
 import { useTheme } from '../../context/ThemeContext';
+import { SystemService } from '../../api/services/system.service';
 
 
 const MenuItem = ({ icon: IconComp, label, value, onClick, color = "text-indigo-600", bg = "bg-indigo-50" }: any) => (
@@ -41,8 +43,17 @@ const Section = ({ title, children }: any) => (
 const ProfilePage = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
+    const [webVersion, setWebVersion] = useState('...');
 
     const { theme, setTheme } = useTheme();
+
+    useEffect(() => {
+        const fetchVersion = async () => {
+            const v = await SystemService.getWebVersion();
+            setWebVersion(v);
+        };
+        fetchVersion();
+    }, []);
 
     return (
         <div className="min-h-screen bg-page p-6 md:p-12 pb-32">
@@ -158,6 +169,7 @@ const ProfilePage = () => {
                         value="24/7 Clinical Desk" 
                         color="text-orange-500" 
                         bg="bg-orange-50"
+                        onClick={() => navigate('/help/support')}
                     />
                     <MenuItem 
                         icon={ShieldCheck} 
@@ -178,8 +190,8 @@ const ProfilePage = () => {
                 <Section title="Version Control">
                     <div className="p-8 flex items-center justify-between">
                         <div>
-                            <p className="font-black text-main text-sm">Skyheal Web Platform</p>
-                            <p className="text-[11px] text-muted font-bold uppercase tracking-widest mt-1">Stable Release v1.0.4 (Build 402)</p>
+                            <p className="font-black text-main text-sm">MindBalance Web Platform</p>
+                            <p className="text-[11px] text-muted font-bold uppercase tracking-widest mt-1">Stable Release v{webVersion}</p>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted">
                             <Info size={20} />

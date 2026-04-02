@@ -21,12 +21,15 @@ import {
     Eye,
     Shield,
     Database,
-    History,
     Smile,
     Heart,
     Workflow,
     FileText,
-    ClipboardList
+    ClipboardList,
+    AlertTriangle,
+    Layers,
+    Cpu,
+    ArrowRight
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { MSEService } from '../../../api/services/mse.service';
@@ -37,24 +40,21 @@ import type { MSESection, MSEQuestion, MSEResponse } from '../../../types/mse.ty
 const FindingItem: React.FC<{ label: string; value: any }> = ({ label, value }) => {
     if (value === null || value === undefined || value === '') return null;
 
-    // Strict filtering for "unremarkable" or "absent" findings
     if (value === false) return null;
     if (value === 'None') return null;
     if (Array.isArray(value) && value.length === 0) return null;
 
     let displayValue = '';
     if (typeof value === 'boolean') {
-        displayValue = value ? 'Present / Normal' : 'Absent / Noted';
+        displayValue = value ? 'Clinical Finding Present' : 'Absent';
     } else if (Array.isArray(value)) {
         displayValue = value.join(', ');
     } else if (typeof value === 'object') {
         const activeEntries = Object.entries(value)
             .filter(([_, v]) => v === true || (typeof v === 'string' && v.length > 0 && v !== 'None'));
-
         if (activeEntries.length === 0) return null;
-
         displayValue = activeEntries
-            .map(([k, _]) => k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '))
+            .map(([k, _]) => k.replace(/_/g, ' '))
             .join(', ');
     } else {
         displayValue = String(value);
@@ -63,9 +63,9 @@ const FindingItem: React.FC<{ label: string; value: any }> = ({ label, value }) 
     if (!displayValue || displayValue === 'No specific markers') return null;
 
     return (
-        <div className="flex justify-between items-start py-3 border-b border-slate-50 last:border-none group">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label.replace(/_/g, ' ')}</span>
-            <span className="text-xs font-bold text-slate-700 text-right max-w-[60%] group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{displayValue}</span>
+        <div className="flex flex-col gap-1 py-3 border-b border-slate-50 last:border-none group">
+            <span className="text-[10px] font-bold text-slate-400 tracking-tight">{label.replace(/_/g, ' ')}</span>
+            <span className="text-[13px] font-bold text-slate-700 leading-tight group-hover:text-indigo-600 transition-colors tracking-tight">{displayValue}</span>
         </div>
     );
 };
@@ -84,7 +84,6 @@ const MSEPage = () => {
     const [result, setResult] = useState<MSEResponse | null>(null);
     const [patient, setPatient] = useState<any>(null);
 
-    // AI Assistant State
     const [useAssistant, setUseAssistant] = useState(false);
     const [narrative, setNarrative] = useState('');
     const [isExtracting, setIsExtracting] = useState(false);
@@ -120,10 +119,14 @@ const MSEPage = () => {
     };
 
     useEffect(() => {
-        const fetchQuestionnaire = async () => {
+        const fetchQuestionnaire = async (age?: number, gender?: string) => {
             try {
                 setIsLoading(true);
-                const res = await MSEService.getQuestions();
+                const res = await MSEService.getQuestions({
+                    age,
+                    gender,
+                    view: currentUser?.role === 'patient' || (currentUser as any)?.group === 'PATIENT' ? 'patient' : 'professional'
+                });
                 const data = res.data || res;
                 if (Array.isArray(data) && data.length > 0) {
                     setSections(data);
@@ -131,31 +134,31 @@ const MSEPage = () => {
                     setSections(MSE_FALLBACK_QUESTIONNAIRE);
                 }
             } catch (err) {
-                console.error('Failed to fetch MSE questionnaire:', err);
                 setSections(MSE_FALLBACK_QUESTIONNAIRE);
-            } finally {
-                setIsLoading(false);
             }
         };
 
         const fetchData = async () => {
             setIsLoading(true);
+            setResult(null);
             setError(null);
             try {
                 if (!userId || userId === 'undefined') {
                     setIsLoading(false);
                     return;
                 }
-
-                // Resolve Patient Profile
+                let resolvedAge: number | undefined;
+                let resolvedGender: string | undefined;
                 try {
                     const userProfile = await UserService.getUserById(userId);
-                    if (userProfile) setPatient(userProfile);
-                } catch (e) {
-                    console.warn('[MSE] Profile fetch failed:', e);
-                }
+                    if (userProfile) {
+                        setPatient(userProfile);
+                        resolvedAge = (userProfile as any).age;
+                        resolvedGender = (userProfile as any).gender;
+                    }
+                } catch (e) {}
 
-                await fetchQuestionnaire();
+                await fetchQuestionnaire(resolvedAge, resolvedGender);
 
                 if (mseId && mseId !== 'new') {
                     const res = await MSEService.getMSEById(mseId);
@@ -163,7 +166,6 @@ const MSEPage = () => {
                     setResult(data as MSEResponse);
                 }
             } catch (err: any) {
-                console.error('[MSE] Fetch failed:', err);
                 setError('Could not load clinical evaluation components.');
             } finally {
                 setIsLoading(false);
@@ -202,183 +204,18 @@ const MSEPage = () => {
     };
 
     const THEMES: Record<string, any> = {
-        blue: {
-            active: 'bg-blue-600 border-blue-600 text-white',
-            done: 'bg-blue-50 border-blue-100 text-blue-700',
-            iconActive: 'text-white',
-            iconDone: 'text-blue-600',
-            dot: 'bg-blue-500',
-            bgSoft: 'bg-blue-50',
-            textSoft: 'text-blue-600',
-            textSoftAlt: 'text-blue-400',
-            borderSoft: 'border-blue-100',
-            borderFocus: 'focus:border-blue-500',
-            hoverBorder: 'hover:border-blue-200',
-            shadow: 'ring-blue-400/20'
-        },
         indigo: {
             active: 'bg-indigo-600 border-indigo-600 text-white',
             done: 'bg-indigo-50 border-indigo-100 text-indigo-700',
-            iconActive: 'text-white',
-            iconDone: 'text-indigo-600',
-            dot: 'bg-indigo-500',
             bgSoft: 'bg-indigo-50',
             textSoft: 'text-indigo-600',
-            textSoftAlt: 'text-indigo-400',
-            borderSoft: 'border-indigo-100',
+            dot: 'bg-indigo-500',
             borderFocus: 'focus:border-indigo-500',
-            hoverBorder: 'hover:border-indigo-200',
-            shadow: 'ring-indigo-400/20'
-        },
-        violet: {
-            active: 'bg-violet-600 border-violet-600 text-white',
-            done: 'bg-violet-50 border-violet-100 text-violet-700',
-            iconActive: 'text-white',
-            iconDone: 'text-violet-600',
-            dot: 'bg-violet-500',
-            bgSoft: 'bg-violet-50',
-            textSoft: 'text-violet-600',
-            textSoftAlt: 'text-violet-400',
-            borderSoft: 'border-violet-100',
-            borderFocus: 'focus:border-violet-500',
-            hoverBorder: 'hover:border-violet-200',
-            shadow: 'ring-violet-400/20'
-        },
-        rose: {
-            active: 'bg-rose-600 border-rose-600 text-white',
-            done: 'bg-rose-50 border-rose-100 text-rose-700',
-            iconActive: 'text-white',
-            iconDone: 'text-rose-600',
-            dot: 'bg-rose-500',
-            bgSoft: 'bg-rose-50',
-            textSoft: 'text-rose-600',
-            textSoftAlt: 'text-rose-400',
-            borderSoft: 'border-rose-100',
-            borderFocus: 'focus:border-rose-500',
-            hoverBorder: 'hover:border-rose-200',
-            shadow: 'ring-rose-400/20'
-        },
-        pink: {
-            active: 'bg-pink-600 border-pink-600 text-white',
-            done: 'bg-pink-50 border-pink-100 text-pink-700',
-            iconActive: 'text-white',
-            iconDone: 'text-pink-600',
-            dot: 'bg-pink-500',
-            bgSoft: 'bg-pink-50',
-            textSoft: 'text-pink-600',
-            textSoftAlt: 'text-pink-400',
-            borderSoft: 'border-pink-100',
-            borderFocus: 'focus:border-pink-500',
-            hoverBorder: 'hover:border-pink-200',
-            shadow: 'ring-pink-400/20'
-        },
-        amber: {
-            active: 'bg-amber-600 border-amber-600 text-white',
-            done: 'bg-amber-50 border-amber-100 text-amber-700',
-            iconActive: 'text-white',
-            iconDone: 'text-amber-600',
-            dot: 'bg-amber-500',
-            bgSoft: 'bg-amber-50',
-            textSoft: 'text-amber-600',
-            textSoftAlt: 'text-amber-400',
-            borderSoft: 'border-amber-100',
-            borderFocus: 'focus:border-amber-500',
-            hoverBorder: 'hover:border-amber-200',
-            shadow: 'ring-amber-400/20'
-        },
-        orange: {
-            active: 'bg-orange-600 border-orange-600 text-white',
-            done: 'bg-orange-50 border-orange-100 text-orange-700',
-            iconActive: 'text-white',
-            iconDone: 'text-orange-600',
-            dot: 'bg-orange-500',
-            bgSoft: 'bg-orange-50',
-            textSoft: 'text-orange-600',
-            textSoftAlt: 'text-orange-400',
-            borderSoft: 'border-orange-100',
-            borderFocus: 'focus:border-orange-500',
-            hoverBorder: 'hover:border-orange-200',
-            shadow: 'ring-orange-400/20'
-        },
-        cyan: {
-            active: 'bg-cyan-600 border-cyan-600 text-white',
-            done: 'bg-cyan-50 border-cyan-100 text-cyan-700',
-            iconActive: 'text-white',
-            iconDone: 'text-cyan-600',
-            dot: 'bg-cyan-500',
-            bgSoft: 'bg-cyan-50',
-            textSoft: 'text-cyan-600',
-            textSoftAlt: 'text-cyan-400',
-            borderSoft: 'border-cyan-100',
-            borderFocus: 'focus:border-cyan-500',
-            hoverBorder: 'hover:border-cyan-200',
-            shadow: 'ring-cyan-400/20'
-        },
-        yellow: {
-            active: 'bg-yellow-600 border-yellow-600 text-white',
-            done: 'bg-yellow-50 border-yellow-100 text-yellow-700',
-            iconActive: 'text-white',
-            iconDone: 'text-yellow-600',
-            dot: 'bg-yellow-500',
-            bgSoft: 'bg-yellow-50',
-            textSoft: 'text-yellow-600',
-            textSoftAlt: 'text-yellow-400',
-            borderSoft: 'border-yellow-100',
-            borderFocus: 'focus:border-yellow-500',
-            hoverBorder: 'hover:border-yellow-200',
-            shadow: 'ring-yellow-400/20'
-        },
-        emerald: {
-            active: 'bg-emerald-600 border-emerald-600 text-white',
-            done: 'bg-emerald-50 border-emerald-100 text-emerald-700',
-            iconActive: 'text-white',
-            iconDone: 'text-emerald-600',
-            dot: 'bg-emerald-500',
-            bgSoft: 'bg-emerald-50',
-            textSoft: 'text-emerald-600',
-            textSoftAlt: 'text-emerald-400',
-            borderSoft: 'border-emerald-100',
-            borderFocus: 'focus:border-emerald-500',
-            hoverBorder: 'hover:border-emerald-200',
-            shadow: 'ring-emerald-400/20'
-        },
-        sky: {
-            active: 'bg-sky-600 border-sky-600 text-white',
-            done: 'bg-sky-50 border-sky-100 text-sky-700',
-            iconActive: 'text-white',
-            iconDone: 'text-sky-600',
-            dot: 'bg-sky-500',
-            bgSoft: 'bg-sky-50',
-            textSoft: 'text-sky-600',
-            textSoftAlt: 'text-sky-400',
-            borderSoft: 'border-sky-100',
-            borderFocus: 'focus:border-sky-500',
-            hoverBorder: 'hover:border-sky-200',
-            shadow: 'ring-sky-400/20'
+            hoverBorder: 'hover:border-indigo-200'
         }
     };
 
-    const getSectionColor = (section: string) => {
-        switch (section?.toLowerCase()) {
-            case 'appearance': return 'blue';
-            case 'behavior': return 'indigo';
-            case 'speech': return 'violet';
-            case 'mood': return 'rose';
-            case 'affect': return 'pink';
-            case 'thought_form': return 'amber';
-            case 'thought_content': return 'orange';
-            case 'perception': return 'cyan';
-            case 'insight': return 'yellow';
-            case 'judgment': return 'emerald';
-            case 'cognition': return 'sky';
-            default: return 'indigo';
-        }
-    };
-
-    const getTheme = (section: string) => {
-        const color = getSectionColor(section);
-        return THEMES[color] || THEMES.indigo;
-    };
+    const getTheme = (_: string) => THEMES.indigo;
 
     const getSectionIcon = (section: string) => {
         switch (section?.toLowerCase()) {
@@ -393,7 +230,7 @@ const MSEPage = () => {
             case 'insight': return <Zap size={18} />;
             case 'judgment': return <Shield size={18} />;
             case 'cognition': return <Database size={18} />;
-            default: return <Brain size={18} />;
+            default: return <Layers size={18} />;
         }
     };
 
@@ -402,31 +239,22 @@ const MSEPage = () => {
             setError('Please provide a more detailed narrative for meaningful extraction.');
             return;
         }
-
         setIsExtracting(true);
         setError(null);
         try {
-            const activeId = userId || currentUser?._id || currentUser?.id;
-            // The service handles both numeric and hex IDs for patient resolution
+            const activeId = userId || currentUser?._id || currentUser?._id || currentUser?.id;
             const res = await MSEService.extractFromNarrative(narrative, activeId!);
             const data = (res as any).data || res;
-
-            // Map the extracted JSON to our responses state
             const newResponses: Record<string, any> = {};
             sections.forEach(s => {
                 const sectionData = (data as any)[s.section];
-                if (sectionData) {
-                    newResponses[s.section] = sectionData;
-                }
+                if (sectionData) newResponses[s.section] = sectionData;
             });
-
             setResponses(newResponses);
-            setUseAssistant(false); // Move to form view to review
+            setUseAssistant(false);
             setCurrentStep(0);
-            alert('AI Extraction Complete. Please review and finalize the findings.');
         } catch (err) {
-            console.error('AI Extraction failed:', err);
-            setError('AI extraction could not process the narrative. Please use manual entry.');
+            setError('AI extraction failed. Please use manual entry.');
         } finally {
             setIsExtracting(false);
         }
@@ -436,58 +264,51 @@ const MSEPage = () => {
         if (!userId) return;
         setIsSaving(true);
         setError(null);
-
         try {
-            // 1. Resolve hex ID
             let hexId = userId;
             const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
-
             if (isPatient && (currentUser?.id === userId || currentUser?._id === userId || !userId)) {
                 hexId = currentUser?._id || currentUser?.id || hexId;
             } else {
                 try {
                     const userProfile = await UserService.getUserById(userId);
                     if (userProfile) hexId = userProfile._id || userProfile.id || hexId;
-                } catch (profileError) {
-                    console.warn('[MSEPage] Profile lookup failed, using parameter ID:', profileError);
-                }
+                } catch (e) {}
             }
-
-            // 2. Build section-structured payload — backend expects section objects directly
-            const sectionKeys = [
-                'appearance', 'behavior', 'speech', 'mood', 'affect',
-                'thought_form', 'thought_content', 'perception',
-                'insight', 'judgment', 'cognition'
-            ];
-
-            const hasAnyResponse = sectionKeys.some(k => responses[k] && Object.keys(responses[k]).length > 0);
-            if (!hasAnyResponse) {
-                throw new Error('Please answer at least one question before submitting.');
-            }
-
+            const sectionKeys = [ 'appearance', 'behavior', 'speech', 'mood', 'affect', 'thought_form', 'thought_content', 'perception', 'insight', 'judgment', 'cognition' ];
             const payload: Record<string, any> = { patient_id: hexId };
             sectionKeys.forEach(key => { payload[key] = responses[key] || {}; });
-
-            console.log('[MSEPage] Submitting payload:', JSON.stringify(payload, null, 2));
-
             const res = await MSEService.createMSE(payload as any);
-            const responseData = (res as any).data || res;
-            setResult(responseData as MSEResponse);
+            setResult((res as any).data || res);
         } catch (err: any) {
-            console.error('Failed to save MSE:', err);
-            setError(err.response?.data?.message || err.message || 'Failed to save the MSE. Please try again.');
+            setError(err.response?.data?.message || err.message || 'Failed to save MSE.');
         } finally {
             setIsSaving(false);
         }
     };
 
-
     const navigateBack = () => {
         if (currentUser?.role === 'patient' || (currentUser as any)?.group === 'PATIENT') {
             navigate('/records');
         } else {
-            navigate(`/patients/${userId}/health`);
+            // Using navigate(-1) to return exactly to the list/dashboard the clinician came from
+            navigate(-1);
         }
+    };
+
+    const isAiAnalysisMeaningful = (text: any): boolean => {
+        if (!text || typeof text !== 'string') return false;
+        const lackOfAssessmentMarkers = ['not assessed', 'cannot be determined', 'no information', 'insufficient data'];
+        return !lackOfAssessmentMarkers.some(marker => text.toLowerCase().includes(marker));
+    };
+
+    const isValueMeaningful = (v: any): boolean => {
+        if (v === null || v === undefined || v === '' || v === false || v === 'None') return false;
+        if (Array.isArray(v) && v.length === 0) return false;
+        if (typeof v === 'object' && !Array.isArray(v)) {
+            return Object.values(v).some(val => val === true || (typeof val === 'string' && val.length > 0 && val !== 'None'));
+        }
+        return true;
     };
 
     const renderQuestion = (section: string, question: MSEQuestion) => {
@@ -497,69 +318,63 @@ const MSEPage = () => {
         switch (question.type) {
             case 'select':
                 return (
-                    <div className="grid grid-cols-2 gap-3 mt-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                         {question.options?.map(option => (
                             <button
                                 key={option}
                                 onClick={() => handleValueChange(section, question.key, option)}
-                                className={`p-4 rounded-2xl border-2 text-left transition-all ${value === option
-                                    ? theme.active
-                                    : `bg-slate-50 border-transparent text-slate-600 ${theme.hoverBorder}`
+                                className={`p-5 rounded-3xl border text-left transition-all ${value === option
+                                    ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-200'
+                                    : `bg-slate-50 border-transparent text-slate-500 ${theme.hoverBorder}`
                                     }`}
                             >
-                                <span className="text-xs font-black uppercase tracking-tight">{option}</span>
+                                <span className="text-[12px] font-bold tracking-tight leading-tight">{option}</span>
                             </button>
                         ))}
                     </div>
                 );
-
             case 'multiselect':
                 return (
-                    <div className="grid grid-cols-2 gap-3 mt-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                         {question.options?.map(option => {
                             const isSelected = Array.isArray(value) && value.includes(option);
                             return (
                                 <button
                                     key={option}
                                     onClick={() => handleMultiselectToggle(section, question.key, option)}
-                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${isSelected
-                                        ? theme.active
-                                        : `bg-slate-50 border-transparent text-slate-600 ${theme.hoverBorder}`
+                                    className={`p-5 rounded-3xl border text-left transition-all ${isSelected
+                                        ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-200'
+                                        : `bg-slate-50 border-transparent text-slate-500 ${theme.hoverBorder}`
                                         }`}
                                 >
-                                    <span className="text-xs font-black uppercase tracking-tight">{option}</span>
+                                    <span className="text-[12px] font-bold tracking-tight leading-tight">{option}</span>
                                 </button>
                             );
                         })}
                     </div>
                 );
-
             case 'boolean':
                 return (
-                    <div className="space-y-4 mt-4">
+                    <div className="flex flex-col gap-4">
                         <div className="flex gap-4">
                             {[true, false].map(v => (
                                 <button
-                                    key={v ? 'Yes' : 'No'}
+                                    key={v ? 'y' : 'n'}
                                     onClick={() => handleValueChange(section, question.key, v)}
-                                    className={`flex-1 p-4 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] ${value === v
-                                        ? (v ? theme.active : 'bg-slate-800 border-slate-800 text-white shadow-md')
+                                    className={`flex-1 p-5 rounded-3xl border transition-all font-bold tracking-tight text-[12px] ${value === v
+                                        ? (v ? 'bg-indigo-600 border-indigo-600 text-white shadow-xl shadow-indigo-100' : 'bg-slate-800 border-slate-800 text-white shadow-xl shadow-slate-200')
                                         : 'bg-slate-50 border-transparent text-slate-400 hover:bg-slate-100'
                                         }`}
                                 >
-                                    {v ? 'Yes / Present' : 'No / Absent'}
+                                    {v ? 'Normal or Negative' : 'Non-atypical or Positive'}
                                 </button>
                             ))}
                         </div>
                         {value === true && question.follow_up && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                className={`pl-6 border-l-4 ${theme.borderSoft} space-y-6 mt-4`}
-                            >
+                            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="pl-6 border-l-4 border-indigo-50 space-y-8 mt-4">
                                 {question.follow_up.map(fu => (
-                                    <div key={fu.key} className="space-y-3">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{fu.label}</p>
+                                    <div key={fu.key} className="space-y-4">
+                                        <label className="text-[11px] font-bold text-slate-400 tracking-tight leading-none">{fu.label}</label>
                                         {renderQuestion(section, fu)}
                                     </div>
                                 ))}
@@ -567,290 +382,184 @@ const MSEPage = () => {
                         )}
                     </div>
                 );
-
             case 'text':
                 return (
-                    <div className="mt-4">
-                        <textarea
-                            value={value || ''}
-                            onChange={(e) => handleValueChange(section, question.key, e.target.value)}
-                            placeholder={question.placeholder}
-                            className={`w-full min-h-[120px] p-6 bg-slate-50 border-2 border-transparent rounded-3xl text-sm font-medium ${theme.borderFocus} focus:bg-white outline-none transition-all resize-none placeholder:text-slate-300 font-bold`}
-                        />
-                    </div>
+                    <textarea
+                        value={value || ''}
+                        onChange={(e) => handleValueChange(section, question.key, e.target.value)}
+                        placeholder="Provide detailed clinical observations here..."
+                        className="w-full min-h-[140px] p-8 bg-slate-50 border border-transparent rounded-[2.5rem] text-sm font-bold text-slate-700 outline-none transition-all resize-none shadow-inner focus:bg-white focus:border-indigo-600"
+                    />
                 );
-
             case 'number':
                 return (
-                    <div className="mt-4 flex items-center gap-6">
+                    <div className="flex items-center gap-6">
                         <input
                             type="number"
                             value={value || ''}
                             min={question.min}
                             max={question.max}
                             onChange={(e) => handleValueChange(section, question.key, e.target.value)}
-                            placeholder={question.placeholder}
-                            className={`w-32 p-5 bg-slate-50 border-2 border-transparent rounded-[1.5rem] text-sm font-black ${theme.borderFocus} focus:bg-white outline-none transition-all shadow-sm`}
+                            className="w-32 p-6 bg-slate-50 border border-transparent rounded-3xl text-lg font-black text-slate-900 outline-none transition-all text-center placeholder:text-slate-200 focus:bg-white focus:border-indigo-600"
                         />
-                        {question.max && (
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Maximum Score</span>
-                                <span className="text-sm font-black text-slate-900">{question.max} Points</span>
-                            </div>
-                        )}
+                        <div className="flex flex-col">
+                            <span className="text-[11px] font-bold text-slate-400 tracking-tight leading-tight">Scale limit</span>
+                            <span className="text-sm font-black text-slate-900">{question.max} Points Total</span>
+                        </div>
                     </div>
                 );
-
-            case 'group':
-                return (
-                    <div className="mt-4 grid gap-3 bg-slate-50 p-6 rounded-2xl">
-                        {question.items?.map(item => (
-                            <div key={item.key} className="space-y-2">
-                                <span className="text-xs font-black text-slate-600 uppercase tracking-widest">{item.label}</span>
-                                {renderQuestion(section, item)}
-                            </div>
-                        ))}
-                    </div>
-                );
-
-            default:
-                return null;
+            default: return null;
         }
     };
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Hydrating Clinical Questionnaire...</p>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+                <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin shadow-2xl shadow-indigo-100" />
+                <p className="text-[11px] font-bold text-slate-400 tracking-tight animate-pulse">Synchronizing Workspace</p>
             </div>
         );
     }
 
-    if (!sections.length) return null;
-
     if (result) {
-        const isValueMeaningful = (v: any): boolean => {
-            if (v === null || v === undefined || v === '' || v === false || v === 'None') return false;
-            if (Array.isArray(v) && v.length === 0) return false;
-            if (typeof v === 'object' && !Array.isArray(v)) {
-                return Object.values(v).some(val => val === true || (typeof val === 'string' && val.length > 0 && val !== 'None'));
-            }
-            return true;
-        };
-
         const assessedSections = sections.filter(s => {
-            const sectionData = (result as any)[s.section];
-            if (!sectionData) return false;
-            return Object.values(sectionData).some(v => isValueMeaningful(v));
+            const data = (result as any)[s.section];
+            return data && Object.values(data).some(v => isValueMeaningful(v));
         });
 
-        const isAiAnalysisMeaningful = (text: string): boolean => {
-            if (!text) return false;
-            const lackOfAssessmentMarkers = [
-                'not assessed', 'cannot be determined', 'lack of assessment', 'no information', 'insufficient data'
-            ];
-            return !lackOfAssessmentMarkers.some(marker => text.toLowerCase().includes(marker));
-        };
-
-        const pendingSections = sections.filter(s =>
-            !assessedSections.find(as => as.section === s.section)
-        );
-
         return (
-            <div className="p-8 max-w-6xl mx-auto animate-fade-in pb-24 space-y-12">
-                <header className="flex items-center justify-between">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ring-indigo-100">
-                                Patient Assessment Complete
+            <div className="p-10 max-w-[1400px] mx-auto space-y-12 animate-fade-in pb-32">
+                <header className="flex items-end justify-between border-b-2 border-slate-50 pb-12">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-100/20">
+                                <Brain size={28} />
                             </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest tabular-nums">
-                                ID: {userId?.slice(-8).toUpperCase()} • {new Date().toLocaleDateString()}
-                            </span>
+                            <div>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <span className="px-3 py-1 bg-indigo-600 text-white rounded-lg text-[10px] font-bold tracking-tight shadow-lg shadow-indigo-200">Clinical Evaluation</span>
+                                    <span className="text-[11px] font-medium text-slate-400 tabular-nums tracking-tight leading-none">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                </div>
+                                <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Evaluation Analysis</h1>
+                            </div>
                         </div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                            <Sparkles className="text-indigo-600" size={32} />
-                            Diagnostic Evaluation
-                        </h1>
                     </div>
-                    <div className="flex items-center gap-4">
-
-                        <Button
-                            variant="primary"
-                            onClick={navigateBack}
-                            className="rounded-2xl h-12 px-8 font-black uppercase text-xs tracking-widest bg-slate-900 border-none shadow-xl shadow-slate-200"
-                        >
-                            Return to Profile
-                        </Button>
-                    </div>
+                    <Button variant="outline" onClick={navigateBack} className="h-14 px-10 rounded-2xl border border-slate-200 font-bold text-[11px] tracking-tight hover:bg-slate-50">
+                        Exit Record
+                    </Button>
                 </header>
 
-                <div className="grid gap-10">
-                    <section className="card-premium p-12 bg-white border-slate-100 relative overflow-hidden shadow-2xl shadow-indigo-50/50 ring-1 ring-slate-100">
-                        <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12">
-                            <Brain size={240} />
-                        </div>
+                <div className="grid lg:grid-cols-12 gap-12">
+                    <div className="lg:col-span-12">
+                        <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 p-16 opacity-[0.03] group-hover:scale-110 transition-transform duration-[3s] text-indigo-600"><Cpu size={240} /></div>
+                           <div className="relative space-y-8">
+                               <div className="flex items-center gap-4">
+                                   <div className="w-1 h-8 bg-indigo-600 rounded-full" />
+                                   <h3 className="text-[12px] font-bold text-indigo-600 tracking-tight transition-all">Integrated clinical formulation</h3>
+                               </div>
+                               <div className="pl-6 border-l-4 border-slate-50 py-1">
+                                   <p className="text-2xl font-bold text-slate-800 leading-relaxed tracking-tight italic">
+                                       "{result.ai_analysis?.clinical_formulation || 'Diagnostic reasoning pending formal auditor verification.'}"
+                                   </p>
+                               </div>
+                           </div>
+                        </section>
+                    </div>
 
-                        <div className="relative space-y-12">
-                            <header className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-50 pb-8">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                                        <Sparkles size={28} />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xs font-black text-indigo-500 uppercase tracking-[0.4em] mb-1">AI Clinical Intelligence</h2>
-                                        <p className="text-xl font-black text-slate-900 tracking-tight">Full Diagnostic Formulation</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    {result.ai_analysis?.emotional_tone_mapping?.map((tone, idx) => (
-                                        <span key={idx} className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-tight border border-slate-100 italic">
-                                            {tone}
-                                        </span>
-                                    ))}
-                                </div>
-                            </header>
-
-                            <div className="grid lg:grid-cols-12 gap-12">
-                                {/* Main Narrative */}
-                                <div className="lg:col-span-12 space-y-10">
-                                    <div className="space-y-4">
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                            <FileText size={14} />
-                                            Clinical Formulation
-                                        </h3>
-                                        <p className="text-xl font-black text-slate-800 leading-relaxed tracking-tight">
-                                            "{result.ai_analysis?.clinical_formulation || 'No specific diagnostic formulation provided by the analysis engine.'}"
-                                        </p>
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-slate-50">
-                                        {result.ai_analysis && isAiAnalysisMeaningful(result.ai_analysis.affect_recognition) && (
-                                            <div className="space-y-3">
-                                                <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Affective State</h4>
-                                                <p className="text-sm font-bold text-slate-600 leading-relaxed">{result.ai_analysis.affect_recognition}</p>
+                    <div className="lg:col-span-8">
+                        <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] h-full">
+                            <div className="space-y-12">
+                                <header className="flex items-center gap-4">
+                                    <h3 className="text-[12px] font-bold text-slate-900 tracking-tight flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center"><Activity size={22} /></div>
+                                        Clinical observations
+                                    </h3>
+                                </header>
+                                
+                                <div className="grid md:grid-cols-2 gap-10">
+                                    {isAiAnalysisMeaningful(result.ai_analysis?.affect_recognition) && (
+                                        <div className="space-y-5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+                                                <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Affective baseline</h4>
                                             </div>
-                                        )}
-                                        {result.ai_analysis && isAiAnalysisMeaningful(result.ai_analysis.speech_tempo_analysis) && (
-                                            <div className="space-y-3">
-                                                <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Speech Dynamics</h4>
-                                                <p className="text-sm font-bold text-slate-600 leading-relaxed">{result.ai_analysis.speech_tempo_analysis}</p>
+                                            <p className="text-sm font-bold text-slate-700 leading-relaxed tracking-tight italic">"{result.ai_analysis?.affect_recognition}"</p>
+                                        </div>
+                                    )}
+                                    {isAiAnalysisMeaningful(result.ai_analysis?.speech_tempo_analysis) && (
+                                        <div className="space-y-5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+                                                <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Speech prosody dynamics</h4>
                                             </div>
-                                        )}
-                                    </div>
+                                            <p className="text-sm font-bold text-slate-700 leading-relaxed tracking-tight italic">"{result.ai_analysis?.speech_tempo_analysis}"</p>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Structured Findings Column */}
-                                <div className="lg:col-span-12 space-y-8 bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100">
-                                    <div className="space-y-6">
-                                        <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                            <Target size={14} className="text-indigo-600" />
-                                            Diagnostic Impressions
-                                        </h3>
-                                        <div className="space-y-3">
-                                            {result.ai_analysis?.diagnostic_impressions?.map((item, idx) => (
-                                                <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4 group hover:border-indigo-200 transition-colors">
-                                                    <div className="w-1.5 h-6 bg-indigo-500 rounded-full shrink-0" />
-                                                    <p className="text-[11px] font-black text-slate-700 leading-tight uppercase tracking-tight">{item}</p>
-                                                </div>
-                                            ))}
-                                            {(!result.ai_analysis?.diagnostic_impressions || result.ai_analysis.diagnostic_impressions.length === 0) && (
-                                                <p className="text-[10px] font-bold text-slate-400 italic">No diagnostic impressions recorded.</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4 pt-6 mt-6 border-t border-slate-100">
-                                        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Psychomotor Markers</h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {result.ai_analysis?.psychomotor_markers?.map((marker, idx) => (
-                                                <div key={idx} className="px-3 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[9px] font-black uppercase tracking-tight flex items-center gap-2">
-                                                    <Activity size={12} />
-                                                    {marker}
-                                                </div>
-                                            ))}
-                                        </div>
+                                <div className="space-y-6 pt-10 border-t border-slate-50">
+                                    <h5 className="text-[11px] font-bold text-slate-400 tracking-tight">Psychomotor audit trace</h5>
+                                    <div className="flex flex-wrap gap-3">
+                                        {result.ai_analysis?.psychomotor_markers?.map((marker, idx) => (
+                                            <div key={idx} className="px-5 py-3 bg-slate-50 text-indigo-800 rounded-2xl text-[11px] font-bold tracking-tight flex items-center gap-3 transition-colors hover:bg-slate-100">
+                                                <Activity size={14} className="text-indigo-400" />
+                                                {marker}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div className="lg:col-span-4">
+                        <div className="space-y-8">
+                            <h3 className="text-[12px] font-bold text-slate-900 tracking-tight flex items-center gap-4 mb-2 p-1">
+                                <Target size={20} className="text-indigo-600" />
+                                Clinical impressions
+                            </h3>
+                            <div className="grid gap-4">
+                                {result.ai_analysis?.diagnostic_impressions?.map((item, idx) => (
+                                    <div key={idx} className="p-6 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(79,70,229,0.06)] flex items-center gap-6 transition-all hover:translate-x-2 relative group">
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-indigo-600 rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <div className="w-10 h-10 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-bold text-xs shrink-0 shadow-lg shadow-slate-100">{idx + 1}</div>
+                                        <p className="text-[13px] font-bold text-slate-700 leading-tight tracking-tight">{item}</p>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    </section>
+                    </div>
 
-
-                    <div className="grid lg:grid-cols-12 gap-10">
-                        {/* Domain Coverage Summary */}
-                        <div className="lg:col-span-12 space-y-6">
-                            <div className="card-premium p-8 bg-emerald-50/50 border-emerald-100">
-                                <h3 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <CheckCircle2 size={14} />
-                                    Assessed Domains ({assessedSections.length})
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {assessedSections.map(s => (
-                                        <span key={s.section} className="px-3 py-1.5 bg-white border border-emerald-200 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-tight shadow-sm">
-                                            {s.title}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="card-premium p-8 bg-slate-50 border-slate-200/50">
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <AlertCircle size={14} />
-                                    Clinical Gaps ({pendingSections.length})
-                                </h3>
-                                <div className="flex flex-wrap gap-2 opacity-60">
-                                    {pendingSections.map(s => (
-                                        <span key={s.section} className="px-3 py-1.5 bg-slate-200/50 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-tight">
-                                            {s.title}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Detailed Clinical Observations (Raw Data) */}
-                        <div className="lg:col-span-12 space-y-8">
-                            <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-slate-900 rounded-full" />
-                                <h2 className="text-xs font-black text-slate-900 uppercase tracking-[0.3em]">Detailed Findings</h2>
-                            </div>
-
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {assessedSections.map(s => {
-                                    const sectionData = (result as any)[s.section];
-                                    if (!sectionData) return null;
-
-                                    // Pre-filter section data to see if there's anything to show
-                                    const hasData = Object.values(sectionData).some(v => {
-                                        if (v === null || v === undefined || v === '' || v === false || v === 'None') return false;
-                                        if (Array.isArray(v) && v.length === 0) return false;
-                                        if (typeof v === 'object' && !Array.isArray(v)) {
-                                            return Object.values(v).some(val => val === true || (typeof val === 'string' && val.length > 0 && val !== 'None'));
-                                        }
-                                        return true;
-                                    });
-
-                                    if (!hasData) return null;
-
-                                    return (
-                                        <div key={s.section} className="card-premium p-8 bg-white border-slate-100 group transition-all">
-                                            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-50">
-                                                <div className={`p-2 rounded-lg ${getTheme(s.section).bgSoft} ${getTheme(s.section).textSoft}`}>
+                    <div className="lg:col-span-12 pt-20">
+                        <header className="flex items-center gap-6 mb-12">
+                            <h2 className="text-[11px] font-bold text-slate-900 tracking-tight whitespace-nowrap">Clinical domain findings</h2>
+                            <div className="h-[2px] bg-slate-50 flex-1" />
+                        </header>
+                        
+                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {assessedSections.map(s => {
+                                const sectionData = (result as any)[s.section];
+                                if (!sectionData) return null;
+                                return (
+                                    <div key={s.section} className="p-8 bg-white rounded-[3rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(79,70,229,0.06)] transition-all group">
+                                        <header className="flex items-center justify-between mb-8 pb-4 border-b border-slate-50">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                                     {getSectionIcon(s.section)}
                                                 </div>
-                                                <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{s.title}</h3>
+                                                <h3 className="text-[11px] font-bold text-slate-900 tracking-tight">{s.title}</h3>
                                             </div>
-                                            <div className="space-y-1">
-                                                {Object.entries(sectionData).map(([key, value]) => (
-                                                    <FindingItem key={key} label={key} value={value} />
-                                                ))}
-                                            </div>
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-100" />
+                                        </header>
+                                        <div className="space-y-1">
+                                            {Object.entries(sectionData).map(([key, value]) => (
+                                                <FindingItem key={key} label={key} value={value} />
+                                            ))}
                                         </div>
-                                    );
-                                })}
-                            </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -861,282 +570,112 @@ const MSEPage = () => {
     const currentSection = sections[currentStep];
 
     return (
-        <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in pb-24">
-            <header className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                    <button
-                        onClick={navigateBack}
-                        className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
-                    >
-                        <ChevronLeft size={20} />
+        <div className="p-10 max-w-[1400px] mx-auto space-y-12 animate-fade-in pb-32">
+            <header className="flex items-center justify-between border-b border-slate-50 pb-12">
+                <div className="flex items-center gap-8">
+                    <button onClick={navigateBack} className="w-14 h-14 bg-white hover:bg-slate-50 border border-slate-100 rounded-[1.5rem] flex items-center justify-center text-slate-900 transition-all hover:shadow-xl active:scale-95 group">
+                        <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
                     </button>
                     <div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                            <Brain className="text-indigo-600" size={32} />
-                            Mental Status Exam
-                        </h1>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 ml-11">
-                            {patient ? `Evaluating: ${patient.firstName} ${patient.lastName}` : 'Clinical Evaluation Protocol'}
-                        </p>
+                        <div className="flex items-center gap-3 mb-1">
+                            <span className="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[10px] font-bold tracking-tight shadow-lg shadow-slate-200">Evaluation Mode</span>
+                            <span className="text-[10px] font-medium text-slate-300 tracking-tight tabular-nums leading-none">Diagnostic Record Protocol</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Clinical Intake</h1>
                     </div>
                 </div>
-
-                <button
-                    onClick={() => setUseAssistant(!useAssistant)}
-                    className={`px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 border-2 transition-all shadow-xl ${useAssistant
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-200'
-                        : 'bg-white border-indigo-100 text-indigo-600 shadow-indigo-100/50 hover:bg-indigo-50'
-                        }`}
-                >
-                    <Bot size={16} />
-                    {useAssistant ? 'FORM VIEW' : 'AI ASSISTANT'}
+                
+                <button onClick={() => setUseAssistant(!useAssistant)} className={`px-10 py-5 rounded-3xl font-bold tracking-tight text-[12px] flex items-center gap-4 transition-all shadow-[0_20px_50px_rgba(79,70,229,0.12)] ${useAssistant ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 hover:bg-slate-50'}`}>
+                    <Bot size={20} />
+                    {useAssistant ? 'Manual entry' : 'Clinical AI'}
                 </button>
             </header>
 
-            {useAssistant ? (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="card-premium p-12 bg-white space-y-8 relative overflow-hidden"
-                >
-                    <div className="absolute top-0 right-0 p-12 opacity-[0.03]">
-                        <Sparkles size={180} />
-                    </div>
-
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="flex items-center gap-4">
-                            <div className="p-4 bg-indigo-50 text-indigo-600 rounded-full">
-                                <Sparkles size={24} />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Narrative Evaluation</h2>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Observe and describe the mental state naturally</p>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={toggleRecording}
-                            className={`p-4 rounded-2xl flex items-center gap-3 border-2 transition-all duration-500 ${isRecording
-                                ? 'bg-rose-500 text-white border-rose-500 animate-pulse shadow-xl shadow-rose-200'
-                                : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-indigo-200'
-                                }`}
-                        >
-                            {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
-                            <span className="text-[10px] font-black uppercase tracking-widest">
-                                {isRecording ? 'Listening...' : 'Voice Record'}
-                            </span>
-                        </button>
-                    </div>
-
-                    <div className="relative">
-                        <textarea
-                            value={narrative}
-                            onChange={(e) => setNarrative(e.target.value)}
-                            placeholder="Describe patient's appearance, behavior, speech, mood, and cognitive orientation... AI will extract structured findings."
-                            className="w-full min-h-[400px] p-10 bg-slate-50 border-2 border-transparent rounded-[3rem] text-lg font-bold text-slate-700 focus:bg-white focus:border-indigo-600 outline-none transition-all resize-none shadow-inner leading-relaxed"
-                        />
-                        <div className="absolute bottom-8 right-8">
-                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                <Shield size={12} /> Secure Clinical Uplink
-                            </div>
+            <div className="grid lg:grid-cols-12 gap-16">
+                <div className="lg:col-span-3">
+                    <div className="sticky top-12 space-y-8">
+                        <div className="bg-slate-900 p-8 rounded-[3.5rem] shadow-2xl space-y-2 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-8 opacity-5 text-white"><Database size={120} /></div>
+                            <header className="mb-8 px-2">
+                                <h3 className="text-[11px] font-bold text-indigo-400 tracking-tight mb-2 leading-none">Evaluation protocol</h3>
+                                <div className="h-[1px] bg-white/10 w-full" />
+                            </header>
+                            {sections.map((s, idx) => {
+                                const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
+                                const isActive = idx === currentStep;
+                                return (
+                                    <button key={s.section} onClick={() => setCurrentStep(idx)} className={`w-full group flex items-center gap-5 py-4.5 px-6 rounded-2xl transition-all ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}`}>
+                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isActive ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-900 scale-110' : isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/5 text-slate-700'}`}>
+                                            {isDone && !isActive ? <CheckCircle2 size={16} /> : getSectionIcon(s.section)}
+                                        </div>
+                                        <span className={`text-[12px] font-bold tracking-tight transition-all ${isActive ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-600 group-hover:text-slate-500'}`}>{s.title}</span>
+                                        {isActive && <div className="ml-auto w-1 h-3 bg-indigo-600 rounded-full" />}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
-
-                    <div className="flex justify-end pt-4">
-                        <Button
-                            variant="primary"
-                            className="px-16 h-16 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-indigo-100 group"
-                            onClick={handleNarrativeExtract}
-                            isLoading={isExtracting}
-                            rightIcon={<ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />}
-                        >
-                            Extract Structured Findings
-                        </Button>
-                    </div>
-                </motion.div>
-            ) : (
-                <>
-                    <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar snap-x px-2">
-                        {sections.map((s, idx) => {
-                            const theme = getTheme(s.section);
-                            const isActive = idx === currentStep;
-                            const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
-
-                            return (
-                                <button
-                                    key={s.section}
-                                    onClick={() => setCurrentStep(idx)}
-                                    className={`flex-shrink-0 snap-start px-8 py-6 rounded-[2rem] border-2 transition-all duration-300 flex flex-col items-center justify-center gap-3 min-w-[200px] relative ${isActive
-                                        ? `${theme.active} -translate-y-1`
-                                        : isDone
-                                            ? `${theme.done}`
-                                            : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
-                                        }`}
-                                >
-                                    <div className={`${isActive ? theme.iconActive : isDone ? theme.iconDone : 'text-slate-300'}`}>
-                                        {getSectionIcon(s.section)}
-                                    </div>
-                                    <span className="text-[10px] font-black whitespace-nowrap uppercase tracking-widest">{s.title}</span>
-
-                                    {isDone && !isActive && (
-                                        <div className={`absolute top-3 right-3 w-2 h-2 rounded-full ${theme.dot} shadow-sm`} />
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    <div className="grid lg:grid-cols-4 gap-12">
-                        <div className="lg:col-span-3 space-y-8">
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={currentSection.section}
-                                    initial={{ opacity: 0, scale: 0.98, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.98, y: -20 }}
-                                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                                    className="card-premium p-12 bg-white border-slate-100 relative overflow-hidden ring-1 ring-slate-100 shadow-xl shadow-slate-100/50"
-                                >
-                                    {/* Decorative Icon Background */}
-                                    <div className={`absolute top-0 right-0 p-8 opacity-[0.03] ${getTheme(currentSection.section).textSoft}`}>
-                                        {React.cloneElement(getSectionIcon(currentSection.section) as React.ReactElement<any>, { size: 120 })}
-                                    </div>
-
-                                    <div className="relative space-y-12">
-                                        {/* Section Header */}
-                                        <header className="space-y-4 pb-8 border-b border-slate-50">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-12 h-12 rounded-2xl ${getTheme(currentSection.section).bgSoft} flex items-center justify-center ${getTheme(currentSection.section).textSoft}`}>
-                                                    {getSectionIcon(currentSection.section)}
-                                                </div>
-                                                <div>
-                                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">{currentSection.title}</h2>
-                                                    <p className="text-slate-500 font-medium max-w-2xl leading-relaxed text-sm">{currentSection.description}</p>
-                                                </div>
-                                            </div>
-                                        </header>
-
-                                        {/* Questions List */}
-                                        <div className="space-y-12 py-4">
-                                            {currentSection.questions.map(q => (
-                                                <div key={q.key} className="space-y-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-1.5 h-6 ${getTheme(currentSection.section).dot} rounded-full`} />
-                                                        <label className="text-xs font-black text-slate-800 uppercase tracking-[0.1em]">{q.label}</label>
-                                                    </div>
-                                                    <div className="max-w-2xl">
-                                                        {renderQuestion(currentSection.section, q)}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Navigation Buttons */}
-                                        <div className="flex items-center gap-4 pt-12 border-t border-slate-50">
-                                            <Button
-                                                variant="outline"
-                                                disabled={currentStep === 0}
-                                                onClick={() => setCurrentStep(prev => prev - 1)}
-                                                leftIcon={<ChevronLeft size={18} />}
-                                                className="h-14 px-10 rounded-2xl border-2 font-bold hover:bg-slate-50 transition-colors"
-                                            >
-                                                Previous Domain
-                                            </Button>
-
-                                            {currentStep < sections.length - 1 ? (
-                                                <Button
-                                                    variant="primary"
-                                                    onClick={() => setCurrentStep(prev => prev + 1)}
-                                                    rightIcon={<ChevronRight size={18} />}
-                                                    className={`h-14 px-12 rounded-2xl ${getTheme(currentSection.section).active} font-black tracking-widest uppercase text-[10px] shadow-lg transition-transform active:scale-95 ml-auto`}
-                                                >
-                                                    Next Assessment
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    variant="primary"
-                                                    className="h-14 px-14 rounded-2xl bg-slate-900 border-slate-900 hover:bg-black shadow-2xl shadow-slate-200 font-black tracking-widest uppercase text-[10px] ml-auto"
-                                                    onClick={() => handleSubmit()}
-                                                    isLoading={isSaving}
-                                                    leftIcon={<Save size={18} />}
-                                                >
-                                                    Finalize Evaluation
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </AnimatePresence>
-                        </div>
-
-                        <div className="space-y-8">
-                            <div className="card-premium p-10 bg-slate-900 border-none shadow-2xl relative overflow-hidden h-fit sticky top-12 ring-1 ring-white/5">
-                                <div className="relative">
-                                    <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
-                                        <div>
-                                            <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-1">Clinical Evaluation</h3>
-                                            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Protocol Hydration</p>
-                                        </div>
-                                        <div className="text-slate-700">
-                                            <ClipboardList size={20} strokeWidth={1.5} />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        {sections.map((s, idx) => {
-                                            const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
-                                            const isActive = idx === currentStep;
-                                            const theme = getTheme(s.section);
-
-                                            return (
-                                                <div
-                                                    key={s.section}
-                                                    className={`relative flex items-center gap-4 py-3.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer group ${isActive ? 'bg-white/10 ring-1 ring-white/10' : 'hover:bg-white/5'
-                                                        }`}
-                                                    onClick={() => setCurrentStep(idx)}
-                                                >
-                                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-500 scale-90 ${isActive
-                                                        ? `${theme.dot} shadow-xl ${theme.shadow} scale-100`
-                                                        : isDone
-                                                            ? 'bg-emerald-500/10 text-emerald-500'
-                                                            : 'bg-slate-800 text-slate-600'
-                                                        }`}>
-                                                        {isDone && !isActive ? <CheckCircle2 size={14} /> : React.cloneElement(getSectionIcon(s.section) as React.ReactElement<any>, { size: 14, strokeWidth: 2.5 })}
-                                                    </div>
-
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className={`text-[10px] font-black tracking-widest uppercase whitespace-nowrap transition-all ${isActive ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
-                                                            }`}>
-                                                            {s.title}
-                                                        </span>
-                                                    </div>
-
-                                                    {isActive && (
-                                                        <motion.div
-                                                            layoutId="active-indicator-mse"
-                                                            className={`w-1 h-3 rounded-full ${theme.dot}`}
-                                                        />
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {error && (
-                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-rose-500 text-white p-5 rounded-[1.5rem] flex items-center gap-4 text-xs font-black uppercase tracking-widest shadow-2xl z-[200]">
-                    <div className="p-2 bg-white/20 rounded-lg">
-                        <AlertCircle size={20} />
-                    </div>
-                    {error}
                 </div>
-            )}
+
+                <div className="lg:col-span-9">
+                    {useAssistant ? (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-12 rounded-[3.5rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] space-y-12 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-indigo-600"><Sparkles size={240} /></div>
+                            <header className="flex items-center justify-between border-b border-slate-50 pb-10">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center shadow-lg shadow-indigo-100/30"><Sparkles size={32} /></div>
+                                    <div>
+                                        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">Narrative workspace</h2>
+                                        <p className="text-xs font-bold text-slate-400 tracking-tight mt-1">Live Clinical Observations Engine</p>
+                                    </div>
+                                </div>
+                                <button onClick={toggleRecording} className={`h-16 px-10 rounded-2xl flex items-center gap-4 font-bold tracking-tight text-[12px] transition-all ${isRecording ? 'bg-rose-500 text-white shadow-xl shadow-rose-200 animate-pulse' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>
+                                    {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
+                                    {isRecording ? 'Recording...' : 'Start dictation'}
+                                </button>
+                            </header>
+                            <textarea value={narrative} onChange={(e) => setNarrative(e.target.value)} placeholder="Observe and describe the patient's state... Orientation, attention, cognitive markers, and affective baseline will be autonomously extracted." className="w-full min-h-[500px] p-12 bg-slate-50 border-none rounded-[3rem] text-xl font-bold text-slate-800 outline-none resize-none leading-relaxed focus:bg-white shadow-inner transition-all" />
+                            <div className="flex justify-end pt-4">
+                                <Button variant="primary" className="h-16 px-20 rounded-2xl font-bold tracking-tight text-[12px] bg-slate-900 border-none shadow-2xl shadow-indigo-100" onClick={handleNarrativeExtract} isLoading={isExtracting} rightIcon={<ArrowRight size={20} />}>Process observation</Button>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <AnimatePresence mode="wait">
+                            <motion.div key={currentSection.section} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="bg-white p-16 rounded-[4rem] shadow-[0_20px_60px_rgba(79,70,229,0.08)] relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-slate-900 group-hover:scale-110 transition-transform duration-[4s]">{getSectionIcon(currentSection.section)}</div>
+                                <header className="space-y-6 pb-12 border-b border-slate-50 mb-12">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-14 h-14 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl shadow-indigo-100">{getSectionIcon(currentSection.section)}</div>
+                                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{currentSection.title}</h2>
+                                    </div>
+                                    <p className="text-sm font-bold text-slate-400 tracking-tight max-w-2xl leading-relaxed">{currentSection.description}</p>
+                                </header>
+                                <div className="space-y-16">
+                                    {currentSection.questions.map(q => (
+                                        <div key={q.key} className="space-y-8">
+                                            <div className="flex items-center gap-5">
+                                                <div className="w-1.5 h-10 bg-indigo-600 rounded-full" />
+                                                <label className="text-[12px] font-bold text-slate-800 tracking-tight">{q.label}</label>
+                                            </div>
+                                            <div className="max-w-3xl">{renderQuestion(currentSection.section, q)}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <footer className="pt-16 mt-20 border-t border-slate-50 flex items-center justify-between">
+                                    <Button variant="outline" disabled={currentStep === 0} onClick={() => setCurrentStep(prev => prev - 1)} leftIcon={<ChevronLeft size={22} />} className="h-16 px-12 rounded-[1.5rem] font-bold text-[11px] tracking-tight border-slate-200">Go back</Button>
+                                    {currentStep < sections.length - 1 ? (
+                                        <Button variant="primary" onClick={() => setCurrentStep(prev => prev + 1)} rightIcon={<ChevronRight size={22} />} className="h-16 px-20 rounded-[1.5rem] bg-indigo-600 border-none font-bold text-[11px] tracking-tight shadow-2xl shadow-indigo-100/50">Save domain</Button>
+                                    ) : (
+                                        <Button variant="primary" onClick={() => handleSubmit()} isLoading={isSaving} leftIcon={<Save size={22} />} className="h-16 px-24 rounded-[1.5rem] bg-slate-900 border-none font-bold text-[11px] tracking-tight shadow-2xl shadow-indigo-100/50">Commit record</Button>
+                                    )}
+                                </footer>
+                            </motion.div>
+                        </AnimatePresence>
+                    )}
+                </div>
+            </div>
+
+            {error && <div className="fixed bottom-12 right-12 bg-rose-600 text-white p-7 rounded-[2rem] flex items-center gap-6 text-[11px] font-bold tracking-tight shadow-2xl z-[300] ring-4 ring-rose-200/20"><AlertCircle size={28} />{error}</div>}
         </div>
     );
 };

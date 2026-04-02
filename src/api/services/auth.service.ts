@@ -25,12 +25,14 @@ export const AuthService = {
         return response.data?.data ?? response.data;
     },
 
-    forgotPassword: async (email: string): Promise<ApiResponse<void>> => {
-        return await api.post('auth/forgot-password', { email });
+    forgotPassword: async (email: string): Promise<{ resetToken?: string }> => {
+        const response = await api.post('auth/forgot-password', { email });
+        return response.data?.data ?? response.data;
     },
 
-    resetPassword: async (token: string, data: { password?: string }): Promise<ApiResponse<void>> => {
-        return await api.post(`auth/reset-password/${token}`, data);
+    resetPassword: async (token: string, data: { password?: string }): Promise<{ token: string; user: User }> => {
+        const response = await api.put(`auth/reset-password/${token}`, data);
+        return response.data?.data ?? response.data;
     },
 
     getMe: async (): Promise<User> => {

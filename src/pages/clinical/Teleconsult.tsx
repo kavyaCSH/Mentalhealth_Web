@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -46,7 +46,6 @@ const Teleconsult = () => {
     );
     const [isValidating, setIsValidating] = useState(true);
     const [isIframeLoading, setIsIframeLoading] = useState(true);
-    const [duration, setDuration] = useState(0);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [activeTool, setActiveTool] = useState<'notes' | 'symptoms' | 'assessments' | 'treatment' | 'past_history' | 'patient_record' | 'mse' | 'clinical_intake' | null>(null);
     const [notes, setNotes] = useState('');
@@ -110,11 +109,6 @@ const Teleconsult = () => {
 
     // 2. Timer/Status Sync
     useEffect(() => {
-        const timer = setInterval(() => setDuration(prev => prev + 1), 1000);
-        return () => clearInterval(timer);
-    }, []);
-
-    useEffect(() => {
         const handleIframeMessage = (event: MessageEvent) => {
             if (event.data === 'call-ended' || event.data?.type === 'call-ended') {
                 handleEndSession(true);
@@ -124,11 +118,7 @@ const Teleconsult = () => {
         return () => window.removeEventListener('message', handleIframeMessage);
     }, []);
 
-    const formatDuration = (seconds: number) => {
-        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const s = (seconds % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
-    };
+
 
     const handleEndSession = async (silent = false) => {
         if (!silent && !window.confirm('End consultation session?')) return;
@@ -374,6 +364,7 @@ const Teleconsult = () => {
                                             {activeTool === 'past_history' && (
                                                 <ConsultPastHistory
                                                     patientId={patientId || ''}
+                                                    consultId={id}
                                                     initialTab="history"
                                                     onSave={() => setActiveTool(null)}
                                                 />

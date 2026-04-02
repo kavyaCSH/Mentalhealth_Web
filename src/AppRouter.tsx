@@ -47,6 +47,7 @@ import ClinicalAssessmentCenter from './pages/clinical/ClinicalAssessmentCenter'
 import ProfessionalHistoryPage from './pages/clinical/ProfessionalHistoryPage';
 import UserList from './pages/admin/UserList';
 import CreateUser from './pages/admin/CreateUser';
+import GlobalSettingsPage from './pages/admin/GlobalSettingsPage';
 import CreateConsultation from './pages/hospital/CreateConsultation';
 import StatisticsPage from './pages/patient/StatisticsPage';
 import SpecialistsPage from './pages/patient/SpecialistsPage';
@@ -64,6 +65,9 @@ import ClinicalSchedulePage from './pages/clinical/ClinicalSchedulePage';
 import ClinicalAvailabilityPage from './pages/clinical/ClinicalAvailabilityPage';
 import Teleconsult from './pages/clinical/Teleconsult';
 import HistoryAssistantPage from './pages/patient/HistoryAssistantPage';
+import SupportTicket from './pages/patient/SupportTicket';
+import TicketHistory from './pages/patient/TicketHistory';
+import SpecialistStatistics from './pages/clinical/SpecialistStatistics';
 
 const AppRouter = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -143,6 +147,8 @@ const AppRouter = () => {
                                     <Route path="treatment" element={<PatientTreatmentView />} />
                                     <Route path="help" element={<HelpCenter />} />
                                     <Route path="help/article/:slug" element={<HelpArticle />} />
+                                    <Route path="help/support" element={<SupportTicket />} />
+                                    <Route path="help/tickets" element={<TicketHistory />} />
                                 </Route>
 
                                 {/* Shared Clinical/Teleconsult Routes */}
@@ -162,6 +168,7 @@ const AppRouter = () => {
                                 <Route path="patients/:patientId/mse/:mseId" element={<MseAssessmentPage />} />
                                 <Route path="patients/:patientId/mse" element={<MSEHistoryPage />} />
                                 <Route path="patients/:patientId/past-history/:historyId?" element={<PastHistoryPage />} />
+                                <Route path="patients/:patientId/ai-history-assistant" element={<HistoryAssistantPage />} />
                                 <Route path="patients/:patientId/ros" element={<RosAssessmentPage />} />
                                 <Route path="patients/:patientId/ros/new" element={<AddROS />} />
                                 <Route path="patients/:patientId/ros/:rosId" element={<ROSDetail />} />
@@ -179,6 +186,8 @@ const AppRouter = () => {
                                     <Route path="patients" element={<PatientDirectory />} />
                                     <Route path="clinical-schedule" element={<ClinicalSchedulePage />} />
                                     <Route path="clinical/availability" element={<ClinicalAvailabilityPage />} />
+                                    <Route path="clinical/statistics" element={<SpecialistStatistics />} />
+                                    <Route path="clinical/statistics/:patientId" element={<SpecialistStatistics />} />
                                     <Route path="patients/:patientId/clinical-hub" element={<ClinicalRecordsHub />} />
                                     <Route path="messages" element={<MessagesPortal />} />
                                 </Route>
@@ -199,6 +208,7 @@ const AppRouter = () => {
                                     <Route path="users" element={<UserList />} />
                                     <Route path="users/new" element={<CreateUser />} />
                                     <Route path="consultations/new" element={<CreateConsultation />} />
+                                    <Route path="settings" element={<GlobalSettingsPage />} />
                                 </Route>
 
                                 {/* 404 handler within layout */}

@@ -308,19 +308,30 @@ const SchedulePage = () => {
     };
 
     const handleBookAppointment = async () => {
-        if (!selectedSpecialist || !bookingReason.trim()) {
-            setBookingError('Please fill all fields');
+        if (!selectedSpecialist || !bookingReason.trim() || !bookingDate || !bookingTime) {
+            setBookingError('Please complete all selection steps including time slot.');
             return;
         }
 
         setIsBooking(true);
+        setBookingError('');
         try {
-            const [y, m, d] = bookingDate.split('-').map(Number);
-            const [h, min] = bookingTime.split(':').map(Number);
-            const scheduledAt = new Date(y, m - 1, d, h, min).toISOString();
+            const [y, m, d] = (bookingDate || new Date().toISOString().split('T')[0]).split('-').map(Number);
+            const [h, min] = (bookingTime || '10:00').split(':').map(Number);
+            
+            if (isNaN(y) || isNaN(h)) {
+                throw new Error('Invalid date or time selected.');
+            }
+
+            const dt = new Date(y, m - 1, d, h, min);
+            const scheduledAt = dt.toISOString();
 
             const profId = ((selectedSpecialist as User).userId || (selectedSpecialist as User & { _id?: string })._id || selectedSpecialist.id || '').toString();
             const patId = (user?.userId || user?._id || user?.id || '').toString();
+
+            if (!profId || !patId) {
+                throw new Error('Missing identity data. Please refresh and try again.');
+            }
 
             const submissionData = {
                 scheduled_at: scheduledAt,
@@ -333,26 +344,33 @@ const SchedulePage = () => {
                 additional_info: { notes: bookingReason.trim(), referred_by: 'Self' }
             };
 
-            const targetId = String(reschedulingAppt?.id || reschedulingAppt?.consult_id || reschedulingAppt?._id);
-            console.log("Submitting Reschedule - ID:", targetId, "New Scheduled At:", scheduledAt);
+            const rawTargetId = reschedulingAppt?.id || reschedulingAppt?.consult_id || reschedulingAppt?._id;
+            const targetId = rawTargetId ? String(rawTargetId) : '';
+            
+            console.log(`[SchedulePage] ${reschedulingAppt ? 'Rescheduling' : 'Booking'} session...`);
 
-            const res = reschedulingAppt
+            const res: any = reschedulingAppt
                 ? await TeleConsultService.rescheduleConsultation(targetId, scheduledAt)
                 : await TeleConsultService.createConsultation(submissionData);
 
-            if (res.success || res.code === 201 || res.code === 200 || (res.data as { consult_id?: string })?.consult_id) {
-                console.log("Reschedule Successful for ID:", reschedulingAppt?.consult_id || reschedulingAppt?.id);
+            // Handle robust response formats (Mobile vs Web backend variance)
+            const isSuccess = res.success || res.code === 201 || res.code === 200 || 
+                             res.status === 'success' || (res.data && (res.data.success || res.data.consult_id));
+
+            if (isSuccess) {
+                console.log("Appointment confirmed successfully.");
                 setBookingSuccess(true);
                 setTimeout(() => {
                     setIsModalOpen(false);
                     fetchSchedule(true);
-                }, 2000);
+                }, 1800);
+            } else {
+                setBookingError(res.message || 'The server rejected the appointment. Possibly the slot was just taken.');
             }
-        } catch (error: unknown) {
-            const err = error as { message?: string; code?: string };
-            console.error("Reschedule Error:", err);
-            const apiError = error as { response?: { data?: { message?: string } } };
-            setBookingError(apiError.response?.data?.message || 'Error occurred');
+        } catch (error: any) {
+            console.error("Booking submission failed:", error);
+            const apiErrorMsg = error.response?.data?.message || error.message || 'Connection failed. Check your network.';
+            setBookingError(apiErrorMsg);
         } finally {
             setIsBooking(false);
         }
@@ -701,10 +719,10 @@ const SchedulePage = () => {
                                                     />
                                                 </div>
                                                 <button
-                                                    onClick={() => setSelectionStep('time')}
+                                                    onClick={() => setSelectionStep(selectedSpecialist ? 'time' : 'specialist')}
                                                     className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-indigo-200 hover:scale-[1.02] transition-all"
                                                 >
-                                                    Continue to Time Selection
+                                                    {selectedSpecialist ? 'Continue to Time Selection' : 'Find Available Specialist'}
                                                 </button>
                                             </div>
                                         )}
