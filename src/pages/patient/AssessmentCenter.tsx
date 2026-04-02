@@ -8,7 +8,6 @@ import {
 import { AssessmentService } from '../../api/services/assessment.service';
 import type { SelfAssessmentQuestion } from '../../types/assessment.types';
 
-// ─── Category → style ───────────────────────────────────────────────────────
 const CAT_STYLE: Record<string, { icon: string; color: string; label: string }> = {
     general:         { icon: 'Brain',          color: '#6366f1', label: 'General Well-being' },
     depression:      { icon: 'Heart',          color: '#10b981', label: 'Depression' },
