@@ -24,7 +24,7 @@ import Button from '../../components/ui/Button';
 
 // ─── Severity styling ────────────────────────────────────────────────────────
 const getSeverityStyle = (severity?: string, interpretation?: string) => {
-    const key = (severity || interpretation || '').toLowerCase();
+    const key = String(severity || interpretation || '').toLowerCase();
     if (key.includes('severe') || key.includes('high') || key.includes('extreme'))
         return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', fill: 'bg-red-500', icon: AlertCircle };
     if (key.includes('moderate') || key.includes('medium'))
@@ -54,12 +54,12 @@ const ProfessionalHistoryPage = () => {
         try {
             let res;
             if (patientId) {
-                res = await AssessmentService.getPatientProfessionalHistory(patientId);
-                setHistory(res.data || []);
+                const assessments = await AssessmentService.getPatientProfessionalHistory(patientId);
+                setHistory(assessments || []);
             } else {
                 // Global view: fetch all clinical assessments
-                const response = await AssessmentService.getAllAdmin();
-                setHistory(Array.isArray(response) ? response : (response as any).data || []);
+                const assessments = await AssessmentService.getAllAdmin();
+                setHistory(assessments || []);
             }
         } catch (err: any) {
             console.error('Failed to load professional history:', err);

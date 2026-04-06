@@ -23,6 +23,7 @@ import PatientTreatmentView from './pages/patient/PatientTreatmentView';
 import HelpCenter from './pages/patient/HelpCenter';
 import HelpArticle from './pages/patient/HelpArticle';
 import EditProfilePage from './pages/shared/EditProfilePage';
+import NotificationSettingsPage from './pages/shared/NotificationSettingsPage';
 import PatientDirectory from './pages/clinical/PatientDirectory';
 import PatientRecord from './pages/clinical/PatientRecord';
 import Health from './pages/clinical/Health';
@@ -118,6 +119,12 @@ const AppRouter = () => {
                     element={<ProtectedRoute><Teleconsult /></ProtectedRoute>}
                 />
 
+                {/* NeuroVitals Full Screen Route */}
+                <Route
+                    path="/neuro-vitals"
+                    element={<ProtectedRoute><NeuroVitalsPage /></ProtectedRoute>}
+                />
+
                 {/* Protected Routes (Within Main Layout) */}
                 <Route path="/*" element={
                     <ProtectedRoute>
@@ -127,7 +134,7 @@ const AppRouter = () => {
                                 <Route path="profile" element={<ProfilePage />} />
                                 <Route path="profile/edit" element={<EditProfilePage />} />
                                 <Route path="notifications" element={<SharedNotificationsPage />} />
-                                <Route path="neuro-vitals" element={<NeuroVitalsPage />} />
+                                <Route path="profile/notifications" element={<NotificationSettingsPage />} />
 
                                 {/* Patient Portal Routes */}
                                 <Route element={<ProtectedRoute allowedGroup="PATIENT" />}>

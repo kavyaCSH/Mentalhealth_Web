@@ -125,14 +125,25 @@ const PastHistoryPage = () => {
             recognitionRef.current = new SpeechRecognition();
             recognitionRef.current.continuous = true;
             recognitionRef.current.interimResults = true;
+            recognitionRef.current.lang = 'en-US';
 
+            recognitionRef.current.onstart = () => setIsRecording(true);
             recognitionRef.current.onresult = (event: any) => {
+                let interimTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
                         setNarrative(prev => prev + ' ' + event.results[i][0].transcript);
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
                     }
                 }
             };
+
+            recognitionRef.current.onerror = (event: any) => {
+                console.error('[PastHistoryPage] Speech recognition error', event.error);
+                setIsRecording(false);
+            };
+
             recognitionRef.current.onend = () => setIsRecording(false);
         }
     }, []);
@@ -142,8 +153,11 @@ const PastHistoryPage = () => {
         if (isRecording) {
             recognitionRef.current.stop();
         } else {
-            recognitionRef.current.start();
-            setIsRecording(true);
+            try {
+                recognitionRef.current.start();
+            } catch (e) {
+                console.error('[PastHistoryPage] Start error:', e);
+            }
         }
     };
 
@@ -343,9 +357,17 @@ const PastHistoryPage = () => {
             if (data.substance_use) {
                 const sub = data.substance_use;
                 newRes['substance_history'] = {
-                    alcohol_status: sub.alcohol?.status || 'Never',
-                    tobacco_status: sub.tobacco_nicotine?.status || 'Never',
-                    illicit_drugs: Array.isArray(sub.illicit_drugs) ? sub.illicit_drugs.map((d: any) => `${d.drug || ''} (${d.status || ''})`).join(', ') : ''
+                    alcohol: { status: sub.alcohol?.status || 'Never' },
+                    tobacco_nicotine: { status: sub.tobacco_nicotine?.status || 'Never' },
+                    illicit_drugs: Array.isArray(sub.illicit_drugs) ? sub.illicit_drugs
+                        .filter((d: any) => d.drug && !String(d.drug).toLowerCase().includes('none'))
+                        .map((d: any) => ({
+                            drug: d.drug || '',
+                            // Valid backend enums: 'current' | 'past' | 'occasional' | 'never'
+                            status: (d.status === 'Never' || d.status === 'Never Used' || d.status === 'Active' || !d.status) ? 'current' : d.status,
+                            frequency: d.frequency || 'N/A',
+                            last_use: d.last_use || 'N/A'
+                        })) : []
                 };
             }
 
@@ -366,7 +388,7 @@ const PastHistoryPage = () => {
 
             if (data.developmental_history) {
                 newRes['developmental_history'] = {
-                    milestones: data.developmental_history.milestones || '',
+                    milestones: String(data.developmental_history.milestones || '').toLowerCase().includes('on-time') ? 'On-time' : (data.developmental_history.milestones || 'On-time'),
                     childhood_behavior: data.developmental_history.childhood_behavior || ''
                 };
             }
@@ -418,6 +440,122 @@ const PastHistoryPage = () => {
         }
     };
 
+    const handleManualAnalyze = async () => {
+        setIsSaving(true);
+        setError(null);
+        try {
+            let hexId = userId || currentUser?._id || currentUser?.id;
+            if (!hexId) throw new Error('Patient identity missing.');
+
+            const payload: any = constructPayload(hexId);
+            const res = await PastHistoryService.analyzeManual(payload);
+            setResult((res as any).data || res);
+        } catch (err: any) {
+            setError(err.message || 'Analysis failed. Please check form data.');
+        } finally { setIsSaving(false); }
+    };
+
+    const constructPayload = (hexId: string) => {
+        return {
+            patient: hexId,
+            patient_id: hexId,
+            consult_id: consultId ? Number(consultId) : undefined,
+            narrative: responses.final_synthesis?.narrative || narrative,
+            status: 'completed',
+            psychiatric_history: {
+                previous_diagnosis: (() => {
+                    const val = responses.psychiatric_past?.previous_diagnosis;
+                    if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
+                    if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+                    return [];
+                })(),
+                hospitalizations: Array.isArray(responses.psychiatric_past?.hospitalizations) ? responses.psychiatric_past.hospitalizations : [],
+                suicide_attempts: Array.isArray(responses.psychiatric_past?.suicide_attempts) ? responses.psychiatric_past.suicide_attempts : [],
+                medication_trials: Array.isArray(responses.psychiatric_past?.medication_trials) ? responses.psychiatric_past.medication_trials : [],
+                psychotherapy_history: responses.psychiatric_past?.psychotherapy_history || ''
+            },
+            medical_history: {
+                chronic_conditions: (() => {
+                    const val = responses.medical_surgical?.chronic_conditions;
+                    if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
+                    if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+                    return [];
+                })(),
+                surgeries: Array.isArray(responses.medical_surgical?.surgeries) ? responses.medical_surgical.surgeries : [],
+                allergies: (() => {
+                    const val = responses.medical_surgical?.allergies;
+                    if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
+                    if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
+                    return [];
+                })(),
+                head_injury: {
+                    detected: !!responses.medical_surgical?.head_injury?.detected,
+                    loss_of_consciousness: !!responses.medical_surgical?.head_injury?.loss_of_consciousness,
+                    details: responses.medical_surgical?.head_injury?.details || ''
+                },
+                seizures: {
+                    detected: !!responses.medical_surgical?.seizures?.detected,
+                    frequency: responses.medical_surgical?.seizures?.frequency || '',
+                    last_seizure: responses.medical_surgical?.seizures?.last_seizure || ''
+                }
+            },
+            substance_use: {
+                alcohol: {
+                    status: (responses.substance_history?.alcohol?.status || responses.substance_history?.alcohol_status || 'Never'),
+                    quantity: responses.substance_history?.alcohol?.quantity || '0',
+                    frequency: responses.substance_history?.alcohol?.frequency || 'N/A',
+                    last_use: responses.substance_history?.alcohol?.last_use || 'N/A'
+                },
+                tobacco_nicotine: {
+                    status: (responses.substance_history?.tobacco_nicotine?.status || responses.substance_history?.tobacco_status || 'Never'),
+                    type: responses.substance_history?.tobacco_nicotine?.type || 'N/A',
+                    quantity: responses.substance_history?.tobacco_nicotine?.quantity || '0'
+                },
+                illicit_drugs: Array.isArray(responses.substance_history?.illicit_drugs) ? responses.substance_history.illicit_drugs
+                    .filter((d: any) => d.drug && !String(d.drug).toLowerCase().includes('none'))
+                    .map((d: any) => ({
+                        ...d,
+                        // Valid backend enums: 'current' | 'past' | 'occasional' | 'never'
+                        status: (d.status === 'Never' || d.status === 'Never Used' || d.status === 'Active' || !d.status) ? 'current' : d.status
+                    })) : [],
+                caffeine: responses.substance_history?.caffeine || '',
+                prescription_misuse: responses.substance_history?.prescription_misuse || 'None'
+            },
+            family_history: {
+                conditions: Array.isArray(responses.family_history?.conditions) ? responses.family_history.conditions : [],
+                suicide_in_family: !!responses.family_history?.suicide_in_family,
+                substance_abuse_in_family: !!responses.family_history?.substance_abuse_in_family
+            },
+            social_history: {
+                education: responses.social_history?.education || '',
+                employment: responses.social_history?.employment || '',
+                marital_status: responses.social_history?.marital_status || '',
+                living_situation: responses.social_history?.living_situation || '',
+                legal_history: {
+                    legal_issues: !!responses.social_history?.legal_history?.legal_issues,
+                    legal_details: responses.social_history?.legal_history?.legal_details || ''
+                },
+                spiritual_beliefs: responses.social_history?.spiritual_beliefs || '',
+                strengths_hobbies: responses.social_history?.strengths_hobbies || ''
+            },
+            trauma_history: {
+                physical_abuse: !!responses.trauma_history?.physical_abuse,
+                emotional_abuse: !!responses.trauma_history?.emotional_abuse,
+                sexual_abuse: !!responses.trauma_history?.sexual_abuse,
+                significant_losses: responses.trauma_history?.significant_losses || '',
+                military_service: !!responses.trauma_history?.military_service,
+                trauma_notes: responses.trauma_history?.trauma_notes || ''
+            },
+            developmental_history: {
+                pregnancy_complications: responses.developmental_history?.pregnancy_complications || 'None',
+                delivery_type: responses.developmental_history?.delivery_type || 'Normal',
+                milestones: String(responses.developmental_history?.milestones || '').toLowerCase().includes('on-time') ? 'On-time' : (responses.developmental_history?.milestones || 'On-time'),
+                childhood_behavior: responses.developmental_history?.childhood_behavior || '',
+                school_performance: responses.developmental_history?.school_performance || ''
+            }
+        };
+    }
+
     const handleSubmit = async () => {
         setIsSaving(true);
         setError(null);
@@ -425,98 +563,7 @@ const PastHistoryPage = () => {
             let hexId = userId || currentUser?._id || currentUser?.id;
             if (!hexId) throw new Error('Patient identity missing.');
 
-            const payload: any = {
-                patient: hexId,
-                consult_id: consultId || undefined,
-                narrative: responses.final_synthesis?.narrative || narrative,
-                status: 'completed',
-                psychiatric_history: {
-                    previous_diagnosis: (() => {
-                        const val = responses.psychiatric_past?.previous_diagnosis;
-                        if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
-                        if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
-                        return [];
-                    })(),
-                    hospitalizations: Array.isArray(responses.psychiatric_past?.hospitalizations) ? responses.psychiatric_past.hospitalizations : [],
-                    suicide_attempts: Array.isArray(responses.psychiatric_past?.suicide_attempts) ? responses.psychiatric_past.suicide_attempts : [],
-                    medication_trials: Array.isArray(responses.psychiatric_past?.medication_trials) ? responses.psychiatric_past.medication_trials : [],
-                    psychotherapy_history: responses.psychiatric_past?.psychotherapy_history || ''
-                },
-                medical_history: {
-                    chronic_conditions: (() => {
-                        const val = responses.medical_surgical?.chronic_conditions;
-                        if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
-                        if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
-                        return [];
-                    })(),
-                    surgeries: Array.isArray(responses.medical_surgical?.surgeries) ? responses.medical_surgical.surgeries : [],
-                    allergies: (() => {
-                        const val = responses.medical_surgical?.allergies;
-                        if (Array.isArray(val)) return val.map(s => String(s).trim()).filter(Boolean);
-                        if (typeof val === 'string') return val.split(',').map(s => s.trim()).filter(Boolean);
-                        return [];
-                    })(),
-                    head_injury: {
-                        detected: !!responses.medical_surgical?.head_injury?.detected,
-                        loss_of_consciousness: !!responses.medical_surgical?.head_injury?.loss_of_consciousness,
-                        details: responses.medical_surgical?.head_injury?.details || ''
-                    },
-                    seizures: {
-                        detected: !!responses.medical_surgical?.seizures?.detected,
-                        frequency: responses.medical_surgical?.seizures?.frequency || '',
-                        last_seizure: responses.medical_surgical?.seizures?.last_seizure || ''
-                    }
-                },
-                substance_use: {
-                    alcohol: {
-                        status: responses.substance_history?.alcohol?.status || 'Never',
-                        quantity: responses.substance_history?.alcohol?.quantity || '0',
-                        frequency: responses.substance_history?.alcohol?.frequency || 'N/A',
-                        last_use: responses.substance_history?.alcohol?.last_use || 'N/A'
-                    },
-                    tobacco_nicotine: {
-                        status: responses.substance_history?.tobacco_nicotine?.status || 'Never',
-                        type: responses.substance_history?.tobacco_nicotine?.type || 'N/A',
-                        quantity: responses.substance_history?.tobacco_nicotine?.quantity || '0'
-                    },
-                    illicit_drugs: Array.isArray(responses.substance_history?.illicit_drugs) ? responses.substance_history.illicit_drugs : [],
-                    caffeine: responses.substance_history?.caffeine || '',
-                    prescription_misuse: responses.substance_history?.prescription_misuse || 'None'
-                },
-                family_history: {
-                    conditions: Array.isArray(responses.family_history?.conditions) ? responses.family_history.conditions : [],
-                    suicide_in_family: !!responses.family_history?.suicide_in_family,
-                    substance_abuse_in_family: !!responses.family_history?.substance_abuse_in_family
-                },
-                social_history: {
-                    education: responses.social_history?.education || '',
-                    employment: responses.social_history?.employment || '',
-                    marital_status: responses.social_history?.marital_status || '',
-                    living_situation: responses.social_history?.living_situation || '',
-                    legal_history: {
-                        legal_issues: !!responses.social_history?.legal_history?.legal_issues,
-                        legal_details: responses.social_history?.legal_history?.legal_details || ''
-                    },
-                    spiritual_beliefs: responses.social_history?.spiritual_beliefs || '',
-                    strengths_hobbies: responses.social_history?.strengths_hobbies || ''
-                },
-                trauma_history: {
-                    physical_abuse: !!responses.trauma_history?.physical_abuse,
-                    emotional_abuse: !!responses.trauma_history?.emotional_abuse,
-                    sexual_abuse: !!responses.trauma_history?.sexual_abuse,
-                    significant_losses: responses.trauma_history?.significant_losses || '',
-                    military_service: !!responses.trauma_history?.military_service,
-                    trauma_notes: responses.trauma_history?.trauma_notes || ''
-                },
-                developmental_history: {
-                    pregnancy_complications: responses.developmental_history?.pregnancy_complications || 'None',
-                    delivery_type: responses.developmental_history?.delivery_type || 'Normal',
-                    milestones: responses.developmental_history?.milestones || 'On-time',
-                    childhood_behavior: responses.developmental_history?.childhood_behavior || '',
-                    school_performance: responses.developmental_history?.school_performance || ''
-                }
-            };
-
+            const payload = constructPayload(hexId);
             const res = await PastHistoryService.createPastHistory(payload);
             setResult((res as any).data || res);
         } catch (err: any) {
@@ -917,7 +964,7 @@ const PastHistoryPage = () => {
                             </header>
                             <textarea value={narrative} onChange={(e) => setNarrative(e.target.value)} placeholder="Describe the patient's medical and psychiatric history in natural language. Diagnoses, hospitalizations, surgeries, and family risk markers will be autonomously extracted." className="w-full min-h-[500px] p-12 bg-slate-50 border-none rounded-[3rem] text-xl font-bold text-slate-800 outline-none resize-none leading-relaxed focus:bg-white shadow-inner transition-all" />
                             <div className="flex justify-end pt-4">
-                                <Button variant="primary" className="h-16 px-20 rounded-2xl font-bold tracking-tight text-[12px] bg-slate-900 border-none shadow-2xl shadow-indigo-100" onClick={handleNarrativeExtract} isLoading={isExtracting} rightIcon={<ArrowRight size={20} />}>Analyze historical record</Button>
+                                <Button variant="primary" className="h-16 px-20 rounded-2xl font-bold tracking-tight text-[12px] bg-slate-900 border-none shadow-2xl shadow-indigo-100" onClick={handleNarrativeExtract} isLoading={isExtracting} rightIcon={<ArrowRight size={20} />}>Extract clinical insights</Button>
                             </div>
                         </motion.div>
                     ) : (
@@ -947,7 +994,10 @@ const PastHistoryPage = () => {
                                     {currentStep < sections.length - 1 ? (
                                         <Button variant="primary" onClick={() => setCurrentStep(prev => prev + 1)} rightIcon={<ChevronRight size={22} />} className={`h-16 px-20 rounded-[1.5rem] ${getTheme(currentSection.section).active} border-none font-bold text-[11px] tracking-tight shadow-2xl`}>Save historical domain</Button>
                                     ) : (
-                                        <Button variant="primary" onClick={() => handleSubmit()} isLoading={isSaving} leftIcon={<Save size={22} />} className="h-16 px-24 rounded-[1.5rem] bg-slate-900 border-none font-bold text-[11px] tracking-tight shadow-2xl">Commit historical record</Button>
+                                        <div className="flex gap-4">
+                                            <Button variant="outline" onClick={() => handleManualAnalyze()} isLoading={isSaving} leftIcon={<Sparkles size={20} />} className="h-16 px-12 rounded-[1.5rem] border-slate-200 font-bold text-[11px] tracking-tight">AI Analyze</Button>
+                                            <Button variant="primary" onClick={() => handleSubmit()} isLoading={isSaving} leftIcon={<Save size={22} />} className="h-16 px-20 rounded-[1.5rem] bg-slate-900 border-none font-bold text-[11px] tracking-tight shadow-2xl">Commit record</Button>
+                                        </div>
                                     )}
                                 </footer>
                             </motion.div>

@@ -64,6 +64,7 @@ export interface User {
     createdAt?: string;
     updatedAt?: string;
     plan?: string;
+    pushToken?: string;
 }
 
 export interface Patient extends User {

@@ -27,6 +27,7 @@ const Health = () => {
     const [latestHistory, setLatestHistory] = useState<any>(null);
     const [latestROS, setLatestROS] = useState<any>(null);
     const [treatmentProgress, setTreatmentProgress] = useState<TreatmentProgress | null>(null);
+    const [resolvedPatientId, setResolvedPatientId] = useState<string | number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -55,6 +56,7 @@ const Health = () => {
                     if (userProfile) {
                         hexId = userProfile._id || userProfile.id || hexId;
                         numericId = userProfile.userId;
+                        setResolvedPatientId(numericId || hexId);
                         console.log(`[Health] Resolved IDs - Hex: ${hexId}, Numeric: ${numericId}`);
                     }
                 } catch (profileError) {
@@ -387,8 +389,8 @@ const Health = () => {
                             Start New
                         </button>
                         <button
-                            onClick={() => navigate(`/clinical/assessments/history?patientId=${userId}`)}
-                            className="py-3 px-4 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-colors"
+                            onClick={() => navigate(`/clinical/assessments/history?patientId=${resolvedPatientId || userId}`)}
+                            className="py-3 px-4 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all"
                         >
                             View History
                         </button>

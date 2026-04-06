@@ -28,7 +28,7 @@ import type { AssessmentResult, AssessmentMaster } from '../../types/assessment.
 
 // ─── Severity styling ────────────────────────────────────────────────────────
 const getSeverityStyle = (severity?: string, interpretation?: string) => {
-    const key = (severity || interpretation || '').toLowerCase();
+    const key = String(severity || interpretation || '').toLowerCase();
     if (key.includes('severe') || key.includes('high') || key.includes('extreme'))
         return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', fill: 'bg-red-500', icon: AlertTriangle };
     if (key.includes('moderate') || key.includes('medium'))

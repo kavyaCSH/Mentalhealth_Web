@@ -145,6 +145,7 @@ const ProfilePage = () => {
                         value="Push, SMS, Email" 
                         color="text-amber-500" 
                         bg="bg-amber-50"
+                        onClick={() => navigate('/profile/notifications')}
                     />
                     <MenuItem 
                         icon={Globe} 

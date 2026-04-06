@@ -1,29 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useAuth } from '../hooks/useAuth';
 import SideNav from '../components/SideNav';
-import { NotificationService } from '../api/services/notification.service';
+import { PushNotificationManager } from '../services/pushNotification.service';
+import { UserService } from '../api/services/user.service';
+import type { RootState } from '../store';
+import { useEffect } from 'react';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const { unreadCount } = useSelector((state: RootState) => state.notifications);
 
     useEffect(() => {
-        const fetchCount = async () => {
+        const initPushAndEnroll = async () => {
             try {
-                const notifications = await NotificationService.getNotifications({ page: 1, limit: 10 });
-                const unread = notifications.filter(n => !n.read).length;
-                setUnreadCount(unread);
-            } catch (error) {
-                console.error('Failed to fetch notification count:', error);
+                // Register for push notifications if preferred
+                if (user?.communicationPreferences?.push) {
+                    await PushNotificationManager.register();
+                }
+
+                // Global Enrollment: Proactively trigger all backend hooks to ensure patient record existence
+                if (user?.role === 'patient') {
+                    console.log(`[Clinical Enrollment] Initializing profile for user: ${user.email}`);
+                    await UserService.deepEnroll();
+                }
+            } catch (err) {
+                console.warn('Post-login initialization background tasks failed', err);
             }
         };
-        if (user) fetchCount();
+        if (user) initPushAndEnroll();
     }, [user]);
+
+    // Initial count is now handled by SideNav which is always present
 
     return (
         <div className="flex h-screen overflow-hidden bg-page">

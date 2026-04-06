@@ -33,12 +33,12 @@ export interface HPIResponse {
 
 export const HPIService = {
     createHPI: async (data: { patient_id: string; consultId?: string; narrative: string }): Promise<ApiResponse<HPIResponse>> => {
-        const response = await api.post('history-of-illness', data);
+        const response = await api.post('hpis', data);
         return response.data;
     },
 
     getHPIList: async (params: { patient_id: string; page?: number; limit?: number }): Promise<ApiResponse<HPIResponse[]>> => {
-        const response = await api.get('history-of-illness', { params: { ...params, page: params.page ?? 1, limit: params.limit ?? 10 } });
+        const response = await api.get('hpis', { params: { ...params, page: params.page ?? 1, limit: params.limit ?? 10 } });
         return response.data;
     },
 
@@ -59,36 +59,36 @@ export const HPIService = {
             }
         }
 
-        const response = await api.get(`history-of-illness/${id}`);
+        const response = await api.get(`hpis/${id}`);
         return response.data;
     },
 
     updateHPI: async (id: string | number, data: { narrative: string }): Promise<ApiResponse<HPIResponse>> => {
-        const response = await api.patch(`history-of-illness/${id}`, data);
+        const response = await api.patch(`hpis/${id}`, data);
         return response.data;
     },
 
     deleteHPI: async (id: string | number): Promise<ApiResponse<unknown>> => {
-        const response = await api.delete(`history-of-illness/${id}`);
+        const response = await api.delete(`hpis/${id}`);
         return response.data;
     },
 
     // ── AI Extraction & Detailed Saving Flow (Mobile Parity) ───────────────────────────────────
     extractHPI: async (data: { patient_id: string | number; narrative: string }): Promise<ApiResponse<any>> => {
         // Step 1 — Preview only, does NOT save to DB
-        const response = await api.post('history-of-illness/extract', data);
+        const response = await api.post('hpis/extract', data);
         return response.data;
     },
 
     extractFromNarrative: async (narrative: string, patient_id?: string | number): Promise<any> => {
         // Step 1 — Preview only, does NOT save to DB
-        const response = await api.post('history-of-illness/extract', { narrative, patient_id });
+        const response = await api.post('hpis/extract', { narrative, patient_id });
         return response.data;
     },
 
     submitHPI: async (data: any): Promise<ApiResponse<HPIResponse>> => {
         // Step 2 — Confirm and persist the extracted/edited HPI
-        const response = await api.post('history-of-illness', data);
+        const response = await api.post('hpis', data);
         return response.data;
     },
 };

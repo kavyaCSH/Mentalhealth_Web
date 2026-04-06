@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     Activity,
@@ -41,7 +41,10 @@ interface ClinicalRecord {
 const ClinicalRecordsHub = () => {
     const { patientId } = useParams<{ patientId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const queryParams = new URLSearchParams(location.search);
+    const consultId = queryParams.get('consult_id');
 
     const [records, setRecords] = useState<ClinicalRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -199,7 +202,7 @@ const ClinicalRecordsHub = () => {
             hpi: `/patients/${pid}/hpi/${record.id}`,
             mse: `/patients/${pid}/mse/${record.id}`,
             ros: `/patients/${pid}/ros/${record.id}`,
-            'past-history': `/patients/${pid}/past-history/${record.id}`
+            'past-history': `/patients/${pid}/past-history/${record.id}${consultId ? `?consult_id=${consultId}` : ''}`
         };
         navigate(paths[record.type]);
     };

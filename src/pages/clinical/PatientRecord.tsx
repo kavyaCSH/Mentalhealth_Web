@@ -305,7 +305,7 @@ const PatientRecord = () => {
                             <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                                 <ClipboardList className="text-indigo-600" size={20} /> Assessment History
                             </h2>
-                            <Button variant="ghost" size="sm" onClick={() => navigate(`/patients/${patient.userId || id}/assessments`)}>View All</Button>
+                            <Button variant="ghost" size="sm" onClick={() => navigate(`/clinical/assessments/history?patientId=${patient.userId || id}`)}>View All</Button>
                         </div>
 
                         <div className="space-y-3">

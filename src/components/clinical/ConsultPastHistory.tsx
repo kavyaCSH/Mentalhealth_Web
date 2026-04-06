@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
 import {
@@ -8,14 +8,16 @@ import {
     FileText,
     Brain,
     Stethoscope,
-    CheckCircle2,
+    // CheckCircle2,
     Users,
     Zap,
     Plus, 
     Archive,
     Shield,
     History as HistoryIcon,
-    HeartPulse
+    HeartPulse,
+    Mic,
+    MicOff
 } from 'lucide-react';
 import Button from '../ui/Button';
 import { PastHistoryService } from '../../api/services/pastHistory.service';
@@ -59,11 +61,68 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
     const [traumaHistory, setTraumaHistory] = useState('');
     const [developmentalHistory, setDevelopmentalHistory] = useState('');
 
+    const [isRecording, setIsRecording] = useState(false);
+    const recognitionRef = useRef<any>(null);
+
     useEffect(() => {
         if (activeTab === 'history' && patientId) {
             fetchHistory();
         }
     }, [activeTab, patientId]);
+
+    // Voice Recognition Implementation (Mobile Parity)
+    useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = true;
+            recognitionRef.current.interimResults = true;
+            recognitionRef.current.lang = 'en-US';
+
+            recognitionRef.current.onstart = () => setIsRecording(true);
+            recognitionRef.current.onresult = (event: any) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        setNarrative(prev => prev + ' ' + event.results[i][0].transcript);
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                console.log('[ConsultPastHistory] Voice Interim:', interimTranscript);
+            };
+
+            recognitionRef.current.onerror = (event: any) => {
+                console.error('[ConsultPastHistory] Speech recognition error', event.error);
+                setIsRecording(false);
+            };
+            
+            recognitionRef.current.onend = () => setIsRecording(false);
+        }
+
+        return () => {
+            if (recognitionRef.current) {
+                try { recognitionRef.current.stop(); } catch (e) {}
+            }
+        };
+    }, []);
+
+    const toggleRecording = () => {
+        if (!recognitionRef.current) {
+            console.error('[ConsultPastHistory] Speech recognition not supported');
+            return;
+        }
+        if (isRecording) {
+            recognitionRef.current.stop();
+        } else {
+            try {
+                recognitionRef.current.start();
+            } catch (err) {
+                console.error('[ConsultPastHistory] Failed to start recording', err);
+                setIsRecording(false);
+            }
+        }
+    };
 
     const fetchHistory = async () => {
         if (!patientId) return;
@@ -86,7 +145,7 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
             return value.map(item => {
                 if (!item) return null;
                 if (typeof item === 'string') return item;
-                if (typeof item === 'object') {
+                if (item && typeof item === 'object') {
                     if (item.name) return `${item.name}${item.dose ? ' ' + item.dose : ''}`;
                     if (item.relative) return `${item.relative}: ${item.condition}`;
                     if (item.drug) return `${item.drug}${item.frequency ? ' (' + item.frequency + ')' : ''}`;
@@ -149,9 +208,13 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
         if (!narrative.trim() && !psychiatric.previous_episodes) return;
         setSaving(true);
         try {
+            // Resolve consult_id: must be a valid number for backend
+            const resolvedConsultId = consultId && !isNaN(Number(consultId)) ? Number(consultId) : undefined;
+
             const payload: any = {
-                patient: String(patientId),
-                consult_id: consultId ? String(consultId) : undefined,
+                patient: patientId,
+                patient_id: patientId,
+                consult_id: resolvedConsultId,
                 status: 'completed',
                 narrative: narrative || extractionResult?.ai_notes || '',
                 ai_notes: extractionResult?.ai_notes || narrative,
@@ -159,52 +222,170 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                 color_code: extractionResult?.color_code || '#6366f1',
                 treatment_resistance_risk: extractionResult?.treatment_resistance_risk,
                 genetic_risk_summary: extractionResult?.genetic_risk_summary,
-                psychiatric_history: {
-                    previous_diagnosis: psychiatric.previous_episodes ? [psychiatric.previous_episodes] : [],
-                    hospitalizations: psychiatric.hospitalizations ? [{ reason: psychiatric.hospitalizations, year: 'N/A', location: 'N/A', duration: 'N/A' }] : [],
-                    psychotherapy_history: psychiatric.treatments || ''
-                },
-                medical_history: {
-                    chronic_conditions: medical.chronic_conditions.split(',').map(s => s.trim()).filter(Boolean),
-                    surgeries: medical.surgeries ? [{ procedure: medical.surgeries, year: 'N/A' }] : [],
-                    allergies: medical.allergies.split(',').map(s => s.trim()).filter(Boolean),
-                    head_injury: { detected: false, loss_of_consciousness: false, details: '' },
-                    seizures: { detected: false, frequency: 'N/A', last_seizure: 'N/A' }
-                },
-                family_history: {
-                    conditions: family.paternal || family.maternal || family.siblings ? [{ relative: 'Family', condition: `${family.paternal || ''} ${family.maternal || ''} ${family.siblings || ''}`.trim(), outcome: 'N/A' }] : [],
-                    suicide_in_family: false,
-                    substance_abuse_in_family: false
-                },
-                substance_use: {
-                    alcohol: { status: 'Unknown', quantity: 'N/A', frequency: 'N/A', last_use: 'N/A' },
-                    tobacco_nicotine: { status: 'Unknown', type: 'N/A', quantity: 'N/A' },
-                    illicit_drugs: substanceUse ? [{ drug: substanceUse, status: 'Unknown', frequency: 'N/A', last_use: 'N/A' }] : []
-                },
-                social_history: {
-                    living_situation: socialHistory || 'Unknown',
-                    employment: 'Unknown',
-                    education: 'Unknown',
-                    marital_status: 'Unknown',
-                    legal_history: { legal_issues: false, legal_details: '' },
-                    spiritual_beliefs: 'None',
-                    strengths_hobbies: ''
-                },
-                trauma_history: {
-                    physical_abuse: false,
-                    emotional_abuse: false,
-                    sexual_abuse: false,
-                    significant_losses: traumaHistory || '',
-                    military_service: false,
-                    trauma_notes: ''
-                },
-                developmental_history: {
-                    milestones: developmentalHistory || 'On-time',
-                    pregnancy_complications: '',
-                    delivery_type: 'Normal',
-                    childhood_behavior: '',
-                    school_performance: ''
-                }
+
+                // ── Use raw extraction data directly (same as PastHistoryPage.constructPayload) ──
+                psychiatric_history: extractionResult?.psychiatric_history
+                    ? {
+                        previous_diagnosis: (() => {
+                            const v = extractionResult.psychiatric_history.previous_diagnosis;
+                            if (Array.isArray(v)) return v;
+                            if (typeof v === 'string' && v) return [v];
+                            return psychiatric.previous_episodes ? [psychiatric.previous_episodes] : [];
+                        })(),
+                        hospitalizations: Array.isArray(extractionResult.psychiatric_history.hospitalizations)
+                            ? extractionResult.psychiatric_history.hospitalizations
+                            : (psychiatric.hospitalizations ? [{ reason: psychiatric.hospitalizations, year: 'N/A', location: 'N/A', duration: 'N/A' }] : []),
+                        suicide_attempts: Array.isArray(extractionResult.psychiatric_history.suicide_attempts)
+                            ? extractionResult.psychiatric_history.suicide_attempts : [],
+                        medication_trials: Array.isArray(extractionResult.psychiatric_history.medication_trials)
+                            ? extractionResult.psychiatric_history.medication_trials : [],
+                        psychotherapy_history: extractionResult.psychiatric_history.psychotherapy_history || psychiatric.treatments || ''
+                    }
+                    : {
+                        previous_diagnosis: psychiatric.previous_episodes ? [psychiatric.previous_episodes] : [],
+                        hospitalizations: psychiatric.hospitalizations ? [{ reason: psychiatric.hospitalizations, year: 'N/A', location: 'N/A', duration: 'N/A' }] : [],
+                        psychotherapy_history: psychiatric.treatments || ''
+                    },
+
+                medical_history: extractionResult?.medical_history
+                    ? {
+                        chronic_conditions: (() => {
+                            const v = extractionResult.medical_history.chronic_conditions;
+                            if (Array.isArray(v)) return v;
+                            if (typeof v === 'string' && v) return v.split(',').map((s: string) => s.trim()).filter(Boolean);
+                            return medical.chronic_conditions.split(',').map(s => s.trim()).filter(Boolean);
+                        })(),
+                        surgeries: Array.isArray(extractionResult.medical_history.surgeries)
+                            ? extractionResult.medical_history.surgeries
+                            : (medical.surgeries ? [{ procedure: medical.surgeries, year: 'N/A' }] : []),
+                        allergies: (() => {
+                            const v = extractionResult.medical_history.allergies;
+                            if (Array.isArray(v)) return v;
+                            if (typeof v === 'string' && v) return v.split(',').map((s: string) => s.trim()).filter(Boolean);
+                            return medical.allergies.split(',').map(s => s.trim()).filter(Boolean);
+                        })(),
+                        head_injury: extractionResult.medical_history.head_injury || { detected: false, loss_of_consciousness: false, details: '' },
+                        seizures: extractionResult.medical_history.seizures || { detected: false, frequency: 'N/A', last_seizure: 'N/A' }
+                    }
+                    : {
+                        chronic_conditions: medical.chronic_conditions.split(',').map(s => s.trim()).filter(Boolean),
+                        surgeries: medical.surgeries ? [{ procedure: medical.surgeries, year: 'N/A' }] : [],
+                        allergies: medical.allergies.split(',').map(s => s.trim()).filter(Boolean),
+                        head_injury: { detected: false, loss_of_consciousness: false, details: '' },
+                        seizures: { detected: false, frequency: 'N/A', last_seizure: 'N/A' }
+                    },
+
+                family_history: extractionResult?.family_history
+                    ? {
+                        conditions: Array.isArray(extractionResult.family_history.conditions)
+                            ? extractionResult.family_history.conditions
+                            : (family.paternal || family.maternal || family.siblings
+                                ? [{ relative: 'Family', condition: `${family.paternal || ''} ${family.maternal || ''} ${family.siblings || ''}`.trim(), outcome: 'N/A' }]
+                                : []),
+                        suicide_in_family: !!extractionResult.family_history.suicide_in_family,
+                        substance_abuse_in_family: !!extractionResult.family_history.substance_abuse_in_family
+                    }
+                    : {
+                        conditions: family.paternal || family.maternal || family.siblings
+                            ? [{ relative: 'Family', condition: `${family.paternal || ''} ${family.maternal || ''} ${family.siblings || ''}`.trim(), outcome: 'N/A' }]
+                            : [],
+                        suicide_in_family: false,
+                        substance_abuse_in_family: false
+                    },
+
+                // ── Substance use: use raw extraction data to preserve full structure & valid enums ──
+                substance_use: extractionResult?.substance_use && typeof extractionResult.substance_use === 'object'
+                    ? {
+                        alcohol: {
+                            status: extractionResult.substance_use.alcohol?.status || 'Never',
+                            quantity: extractionResult.substance_use.alcohol?.quantity || 'N/A',
+                            frequency: extractionResult.substance_use.alcohol?.frequency || 'N/A',
+                            last_use: extractionResult.substance_use.alcohol?.last_use || 'N/A'
+                        },
+                        tobacco_nicotine: {
+                            status: extractionResult.substance_use.tobacco_nicotine?.status || 'Never',
+                            type: extractionResult.substance_use.tobacco_nicotine?.type || 'N/A',
+                            quantity: extractionResult.substance_use.tobacco_nicotine?.quantity || 'N/A'
+                        },
+                        // Valid backend enums: 'current' | 'past' | 'occasional' | 'never'
+                        illicit_drugs: Array.isArray(extractionResult.substance_use.illicit_drugs)
+                            ? extractionResult.substance_use.illicit_drugs
+                                .filter((d: any) => d.drug && !String(d.drug).toLowerCase().includes('none'))
+                                .map((d: any) => ({
+                                    drug: d.drug || '',
+                                    status: (d.status === 'Never' || d.status === 'Never Used' || d.status === 'Active' || !d.status) ? 'current' : d.status,
+                                    frequency: d.frequency || 'N/A',
+                                    last_use: d.last_use || 'N/A'
+                                }))
+                            : [],
+                        caffeine: extractionResult.substance_use.caffeine || '',
+                        prescription_misuse: extractionResult.substance_use.prescription_misuse || 'None'
+                    }
+                    : {
+                        alcohol: { status: 'Never', quantity: 'N/A', frequency: 'N/A', last_use: 'N/A' },
+                        tobacco_nicotine: { status: 'Never', type: 'N/A', quantity: 'N/A' },
+                        illicit_drugs: (substanceUse && !substanceUse.toLowerCase().includes('none') && !substanceUse.toLowerCase().includes('never'))
+                            ? [{ drug: substanceUse, status: 'current', frequency: 'N/A', last_use: 'N/A' }]
+                            : []
+                    },
+
+                social_history: extractionResult?.social_history && typeof extractionResult.social_history === 'object'
+                    ? {
+                        living_situation: extractionResult.social_history.living_situation || 'Stable',
+                        employment: extractionResult.social_history.employment || 'Unknown',
+                        education: extractionResult.social_history.education || 'Unknown',
+                        marital_status: extractionResult.social_history.marital_status || 'Unknown',
+                        legal_history: extractionResult.social_history.legal_history || { legal_issues: false, legal_details: '' },
+                        spiritual_beliefs: extractionResult.social_history.spiritual_beliefs || 'None',
+                        strengths_hobbies: extractionResult.social_history.strengths_hobbies || ''
+                    }
+                    : {
+                        living_situation: socialHistory || 'Stable',
+                        employment: 'Unknown',
+                        education: 'Unknown',
+                        marital_status: 'Unknown',
+                        legal_history: { legal_issues: false, legal_details: '' },
+                        spiritual_beliefs: 'None',
+                        strengths_hobbies: ''
+                    },
+
+                trauma_history: extractionResult?.trauma_history && typeof extractionResult.trauma_history === 'object'
+                    ? {
+                        physical_abuse: !!extractionResult.trauma_history.physical_abuse,
+                        emotional_abuse: !!extractionResult.trauma_history.emotional_abuse,
+                        sexual_abuse: !!extractionResult.trauma_history.sexual_abuse,
+                        significant_losses: extractionResult.trauma_history.significant_losses || traumaHistory || '',
+                        military_service: !!extractionResult.trauma_history.military_service,
+                        trauma_notes: extractionResult.trauma_history.trauma_notes || ''
+                    }
+                    : {
+                        physical_abuse: false,
+                        emotional_abuse: false,
+                        sexual_abuse: false,
+                        significant_losses: traumaHistory || '',
+                        military_service: false,
+                        trauma_notes: ''
+                    },
+
+                developmental_history: extractionResult?.developmental_history && typeof extractionResult.developmental_history === 'object'
+                    ? {
+                        pregnancy_complications: extractionResult.developmental_history.pregnancy_complications || 'None',
+                        delivery_type: extractionResult.developmental_history.delivery_type || 'Normal',
+                        milestones: String(extractionResult.developmental_history.milestones || '').toLowerCase().includes('on-time')
+                            ? 'On-time'
+                            : (extractionResult.developmental_history.milestones || 'On-time'),
+                        childhood_behavior: extractionResult.developmental_history.childhood_behavior || '',
+                        school_performance: extractionResult.developmental_history.school_performance || ''
+                    }
+                    : {
+                        pregnancy_complications: 'None',
+                        delivery_type: 'Normal',
+                        milestones: developmentalHistory.toLowerCase().includes('on-time')
+                            ? 'On-time'
+                            : (developmentalHistory || 'On-time'),
+                        childhood_behavior: '',
+                        school_performance: ''
+                    }
             };
 
             const res = await PastHistoryService.createPastHistory(payload);
@@ -481,14 +662,35 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Active Extraction Mode</p>
                                 </div>
                             </div>
+
+                            <button
+                                onClick={toggleRecording}
+                                className={`p-3 rounded-xl transition-all flex items-center gap-2 border-2 ${isRecording
+                                    ? 'bg-rose-500 text-white border-rose-500 animate-pulse shadow-lg shadow-rose-100'
+                                    : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-900 hover:text-white'
+                                    }`}
+                            >
+                                {isRecording ? <MicOff size={16} /> : <Mic size={16} />}
+                                <span className="text-[9px] font-black uppercase tracking-widest">
+                                    {isRecording ? 'Stop' : 'Voice'}
+                                </span>
+                            </button>
                         </div>
 
-                        <textarea
-                            value={narrative}
-                            onChange={(e) => setNarrative(e.target.value)}
-                            placeholder="Describe patient's medical and psychiatric history narrative here..."
-                            className="w-full h-40 bg-slate-50 border-2 border-slate-100 rounded-3xl p-6 text-xs font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-300 focus:bg-white transition-all resize-none leading-relaxed"
-                        />
+                        <div className="relative">
+                            <textarea
+                                value={narrative}
+                                onChange={(e) => setNarrative(e.target.value)}
+                                placeholder="Describe patient's medical and psychiatric history narrative here..."
+                                className="w-full h-40 bg-slate-50 border-2 border-slate-100 rounded-3xl p-6 text-xs font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-300 focus:bg-white transition-all resize-none leading-relaxed"
+                            />
+                            {isRecording && (
+                                <div className="absolute top-4 right-4 flex items-center gap-2 text-rose-500 font-black text-[8px] uppercase tracking-widest">
+                                    <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping" />
+                                    Listening...
+                                </div>
+                            )}
+                        </div>
 
                         <div className="flex justify-end mt-4">
                             <Button variant="primary" size="md" disabled={extracting || !narrative.trim()} onClick={handleAIExtract} className="rounded-xl px-10 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-100">
@@ -598,24 +800,36 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
         );
     };
 
-    const renderDetailView = () => (
-        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 pt-2 pb-20">
-            <button onClick={() => setSelectedRecord(null)} className="flex items-center gap-2 group mb-4">
-                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                    <ChevronRight size={16} className="rotate-180" />
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-indigo-600 transition-colors">Return to Clinical Archive</span>
-            </button>
+    const formatDate = (dateStr: any) => {
+        try {
+            if (!dateStr) return 'Draft';
+            const d = new Date(dateStr);
+            return isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString();
+        } catch (e) {
+            return 'Recent';
+        }
+    };
 
-            <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] p-8 space-y-8">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-[1.25rem] bg-slate-900 text-white flex items-center justify-center shadow-xl"><FileText size={24} /></div>
-                        <div>
-                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none mb-1">Record Synthesis</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">{selectedRecord.createdAt ? new Date(selectedRecord.createdAt).toLocaleDateString() : 'Draft'}</p>
-                        </div>
+    const renderDetailView = () => {
+        if (!selectedRecord) return null;
+        return (
+            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 pt-2 pb-20">
+                <button onClick={() => setSelectedRecord(null)} className="flex items-center gap-2 group mb-4">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                        <ChevronRight size={16} className="rotate-180" />
                     </div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-indigo-600 transition-colors">Return to Clinical Archive</span>
+                </button>
+
+                <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] p-8 space-y-8">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-[1.25rem] bg-slate-900 text-white flex items-center justify-center shadow-xl"><FileText size={24} /></div>
+                            <div>
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none mb-1">Record Synthesis</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">{formatDate(selectedRecord?.createdAt)}</p>
+                            </div>
+                        </div>
                     <div className="flex gap-3">
                          <Button variant="ghost" size="sm" onClick={() => { setEditedRecord({...selectedRecord}); setIsEditing(true); }} className="rounded-xl font-black uppercase text-[9px] border-2 border-amber-50 text-amber-600 hover:bg-amber-50">Override Data</Button>
                          <Button variant="ghost" size="sm" onClick={() => setSelectedRecord(null)} className="rounded-xl font-black uppercase text-[9px]">Close</Button>
@@ -655,7 +869,8 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                 </div>
             </div>
         </div>
-    );
+        );
+    };
 
     const renderResultView = () => (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 pt-2 pb-20">

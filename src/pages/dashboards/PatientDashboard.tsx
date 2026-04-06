@@ -23,7 +23,6 @@ import {
 import { useRealTimeClock } from '../../hooks/useRealTime';
 import type { RootState } from '../../store';
 import api from '../../api/client';
-import { TeleConsultService } from '../../api/services/teleconsult.service';
 import type { Consultation } from '../../types/common.types';
 
 const PatientDashboard = () => {
@@ -319,7 +318,7 @@ const PatientDashboard = () => {
                                         </div>
 
                                         <div className="flex items-center gap-3 mt-8">
-                                            {isVirtual && ['scheduled', 'confirmed', 'waiting', 'in_progress', 'ongoing'].includes(statusInfo.label.toLowerCase()) && (
+                                            {isVirtual && (['scheduled', 'confirmed', 'waiting', 'in_progress', 'ongoing', 'live'].includes(statusInfo.label.toLowerCase()) || appt.active) && (
                                                 <button
                                                     onClick={() => handleJoinCall(appt)}
                                                     className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-100"

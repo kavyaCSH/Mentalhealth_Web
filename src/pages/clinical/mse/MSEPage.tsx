@@ -25,8 +25,6 @@ import {
     Heart,
     Workflow,
     FileText,
-    ClipboardList,
-    AlertTriangle,
     Layers,
     Cpu,
     ArrowRight

@@ -14,5 +14,18 @@ export const NotificationService = {
     markAllAsRead: async (): Promise<{ success: boolean }> => {
         const response = await api.put('notifications/read-all');
         return response.data;
+    },
+    triggerAiEngagement: async (): Promise<{ success: boolean }> => {
+        const response = await api.post('notifications/ai-engagement');
+        return response.data;
+    },
+    sendNotification: async (data: { 
+        userId: string | number; 
+        title: string; 
+        message: string; 
+        type?: string; 
+    }) => {
+        const response = await api.post('/notifications/send', data);
+        return response.data;
     }
 };

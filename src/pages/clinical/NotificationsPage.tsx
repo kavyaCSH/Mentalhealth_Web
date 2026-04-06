@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../../store';
+import { decrementUnreadCount, fetchUnreadCount } from '../../features/notifications/store/notificationSlice';
 import {
     Bell,
     Calendar,
@@ -13,7 +16,8 @@ import {
     ChevronLeft,
     AlertCircle,
     User,
-    Clock
+    Clock,
+    Settings
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { NotificationService } from '../../api/services/notification.service';
@@ -21,6 +25,7 @@ import type { Notification as AppNotification } from '../../types/common.types';
 
 const ClinicalNotificationsPage = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'unread' | 'alerts'>('unread');
@@ -43,6 +48,10 @@ const ClinicalNotificationsPage = () => {
 
     const handleMarkAsRead = async (id: string) => {
         try {
+            const notif = notifications.find(n => n.id === id);
+            if (notif && !notif.isRead && !notif.read) {
+                dispatch(decrementUnreadCount());
+            }
             setNotifications((prev: AppNotification[]) => prev.map(n => n.id === id ? { ...n, isRead: true, read: true } : n));
             await NotificationService.markAsRead(id);
         } catch (error) {
@@ -54,6 +63,7 @@ const ClinicalNotificationsPage = () => {
         try {
             setNotifications((prev: AppNotification[]) => prev.map(n => ({ ...n, isRead: true, read: true })));
             await NotificationService.markAllAsRead();
+            dispatch(fetchUnreadCount());
         } catch (error) {
             console.error('Failed to mark all notifications as read:', error);
         }
@@ -61,6 +71,25 @@ const ClinicalNotificationsPage = () => {
 
     const handleDelete = async (id: string) => {
         setNotifications((prev: AppNotification[]) => prev.filter(n => n.id !== id));
+    };
+
+    const getNotificationDisplayTime = (dateValue: string | Date | undefined) => {
+        if (!dateValue) return '';
+        const now = new Date();
+        const msgDate = new Date(dateValue);
+        const diff = now.getTime() - msgDate.getTime();
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(minutes / 60);
+
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24 && now.getDate() === msgDate.getDate()) return `${hours}h ago`;
+        
+        return msgDate.toLocaleDateString([], { 
+            month: 'short', 
+            day: 'numeric',
+            year: msgDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+        });
     };
 
     const getIconInfo = (type?: string) => {
@@ -140,7 +169,15 @@ const ClinicalNotificationsPage = () => {
                     </div>
                 </div>
                 
-                <div className="flex bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100">
+                <div className="flex items-center gap-3 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <button
+                        onClick={() => navigate('/profile/notifications')}
+                        className="w-12 h-12 bg-white text-slate-400 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-slate-100"
+                        title="Notification Settings"
+                    >
+                        <Settings size={20} />
+                    </button>
+                    <div className="w-[1.5px] h-8 bg-slate-200 mx-1 hidden md:block"></div>
                     <button
                         onClick={handleMarkAllAsRead}
                         disabled={unreadCount === 0}
@@ -208,8 +245,11 @@ const ClinicalNotificationsPage = () => {
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 exit={{ opacity: 0, x: -50 }}
                                                 transition={{ delay: index * 0.05 }}
-                                                className={`card-premium p-8 flex flex-col md:flex-row md:items-center gap-8 group
-                                                    ${!isRead ? 'border-rose-100 bg-rose-50/10' : 'border-slate-100 hover:border-indigo-100'}
+                                                onClick={() => !isRead && handleMarkAsRead(notif.id)}
+                                                className={`p-8 flex flex-col md:flex-row md:items-center gap-8 group cursor-pointer border-l-4 rounded-[2rem] border transition-all
+                                                    ${!isRead 
+                                                        ? 'border-rose-100 bg-rose-50/10 border-l-rose-600 shadow-xl shadow-rose-100/20' 
+                                                        : 'border-slate-100 border-l-slate-200 bg-white hover:border-indigo-100'}
                                                 `}
                                             >
                                                 <div className={`w-16 h-16 shrink-0 rounded-[1.5rem] flex items-center justify-center border transition-all group-hover:scale-110 shadow-sm ${colorClass}`}>
@@ -232,11 +272,11 @@ const ClinicalNotificationsPage = () => {
                                                     </p>
                                                     <div className="flex items-center gap-3 pt-2 text-[10px] font-black text-slate-300 uppercase tracking-widest">
                                                         <Clock size={12} />
-                                                        <span>Received {new Date(notif.createdAt || notif.created_at || Date.now()).toLocaleString()}</span>
+                                                        <span>{getNotificationDisplayTime(notif.createdAt || notif.created_at)}</span>
                                                         {notif.patientName && (
                                                             <>
                                                                 <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                                                                <span className="text-indigo-600">{notif.patientName}</span>
+                                                                <span className="text-rose-600">{notif.patientName}</span>
                                                             </>
                                                         )}
                                                     </div>

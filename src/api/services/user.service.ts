@@ -1,4 +1,5 @@
 import api from '../client';
+import { AssessmentService } from './assessment.service';
 import type { User, Patient } from '../../types/user.types';
 
 export const UserService = {
@@ -51,5 +52,21 @@ export const UserService = {
     createUserByRole: async (role: string, data: Partial<User>): Promise<User> => {
         const response = await api.post(`users/create-by-role/${role}`, data);
         return response.data?.data ?? response.data;
+    },
+    getPatientView: async (): Promise<any> => {
+        const response = await api.get('users/patient-view');
+        return response.data?.data ?? response.data;
+    },
+    deepEnroll: async (): Promise<void> => {
+        try {
+            // Trigger multiple backend hooks for lazy patient creation
+            await Promise.allSettled([
+                api.get('users/patient-view'),
+                AssessmentService.getSelfAssessmentQuestions(),
+                api.get('dashboards/patient/statistics')
+            ]);
+        } catch (err) {
+            console.warn('Deep enrollment ping failed', err);
+        }
     }
 };

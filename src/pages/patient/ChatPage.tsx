@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
-    Send, Bot, ChevronLeft, Activity, Moon, HeartCrack, Flame, Leaf, ArrowUpRight
+    Send, Bot, ChevronLeft, Activity, Moon, HeartCrack, Flame, Leaf, ArrowUpRight, User
 } from 'lucide-react';
 import { connectSocket, getSocket } from '../../api/socketService';
 import type { RootState } from '../../store';
@@ -66,6 +66,12 @@ const ChatPage = () => {
         scrollToBottom();
     }, [messages, isTyping]);
 
+    const isAIMessage = useCallback((name?: string) => {
+        if (!name) return false;
+        const n = name.toLowerCase();
+        return n.includes('ai') || n.includes('bot') || n.includes('sky') || n === 'skyheal ai';
+    }, []);
+
     const sanitizeAIContent = (content: string) => {
         return content
             .replace(/【.*?】/g, '')
@@ -106,7 +112,7 @@ const ChatPage = () => {
             socket.on('chat_history', (history: Message[]) => {
                 const cleaned = history.map(m => ({
                     ...m,
-                    content: m.sender_name === 'Skyheal AI' ? sanitizeAIContent(m.content) : m.content
+                    content: isAIMessage(m.sender_name) ? sanitizeAIContent(m.content) : m.content
                 }));
                 // Filter unique
                 const unique = cleaned.filter((msg, index, self) =>
@@ -119,11 +125,12 @@ const ChatPage = () => {
             });
 
             socket.on('new_message', (msg: Message) => {
-                const cleanedContent = msg.sender_name === 'Skyheal AI' ? sanitizeAIContent(msg.content) : msg.content;
-                if (msg.sender_name === 'Skyheal AI') setIsTyping(false);
+                const isAI = isAIMessage(msg.sender_name);
+                const cleanedContent = isAI ? sanitizeAIContent(msg.content) : msg.content;
+                if (isAI) setIsTyping(false);
 
                 setMessages((prev) => {
-                    if (msg.sender_name !== 'Skyheal AI') {
+                    if (!isAI) {
                         const optimisticMatchIndex = [...prev].reverse().findIndex(m =>
                             m._id?.toString().startsWith('temp_') &&
                             m.content.trim().toLowerCase() === cleanedContent.trim().toLowerCase()
@@ -311,20 +318,33 @@ const ChatPage = () => {
                 ) : (
                     <div className="max-w-4xl mx-auto w-full space-y-6">
                         {messages.map((msg, i) => {
-                            const isAI = msg.sender_name === 'Skyheal AI';
+                            const isAI = isAIMessage(msg.sender_name);
                             return (
-                                <div key={msg._id || i} className={`flex items-end gap-3 ${isAI ? 'justify-start' : 'justify-end'}`}>
+                                <div key={msg._id || i} className={`flex items-end gap-3 ${isAI ? 'justify-start' : 'justify-end animate-slide-up'}`}>
                                     {isAI && (
-                                        <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-200">
-                                            <Bot size={20} />
+                                        <div className="flex flex-col items-center gap-1 shrink-0">
+                                            <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+                                                <Bot size={20} />
+                                            </div>
                                         </div>
                                     )}
-                                    <div className={`max-w-[80%] md:max-w-[70%] p-5 rounded-[1.5rem] shadow-sm relative ${isAI ? 'bg-white border border-slate-100 rounded-bl-sm text-slate-800' : 'bg-slate-900 border border-slate-800 rounded-br-sm text-white shadow-xl'}`}>
+                                    <div className={`max-w-[80%] md:max-w-[70%] p-5 rounded-[2rem] shadow-sm relative transition-all duration-300 group/bubble ${
+                                        isAI 
+                                            ? 'bg-white border border-indigo-50/50 rounded-bl-sm text-slate-800 shadow-xl shadow-indigo-50/20' 
+                                            : 'bg-slate-900 border-none rounded-br-sm text-white shadow-2xl shadow-slate-200'
+                                    }`}>
                                         <p className="text-[15px] leading-relaxed font-medium whitespace-pre-wrap">{msg.content}</p>
-                                        <span className={`text-[9px] font-bold block mt-3 ${isAI ? 'text-slate-400' : 'text-slate-400 text-right'}`}>
-                                            {formatTime(msg.createdAt)}
-                                        </span>
+                                        <div className={`flex items-center gap-2 mt-3 opacity-60 ${isAI ? 'text-slate-400' : 'text-slate-400 justify-end'}`}>
+                                            <span className="text-[9px] font-black uppercase tracking-widest">
+                                                {formatTime(msg.createdAt)}
+                                            </span>
+                                        </div>
                                     </div>
+                                    {!isAI && (
+                                        <div className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-slate-400 flex items-center justify-center shrink-0 shadow-sm">
+                                            <User size={20} />
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}

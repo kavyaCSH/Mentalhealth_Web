@@ -18,6 +18,7 @@ import { useSelector } from 'react-redux';
 import api from '../../api/client';
 import { TeleConsultService } from '../../api/services/teleconsult.service';
 import { SpecialistService } from '../../api/services/specialist.service';
+import { UserService } from '../../api/services/user.service';
 import type { RootState } from '../../store';
 import type { Consultation, Participant } from '../../types/common.types';
 import type { User } from '../../types/user.types';
@@ -67,6 +68,16 @@ const SchedulePage = () => {
         } finally {
             setIsLoading(false);
         }
+    }, [user]);
+
+    useEffect(() => {
+        const enrollPatient = async () => {
+            if (user?.role === 'patient') {
+                console.log('[Schedule] Ensuring clinical enrollment...');
+                await UserService.deepEnroll();
+            }
+        }
+        enrollPatient();
     }, [user]);
 
     useEffect(() => {
@@ -277,27 +288,18 @@ const SchedulePage = () => {
                 const token = subscriber?.token || appt.subscriber_token || appt.token;
 
                 if (token) {
-                    try {
-                        const res = await TeleConsultService.tokenValidate(token, 'subscriber');
-                        if (res.success || res.code === 200) {
-                            navigate(`/teleconsult/${apptId}`, {
-                                state: {
-                                    appointment: appt,
-                                    token
-                                }
-                            });
-                        } else {
-                            alert(res.message || 'Call is not yet active. Please wait for the specialist.');
+                    // Direct Join: Navigate immediately. WebView handles session state.
+                    navigate(`/teleconsult/${apptId}`, {
+                        state: {
+                            appointment: appt,
+                            token
                         }
-                    } catch (err) {
-                        console.error('Validation error', err);
-                        navigate(`/teleconsult/${apptId}`, {
-                            state: {
-                                appointment: appt,
-                                token
-                            }
-                        });
-                    }
+                    });
+
+                    // Background validation (optional) to log status without blocking the user
+                    TeleConsultService.tokenValidate(token, 'subscriber').catch(err => 
+                        console.warn('[Schedule] Background token validation failed:', err)
+                    );
                 } else {
                     alert('Join link not ready. Please wait for the specialist to start the session.');
                 }
@@ -338,8 +340,16 @@ const SchedulePage = () => {
                 reason: bookingReason.trim(),
                 consult_type: 'virtual',
                 participants: [
-                    { participant_type: { id: 1, code: 'professional', name: 'Professional' }, ref_number: profId },
-                    { participant_type: { id: 2, code: 'patient', name: 'patient' }, ref_number: patId }
+                    { 
+                        participant_type: { code: 'professional' }, 
+                        ref_number: profId,
+                        participant_info: { name: `${selectedSpecialist.firstName || ''} ${selectedSpecialist.lastName || ''}`.trim() || 'Professional' }
+                    },
+                    { 
+                        participant_type: { code: 'patient' }, 
+                        ref_number: patId,
+                        participant_info: { name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Patient' }
+                    }
                 ],
                 additional_info: { notes: bookingReason.trim(), referred_by: 'Self' }
             };

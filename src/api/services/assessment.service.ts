@@ -55,7 +55,11 @@ export const AssessmentService = {
                 wellnessAspect: data.wellnessAspect || 'mental_health'
             };
             const response = await api.post('self-assessments/submit', payload);
-            return response.data;
+            const rawData = response.data?.data ?? response.data;
+            return {
+                ...response.data,
+                data: normalizeAssessment(rawData)
+            };
         } catch (error: any) {
             if (error.response?.status === 404) {
                 const response = await api.post('assessments', {
@@ -151,14 +155,18 @@ export const AssessmentService = {
     },
 
     /** GET /professional-assessments/patient/:patientId */
-    getPatientProfessionalHistory: async (patientId: string | number): Promise<any> => {
+    getPatientProfessionalHistory: async (patientId: string | number): Promise<AssessmentResult[]> => {
         try {
             const response = await api.get(`professional-assessments/patient/${patientId}`);
-            return response.data;
+            const data = response.data?.data ?? response.data;
+            return (Array.isArray(data) ? data : (data?.assessments || data?.history || [])).filter(Boolean).map(normalizeAssessment);
         } catch (error: any) {
-            if (error.response?.status === 404) {
+            const status = error.response?.status;
+            // Handle both 404 (Not Found) and 400 (Lazy Enroll 'Patient record not found' error)
+            if (status === 404 || status === 400) {
                 const response = await api.get(`assessments/patient/${patientId}`);
-                return response.data;
+                const data = response.data?.data ?? response.data;
+                return (Array.isArray(data) ? data : []).filter(Boolean).map(normalizeAssessment);
             }
             throw error;
         }
@@ -204,16 +212,56 @@ export const AssessmentService = {
     getOwnHistory: async (page = 1, limit = 10, category?: string): Promise<{ assessments: AssessmentResult[]; total: number }> => {
         const params: Record<string, string | number> = { page, limit };
         if (category && category !== 'all') params.category = category;
-        const res = await api.get('assessments', { params });
-        const data = res.data?.data ?? res.data;
-        if (Array.isArray(data)) {
-            return { assessments: data.filter(Boolean).map(normalizeAssessment), total: data.length };
+        
+        try {
+            // Priority 1: Use patient-specific self-assessment history endpoint
+            const res = await api.get('self-assessments/history', { params });
+            const data = res.data?.data ?? res.data;
+            let assessments: any[] = [];
+            let total = 0;
+
+            if (Array.isArray(data)) {
+                assessments = data;
+                total = data.length;
+            } else if (data) {
+                assessments = data.assessments || data.history || data.data || [];
+                total = Number(data.total ?? data.count ?? assessments.length);
+            }
+
+            return {
+                assessments: (Array.isArray(assessments) ? assessments : []).filter(Boolean).map(normalizeAssessment),
+                total
+            };
+        } catch (err: any) {
+            // Priority 2: Fallback to unified or legacy assessments endpoint
+            console.warn('Primary history sync failed, attempting legacy vault fallback...', err);
+            try {
+                const legacyRes = await api.get('assessments', { params });
+                const lData = legacyRes.data?.data ?? legacyRes.data;
+                
+                let lAssessments: any[] = [];
+                let lTotal = 0;
+
+                if (Array.isArray(lData)) {
+                    lAssessments = lData;
+                    lTotal = lData.length;
+                } else {
+                    lAssessments = Array.isArray(lData.assessments) ? lData.assessments : (lData.data?.assessments || lData.data || []);
+                    lTotal = Number(lData.total ?? lData.count ?? lAssessments.length ?? 0);
+                }
+
+                return {
+                    assessments: lAssessments.filter(Boolean).map(normalizeAssessment),
+                    total: lTotal
+                };
+            } catch (fallbackErr) {
+                if (fallbackErr instanceof Error && (fallbackErr as any).response?.status === 400 && (fallbackErr as any).response?.data?.message?.includes('not found')) {
+                    return { assessments: [], total: 0 };
+                }
+                console.error('All assessment history sync attempts failed', fallbackErr);
+                throw fallbackErr;
+            }
         }
-        const assessments = Array.isArray(data.assessments) ? data.assessments : (data.data?.assessments || data.data || []);
-        return {
-            assessments: (Array.isArray(assessments) ? assessments : []).filter(Boolean).map(normalizeAssessment),
-            total: Number(data.total ?? data.count ?? assessments.length ?? 0),
-        };
     },
 
     getDetail: async (id: string): Promise<AssessmentResult> => {
@@ -253,10 +301,27 @@ function normalizeAssessment(data: Record<string, unknown> | null | undefined): 
     // Support nested data structures
     const assessment = (data.assessment || data.data || data) as Record<string, unknown>;
 
-    const rawScore = Number(assessment.totalScore ?? assessment.score ?? assessment.rawScore ?? assessment.raw_score ?? assessment.total_score ?? 0);
-    const maxScore = Number(assessment.maxScore ?? assessment.max_score ?? assessment.maxPossibleScore ?? assessment.totalPossibleScore ?? 100);
+    // Defensive score extraction
+    const rawScore = Number(
+        assessment.totalScore ?? 
+        assessment.score ?? 
+        assessment.rawScore ?? 
+        assessment.raw_score ?? 
+        assessment.total_score ?? 
+        assessment.value ?? 
+        assessment.total ?? 
+        0
+    );
+    const maxScore = Number(
+        assessment.maxScore ?? 
+        assessment.max_score ?? 
+        assessment.maxPossibleScore ?? 
+        assessment.totalPossibleScore ?? 
+        assessment.max ?? 
+        100
+    );
 
-    let percentage = (assessment.percentage ?? assessment.percentageScore) as number | undefined;
+    let percentage = (assessment.percentage ?? assessment.percentageScore ?? assessment.percentage_score) as number | undefined;
     if (percentage == null && maxScore > 0) { percentage = (rawScore / maxScore) * 100; }
     if (typeof percentage === 'number') { percentage = Math.round(percentage * 100) / 100; }
 
@@ -272,16 +337,25 @@ function normalizeAssessment(data: Record<string, unknown> | null | undefined): 
     let tScore = assessment.tScore ?? assessment.t_score ?? (clinical as Record<string, unknown>)?.tScore;
     if (tScore != null) { tScore = Math.round(Number(tScore) * 100) / 100; }
 
-    const interpretation = (assessment.interpretation as string) || (clinical as Record<string, unknown>)?.interpretation || (assessment.severity as string) || (clinical as Record<string, unknown>)?.severity;
+    const interpretation = String(
+        assessment.interpretation || 
+        clinical.interpretation || 
+        assessment.severity || 
+        clinical.severity || 
+        assessment.clinical_interpretation || 
+        'Completed'
+    );
     const finalRawScore = typeof rawScore === 'number' ? Math.round(rawScore * 100) / 100 : (rawScore as number);
 
     const createdAt = (assessment.date as string) || (assessment.createdAt as string);
     const dateStr = createdAt ? new Date(createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'Date Unknown';
 
+    const finalId = String(assessment._id || assessment.id || assessment.uuid || Math.random().toString(36).substr(2, 9));
+
     return {
         ...assessment,
-        id: assessment._id || assessment.id,
-        _id: assessment._id || assessment.id,
+        id: finalId,
+        _id: finalId,
         totalScore: finalRawScore,
         score: finalRawScore,
         maxScore: maxScore as number,
@@ -289,12 +363,23 @@ function normalizeAssessment(data: Record<string, unknown> | null | undefined): 
         totalPossibleScore: maxScore as number,
         percentage: percentage as number,
         tScore: tScore as number,
-        interpretation: interpretation as string,
-        severity: interpretation as string,
-        slug: slug as string,
-        category: (assessment.category as string) || (assessment.category_name as string),
+        interpretation: interpretation,
+        severity: interpretation,
+        slug: String(slug || 'general'),
+        category: String(assessment.category || assessment.category_name || assessment.category_slug || slug || 'General Assessment'),
         date: dateStr,
         time: (assessment.time as string) || (createdAt ? new Date(createdAt).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' }) : undefined),
-        responses: Array.isArray(assessment.responses) ? assessment.responses : [],
+        responses: (() => {
+            const res = assessment.responses || assessment.selectedAnswers || assessment.questions || [];
+            if (!Array.isArray(res)) return [];
+            return res.map((r: any, ri: number) => ({
+                ...r,
+                questionId: r.questionId || r.question_id || `q-${ri}`,
+                optionId: r.optionId || r.option_id || r.answer?.optionId || r.selectedOption,
+                questionText: r.questionText || r.question_text || r.question || `Assessment Item ${ri + 1}`,
+                answerText: r.answerText || r.answer_text || r.answer?.text || r.selectedAnswer || 'Response Recorded',
+                score: r.score ?? r.answer?.score ?? 0
+            }));
+        })(),
     } as unknown as AssessmentResult;
 }

@@ -24,7 +24,7 @@ import type { AssessmentResult } from '../../types/assessment.types';
 
 // ─── Severity styling ────────────────────────────────────────────────────────
 const getSeverityStyle = (severity?: string, interpretation?: string) => {
-    const key = (severity || interpretation || '').toLowerCase();
+    const key = String(severity || interpretation || '').toLowerCase();
     if (key.includes('severe') || key.includes('high'))
         return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', icon: AlertTriangle, gauge: '#ef4444' };
     if (key.includes('moderate') || key.includes('medium'))
@@ -64,8 +64,12 @@ const AssessmentResultPage = () => {
                 try {
                     const res = await AssessmentService.getSelfAssessmentDetail(id);
                     rawData = res.data || res;
-                } catch {
-                    rawData = await AssessmentService.getDetail(id);
+                } catch (fallbackErr) {
+                    if (fallbackErr instanceof Error && (fallbackErr as any).response?.status === 400 && (fallbackErr as any).response?.data?.message?.includes('not found')) {
+                        rawData = null;
+                    } else {
+                        rawData = await AssessmentService.getDetail(id);
+                    }
                 }
 
                 if (rawData && (rawData.id || rawData._id || rawData.slug || rawData.score !== undefined)) {
@@ -125,15 +129,15 @@ const AssessmentResultPage = () => {
                 </div>
                 <div>
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight capitalize">
-                        {assessment.slug || 'General'} Assessment
+                        {assessment.category || assessment.slug || 'General'} Assessment
                     </h1>
                     <div className="flex items-center gap-4 mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                        <span className="flex items-center gap-1.5">
+                        <span className="flex items-center gap-1.5 capitalize">
                             <Calendar size={14} className="text-slate-300" />
-                            {assessment.date}
+                            {assessment.date && !assessment.date.includes(',') ? new Date(assessment.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : assessment.date || 'Recent Report'}
                         </span>
                         {assessment.time && (
-                            <span className="flex items-center gap-1.5">
+                            <span className="flex items-center gap-1.5 lowercase">
                                 <Clock size={14} className="text-slate-300" />
                                 {assessment.time}
                             </span>
@@ -220,16 +224,23 @@ const AssessmentResultPage = () => {
                 </div>
             )}
 
-            {/* Question Responses */}
-            {assessment.responses && assessment.responses.length > 0 && (
-                <div className="space-y-6">
+            {/* Detailed Breakdown Fallback */}
+            {(assessment.responses?.length || (assessment as any).selectedAnswers) && (
+                <div className="space-y-6 pt-4">
                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-2 ml-1">
                         <FileText size={14} className="text-indigo-500" /> Full Response Breakdown
                     </h3>
                     <div className="grid grid-cols-1 gap-4">
-                        {assessment.responses.map((resp, i) => {
-                            const isId = (val: string) => /^[0-9a-fA-F]{24}$/.test(val || '');
-                            const displayAnswer = resp.answerText || (!isId(String(resp.selectedOption || resp.optionId)) ? String(resp.selectedOption || resp.optionId) : 'Value Recorded');
+                        {(assessment.responses?.length ? assessment.responses : Object.entries((assessment as any).selectedAnswers || {}).map(([qId, ans]) => ({
+                            questionText: `Assessment Inquiry Item ${qId}`,
+                            selectedAnswer: String(ans),
+                            score: 0
+                        }))).map((resp, i) => {
+                            const isId = (val: string) => /^[0-9a-fA-F]{24}$/.test(String(val || ''));
+                            const displayAnswer = (resp as any).answerText || (resp as any).selectedAnswer || 
+                                (!isId((resp as any).selectedOption || (resp as any).optionId) 
+                                    ? String((resp as any).selectedOption || (resp as any).optionId) 
+                                    : 'Response Captured');
                             
                             return (
                                 <motion.div 
@@ -247,7 +258,7 @@ const AssessmentResultPage = () => {
                                         </div>
                                         <div className="space-y-3">
                                             <p className="text-sm font-bold text-slate-900 leading-snug group-hover:text-indigo-900 transition-colors">
-                                                {resp.questionText || `Clinical Item Inquiry ${i + 1}`}
+                                                {(resp as any).questionText || `Clinical Item ${i + 1}`}
                                             </p>
                                             <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-slate-50/50 border border-slate-50 rounded-lg group-hover:bg-white group-hover:border-indigo-50 transition-all">
                                                 <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mr-1">Answer</div>
@@ -261,10 +272,10 @@ const AssessmentResultPage = () => {
                                     <div className="shrink-0 flex items-center gap-4 pl-14 md:pl-0">
                                         <div className="h-8 w-[1px] bg-slate-100 hidden md:block" />
                                         <div className={`px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[70px] border transition-all ${
-                                            resp.score ? 'bg-indigo-50 border-indigo-100 shadow-sm shadow-indigo-50' : 'bg-slate-50 border-slate-50 opacity-40'
+                                            (resp as any).score ? 'bg-indigo-50 border-indigo-100 shadow-sm shadow-indigo-50' : 'bg-slate-50 border-slate-50 opacity-40'
                                         }`}>
-                                            <span className={`text-sm font-black leading-none ${resp.score ? 'text-indigo-600' : 'text-slate-400'}`}>
-                                                {resp.score ? `+${resp.score}` : '0'}
+                                            <span className={`text-sm font-black leading-none ${(resp as any).score ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                {(resp as any).score ? `+${(resp as any).score}` : '0'}
                                             </span>
                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">pts</span>
                                         </div>
