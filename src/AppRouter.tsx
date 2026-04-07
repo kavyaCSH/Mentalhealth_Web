@@ -69,6 +69,8 @@ import HistoryAssistantPage from './pages/patient/HistoryAssistantPage';
 import SupportTicket from './pages/patient/SupportTicket';
 import TicketHistory from './pages/patient/TicketHistory';
 import SpecialistStatistics from './pages/clinical/SpecialistStatistics';
+import PastHistory from './pages/patient/PastHistory';
+import PastHistoryDetailPage from './pages/patient/PastHistoryDetailPage';
 
 const AppRouter = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -141,9 +143,8 @@ const AppRouter = () => {
                                     <Route path="schedule" element={<SchedulePage />} />
                                     <Route path="chat" element={<ChatPage />} />
                                     <Route path="appointments" element={<Navigate to="/schedule" replace />} />
-                                    <Route path="history" element={<HistoryPage />} />
-                                    <Route path="history/assistant" element={<HistoryAssistantPage />} />
-                                    <Route path="history/:id" element={<AssessmentResultPage />} />
+                                    <Route path="history/past" element={<PastHistory />} />
+                                    <Route path="history/past/:id" element={<PastHistoryDetailPage />} />
                                     <Route path="statistics" element={<StatisticsPage />} />
                                     <Route path="specialists" element={<SpecialistsPage />} />
                                     <Route path="records" element={<PatientHealthRecords />} />
@@ -152,13 +153,20 @@ const AppRouter = () => {
                                     <Route path="records/chief-complaint/:ccId" element={<ChiefComplaintDetail />} />
                                     <Route path="records/chief-complaint/edit/:ccId" element={<EditChiefComplaint />} />
                                     <Route path="treatment" element={<PatientTreatmentView />} />
-                                    <Route path="help" element={<HelpCenter />} />
-                                    <Route path="help/article/:slug" element={<HelpArticle />} />
-                                    <Route path="help/support" element={<SupportTicket />} />
-                                    <Route path="help/tickets" element={<TicketHistory />} />
                                 </Route>
 
+                                {/* Shared Help Center Routes */}
+                                <Route path="help" element={<HelpCenter />} />
+                                <Route path="help/article/:slug" element={<HelpArticle />} />
+                                <Route path="help/support" element={<SupportTicket />} />
+                                <Route path="help/tickets" element={<TicketHistory />} />
+
                                 {/* Shared Clinical/Teleconsult Routes */}
+                                <Route path="history" element={<HistoryPage />} />
+                                <Route path="history/professional" element={<ProfessionalHistoryPage />} />
+                                <Route path="history/professional/:patientId" element={<ProfessionalHistoryPage />} />
+                                <Route path="history/assistant" element={<HistoryAssistantPage />} />
+                                <Route path="history/:id" element={<AssessmentResultPage />} />
                                 <Route path="assessments" element={<AssessmentCenter />} />
                                 <Route path="assessments/:categoryId" element={<QuestionnairePage />} />
                                 <Route path="patients/:patientId" element={<PatientRecord />} />
@@ -184,7 +192,6 @@ const AppRouter = () => {
                                 <Route path="patients/:patientId/treatment" element={<TreatmentPlanPage />} />
                                 <Route path="patients/:patientId/treatment/new" element={<InitializeTreatmentPage />} />
                                 <Route path="clinical/assessments" element={<ClinicalAssessmentCenter />} />
-                                <Route path="clinical/assessments/history" element={<ProfessionalHistoryPage />} />
                                 <Route path="transactions" element={<Transactions />} />
                                 <Route path="users/:id/edit" element={<UserManagement />} />
 

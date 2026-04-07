@@ -14,32 +14,36 @@ import {
     AlertCircle,
     UserCircle,
     Flame,
-    Clock,
-    Heart
+    Heart,
+    Info,
+    Clock
 } from 'lucide-react';
+import MindBalanceHelpModal from '../../components/clinical/MindBalanceHelpModal';
 import { DashboardService } from '../../api/services/dashboard.service';
 import type { SpecialistStats, PatientStats } from '../../types/stats.types';
 
 const SpecialistStatistics = () => {
     const { patientId } = useParams();
     const navigate = useNavigate();
-    
+
     const [stats, setStats] = useState<SpecialistStats | null>(null);
     const [patientStats, setPatientStats] = useState<PatientStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [helpSlug, setHelpSlug] = useState<string | null>(null);
+
+    const openHelp = (slug: string) => setHelpSlug(slug);
+    const closeHelp = () => setHelpSlug(null);
 
     const fetchStats = async () => {
         try {
             setLoading(true);
             setError(null);
-            
+
             if (patientId) {
                 // Fetch specific patient stats (from specialist's perspective)
-                // Note: The mobile app uses DashboardService.getPatientStatistics() even for specialists viewing a patient
-                // but we might need a specialist-specific patient stats endpoint if the roles differ.
-                // For now, mirroring mobile logic.
-                const res = await DashboardService.getPatientStatistics();
+                // Appending patientId as a query param or path param based on backend conventions
+                const res = await DashboardService.getPatientStatistics(patientId);
                 setPatientStats(res.data || res);
             } else {
                 // Fetch population stats
@@ -109,7 +113,7 @@ const SpecialistStatistics = () => {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-4">
                     {patientId && (
-                        <button 
+                        <button
                             onClick={() => navigate(-1)}
                             className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors"
                         >
@@ -127,8 +131,8 @@ const SpecialistStatistics = () => {
                             {patientId ? 'Patient Health Analytics' : 'Population Statistics'}
                         </h1>
                         <p className="text-slate-500 font-medium">
-                            {patientId 
-                                ? 'Monitoring clinical recovery and longitudinal wellness markers.' 
+                            {patientId
+                                ? 'Monitoring clinical recovery and longitudinal wellness markers.'
                                 : 'Aggregate data analysis for the entire patient population.'}
                         </p>
                     </div>
@@ -167,8 +171,16 @@ const SpecialistStatistics = () => {
                                         <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Mood Balance</h2>
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">30-Day Distribution Matrix</p>
                                     </div>
-                                    <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl">
-                                        <Heart size={20} />
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => openHelp('about_mindbalance')}
+                                            className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all"
+                                        >
+                                            <Info size={16} />
+                                        </button>
+                                        <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl">
+                                            <Heart size={20} />
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="space-y-8">
@@ -245,7 +257,7 @@ const SpecialistStatistics = () => {
                                     <UserCircle size={18} className="text-slate-300" />
                                 </div>
                                 <div className="space-y-6">
-                                    {stats.demographics?.ageGroups && Object.entries(stats.demographics.ageGroups).map(([label, count]) => 
+                                    {stats.demographics?.ageGroups && Object.entries(stats.demographics.ageGroups).map(([label, count]) =>
                                         renderProgressBar(label, Number(count) || 0, stats.summary?.totalPatients || 0, '#10b981')
                                     )}
                                 </div>
@@ -278,7 +290,15 @@ const SpecialistStatistics = () => {
                                     <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Population Mood Variance</h2>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Real-time practice-wide distribution</p>
                                 </div>
-                                <Activity size={24} className="text-indigo-600" />
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => openHelp('about_mindbalance')}
+                                        className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all"
+                                    >
+                                        <Info size={16} />
+                                    </button>
+                                    <Activity size={24} className="text-indigo-600" />
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
                                 {stats.clinical?.moodDistribution && Object.entries(stats.clinical.moodDistribution).map(([mood, count], idx) => (
@@ -328,6 +348,11 @@ const SpecialistStatistics = () => {
                     </div>
                 )}
             </div>
+            <MindBalanceHelpModal
+                isOpen={!!helpSlug}
+                onClose={closeHelp}
+                slug={helpSlug || ''}
+            />
         </div>
     );
 };

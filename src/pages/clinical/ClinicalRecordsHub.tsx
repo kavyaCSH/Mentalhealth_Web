@@ -13,13 +13,15 @@ import {
     ChevronRight,
     Plus,
     FileText,
-    Download
+    Download,
+    TrendingUp
 } from 'lucide-react';
 import { ChiefComplaintService } from '../../api/services/chiefComplaint.service';
 import { HPIService } from '../../api/services/hpi.service';
 import { MSEService } from '../../api/services/mse.service';
 import { ROSService } from '../../api/services/ros.service';
 import { PastHistoryService } from '../../api/services/pastHistory.service';
+import { AssessmentService } from '../../api/services/assessment.service';
 import { UserService } from '../../api/services/user.service';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
@@ -31,7 +33,7 @@ import Button from '../../components/ui/Button';
 
 interface ClinicalRecord {
     id: string;
-    type: 'complaint' | 'hpi' | 'mse' | 'ros' | 'past-history';
+    type: 'complaint' | 'hpi' | 'mse' | 'ros' | 'past-history' | 'prof-assessment';
     date: string;
     narrative: string;
     status: string;
@@ -79,12 +81,13 @@ const ClinicalRecordsHub = () => {
             }
 
             // Fetch all clinical data streams
-            const [complaintsRes, hpiRes, mseRes, rosRes, historyRes] = await Promise.all([
+            const [complaintsRes, hpiRes, mseRes, rosRes, historyRes, profRes] = await Promise.all([
                 ChiefComplaintService.listComplaints({ patientId: idToUse, limit: 100 }),
                 HPIService.getHPIList({ patient_id: idToUse }),
                 MSEService.listMSEByPatient(idToUse),
                 ROSService.getROSByPatient(idToUse),
-                PastHistoryService.getPastHistoryByPatient(idToUse)
+                PastHistoryService.getPastHistoryByPatient(idToUse),
+                AssessmentService.getPatientProfessionalHistory(idToUse)
             ]);
 
             const normalized: ClinicalRecord[] = [];
@@ -152,6 +155,19 @@ const ClinicalRecordsHub = () => {
                 }));
             }
 
+            // Normalize Professional Assessments
+            const profAssessments = profRes || [];
+            if (Array.isArray(profAssessments)) {
+                profAssessments.forEach((p: any) => normalized.push({
+                    id: String(p._id || p.id || ''),
+                    type: 'prof-assessment',
+                    date: String(p.createdAt || p.date || ''),
+                    narrative: p.interpretation || p.category || 'Professional Assessment Completed',
+                    status: 'Assessed',
+                    author: 'Specialist'
+                }));
+            }
+
             // Sort by date descending
             normalized.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             setRecords(normalized);
@@ -202,7 +218,8 @@ const ClinicalRecordsHub = () => {
             hpi: `/patients/${pid}/hpi/${record.id}`,
             mse: `/patients/${pid}/mse/${record.id}`,
             ros: `/patients/${pid}/ros/${record.id}`,
-            'past-history': `/patients/${pid}/past-history/${record.id}${consultId ? `?consult_id=${consultId}` : ''}`
+            'past-history': `/patients/${pid}/past-history/${record.id}${consultId ? `?consult_id=${consultId}` : ''}`,
+            'prof-assessment': `/history/professional?patientId=${pid}`
         };
         navigate(paths[record.type]);
     };
@@ -229,6 +246,7 @@ const ClinicalRecordsHub = () => {
                     </div>
                 </div>
                 <div className="flex gap-3">
+                    <Button variant="outline" leftIcon={<TrendingUp size={18} />} onClick={() => navigate(`/patients/${patientId || currentUser?.id || currentUser?._id}/treatment`)}>Treatment Journey</Button>
                     <Button variant="outline" leftIcon={<Download size={18} />}>Export Timeline</Button>
                     <Button variant="primary" leftIcon={<Plus size={18} />} onClick={() => navigate(`/patients/${patientId || currentUser?.id || currentUser?._id}/health`)}>New Intake</Button>
                 </div>
@@ -283,9 +301,6 @@ const ClinicalRecordsHub = () => {
                                     <div className="hidden md:flex flex-col items-end w-24 shrink-0 pt-4">
                                         <p className="text-xs font-black text-slate-900 uppercase">
                                             {new Date(record.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-                                        </p>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">
-                                            {new Date(record.date).getFullYear()}
                                         </p>
                                     </div>
 

@@ -54,3 +54,14 @@ export interface ROSResponse {
     color_code: string;
     createdAt: string;
 }
+
+export interface ROSFilters {
+    patient_id?: number | string;
+    consult_id?: number;
+    status?: 'completed' | 'draft';
+    color_code?: string;
+    substance_induced_probability?: 'Low' | 'Moderate' | 'High' | 'None';
+    red_flag?: string;
+    startDate?: string;
+    endDate?: string;
+}

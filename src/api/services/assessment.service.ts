@@ -1,15 +1,15 @@
 import api from '../client';
 import type {
-    AssessmentQuestion,
-    SubmitAssessmentPayload,
     AssessmentResult,
     AssessmentMaster,
+    AssessmentQuestion,
     SelfAssessmentQuestion,
     SelfAssessmentSubmission,
     SelfAssessmentResult,
     ProfessionalAssessmentPatientInfo,
     ProfessionalAssessmentTopics,
-    ProfessionalAssessmentSubmission
+    ProfessionalAssessmentSubmission,
+    SubmitAssessmentPayload
 } from '../../types/assessment.types';
 
 // ─── Service ───────────────────────────────────────────────────────────
@@ -21,6 +21,33 @@ export const AssessmentService = {
     // ════════════════════════════════════════════
 
     /** GET /self-assessments/questions — flat list for patients */
+    getQuestions: async (patientId?: string | number, category?: string): Promise<{ success: boolean; questions: AssessmentQuestion[]; profile?: ProfessionalAssessmentPatientInfo }> => {
+        try {
+            if (patientId) {
+                // Clinician flow: fetch grouped professional questions
+                const res = await AssessmentService.getProfessionalQuestions(patientId);
+                const topics = res.data?.topics || {};
+                const questions = topics[category || ''] || [];
+                return { success: true, questions, profile: res.data?.patient };
+            } else {
+                // Patient flow: fetch flat list, optionally filtered by category slug
+                const res = await AssessmentService.getSelfAssessmentQuestions();
+                let questions = res.data?.questions || [];
+                if (category) {
+                    questions = questions.filter(q => 
+                        (q.category === category) || 
+                        ((q as any).topic === category) ||
+                        (q.category?.toLowerCase() === category.toLowerCase())
+                    );
+                }
+                return { success: true, questions };
+            }
+        } catch (error) {
+            console.error('[AssessmentService] getQuestions failed:', error);
+            return { success: false, questions: [] };
+        }
+    },
+
     getSelfAssessmentQuestions: async (): Promise<{ success: boolean; code: number; data: { count: number; questions: SelfAssessmentQuestion[] } }> => {
         try {
             const response = await api.get('self-assessments/questions');
@@ -76,33 +103,44 @@ export const AssessmentService = {
         }
     },
 
-    /** GET /self-assessments/history — patient's own history */
-    getSelfAssessmentHistory: async (params?: { page?: number; limit?: number }): Promise<any> => {
+    /** GET /self-assessments/history — Simplified wrapper for history archive */
+    getSelfAssessmentHistory: async (params?: Record<string, unknown>): Promise<{ assessments: AssessmentResult[]; total: number; data?: any }> => {
         try {
-            const response = await api.get('self-assessments/history', { params });
-            return response.data;
-        } catch (error: any) {
-            if (error.response?.status === 404) {
-                const response = await api.get('assessments', { params });
-                return response.data;
+            const res = await api.get('self-assessments/history', { params });
+            const data = res.data?.data ?? res.data;
+            const items = Array.isArray(data) ? data : (data.assessments || data.history || []);
+            return {
+                assessments: items.map(normalizeAssessment),
+                total: data.total || items.length,
+                data: data 
+            };
+        } catch (err) {
+            console.warn('Self assessment history fetch failing, falling back to legacy vault...', err);
+            try {
+                const res = await api.get('assessments', { params });
+                const data = res.data?.data ?? res.data;
+                const items = Array.isArray(data) ? data : (data.assessments || data.history || []);
+                return {
+                    assessments: items.map(normalizeAssessment),
+                    total: data.total || items.length,
+                    data: data
+                };
+            } catch (fallbackErr) {
+                return { assessments: [], total: 0 };
             }
-            throw error;
         }
     },
 
     /** GET /self-assessments/:id — get specific assessment detail */
-    getSelfAssessmentDetail: async (id: string | number): Promise<any> => {
+    getSelfAssessmentDetail: async (id: string | number): Promise<AssessmentResult> => {
         try {
             const response = await api.get(`self-assessments/${id}`);
             const data = response.data?.data ?? response.data;
             return normalizeAssessment(data);
         } catch (error: any) {
-            if (error.response?.status === 404) {
-                const response = await api.get(`assessments/${id}`);
-                const data = response.data?.data ?? response.data;
-                return normalizeAssessment(data);
-            }
-            throw error;
+            const response = await api.get(`assessments/${id}`);
+            const data = response.data?.data ?? response.data;
+            return normalizeAssessment(data);
         }
     },
 
@@ -117,7 +155,6 @@ export const AssessmentService = {
             return response.data;
         } catch (error: any) {
             if (error.response?.status === 404) {
-                // Fallback to legacy resource masters
                 const mastersRes = await api.get('resource/masters/all', { params: { is_active: 1, master_type_slug: 'mental_health' } });
                 const masters = mastersRes.data?.data?.masters || mastersRes.data?.masters || [];
                 const topics: ProfessionalAssessmentTopics = {};
@@ -137,44 +174,55 @@ export const AssessmentService = {
             const response = await api.post('professional-assessments/submit', data);
             return response.data;
         } catch (error: any) {
-            if (error.response?.status === 404 || error.response?.status === 403 || error.response?.status === 400) {
-                const legacyPayload = {
-                    patientId: data.patientId,
-                    slug: data.category,
-                    notes: data.notes || 'Professional evaluation synthesis',
-                    responses: data.responses,
-                    // Double check consultId in fallback just in case it's an ObjectId string
-                    consultId: data.consultId && !isNaN(Number(data.consultId)) ? Number(data.consultId) : undefined
-                };
-
-                const response = await api.post('assessments', legacyPayload);
-                return response.data;
-            }
-            throw error;
+            const legacyPayload = {
+                patientId: data.patientId,
+                slug: data.category,
+                notes: data.notes || 'Professional evaluation synthesis',
+                responses: data.responses,
+                consultId: data.consultId && !isNaN(Number(data.consultId)) ? Number(data.consultId) : undefined
+            };
+            const response = await api.post('assessments', legacyPayload);
+            return response.data;
         }
     },
 
-    /** GET /professional-assessments/patient/:patientId */
+    /** GET /professional-assessments/patient/:patientId — fetch clinician submissions for a patient */
     getPatientProfessionalHistory: async (patientId: string | number): Promise<AssessmentResult[]> => {
         try {
-            const response = await api.get(`professional-assessments/patient/${patientId}`);
-            const data = response.data?.data ?? response.data;
-            return (Array.isArray(data) ? data : (data?.assessments || data?.history || [])).filter(Boolean).map(normalizeAssessment);
-        } catch (error: any) {
-            const status = error.response?.status;
-            // Handle both 404 (Not Found) and 400 (Lazy Enroll 'Patient record not found' error)
-            if (status === 404 || status === 400) {
-                const response = await api.get(`assessments/patient/${patientId}`);
-                const data = response.data?.data ?? response.data;
-                return (Array.isArray(data) ? data : []).filter(Boolean).map(normalizeAssessment);
+            // Updated modern endpoint aligned with mobile backend
+            const res = await api.get(`professional-assessments/patient/${patientId}`);
+            const data = res.data?.data ?? res.data;
+            const items = Array.isArray(data) ? data : (data.assessments || data.history || []);
+            return items.map(normalizeAssessment);
+        } catch (err) {
+            try {
+                // Secondary fallback for existing/staged history records
+                const res = await api.get(`professional-assessments/history/${patientId}`);
+                const data = res.data?.data ?? res.data;
+                const items = Array.isArray(data) ? data : (data.assessments || data.history || []);
+                return items.map(normalizeAssessment);
+            } catch {
+                try {
+                    // Tertiary legacy fallback
+                    const response = await api.get(`assessments/patient/${patientId}`);
+                    const data = response.data?.data ?? response.data;
+                    return (Array.isArray(data) ? data : []).filter(Boolean).map(normalizeAssessment);
+                } catch {
+                    return [];
+                }
             }
-            throw error;
         }
     },
 
     // ════════════════════════════════════════════
     //  LEGACY: Backward-Compatible Endpoints
     // ════════════════════════════════════════════
+    
+    submitAssessment: async (payload: SubmitAssessmentPayload): Promise<AssessmentResult> => {
+        const response = await api.post('assessments', payload);
+        const data = response.data?.data ?? response.data;
+        return normalizeAssessment(data);
+    },
 
     getMastersList: async (params?: Record<string, unknown>): Promise<AssessmentMaster[]> => {
         const res = await api.get('resource/masters', { params });
@@ -182,104 +230,10 @@ export const AssessmentService = {
         return Array.isArray(data) ? data : data?.masters || [];
     },
 
-    getMasters: async (userId?: string | number, params?: Record<string, unknown>): Promise<Record<string, unknown>> => {
-        const url = userId ? `resource/masters/all/${userId}` : 'resource/masters/all';
-        const response = await api.get(url, { params });
-        return response.data;
-    },
-
-    getQuestions: async (
-        patientId?: string | number,
-        category?: string
-    ): Promise<{ questions: AssessmentQuestion[]; profile?: { userId?: string | number; firstName?: string; age?: number; gender?: string }; count?: number }> => {
-        const params: Record<string, string> = {};
-        if (patientId) { params.patientId = String(patientId); params.patient = String(patientId); }
-        if (category) params.category = category;
-        const res = await api.get('questions/assessment', { params });
-        const data = res.data?.data ?? res.data;
-        if (data?.questions && Array.isArray(data.questions)) {
-            return { questions: data.questions, profile: data.profile, count: data.count };
-        }
-        return { questions: Array.isArray(data) ? data : [], profile: undefined, count: 0 };
-    },
-
-    submitAssessment: async (payload: SubmitAssessmentPayload): Promise<AssessmentResult> => {
-        const res = await api.post('assessments', payload);
-        const data = res.data?.data ?? res.data;
-        return normalizeAssessment(data);
-    },
-
-    getOwnHistory: async (page = 1, limit = 10, category?: string): Promise<{ assessments: AssessmentResult[]; total: number }> => {
-        const params: Record<string, string | number> = { page, limit };
-        if (category && category !== 'all') params.category = category;
-        
-        try {
-            // Priority 1: Use patient-specific self-assessment history endpoint
-            const res = await api.get('self-assessments/history', { params });
-            const data = res.data?.data ?? res.data;
-            let assessments: any[] = [];
-            let total = 0;
-
-            if (Array.isArray(data)) {
-                assessments = data;
-                total = data.length;
-            } else if (data) {
-                assessments = data.assessments || data.history || data.data || [];
-                total = Number(data.total ?? data.count ?? assessments.length);
-            }
-
-            return {
-                assessments: (Array.isArray(assessments) ? assessments : []).filter(Boolean).map(normalizeAssessment),
-                total
-            };
-        } catch (err: any) {
-            // Priority 2: Fallback to unified or legacy assessments endpoint
-            console.warn('Primary history sync failed, attempting legacy vault fallback...', err);
-            try {
-                const legacyRes = await api.get('assessments', { params });
-                const lData = legacyRes.data?.data ?? legacyRes.data;
-                
-                let lAssessments: any[] = [];
-                let lTotal = 0;
-
-                if (Array.isArray(lData)) {
-                    lAssessments = lData;
-                    lTotal = lData.length;
-                } else {
-                    lAssessments = Array.isArray(lData.assessments) ? lData.assessments : (lData.data?.assessments || lData.data || []);
-                    lTotal = Number(lData.total ?? lData.count ?? lAssessments.length ?? 0);
-                }
-
-                return {
-                    assessments: lAssessments.filter(Boolean).map(normalizeAssessment),
-                    total: lTotal
-                };
-            } catch (fallbackErr) {
-                if (fallbackErr instanceof Error && (fallbackErr as any).response?.status === 400 && (fallbackErr as any).response?.data?.message?.includes('not found')) {
-                    return { assessments: [], total: 0 };
-                }
-                console.error('All assessment history sync attempts failed', fallbackErr);
-                throw fallbackErr;
-            }
-        }
-    },
-
     getDetail: async (id: string): Promise<AssessmentResult> => {
         const res = await api.get(`assessments/${id}`);
         const data = res.data?.data ?? res.data;
         return normalizeAssessment(data);
-    },
-
-    getPatientHistory: async (patientId: string): Promise<AssessmentResult[]> => {
-        const res = await api.get(`assessments/patient/${patientId}`);
-        const data = res.data?.data ?? res.data;
-        return (Array.isArray(data) ? data : []).filter(Boolean).map(normalizeAssessment);
-    },
-
-    getAllAdmin: async (): Promise<AssessmentResult[]> => {
-        const res = await api.get('assessments/admin');
-        const data = res.data?.data ?? res.data;
-        return (Array.isArray(data) ? data : []).filter(Boolean).map(normalizeAssessment);
     },
 
     update: async (id: string, payload: { notes?: string; status?: string }): Promise<AssessmentResult> => {
@@ -290,6 +244,12 @@ export const AssessmentService = {
 
     remove: async (id: string): Promise<void> => {
         await api.delete(`assessments/${id}`);
+    },
+
+    getAllAdmin: async (): Promise<AssessmentResult[]> => {
+        const res = await api.get('assessments/admin');
+        const data = res.data?.data ?? res.data;
+        return (Array.isArray(data) ? data : []).filter(Boolean).map(normalizeAssessment);
     }
 };
 
@@ -297,29 +257,13 @@ export const AssessmentService = {
 
 function normalizeAssessment(data: Record<string, unknown> | null | undefined): AssessmentResult {
     if (!data) return {} as AssessmentResult;
-
-    // Support nested data structures
     const assessment = (data.assessment || data.data || data) as Record<string, unknown>;
 
-    // Defensive score extraction
-    const rawScore = Number(
-        assessment.totalScore ?? 
-        assessment.score ?? 
-        assessment.rawScore ?? 
-        assessment.raw_score ?? 
-        assessment.total_score ?? 
-        assessment.value ?? 
-        assessment.total ?? 
-        0
-    );
-    const maxScore = Number(
-        assessment.maxScore ?? 
-        assessment.max_score ?? 
-        assessment.maxPossibleScore ?? 
-        assessment.totalPossibleScore ?? 
-        assessment.max ?? 
-        100
-    );
+    const rawScoreValue = assessment.totalScore ?? assessment.score ?? assessment.rawScore ?? assessment.raw_score ?? assessment.total_score ?? assessment.value ?? assessment.total ?? 0;
+    const rawScore = Number(rawScoreValue) || 0;
+
+    const maxScoreValue = assessment.maxScore ?? assessment.max_score ?? assessment.maxPossibleScore ?? assessment.totalPossibleScore ?? assessment.max ?? 100;
+    const maxScore = Number(maxScoreValue) || 100;
 
     let percentage = (assessment.percentage ?? assessment.percentageScore ?? assessment.percentage_score) as number | undefined;
     if (percentage == null && maxScore > 0) { percentage = (rawScore / maxScore) * 100; }
@@ -333,29 +277,29 @@ function normalizeAssessment(data: Record<string, unknown> | null | undefined): 
         const firstKey = Object.keys(clinicalResults)[0];
         if (firstKey) clinical = clinicalResults[firstKey];
     }
-
-    let tScore = assessment.tScore ?? assessment.t_score ?? (clinical as Record<string, unknown>)?.tScore;
+    const clinicalData = clinical as Record<string, unknown>;
+    let tScore = assessment.tScore ?? assessment.t_score ?? clinicalData?.tScore ?? clinicalData?.t_score;
     if (tScore != null) { tScore = Math.round(Number(tScore) * 100) / 100; }
 
+    if (percentage == null) {
+        percentage = (clinicalData?.percentage ?? clinicalData?.percentageScore ?? clinicalData?.percentage_score ?? clinicalData?.percentile) as number | undefined;
+    }
+    if (typeof percentage === 'number') { percentage = Math.round(percentage * 100) / 100; }
+
     const interpretation = String(
-        assessment.interpretation || 
-        clinical.interpretation || 
-        assessment.severity || 
-        clinical.severity || 
-        assessment.clinical_interpretation || 
-        'Completed'
+        assessment.interpretation || clinical.interpretation || assessment.severity || clinical.severity || assessment.clinical_interpretation || 'Completed'
     );
     const finalRawScore = typeof rawScore === 'number' ? Math.round(rawScore * 100) / 100 : (rawScore as number);
-
     const createdAt = (assessment.date as string) || (assessment.createdAt as string);
     const dateStr = createdAt ? new Date(createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'Date Unknown';
-
     const finalId = String(assessment._id || assessment.id || assessment.uuid || Math.random().toString(36).substr(2, 9));
+    const isProfessional = !!(tScore != null || assessment.clinicianId || assessment.clinician_id || assessment.clinicalResults || assessment.assessment_type === 'professional' || assessment.consultId);
 
     return {
         ...assessment,
         id: finalId,
         _id: finalId,
+        isProfessional,
         totalScore: finalRawScore,
         score: finalRawScore,
         maxScore: maxScore as number,
@@ -370,16 +314,28 @@ function normalizeAssessment(data: Record<string, unknown> | null | undefined): 
         date: dateStr,
         time: (assessment.time as string) || (createdAt ? new Date(createdAt).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' }) : undefined),
         responses: (() => {
-            const res = assessment.responses || assessment.selectedAnswers || assessment.questions || [];
-            if (!Array.isArray(res)) return [];
-            return res.map((r: any, ri: number) => ({
+            const a = assessment as any;
+            const raw = a.responses || a.selectedAnswers || a.questions || a.data?.responses || [];
+            if (!Array.isArray(raw)) {
+                if (typeof raw === 'object' && raw !== null) {
+                    return Object.entries(raw).map(([qId, val]: [string, any]) => ({
+                        questionId: qId,
+                        optionId: String(typeof val === 'object' ? (val.optionId || val.id || val.selectedOption) : val),
+                        questionText: `Clinical Parameter ${qId}`,
+                        answerText: 'Response Recorded',
+                        score: Number(val.score || 0)
+                    }));
+                }
+                return [];
+            }
+            return raw.map((r: any, ri: number) => ({
                 ...r,
-                questionId: r.questionId || r.question_id || `q-${ri}`,
-                optionId: r.optionId || r.option_id || r.answer?.optionId || r.selectedOption,
-                questionText: r.questionText || r.question_text || r.question || `Assessment Item ${ri + 1}`,
-                answerText: r.answerText || r.answer_text || r.answer?.text || r.selectedAnswer || 'Response Recorded',
-                score: r.score ?? r.answer?.score ?? 0
-            }));
+                questionId: r.questionId || r.question_id || r.question?.id || r.id || `q-${ri}`,
+                optionId: r.optionId || r.option_id || r.answer?.optionId || r.selectedOption || r.selectedOptionId,
+                questionText: r.questionText || r.question_text || r.question?.text || r.question || `Assessment Item ${ri + 1}`,
+                answerText: r.answerText || r.answer_text || r.answer?.text || r.selectedAnswer || r.selectedOptionText || 'Response Recorded',
+                score: Number(r.score ?? r.answer?.score ?? 0)
+            })).filter(r => r.optionId != null);
         })(),
     } as unknown as AssessmentResult;
 }

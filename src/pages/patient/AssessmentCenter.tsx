@@ -90,7 +90,9 @@ export default function AssessmentCenter() {
     // Auto-advance to success after submit
     useEffect(() => {
         if (showSuccess) {
-            const t = setTimeout(() => setView('success'), 2200);
+            const t = setTimeout(() => {
+                fetchHistory();
+            }, 2200);
             return () => clearTimeout(t);
         }
     }, [showSuccess]);

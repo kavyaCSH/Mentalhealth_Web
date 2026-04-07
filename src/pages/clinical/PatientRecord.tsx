@@ -13,15 +13,22 @@ import {
     Plus,
     Video,
     Send,
-    HeartPulse
+    HeartPulse,
+    PieChart,
+    Info,
+    Mic,
+    TrendingUp
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
 import { getStatusColor, type StatusType } from '../../utils/statusMapping';
 import { UserService } from '../../api/services/user.service';
 import { AssessmentService } from '../../api/services/assessment.service';
+import { DashboardService } from '../../api/services/dashboard.service';
 import type { AssessmentResult } from '../../types/assessment.types';
 import type { Patient, ClinicalNote } from '../../types/user.types';
+import type { PatientStats } from '../../types/stats.types';
+import MindBalanceHelpModal from '../../components/clinical/MindBalanceHelpModal';
 
 const PatientRecord = () => {
     const { patientId: id } = useParams<{ patientId: string }>();
@@ -31,63 +38,67 @@ const PatientRecord = () => {
 
     const [patient, setPatient] = useState<Patient | null>(null);
     const [history, setHistory] = useState<AssessmentResult[]>([]);
+    const [stats, setStats] = useState<PatientStats | null>(null);
     const [notes, setNotes] = useState<ClinicalNote[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const [newNote, setNewNote] = useState('');
     const [isSubmittingNote, setIsSubmittingNote] = useState(false);
 
+    // Help Modal State (Clinical Parity: about_mindbalance)
+    const [helpSlug, setHelpSlug] = useState<string | null>(null);
+
+    const openHelp = (slug: string) => setHelpSlug(slug);
+    const closeHelp = () => setHelpSlug(null);
+
     useEffect(() => {
         const fetchPatientData = async () => {
             setIsLoading(true);
             try {
-                console.log(`[PatientRecord] Resolving profile for: ${id}`);
-                let patientData: Patient | null = null;
-                let assessmentHistory: AssessmentResult[] = [];
+                const resolutionRitual = async (targetId: string): Promise<{ p: Patient | null; h: AssessmentResult[]; s: PatientStats | null }> => {
+                    try {
+                        const [pRes, hRes, sRes] = await Promise.allSettled([
+                            UserService.getUserById(targetId),
+                            AssessmentService.getPatientProfessionalHistory(targetId),
+                            DashboardService.getPatientStatistics(targetId)
+                        ]);
+                        
+                        let resolvedP = pRes.status === 'fulfilled' ? pRes.value as Patient : null;
+                        const resolvedH = hRes.status === 'fulfilled' ? hRes.value : [];
+                        const resolvedS = sRes.status === 'fulfilled' ? (sRes.value.data || sRes.value) : null;
 
-                // 1. Try primary lookup
-                try {
-                    [patientData, assessmentHistory] = await Promise.all([
-                        UserService.getUserById(id || ''),
-                        AssessmentService.getPatientHistory(id || '')
-                    ]);
-                    console.log(`[PatientRecord] Profile resolved directly: ${patientData?.firstName}`);
-                } catch (primaryError: unknown) {
-                    const error = primaryError as { response?: { status?: number } };
-                    if (error.response?.status === 404) {
-                        console.warn('[PatientRecord] Primary lookup failed, trying clinical fallback resolution...');
-                        try {
-                            const assessmentData = await AssessmentService.getQuestions(id);
-                            if (assessmentData.profile?.userId) {
-                                const resolvedId = String(assessmentData.profile.userId);
-                                console.log(`[PatientRecord] Identity resolved via fallback: ${resolvedId}`);
-
-                                [patientData, assessmentHistory] = await Promise.all([
-                                    UserService.getUserById(resolvedId),
-                                    AssessmentService.getPatientHistory(resolvedId)
-                                ]);
-
-                                // Merge hex ID back to patient object as 'id' or '_id' to ensure link compatibility
-                                if (patientData) {
-                                    patientData._id = id;
-                                }
-                            } else {
-                                throw primaryError; // No fallback profile found
-                            }
-                        } catch (fallbackError) {
-                            console.error('[PatientRecord] Both lookup attempts failed:', fallbackError);
-                            throw fallbackError;
+                        if (!resolvedP) {
+                            const { users } = await UserService.listUsers({ role: 'patient', search: targetId });
+                            const match = users.find(u => String(u._id) === targetId || String(u.id) === targetId || String(u.userId) === targetId);
+                            if (match) resolvedP = match as Patient;
                         }
-                    } else {
-                        throw primaryError;
-                    }
-                }
 
-                setPatient((patientData as Patient) || null);
-                setHistory((assessmentHistory.length > 0 ? assessmentHistory : []) as AssessmentResult[]);
-                setNotes([]); // Notes integration pending MessagingService/Resource integration
+                        if (!resolvedP) {
+                            const aData = await AssessmentService.getProfessionalQuestions(targetId).catch(() => null);
+                            if (aData?.data?.patient?.userId) {
+                                const linkedId = String(aData.data.patient.userId);
+                                const retry = await UserService.getUserById(linkedId).catch(() => null);
+                                if (retry) {
+                                    resolvedP = retry as Patient;
+                                    resolvedP._id = targetId;
+                                }
+                            }
+                        }
+
+                        return { p: resolvedP, h: resolvedH, s: resolvedS };
+                    } catch (err) {
+                        return { p: null, h: [], s: null };
+                    }
+                };
+
+                const { p, h, s } = await resolutionRitual(id || '');
+                if (p) {
+                    setPatient(p);
+                    setHistory(h);
+                    setStats(s);
+                }
             } catch (error) {
-                console.error('Failed to fetch patient data:', error);
+                console.error('[PatientRecord] Critical failure:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -100,7 +111,6 @@ const PatientRecord = () => {
         if (!newNote.trim()) return;
         setIsSubmittingNote(true);
         try {
-            // In a real scenario, we'd POST to /notes or /resource/messages
             const noteObj: ClinicalNote = {
                 id: Date.now().toString(),
                 content: newNote,
@@ -166,8 +176,10 @@ const PatientRecord = () => {
                 <div className="flex flex-wrap gap-3">
                     {!isFocused && (
                         <>
+                            <Button variant="outline" leftIcon={<Activity size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/statistics`)}>Mind Health</Button>
                             <Button variant="outline" leftIcon={<HeartPulse size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/health`)}>Health</Button>
                             <Button variant="outline" leftIcon={<ClipboardList size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/clinical-hub`)}>Clinical Hub</Button>
+                            <Button variant="outline" leftIcon={<TrendingUp size={18} />} onClick={() => navigate(`/patients/${patient.userId || id}/treatment`)}>Treatment Journey</Button>
                             <Button variant="outline" leftIcon={<Video size={18} />} onClick={() => navigate(`/clinical-schedule?patientId=${patient.userId || id}`)}>Teleconsult</Button>
                             <Button variant="primary" leftIcon={<Plus size={18} />} onClick={handleRequestAssessment}>Request Assessment</Button>
                         </>
@@ -178,6 +190,39 @@ const PatientRecord = () => {
             <div className="grid lg:grid-cols-3 gap-8">
                 {/* Left Col: Demographics & Quick Actions */}
                 <div className="lg:col-span-1 space-y-6">
+                    {/* Emergency Contact (Crisis Aware - Mobile Parity) */}
+                    <div className={`card-premium p-6 border-2 transition-all ${patient.riskLevel === 'high'
+                        ? 'border-rose-200 bg-rose-50/30'
+                        : 'border-slate-100 bg-white'
+                        }`}>
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className={`p-2.5 rounded-xl ${patient.riskLevel === 'high' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'
+                                }`}>
+                                <Phone size={18} />
+                            </div>
+                            <div>
+                                <p className={`text-[10px] font-black uppercase tracking-widest ${patient.riskLevel === 'high' ? 'text-rose-600' : 'text-slate-400'
+                                    }`}>
+                                    {patient.riskLevel === 'high' ? 'Critical Crisis Contact' : 'Emergency Contact'}
+                                </p>
+                                <h4 className="text-sm font-black text-slate-900">
+                                    {patient.emergencyContact || 'Not Specified'}
+                                </h4>
+                            </div>
+                        </div>
+                        {patient.emergencyContact && (
+                            <a
+                                href={`tel:${patient.emergencyContact}`}
+                                className={`w-full py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all ${patient.riskLevel === 'high'
+                                    ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-lg shadow-rose-200'
+                                    : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                                    }`}
+                            >
+                                <Phone size={12} /> Call Emergency
+                            </a>
+                        )}
+                    </div>
+
                     <div className="card-premium p-6">
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Patient Demographics</h3>
 
@@ -299,26 +344,174 @@ const PatientRecord = () => {
                         </div>
                     )}
 
+                    {/* Mind Balance Section (Mood Distribution) */}
+                    {!isFocused && stats?.moodAnalytics?.distribution && (
+                        <div
+                            onClick={() => navigate(`/patients/${patient.userId || id}/statistics`)}
+                            className="card-premium p-6 border-slate-100 hover:border-indigo-100 transition-all cursor-pointer group"
+                        >
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="space-y-1">
+                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                                        <PieChart size={20} className="text-violet-600" /> Mind Balance
+                                    </h2>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Emotional Distribution Matrix</p>
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openHelp('about_mindbalance');
+                                    }}
+                                    className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all hover:scale-110 active:scale-95"
+                                    title="About Mind Balance"
+                                >
+                                    <Info size={16} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                {Object.entries(stats.moodAnalytics.distribution).slice(0, 4).map(([mood, count]) => {
+                                    const total = Object.values(stats.moodAnalytics.distribution).reduce((a, b) => Number(a) + Number(b), 0);
+                                    const percentage = total > 0 ? (Number(count) / total) * 100 : 0;
+
+                                    // Assign colors based on mood names
+                                    const getColor = (m: string) => {
+                                        const lower = m.toLowerCase();
+                                        if (lower.includes('happy') || lower.includes('great')) return 'bg-emerald-500';
+                                        if (lower.includes('sad') || lower.includes('down')) return 'bg-rose-500';
+                                        if (lower.includes('anxious') || lower.includes('stressed')) return 'bg-amber-500';
+                                        return 'bg-indigo-500';
+                                    };
+
+                                    return (
+                                        <div key={mood} className="space-y-2">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{mood}</span>
+                                                <span className="text-xs font-black text-slate-900 italic">{Math.round(percentage)}%</span>
+                                            </div>
+                                            <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100/50">
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${percentage}%` }}
+                                                    transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                                                    className={`h-full rounded-full ${getColor(mood)} shadow-sm opacity-80 group-hover:opacity-100 transition-opacity`}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="mt-8 pt-4 border-t border-slate-50 flex items-center justify-between text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                <span>Updated Real-time</span>
+                                <span className="text-indigo-600 group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                                    Deep Analytics <ChevronLeft size={10} className="rotate-180" />
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MindBalance Web Platform Branding Card */}
+                    {!isFocused && (
+                        <motion.div
+                            whileHover={{ y: -5 }}
+                            onClick={() => openHelp('about_mindbalance')}
+                            className="p-8 rounded-[2.5rem] bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 text-white shadow-xl shadow-indigo-100 border border-white/10 cursor-pointer relative overflow-hidden group"
+                        >
+                            {/* Background Glow */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-700" />
+
+                            <div className="relative z-10 flex flex-col gap-6">
+                                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
+                                    <Activity size={24} className="text-white" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-xl font-black tracking-tight leading-tight uppercase italic">MindBalance</h3>
+                                    <p className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Clinical Decision Support Platform</p>
+                                </div>
+                                <div className="py-4 border-t border-white/10 group-hover:border-white/30 transition-colors flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase tracking-widest">About Platform</span>
+                                    <ChevronLeft size={14} className="rotate-180 transition-transform group-hover:translate-x-1" />
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Mind Health Section (Feature Parity with Mobile WellnessSnapshot) */}
+                    {!isFocused && history.length > 0 && (
+                        <div className="card-premium p-6 border-indigo-100 bg-white/50 backdrop-blur-sm relative overflow-hidden group">
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="space-y-1">
+                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                                        <HeartPulse size={20} className="text-indigo-600" /> Mind Health Snapshot
+                                    </h2>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Latest Wellness Analysis</p>
+                                </div>
+                                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:scale-110 transition-transform">
+                                    <Activity size={20} />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-8 py-4 px-6 bg-slate-50/50 rounded-3xl border border-white/50">
+                                <div className="text-center">
+                                    <span className={`text-4xl font-black block tracking-tighter ${Number(history[0].score) > 10 ? 'text-rose-600' : 'text-emerald-600'
+                                        }`}>
+                                        {history[0].percentage ?? history[0].score}%
+                                    </span>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Mental Pulse</span>
+                                </div>
+
+                                <div className="w-px h-12 bg-slate-200" />
+
+                                <div className="flex-1">
+                                    <h4 className="text-lg font-black text-slate-900 leading-tight">
+                                        {history[0].interpretation}
+                                    </h4>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                        {history[0].category} • Last Checked {new Date(history[0].date || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 grid grid-cols-2 gap-4">
+                                <Button 
+                                    variant="outline" 
+                                    className="rounded-[1.5rem] border-slate-200 text-slate-600 hover:bg-slate-50 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                                    onClick={() => navigate(`/patients/${patient?.userId || id}/ai-history-assistant`)}
+                                >
+                                    <Mic size={14} className="text-indigo-600" /> Record Narrative
+                                </Button>
+                                <Button 
+                                    variant="primary" 
+                                    className="rounded-[1.5rem] bg-slate-900 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                                    onClick={() => navigate(`/patients/${patient?.userId || id}/ai-history-assistant?mode=manual`)}
+                                >
+                                    <Plus size={14} /> Add Manual Entry
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Assessment History */}
                     <div className="card-premium p-6">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                                 <ClipboardList className="text-indigo-600" size={20} /> Assessment History
                             </h2>
-                            <Button variant="ghost" size="sm" onClick={() => navigate(`/clinical/assessments/history?patientId=${patient.userId || id}`)}>View All</Button>
+                            <Button variant="ghost" size="sm" onClick={() => navigate(`/history/professional/${patient?.userId || id}`)}>View All</Button>
                         </div>
 
                         <div className="space-y-3">
                             {history.length > 0 ? history.map((record) => (
                                 <div key={record.id} className="p-4 rounded-xl border border-slate-100 hover:border-indigo-100 hover:bg-slate-50 transition-all flex items-center justify-between group">
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getStatusColor(record.status as StatusType).bg} ${getStatusColor(record.status as StatusType).text} font-black`}>
-                                            {record.score}
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${getStatusColor(record.status as StatusType).bg} ${getStatusColor(record.status as StatusType).text} font-black text-xs`}>
+                                            {record.percentage ?? record.score}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-slate-900">{record.category}</p>
+                                            <p className="font-bold text-slate-900 lowercase first-letter:uppercase">{record.category?.replace(/_/g, ' ')}</p>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
-                                                {new Date(record.date || '').toLocaleDateString()}
+                                                {new Date(record.date || record.createdAt || '').toLocaleDateString()}
                                             </p>
                                         </div>
                                     </div>
@@ -335,6 +528,13 @@ const PatientRecord = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Premium Help Modal */}
+            <MindBalanceHelpModal
+                isOpen={!!helpSlug}
+                onClose={closeHelp}
+                slug={helpSlug || ''}
+            />
         </div>
     );
 };

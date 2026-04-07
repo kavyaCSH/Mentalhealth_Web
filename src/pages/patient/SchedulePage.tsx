@@ -12,7 +12,12 @@ import {
     CheckCircle2,
     Activity,
     AlertCircle,
-    Search
+    Search,
+    Brain,
+    UserPlus,
+    Users,
+    MessageCircle,
+    Stethoscope
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import api from '../../api/client';
@@ -34,16 +39,18 @@ const SchedulePage = () => {
 
     // Booking Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectionStep, setSelectionStep] = useState<'date' | 'specialist' | 'time' | 'details'>('date');
+    const [selectionStep, setSelectionStep] = useState<'type' | 'date' | 'time' | 'details'>('type');
+    const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [bookingReason, setBookingReason] = useState('');
     const [bookingDate, setBookingDate] = useState(new Date().toISOString().split('T')[0]);
-    const [bookingTime, setBookingTime] = useState('10:00');
+    const [bookingTime, setBookingTime] = useState(''); // Empty initially
     const [isBooking, setIsBooking] = useState(false);
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [bookingError, setBookingError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
     const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
+    const [hasSelectedTime, setHasSelectedTime] = useState(false);
 
     // Reschedule State
     const [reschedulingAppt, setReschedulingAppt] = useState<Consultation | null>(null);
@@ -153,18 +160,65 @@ const SchedulePage = () => {
         }
     };
 
-    useEffect(() => {
-        if (isModalOpen && selectionStep === 'specialist') {
-            fetchSpecialists(undefined, bookingDate, undefined);
+    const fetchPooledSlots = async (role: string, date: string) => {
+        try {
+            setIsAvailabilityLoading(true);
+            const res = await SpecialistService.getAvailableSlots({ role, date, available: true });
+            const slots = res.data?.slots || res.data || [];
+            const slotTimes = Array.isArray(slots)
+                ? slots
+                    .filter((s: any) => typeof s === 'string' ? true : s.available !== false)
+                    .map((s: any) => typeof s === 'string' ? s : s.startTime || s.time)
+                : [];
+            setAvailableSlots(slotTimes.filter(Boolean) as string[]);
+        } catch (err) {
+            console.error('Error fetching pooled slots:', err);
+            setAvailableSlots([]);
+        } finally {
+            setIsAvailabilityLoading(false);
         }
-    }, [isModalOpen, selectionStep, bookingDate]);
+    };
+
+    const fetchSpecialistsForSlot = async (role: string, date: string, time: string) => {
+        try {
+            setIsAvailabilityLoading(true);
+            const res = await SpecialistService.getDirectory({ role, date, time }) as any;
+            const data = res.data || res;
+            let list: User[] = [];
+            if (Array.isArray(data)) {
+                list = data;
+            } else if (data?.masters && Array.isArray(data.masters)) {
+                list = data.masters;
+            } else if (data?.data && Array.isArray(data.data)) {
+                list = data.data;
+            }
+            setSpecialists(list.filter((s: User) => String(s.id || s._id || s.userId) !== String(user?.id || user?._id || user?.userId)));
+        } catch (err) {
+            console.error('Error fetching specialists for slot:', err);
+            setSpecialists([]);
+        } finally {
+            setIsAvailabilityLoading(false);
+        }
+    };
 
     useEffect(() => {
-        if (isModalOpen && selectionStep === 'time' && selectedSpecialist) {
+        if (isModalOpen && selectionStep === 'time' && selectedRole && bookingDate) {
+            fetchPooledSlots(selectedRole, bookingDate);
+        }
+    }, [isModalOpen, selectionStep, selectedRole, bookingDate]);
+
+    useEffect(() => {
+        if (isModalOpen && selectionStep === 'time' && hasSelectedTime && selectedRole && bookingDate && bookingTime) {
+            fetchSpecialistsForSlot(selectedRole, bookingDate, bookingTime);
+        }
+    }, [isModalOpen, selectionStep, hasSelectedTime, selectedRole, bookingDate, bookingTime]);
+
+    useEffect(() => {
+        if (isModalOpen && selectionStep === 'time' && selectedSpecialist && !selectedRole && bookingDate) {
             const specId = ((selectedSpecialist as User).userId || (selectedSpecialist as User & { _id?: string })._id || selectedSpecialist.id || '').toString();
             fetchAvailableSlotsBySpecialist(specId, bookingDate);
         }
-    }, [isModalOpen, selectionStep, selectedSpecialist, bookingDate]);
+    }, [isModalOpen, selectionStep, selectedSpecialist, selectedRole, bookingDate]);
 
     useEffect(() => {
         const action = searchParams.get('action');
@@ -210,13 +264,15 @@ const SchedulePage = () => {
     const openBookingModal = (preselected?: User) => {
         setBookingReason('');
         setSelectedSpecialist(preselected || null);
-        setSelectionStep('date');
+        setSelectedRole(null);
+        setSelectionStep(preselected ? 'date' : 'type');
         setSearchQuery('');
         setBookingError('');
         setBookingSuccess(false);
         const today = new Date();
         setBookingDate(today.toISOString().split('T')[0]);
         setBookingTime('');
+        setHasSelectedTime(false);
         setReschedulingAppt(null); // Clear rescheduling state for new booking
         setIsModalOpen(true);
     };
@@ -680,12 +736,12 @@ const SchedulePage = () => {
                                 <>
                                     <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                                         <div className="flex items-center gap-4">
-                                            {selectionStep !== 'date' && !reschedulingAppt && (
+                                            {selectionStep !== 'type' && !reschedulingAppt && (
                                                 <button
                                                     onClick={() => {
                                                         if (selectionStep === 'details') setSelectionStep('time');
-                                                        else if (selectionStep === 'time') setSelectionStep(selectedSpecialist && searchParams.get('professionalId') ? 'date' : 'specialist');
-                                                        else if (selectionStep === 'specialist') setSelectionStep('date');
+                                                        else if (selectionStep === 'time') setSelectionStep('date');
+                                                        else if (selectionStep === 'date') setSelectionStep(selectedSpecialist && searchParams.get('professionalId') ? 'date' : 'type');
                                                     }}
                                                     className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-all"
                                                 >
@@ -694,14 +750,14 @@ const SchedulePage = () => {
                                             )}
                                             <div>
                                                 <h2 className="text-xl font-black text-slate-800 tracking-tight">
-                                                    {selectionStep === 'date' ? 'Select Date' :
-                                                        selectionStep === 'specialist' ? 'Select Doctor' :
-                                                            selectionStep === 'time' ? 'Select Time Slot' : 'Confirm Details'}
+                                                    {selectionStep === 'type' ? 'Select Type' :
+                                                        selectionStep === 'date' ? 'Select Date' :
+                                                            selectionStep === 'time' ? 'Select Slot' : 'Confirm Details'}
                                                 </h2>
                                                 {!reschedulingAppt && (
                                                     <div className="flex gap-1.5 mt-1">
+                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'type' ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
                                                         <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'date' ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
-                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'specialist' ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
                                                         <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'time' ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
                                                         <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'details' ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
                                                     </div>
@@ -714,6 +770,33 @@ const SchedulePage = () => {
                                     </div>
 
                                     <div className="p-6 space-y-6 overflow-y-auto no-scrollbar">
+                                        {selectionStep === 'type' && (
+                                            <div className="grid grid-cols-1 gap-4 animate-fade-in">
+                                                {[
+                                                    { id: 'psychiatrist', label: 'Psychiatrist', desc: 'Medical assessment & psychiatric care', icon: Stethoscope, bg: 'bg-indigo-50', text: 'text-indigo-500', border: 'border-indigo-100' },
+                                                    { id: 'psychologist', label: 'Psychologist', desc: 'Therapy, counseling & behavioral health', icon: Brain, bg: 'bg-emerald-50', text: 'text-emerald-500', border: 'border-emerald-100' },
+                                                    { id: 'nurse', label: 'Nurse', desc: 'Clinical support & medication management', icon: UserPlus, bg: 'bg-blue-50', text: 'text-blue-500', border: 'border-blue-100' },
+                                                    { id: 'social_worker', label: 'Social Worker', desc: 'Community support & advocacy', icon: Users, bg: 'bg-amber-50', text: 'text-amber-500', border: 'border-amber-100' },
+                                                    { id: 'counselor', label: 'Counselor', desc: 'Guidance & emotional support', icon: MessageCircle, bg: 'bg-rose-50', text: 'text-rose-500', border: 'border-rose-100' },
+                                                ].map((role) => (
+                                                    <button
+                                                        key={role.id}
+                                                        onClick={() => { setSelectedRole(role.id); setSelectionStep('date'); }}
+                                                        className="flex items-center gap-6 p-6 rounded-[2rem] border-2 border-slate-50 bg-white hover:border-indigo-100 transition-all shadow-sm group text-left"
+                                                    >
+                                                        <div className={`w-14 h-14 rounded-2xl ${role.bg} flex items-center justify-center ${role.text} border ${role.border} group-hover:scale-110 transition-transform`}>
+                                                            <role.icon size={28} />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="font-black text-slate-900 text-lg">{role.label}</p>
+                                                            <p className="text-xs font-bold text-slate-400 mt-1">{role.desc}</p>
+                                                        </div>
+                                                        <ChevronRight size={20} className="text-slate-300 group-hover:translate-x-1 transition-all" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
                                         {selectionStep === 'date' && (
                                             <div className="space-y-8 animate-fade-in">
                                                 <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100">
@@ -723,16 +806,21 @@ const SchedulePage = () => {
                                                     <input
                                                         type="date"
                                                         value={bookingDate}
-                                                        onChange={(e) => setBookingDate(e.target.value)}
+                                                        onChange={(e) => {
+                                                            setBookingDate(e.target.value);
+                                                            setHasSelectedTime(false);
+                                                            setSelectedSpecialist(null);
+                                                            setBookingTime('');
+                                                        }}
                                                         className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-6 text-sm font-black outline-none focus:border-indigo-500"
                                                         min={new Date().toISOString().split('T')[0]}
                                                     />
                                                 </div>
                                                 <button
-                                                    onClick={() => setSelectionStep(selectedSpecialist ? 'time' : 'specialist')}
+                                                    onClick={() => setSelectionStep('time')}
                                                     className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-indigo-200 hover:scale-[1.02] transition-all"
                                                 >
-                                                    {selectedSpecialist ? 'Continue to Time Selection' : 'Find Available Specialist'}
+                                                    Find Available Slots
                                                 </button>
                                             </div>
                                         )}
@@ -741,9 +829,9 @@ const SchedulePage = () => {
                                             <div className="space-y-8 animate-fade-in">
                                                 <div className="space-y-4">
                                                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
-                                                        {isAvailabilityLoading ? `Syncing Slots for ${selectedSpecialist?.firstName || selectedSpecialist?.name}...` : `Available slots on ${new Date(bookingDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`}
+                                                        {isAvailabilityLoading && availableSlots.length === 0 ? `Syncing Slots...` : `Available slots on ${new Date(bookingDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`}
                                                     </h3>
-                                                    {isAvailabilityLoading ? (
+                                                    {isAvailabilityLoading && availableSlots.length === 0 ? (
                                                         <div className="flex justify-center py-10">
                                                             <Activity className="animate-spin text-indigo-600" size={32} />
                                                         </div>
@@ -752,7 +840,11 @@ const SchedulePage = () => {
                                                             {availableSlots.length > 0 ? availableSlots.map((time) => (
                                                                 <button
                                                                     key={time}
-                                                                    onClick={() => { setBookingTime(time); setSelectionStep('details'); }}
+                                                                    onClick={() => {
+                                                                        setBookingTime(time);
+                                                                        setHasSelectedTime(true);
+                                                                        setSelectedSpecialist(null);
+                                                                    }}
                                                                     className={`py-4 rounded-2xl text-xs font-black transition-all border ${bookingTime === time ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white border-slate-100 text-slate-600 hover:border-indigo-200'}`}
                                                                 >
                                                                     {time}
@@ -765,56 +857,43 @@ const SchedulePage = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                            </div>
-                                        )}
 
-                                        {selectionStep === 'specialist' && (
-                                            <div className="space-y-6 animate-fade-in">
-                                                <div className="relative">
-                                                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Quick specialist search..."
-                                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold focus:outline-none focus:bg-white focus:border-indigo-200 transition-all shadow-inner"
-                                                        value={searchQuery}
-                                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                                    />
-                                                </div>
-
-                                                {isAvailabilityLoading ? (
-                                                    <div className="flex flex-col items-center justify-center py-20 opacity-50">
-                                                        <Activity size={48} className="animate-spin text-indigo-600 mb-4" />
-                                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Retrieving Available Specialists...</p>
-                                                    </div>
-                                                ) : (
-                                                    <div className="space-y-3 min-h-[300px]">
-                                                        {specialists.filter(s => {
-                                                            const name = (s.name || `${s.firstName || ''} ${s.lastName || ''}`).toLowerCase();
-                                                            return name.includes(searchQuery.toLowerCase());
-                                                        }).map((s, idx) => {
-                                                            const sId = (s as any).userId || (s as any)._id || s.id;
-                                                            const name = s.name || `${s.firstName || ''} ${s.lastName || ''}`;
-                                                            return (
-                                                                <button
-                                                                    key={sId || idx}
-                                                                    onClick={() => { setSelectedSpecialist(s); setSelectionStep('time'); }}
-                                                                    className="w-full flex items-center gap-4 p-5 rounded-[2rem] border-2 border-slate-50 bg-white hover:border-indigo-100 transition-all shadow-sm group"
-                                                                >
-                                                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 font-black text-xs border border-indigo-100 group-hover:scale-110 transition-transform uppercase">
-                                                                        {name.substring(0, 1)}
+                                                {hasSelectedTime && (
+                                                    <div className="space-y-4 pt-6 border-t border-slate-100">
+                                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                                                            Select Provider for {bookingTime}
+                                                        </h3>
+                                                        {isAvailabilityLoading ? (
+                                                            <div className="flex justify-center py-10">
+                                                                <Activity className="animate-spin text-indigo-600" size={32} />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="space-y-3">
+                                                                {specialists.map((s, idx) => {
+                                                                    const name = s.name || `${s.firstName || ''} ${s.lastName || ''}`;
+                                                                    const isSelected = selectedSpecialist?.id === s.id || selectedSpecialist?.userId === s.userId;
+                                                                    return (
+                                                                        <button
+                                                                            key={idx}
+                                                                            onClick={() => { setSelectedSpecialist(s); setSelectionStep('details'); }}
+                                                                            className={`w-full flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all shadow-sm group ${isSelected ? 'border-indigo-600 bg-indigo-50' : 'border-slate-50 bg-white hover:border-indigo-100'}`}
+                                                                        >
+                                                                            <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 font-black text-xs border border-indigo-200 group-hover:scale-110 transition-transform uppercase">
+                                                                                {name.substring(0, 1)}
+                                                                            </div>
+                                                                            <div className="text-left flex-1">
+                                                                                <p className="font-black text-slate-900">{name}</p>
+                                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.specialization || s.role || 'Clinical Expert'}</p>
+                                                                            </div>
+                                                                            {isSelected && <CheckCircle2 size={24} className="text-indigo-600" />}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                                {specialists.length === 0 && (
+                                                                    <div className="p-8 text-center opacity-40">
+                                                                        <p className="text-[10px] font-black uppercase tracking-widest">No specialists available for this slot</p>
                                                                     </div>
-                                                                    <div className="text-left flex-1">
-                                                                        <p className="font-black text-slate-900">{name}</p>
-                                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.role || 'Clinical Expert'}</p>
-                                                                    </div>
-                                                                    <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[8px] font-black uppercase tracking-widest">Available</div>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                        {specialists.length === 0 && !isAvailabilityLoading && (
-                                                            <div className="p-12 text-center opacity-40">
-                                                                <Activity size={48} className="mx-auto mb-4 text-slate-300" />
-                                                                <p className="text-[10px] font-black uppercase tracking-widest">No specialists available for this date</p>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
@@ -835,6 +914,9 @@ const SchedulePage = () => {
                                                                 {selectedSpecialist?.name ||
                                                                     `${selectedSpecialist?.firstName || ''} ${selectedSpecialist?.lastName || ''}`.trim() ||
                                                                     'Specialist'}
+                                                            </p>
+                                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-2">
+                                                                {selectedRole ? selectedRole.replace('_', ' ') : 'Specialist'} • Virtual Consult
                                                             </p>
                                                             <p className="text-xs font-bold opacity-80 mt-1">{new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} at {bookingTime}</p>
                                                         </div>

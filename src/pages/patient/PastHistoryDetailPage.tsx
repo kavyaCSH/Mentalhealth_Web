@@ -108,7 +108,7 @@ const PastHistoryDetailPage = () => {
         { label: 'Genetic Markers', value: history.family_history?.conditions, icon: <Users size={24} />, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
         { label: 'Substance Profile', value: history.substance_use || history.social_history?.substance_use, icon: <RotateCcw size={24} />, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
         { label: 'Environmental Context', value: history.social_history?.living_situation || history.social_history?.employment, icon: <MessageSquare size={24} />, color: 'text-sky-600', bg: 'bg-sky-50', border: 'border-sky-100' },
-        { label: 'Trauma & Resilience', value: history.trauma_history?.significant_losses || history.trauma_history?.physical_abuse, icon: <Shield size={24} />, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100' }
+        { label: 'Trauma & Resilience', value: typeof history.trauma_history === 'object' ? (history.trauma_history?.significant_losses || history.trauma_history?.physical_abuse) : history.trauma_history, icon: <Shield size={24} />, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100' }
     ];
 
     return (

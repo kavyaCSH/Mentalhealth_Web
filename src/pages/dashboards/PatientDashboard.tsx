@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -18,18 +18,23 @@ import {
     Mail,
     XCircle,
     ArrowUpRight,
-    RefreshCcw
+    RefreshCcw,
+    Mic,
+    Plus,
+    X
 } from 'lucide-react';
 import { useRealTimeClock } from '../../hooks/useRealTime';
 import type { RootState } from '../../store';
 import api from '../../api/client';
 import type { Consultation } from '../../types/common.types';
 
+
 const PatientDashboard = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
     const { timeString, dateString } = useRealTimeClock();
     const [appointments, setAppointments] = useState<Consultation[]>([]);
+    const [showHistoryOptions, setShowHistoryOptions] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -79,7 +84,7 @@ const PatientDashboard = () => {
             id: 'history',
             label: 'Health History',
             icon: <History size={24} />,
-            onPress: () => navigate('/history'),
+            onPress: () => navigate('/history/assistant?mode=list'),
             color: 'text-rose-600',
             bg: 'bg-rose-50',
             border: 'border-rose-100'
@@ -88,7 +93,7 @@ const PatientDashboard = () => {
             id: 'history-assistant',
             label: 'AI History Asst',
             icon: <Bot size={24} />,
-            onPress: () => navigate('/history/assistant'),
+            onPress: () => navigate('/history/assistant?view=assistant'),
             color: 'text-violet-600',
             bg: 'bg-violet-50',
             border: 'border-violet-100'

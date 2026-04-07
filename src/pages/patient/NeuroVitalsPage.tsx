@@ -200,13 +200,13 @@ const NeuroVitalsPage = () => {
     // UI Mapping
     const feats = analysisResult?.ClinicalFeatures || {};
     const posteriors = analysisResult?.BayesianPosteriors || {};
-    const explain = analysisResult?.Explainability || {};
+    const trends = analysisResult?.ClinicalTrends || {};
 
     const vitals = [
-        { label: 'Heart Rate', value: feats.heart_rate_bpm ? Math.round(feats.heart_rate_bpm) : '--', unit: 'BPM', icon: <Heart size={18} />, color: COLORS.primary, trend: analysisResult?.ClinicalTrends?.heart_rate },
-        { label: 'HR Variability', value: feats.rmssd ? (feats.rmssd * 1000).toFixed(1) : '--', unit: 'ms', icon: <Activity size={18} />, color: COLORS.secondary, trend: feats.hrv_raw?.successive_diffs },
-        { label: 'Blood Oxygen', value: feats.spo2 ? feats.spo2.toFixed(1) : '--', unit: '%', icon: <Zap size={18} />, color: COLORS.success, trend: analysisResult?.ClinicalTrends?.spo2 },
-        { label: 'Respiration', value: feats.breathing_rate ? feats.breathing_rate.toFixed(1) : '--', unit: '/m', icon: <Wind size={18} />, color: COLORS.accent, trend: analysisResult?.ClinicalTrends?.breathing_signal },
+        { label: 'Heart Rate', value: feats.heart_rate_bpm ? Math.round(feats.heart_rate_bpm) : '--', unit: 'BPM', icon: <Heart size={18} />, color: COLORS.primary, trend: trends.heart_rate },
+        { label: 'HR Variability', value: feats.rmssd ? (feats.rmssd * 1000).toFixed(1) : '--', unit: 'ms', icon: <Activity size={18} />, color: COLORS.secondary, trend: trends.stress_index },
+        { label: 'Blood Oxygen', value: feats.spo2 ? feats.spo2.toFixed(1) : '--', unit: '%', icon: <Zap size={18} />, color: COLORS.success, trend: trends.spo2 },
+        { label: 'Respiration', value: feats.breathing_rate ? feats.breathing_rate.toFixed(1) : '--', unit: '/m', icon: <Wind size={18} />, color: COLORS.accent, trend: trends.breathing_signal },
     ];
 
     const clinicalSuites = [
@@ -214,18 +214,22 @@ const NeuroVitalsPage = () => {
             title: 'HEMODYNAMIC EXPANSION',
             icon: <Activity size={16} />,
             metrics: [
+                { label: 'Blood Pressure', value: feats.blood_pressure_sys ? `${Math.round(feats.blood_pressure_sys)}/${Math.round(feats.blood_pressure_dia)}` : '--', unit: 'mmHg' },
                 { label: 'Mean Arterial Pressure', value: feats.mean_arterial_pressure?.toFixed(1) || '--', unit: 'mmHg' },
                 { label: 'Pulse Pressure', value: feats.pulse_pressure?.toFixed(1) || '--', unit: 'mmHg' },
+                { label: 'Cardiac Workload', value: feats.cardiac_workload?.toFixed(1) || '--', unit: 'mmHg/s' },
                 { label: 'ASCVD Risk Level', value: feats.ascvd_risk || '--', risk: feats.ascvd_risk === 'High' ? 'high' : (feats.ascvd_risk === 'Moderate' ? 'med' : 'low') },
             ]
         },
         {
-            title: 'METABOLIC RISKS (AI PROXY)',
+            title: 'METABOLIC & WELLNESS',
             icon: <Flame size={16} />,
             metrics: [
                 { label: 'Hemoglobin (Est)', value: feats.hemoglobin_estimated?.toFixed(1) || '--', unit: 'g/dL' },
                 { label: 'HbA1c (Est Proxy)', value: feats.hba1c_estimated?.toFixed(2) || '--', unit: '%' },
-                { label: 'Anemia Risk', value: feats.anemia_risk > 0.6 ? 'Elevated' : 'Stable', risk: feats.anemia_risk > 0.6 ? 'high' : 'low' },
+                { label: 'Wellness Score', value: feats.wellness_score ? (feats.wellness_score * 100).toFixed(0) : '--', unit: '%' },
+                { label: 'Heart Age', value: feats.heart_age || '--', unit: 'yrs' },
+                { label: 'Fall Risk', value: feats.fall_risk > 0.7 ? 'High' : 'Low', risk: feats.fall_risk > 0.7 ? 'high' : 'low' },
             ]
         },
         {
@@ -234,6 +238,7 @@ const NeuroVitalsPage = () => {
             metrics: [
                 { label: 'Depression Prob.', value: posteriors.depression ? (posteriors.depression * 100).toFixed(2) : '--', unit: '%' },
                 { label: 'Anxiety Prob.', value: posteriors.anxiety ? (posteriors.anxiety * 100).toFixed(2) : '--', unit: '%' },
+                { label: 'PTSD Probability', value: posteriors.ptsd ? (posteriors.ptsd * 100).toFixed(2) : '--', unit: '%' },
                 { label: 'Burnout Risk', value: posteriors.burnout ? (posteriors.burnout * 100).toFixed(2) : '--', unit: '%' },
             ]
         },
@@ -241,8 +246,11 @@ const NeuroVitalsPage = () => {
             title: 'BIOMETRIC EXPLAINABILITY',
             icon: <Sparkles size={16} />,
             metrics: [
-                { label: 'HRV Compression', value: explain.Low_HRV?.toFixed(2) || '0.00', risk: explain.Low_HRV > 0.5 ? 'high' : 'low' },
-                { label: 'Physiological Stress', value: explain.High_Stress?.toFixed(3) || '0.00', risk: explain.High_Stress > 0.1 ? 'high' : 'low' },
+                { label: 'LF/HF Ratio', value: feats.lf_hf_ratio?.toFixed(2) || '--', risk: feats.lf_hf_ratio > 3 ? 'high' : 'low' },
+                { label: 'Stress Reactivity', value: feats.stress_reactivity?.toFixed(2) || '--', risk: feats.stress_reactivity > 0.7 ? 'high' : 'low' },
+                { label: 'Sympathetic Index', value: feats.sympathetic_index?.toFixed(2) || '--', risk: feats.sympathetic_index > 0.8 ? 'high' : 'low' },
+                { label: 'Liveness Score', value: analysisResult?.LivenessScore?.toFixed(3) || '--', unit: 'scr' },
+                { label: 'Signal Quality (SQI)', value: analysisResult?.SignalQualityIndex != null ? (analysisResult.SignalQualityIndex * 100).toFixed(1) : '--', unit: '%' },
             ]
         }
     ];
@@ -362,7 +370,7 @@ const NeuroVitalsPage = () => {
                                 <div className="flex flex-col">
                                     <span className="text-[8px] font-black uppercase text-white/40 tracking-widest">Calibration</span>
                                     <span className="text-[10px] font-black uppercase tracking-tight text-white">
-                                        {calibration.gender.toUpperCase()} / {calibration.age}
+                                        {analysisResult?.DetectedGender?.toUpperCase() || calibration.gender.toUpperCase()} / {analysisResult?.DetectedAge || calibration.age}
                                     </span>
                                 </div>
                             </div>

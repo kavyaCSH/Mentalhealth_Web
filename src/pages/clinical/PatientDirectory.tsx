@@ -11,7 +11,6 @@ import {
     UserPlus,
     Mail,
     Lock,
-    User,
     Stethoscope
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
@@ -28,8 +27,8 @@ const PatientDirectory = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
-    const itemsPerPage = 8;
-
+    const [itemsPerPage, setItemsPerPage] = useState(8);
+    console.log("patients", patients);
     // Add Patient Modal State
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isProvisioning, setIsProvisioning] = useState(false);
@@ -70,7 +69,7 @@ const PatientDirectory = () => {
 
     useEffect(() => {
         fetchPatients();
-    }, [currentPage]);
+    }, [currentPage, itemsPerPage]);
 
     const handleProvisionPatient = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -171,7 +170,7 @@ const PatientDirectory = () => {
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.03 }}
                                             className="group transition-all cursor-pointer relative hover:bg-indigo-50/30 font-bold"
-                                            onClick={() => navigate(`/patients/${patient.userId || patient.id || patient._id}`)}
+                                            onClick={() => navigate(`/patients/${patient.userId || patient.id || patient._id}?hexId=${patient._id || patient.id}`)}
                                         >
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center gap-4">
@@ -221,24 +220,12 @@ const PatientDirectory = () => {
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            navigate(`/patients/${patient.userId || patient.id || patient._id}/health`);
+                                                            navigate(`/patients/${patient.userId || patient.id || patient._id}/health?hexId=${patient._id || patient.id}`);
                                                         }}
                                                         className="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all shadow-sm group/btn"
                                                         title="Clinical Record"
                                                     >
                                                         <Stethoscope size={16} />
-                                                    </button>
-
-
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            navigate(`/patients/${patient.userId || patient.id || patient._id}`);
-                                                        }}
-                                                        className="p-2 bg-slate-50 text-slate-500 hover:bg-slate-900 hover:text-white rounded-xl transition-all shadow-sm group/btn"
-                                                        title="Patient Profile"
-                                                    >
-                                                        <User size={16} />
                                                     </button>
                                                 </div>
                                             </td>
@@ -254,6 +241,10 @@ const PatientDirectory = () => {
                         totalItems={totalUsers}
                         itemsPerPage={itemsPerPage}
                         onPageChange={(page) => setCurrentPage(page)}
+                        onItemsPerPageChange={(count) => {
+                            setItemsPerPage(count);
+                            setCurrentPage(1); // Reset to first page when limit changes
+                        }}
                     />
                 </div>
             ) : (

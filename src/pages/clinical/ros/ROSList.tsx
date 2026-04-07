@@ -8,12 +8,16 @@ import {
     Stethoscope,
     AlertCircle,
     Plus,
-    Edit3
+    Edit3,
+    Filter,
+    Search,
+    Calendar,
+    RotateCcw
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { ROSService } from '../../../api/services/ros.service';
 import { UserService } from '../../../api/services/user.service';
-import type { ROSResponse } from '../../../types/ros.types';
+import type { ROSResponse, ROSFilters } from '../../../types/ros.types';
 import type { User, Patient } from '../../../types/user.types';
 
 const ROSList = () => {
@@ -31,11 +35,16 @@ const ROSList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Filters State
+    const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+    const [filters, setFilters] = useState<ROSFilters>({});
+    const [tempFilters, setTempFilters] = useState<ROSFilters>({});
+
     useEffect(() => {
         if (userId) {
             fetchData();
         }
-    }, [userId]);
+    }, [userId, filters]);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -67,7 +76,7 @@ const ROSList = () => {
                 }
             }
 
-            const queryData = await ROSService.getROSByPatient(hexId);
+            const queryData = await ROSService.getROSByPatient(hexId, filters);
 
             const rosRecords = queryData?.data || queryData || [];
             const rosArray = Array.isArray(rosRecords) ? rosRecords : [rosRecords];
@@ -104,6 +113,18 @@ const ROSList = () => {
         }
     };
 
+    const toggleFilters = () => setIsFilterExpanded(!isFilterExpanded);
+
+    const applyFilters = () => {
+        setFilters(tempFilters);
+        setIsFilterExpanded(false);
+    };
+
+    const resetFilters = () => {
+        setTempFilters({});
+        setFilters({});
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
@@ -133,17 +154,127 @@ const ROSList = () => {
                     </div>
                 </div>
 
-                {!isPatient && (
-                    <Button
-                        variant="primary"
-                        className="rounded-2xl px-8 shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-xs"
-                        onClick={() => navigate(`/patients/${userId}/ros/new`)}
-                        leftIcon={<Plus size={18} />}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={toggleFilters}
+                        className={`p-3 rounded-2xl border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest ${isFilterExpanded || Object.keys(filters).length > 0
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200'
+                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                            }`}
                     >
-                        Add Review
-                    </Button>
-                )}
+                        <Filter size={18} />
+                        {Object.keys(filters).length > 0 && <span>({Object.keys(filters).length})</span>}
+                        <span>Filter</span>
+                    </button>
+                    {!isPatient && (
+                        <Button
+                            variant="primary"
+                            className="rounded-2xl px-8 shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-xs"
+                            onClick={() => navigate(`/patients/${userId}/ros/new`)}
+                            leftIcon={<Plus size={18} />}
+                        >
+                            Add Review
+                        </Button>
+                    )}
+                </div>
             </header>
+
+            {/* Premium Filter Section */}
+            {isFilterExpanded && (
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="card-premium p-8 bg-white/70 backdrop-blur-xl border-indigo-100/50 shadow-2xl shadow-indigo-100/20 space-y-8"
+                >
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {/* Red Flag Search */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <Search size={14} /> Organic Red Flags
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search red flags (e.g. Thyroid)"
+                                    value={tempFilters.red_flag || ''}
+                                    onChange={(e) => setTempFilters({ ...tempFilters, red_flag: e.target.value })}
+                                    className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Substance Probability */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <AlertCircle size={14} /> Substance Probability
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {['High', 'Moderate', 'Low', 'None'].map((level) => (
+                                    <button
+                                        key={level}
+                                        onClick={() => setTempFilters({
+                                            ...tempFilters,
+                                            substance_induced_probability: tempFilters.substance_induced_probability === level ? undefined : level as any
+                                        })}
+                                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${tempFilters.substance_induced_probability === level
+                                            ? 'bg-indigo-600 text-white border-indigo-600'
+                                            : 'bg-slate-50 text-slate-500 border-slate-100 hover:border-indigo-200'
+                                            }`}
+                                    >
+                                        {level}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Date Range */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <Calendar size={14} /> Clinical Period
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="date"
+                                    value={tempFilters.startDate || ''}
+                                    onChange={(e) => setTempFilters({ ...tempFilters, startDate: e.target.value })}
+                                    className="flex-1 bg-slate-50/50 border border-slate-100 rounded-xl py-2 px-3 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                                />
+                                <span className="text-[10px] font-black text-slate-300">TO</span>
+                                <input
+                                    type="date"
+                                    value={tempFilters.endDate || ''}
+                                    onChange={(e) => setTempFilters({ ...tempFilters, endDate: e.target.value })}
+                                    className="flex-1 bg-slate-50/50 border border-slate-100 rounded-xl py-2 px-3 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                        <button
+                            onClick={resetFilters}
+                            className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-500 transition-colors"
+                        >
+                            <RotateCcw size={14} /> Reset
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={toggleFilters}
+                                className="px-6 py-2.5 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 rounded-xl transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <Button
+                                onClick={applyFilters}
+                                variant="primary"
+                                className="px-8 py-2.5 rounded-xl shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-[10px]"
+                            >
+                                Apply Filters
+                            </Button>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {history.length > 0 ? (
@@ -201,7 +332,18 @@ const ROSList = () => {
                                     )}
                                 </div>
                                 <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">View Details</span>
+                                    <div className="flex items-center gap-2">
+                                        {item.organic_red_flags && item.organic_red_flags.length > 0 && (
+                                            <span className="px-2 py-1 bg-rose-50 text-rose-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-rose-100">
+                                                {item.organic_red_flags.length} Red Flag{item.organic_red_flags.length !== 1 ? 's' : ''}
+                                            </span>
+                                        )}
+                                        {item.substance_induced_probability && item.substance_induced_probability !== 'None' && (
+                                            <span className="px-2 py-1 bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-amber-100">
+                                                {item.substance_induced_probability} risk
+                                            </span>
+                                        )}
+                                    </div>
                                     <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-colors" />
                                 </div>
                             </motion.div>

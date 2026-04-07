@@ -11,14 +11,12 @@ import {
     Settings,
     ShieldCheck,
     Users,
-    ClipboardList,
     BarChart3,
     Bell,
     Percent,
     LogOut,
     Brain,
-    Sparkles,
-    Bot
+    Sparkles
 } from 'lucide-react';
 import { logout } from '../features/auth/store/authSlice';
 import { SystemService } from '../api/services/system.service';
@@ -161,12 +159,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 <div className="space-y-2">
                     {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Core</p>}
 
-                    {/* Primary Dashboard Link (Role-Aware) */}
-                    {(role === 'psychiatrist' || role === 'psychologist' || role === 'nurse' || role === 'social_worker' || role === 'counselor') ? (
-                        <NavItem to="/" icon={Activity} label="Overview" isCollapsed={isCollapsed} end />
-                    ) : (
-                        <NavItem to="/" icon={Activity} label="Overview" isCollapsed={isCollapsed} end />
-                    )}
+                    <NavItem to="/" icon={Activity} label="Overview" isCollapsed={isCollapsed} end />
 
                     <NavItem to="/profile" icon={Users} label="My Profile" isCollapsed={isCollapsed} />
                     <NavItem 
@@ -179,13 +172,14 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 </div>
 
                 {/* Patient Sections */}
-                {role === 'patient' && (
+                {String(role).toUpperCase() === 'PATIENT' && (
                     <>
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Care Suite</p>}
                             <NavItem to="/appointments" icon={Calendar} label="Appointments" isCollapsed={isCollapsed} />
                             <NavItem to="/assessments" icon={Brain} label="Self Assessment" isCollapsed={isCollapsed} />
                             <NavItem to="/history/assistant" icon={Sparkles} label="AI History Assistant" isCollapsed={isCollapsed} />
+                            <NavItem to="/history/professional" icon={ShieldCheck} label="Professional Reports" isCollapsed={isCollapsed} />
                             <NavItem to="/statistics" icon={BarChart3} label="Statistics" isCollapsed={isCollapsed} />
                             <NavItem to="/records" icon={Heart} label="Health Records" isCollapsed={isCollapsed} />
                         </div>
@@ -193,7 +187,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 )}
 
                 {/* Practitioner Sections */}
-                {(role === 'psychiatrist' || role === 'psychologist' || role === 'nurse' || role === 'social_worker' || role === 'counselor') && (
+                {['PSYCHIATRIST', 'PSYCHOLOGIST', 'NURSE', 'SOCIAL_WORKER', 'COUNSELOR'].includes(String(role).toUpperCase()) && (
                     <>
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Clinical Workspace</p>}
@@ -224,7 +218,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 )}
 
                 {/* System Admin Sections */}
-                {(role === 'admin' || role === 'super_admin') && (
+                {['ADMIN', 'SUPER_ADMIN'].includes(String(role).toUpperCase()) && (
                     <div className="space-y-2">
                         {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">IT Governance</p>}
                         <NavItem to="/admin/users" icon={Users} label="User Management" isCollapsed={isCollapsed} />

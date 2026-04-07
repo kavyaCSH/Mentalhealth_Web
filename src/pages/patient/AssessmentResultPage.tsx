@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     Activity,
@@ -11,7 +11,6 @@ import {
     Shield,
     CheckCircle2,
     Lightbulb,
-    BarChart3,
     FileText,
     Brain,
     Heart,
@@ -47,7 +46,9 @@ const getCategoryIcon = (slug?: string) => {
 };
 
 const AssessmentResultPage = () => {
-    const { id, patientId } = useParams<{ id: string; patientId: string }>();
+    const { id } = useParams<{ id: string }>();
+    const [searchParams] = useSearchParams();
+    const patientId = searchParams.get('patientId');
     const navigate = useNavigate();
     const [assessment, setAssessment] = useState<AssessmentResult | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -63,7 +64,7 @@ const AssessmentResultPage = () => {
                 let rawData;
                 try {
                     const res = await AssessmentService.getSelfAssessmentDetail(id);
-                    rawData = res.data || res;
+                    rawData = (res as any).data || res;
                 } catch (fallbackErr) {
                     if (fallbackErr instanceof Error && (fallbackErr as any).response?.status === 400 && (fallbackErr as any).response?.data?.message?.includes('not found')) {
                         rawData = null;
@@ -97,142 +98,159 @@ const AssessmentResultPage = () => {
 
     if (error || !assessment) {
         return (
-            <div className="p-8 max-w-3xl  text-center py-20">
+            <div className="p-8 max-w-3xl text-center py-20">
                 <AlertTriangle className="text-orange-500 mx-auto mb-4" size={48} />
                 <h2 className="text-2xl font-black text-slate-900 mb-2">Unable to Load</h2>
                 <p className="text-slate-500 mb-8">{error || 'Assessment not found.'}</p>
-                <Button onClick={() => navigate(patientId ? `/patients/${patientId}/history` : '/history')}>Back to History</Button>
+                <Button onClick={() => navigate(patientId ? `/history/professional/${patientId}` : '/history')}>Back to History</Button>
             </div>
         );
     }
 
     const style = getSeverityStyle(assessment.severity, assessment.interpretation);
-    const SeverityIcon = style.icon;
     const recs = assessment.recommendations || [];
 
     return (
-        <div className="p-8 max-w-4xl  space-y-8 animate-fade-in pb-20">
-            {/* Header */}
+        <div className="p-8 max-w-5xl mx-auto space-y-10 animate-fade-in pb-32">
+            {/* Header Navigation */}
             <header className="flex items-center justify-between">
                 <button
-                    onClick={() => navigate(patientId ? `/patients/${patientId}?view=focused` : '/history')}
-                    className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors font-bold text-sm"
+                    onClick={() => navigate(patientId ? `/history/professional/${patientId}` : '/history')}
+                    className="flex items-center gap-3 text-slate-400 hover:text-indigo-600 transition-all font-black text-[10px] uppercase tracking-widest group"
                 >
-                    <ChevronLeft size={18} /> {patientId ? 'Back to Patient Record' : 'Back to History'}
+                    <div className="p-2 bg-slate-50 rounded-xl group-hover:bg-indigo-50 transition-colors">
+                        <ChevronLeft size={16} />
+                    </div>
+                    {patientId ? 'Back to Professional History' : 'Back to History'}
                 </button>
             </header>
 
-            {/* Title */}
-            <div className="flex items-center gap-5">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${style.bg} ${style.color}`}>
-                    {getCategoryIcon(assessment.slug)}
-                </div>
-                <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight capitalize">
-                        {assessment.category || assessment.slug || 'General'} Assessment
-                    </h1>
-                    <div className="flex items-center gap-4 mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                        <span className="flex items-center gap-1.5 capitalize">
-                            <Calendar size={14} className="text-slate-300" />
-                            {assessment.date && !assessment.date.includes(',') ? new Date(assessment.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : assessment.date || 'Recent Report'}
-                        </span>
-                        {assessment.time && (
-                            <span className="flex items-center gap-1.5 lowercase">
-                                <Clock size={14} className="text-slate-300" />
-                                {assessment.time}
-                            </span>
-                        )}
+            {/* Assessment Title & Origin Badge */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-6">
+                    <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-100 ${style.bg} ${style.color}`}>
+                        {getCategoryIcon(assessment.slug)}
                     </div>
-                </div>
-            </div>
-
-            {/* Score Card */}
-            <div className="glass-card p-10 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-2 h-full" style={{ backgroundColor: style.gauge }}></div>
-
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8 pb-8 border-b border-slate-50">
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Clinical Interpretation</p>
-                        <h2 className="text-2xl font-black text-slate-900">{assessment.interpretation || 'Completed'}</h2>
-                        {assessment.severity && (
-                            <div className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${style.bg} ${style.color} ${style.border} border`}>
-                                <SeverityIcon size={12} />
-                                {assessment.severity}
-                            </div>
-                        )}
-                    </div>
-                    <div className="flex flex-col items-center gap-4">
-                        <div className={`px-8 py-6 rounded-2xl border flex flex-col items-center justify-center min-w-[140px] ${style.bg} ${style.color} ${style.border}`}>
-                            <span className="text-4xl font-black">
-                                {assessment.score ?? assessment.totalScore ?? 0}
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-3">
+                            {assessment.category || assessment.slug || 'General'} Result
+                        </h1>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${assessment.isProfessional ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white shadow-lg shadow-amber-100'}`}>
+                                {assessment.isProfessional ? 'Clinical Assessment' : 'Patient Self-Check'}
                             </span>
-                            {(assessment.maxScore || assessment.maxPossibleScore || assessment.totalPossibleScore) && (
-                                <span className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-60">
-                                    / {assessment.maxScore || assessment.maxPossibleScore || assessment.totalPossibleScore}
-                                </span>
-                            )}
-                            <span className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-80">Raw Score</span>
+                            <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-[9px] font-black uppercase tracking-widest">{assessment.slug || 'standard'}</span>
                         </div>
-
-                        {assessment.tScore !== undefined && assessment.tScore !== null && (
-                            <div className={`px-8 py-4 rounded-2xl border flex flex-col items-center justify-center min-w-[140px] bg-white border-slate-100 shadow-sm`}>
-                                <span className="text-3xl font-black text-slate-800">{assessment.tScore}</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest mt-1 text-slate-400">T-Score</span>
-                            </div>
-                        )}
                     </div>
                 </div>
-
-                {/* Score bar */}
-                {assessment.percentage != null && (
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                                <BarChart3 size={12} /> Score Distribution
-                            </span>
-                            <span className="text-sm font-black text-slate-600">{assessment.percentage}%</span>
-                        </div>
-                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${Math.min(assessment.percentage, 100)}%` }}
-                                transition={{ duration: 1.2, ease: 'easeOut' }}
-                                className="h-full rounded-full"
-                                style={{ backgroundColor: style.gauge }}
-                            />
-                        </div>
-                    </div>
-                )}
             </div>
 
-            {/* Recommendations */}
-            {recs.length > 0 && (
-                <div className="glass-card p-8">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mb-5">
-                        <Lightbulb size={14} /> Recommendations
-                    </h3>
-                    <div className="space-y-3">
-                        {recs.map((rec: string, i: number) => (
-                            <div key={i} className="flex items-start gap-3 text-slate-700 font-medium leading-relaxed bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${style.bg} ${style.color}`}>
-                                    <span className="text-[10px] font-black">{i + 1}</span>
-                                </div>
-                                <span>{rec}</span>
+            {/* ── Premium Result Summary Card ── */}
+            <div className="relative group">
+                {/* Decorative Background Shapes */}
+                <div className="absolute -top-6 -right-6 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-1000" />
+                <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-violet-500/10 blur-3xl rounded-full group-hover:scale-125 transition-transform duration-1000" />
+
+                <div className="relative z-10 bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 rounded-[3rem] p-10 md:p-14 text-white shadow-2xl shadow-indigo-200 overflow-hidden border border-white/10">
+                    <div className="flex flex-col md:flex-row md:items-center gap-12 relative z-20">
+                        {/* Circular Score Metric */}
+                        <div className="flex-shrink-0 flex flex-col items-center justify-center w-40 h-40 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/20 shadow-inner group-hover:scale-105 transition-transform duration-500">
+                            <span className="text-6xl font-black">{assessment.score ?? assessment.totalScore ?? 0}</span>
+                            <div className="w-10 h-0.5 bg-white/30 my-2 rounded-full" />
+                            <span className="text-sm font-black opacity-60">
+                                {assessment.maxScore || assessment.maxPossibleScore || 100}
+                            </span>
+                        </div>
+
+                        {/* Interpretation Content */}
+                        <div className="flex-1 space-y-6">
+                            <div>
+                                <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-3">Clinical Synthesis</p>
+                                <h2 className="text-4xl md:text-5xl font-black leading-tight tracking-tight">
+                                    {assessment.interpretation || 'No Interpretation Found'}
+                                </h2>
                             </div>
+
+                            {assessment.percentage != null && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Severity Index</span>
+                                        <span className="text-sm font-black">{assessment.percentage}%</span>
+                                    </div>
+                                    <div className="h-2.5 bg-white/10 rounded-full overflow-hidden border border-white/5">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${Math.min(assessment.percentage, 100)}%` }}
+                                            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                                            className="h-full bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Meta Footer */}
+                    <div className="mt-12 pt-8 border-t border-white/10 flex flex-wrap gap-8 relative z-20">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white/10 rounded-lg"><Calendar size={14} /></div>
+                            <span className="text-xs font-black uppercase tracking-widest">{assessment.date || 'Date Unknown'}</span>
+                        </div>
+                        {assessment.time && (
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white/10 rounded-lg"><Clock size={14} /></div>
+                                <span className="text-xs font-black uppercase tracking-widest">{assessment.time}</span>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-3 ml-auto">
+                            <div className="p-2 bg-white/10 rounded-lg"><Brain size={14} /></div>
+                            <span className="text-xs font-black uppercase tracking-widest italic opacity-80">Electronic Record Validated</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Recommendations Grid */}
+            {recs.length > 0 && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-3 ml-2">
+                        <div className="w-1 h-5 bg-indigo-600 rounded-full" />
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                            Clinical Guidance <Lightbulb size={16} className="text-amber-500" />
+                        </h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {recs.map((rec: string, i: number) => (
+                            <motion.div 
+                                key={i}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="bg-white p-6 rounded-3xl border border-slate-100 flex gap-4 hover:border-indigo-100 transition-all shadow-sm group"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-black text-xs group-hover:scale-110 transition-transform">
+                                    {i + 1}
+                                </div>
+                                <p className="text-sm font-semibold text-slate-700 leading-relaxed pt-1">{rec}</p>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* Detailed Breakdown Fallback */}
+            {/* Detailed Breakdown */}
             {(assessment.responses?.length || (assessment as any).selectedAnswers) && (
-                <div className="space-y-6 pt-4">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-2 ml-1">
-                        <FileText size={14} className="text-indigo-500" /> Full Response Breakdown
-                    </h3>
-                    <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-6 pt-6">
+                    <div className="flex items-center gap-3 ml-2">
+                        <div className="w-1 h-5 bg-indigo-600 rounded-full" />
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                            Itemized Analysis <FileText size={16} className="text-indigo-600" />
+                        </h3>
+                    </div>
+                    
+                    <div className="space-y-4">
                         {(assessment.responses?.length ? assessment.responses : Object.entries((assessment as any).selectedAnswers || {}).map(([qId, ans]) => ({
-                            questionText: `Assessment Inquiry Item ${qId}`,
+                            questionText: `Clinical Parameter ${qId}`,
                             selectedAnswer: String(ans),
                             score: 0
                         }))).map((resp, i) => {
@@ -240,44 +258,47 @@ const AssessmentResultPage = () => {
                             const displayAnswer = (resp as any).answerText || (resp as any).selectedAnswer || 
                                 (!isId((resp as any).selectedOption || (resp as any).optionId) 
                                     ? String((resp as any).selectedOption || (resp as any).optionId) 
-                                    : 'Response Captured');
+                                    : 'Affirmative Response');
                             
                             return (
                                 <motion.div 
                                     key={i}
                                     initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.03 }}
-                                    className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-50/30 transition-all"
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-indigo-100 hover:shadow-2xl hover:shadow-indigo-50/50 transition-all"
                                 >
-                                    <div className="flex items-start gap-5 flex-1 max-w-2xl">
-                                        <div className="w-10 h-10 bg-slate-50 border border-slate-50 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-colors">
-                                            <span className="text-[10px] font-black text-slate-400 group-hover:text-indigo-600">
+                                    <div className="flex items-start gap-6 flex-1">
+                                        <div className="w-12 h-12 bg-slate-50 border border-slate-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-all group-hover:scale-110">
+                                            <span className="text-[11px] font-black text-slate-400 group-hover:text-indigo-600">
                                                 {String(i + 1).padStart(2, '0')}
                                             </span>
                                         </div>
-                                        <div className="space-y-3">
-                                            <p className="text-sm font-bold text-slate-900 leading-snug group-hover:text-indigo-900 transition-colors">
-                                                {(resp as any).questionText || `Clinical Item ${i + 1}`}
+                                        <div className="space-y-4">
+                                            <p className="text-[17px] font-black text-slate-900 leading-tight group-hover:text-indigo-900 transition-colors tracking-tight">
+                                                {(resp as any).questionText || (resp as any).question?.text || `Item Analysis ${i + 1}`}
                                             </p>
-                                            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-slate-50/50 border border-slate-50 rounded-lg group-hover:bg-white group-hover:border-indigo-50 transition-all">
-                                                <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mr-1">Answer</div>
-                                                <span className="text-xs font-black text-indigo-600">
-                                                    {displayAnswer}
-                                                </span>
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Subjective Response</p>
+                                                <div className="inline-flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl group-hover:bg-indigo-50/30 transition-all border border-transparent group-hover:border-indigo-100">
+                                                    <span className="text-sm font-black text-indigo-600">
+                                                        {displayAnswer}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <div className="shrink-0 flex items-center gap-4 pl-14 md:pl-0">
-                                        <div className="h-8 w-[1px] bg-slate-100 hidden md:block" />
-                                        <div className={`px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[70px] border transition-all ${
-                                            (resp as any).score ? 'bg-indigo-50 border-indigo-100 shadow-sm shadow-indigo-50' : 'bg-slate-50 border-slate-50 opacity-40'
+                                    <div className="shrink-0 flex items-center gap-6 pl-16 md:pl-0">
+                                        <div className="h-10 w-[1.5px] bg-slate-100 hidden md:block" />
+                                        <div className={`px-6 py-3 rounded-2xl flex flex-col items-center justify-center min-w-[90px] border transition-all ${
+                                            (resp as any).score ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-50 border-slate-100 opacity-50'
                                         }`}>
-                                            <span className={`text-sm font-black leading-none ${(resp as any).score ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                            <span className="text-lg font-black leading-none">
                                                 {(resp as any).score ? `+${(resp as any).score}` : '0'}
                                             </span>
-                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">pts</span>
+                                            <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${(resp as any).score ? 'text-indigo-100' : 'text-slate-400'}`}>pts</span>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -287,18 +308,39 @@ const AssessmentResultPage = () => {
                 </div>
             )}
 
-            {/* Notes */}
+            {/* Clinical Notes Section */}
             {assessment.notes && (
-                <div className="glass-card p-8">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Clinical Notes</h3>
-                    <p className="text-slate-700 font-medium leading-relaxed">{assessment.notes}</p>
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3 ml-2">
+                        <div className="w-1 h-5 bg-indigo-600 rounded-full" />
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                            Clinician Annotations <Brain size={16} className="text-indigo-600" />
+                        </h3>
+                    </div>
+                    <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <FileText size={80} />
+                        </div>
+                        <p className="text-lg font-semibold text-slate-700 leading-relaxed italic relative z-10">"{assessment.notes}"</p>
+                    </div>
                 </div>
             )}
 
-            {/* Footer */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                <Button variant="outline" className="flex-1 py-4 border-slate-200 text-slate-600 hover:bg-slate-50 rounded-2xl" onClick={() => navigate(patientId ? `/patients/${patientId}?view=focused` : '/history')}>
-                    {patientId ? 'Back to Patient Record' : 'Back to History'}
+            {/* Actions */}
+            <div className="pt-10 flex flex-col sm:flex-row gap-5">
+                <Button 
+                    variant="outline" 
+                    className="flex-1 py-6 border-slate-200 text-slate-500 rounded-3xl hover:bg-slate-50 hover:text-indigo-600 transition-all font-black uppercase tracking-[0.2em] text-[10px]" 
+                    onClick={() => navigate(patientId ? `/history/professional/${patientId}` : '/history')}
+                >
+                    {patientId ? 'Back to Clinical Archive' : 'Return to Comprehensive Hub'}
+                </Button>
+                <Button 
+                    variant="primary" 
+                    className="flex-1 py-6 rounded-3xl shadow-xl shadow-indigo-100 font-black uppercase tracking-[0.2em] text-[10px] bg-slate-900"
+                    onClick={() => window.print()}
+                >
+                    Generate Clinical PDF
                 </Button>
             </div>
         </div>

@@ -4,11 +4,17 @@ import { useSelector } from 'react-redux';
 import { 
     User, ShieldCheck, Bell, HelpCircle, Mail, FileText, 
     Info, ChevronRight, Moon, Sun, Monitor, Pencil,
-    Globe
+    Globe, Star
 } from 'lucide-react';
 import type { RootState } from '../../store';
 import { useTheme } from '../../context/ThemeContext';
 import { SystemService } from '../../api/services/system.service';
+import { AuthService } from '../../api/services/auth.service';
+import { FeedbackService } from '../../api/services/feedback.service';
+import { motion, AnimatePresence } from 'framer-motion';
+import Button from '../../components/ui/Button';
+import InputField from '../../components/ui/InputField';
+import AppRatingModal from '../../components/shared/AppRatingModal';
 
 
 const MenuItem = ({ icon: IconComp, label, value, onClick, color = "text-indigo-600", bg = "bg-indigo-50" }: any) => (
@@ -47,13 +53,66 @@ const ProfilePage = () => {
 
     const { theme, setTheme } = useTheme();
 
+    // Password State
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [passwordError, setPasswordError] = useState<string | null>(null);
+    const [passwords, setPasswords] = useState({
+        current: '',
+        new: '',
+        confirm: ''
+    });
+
+    // Rating State
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [latestRating, setLatestRating] = useState<any>(null);
+
     useEffect(() => {
         const fetchVersion = async () => {
             const v = await SystemService.getWebVersion();
             setWebVersion(v);
         };
+        const fetchRating = async () => {
+            try {
+                const res = await FeedbackService.getLatestRating();
+                setLatestRating(res?.data || res);
+            } catch (err) {
+                console.error('Failed to fetch rating', err);
+            }
+        };
         fetchVersion();
+        fetchRating();
     }, []);
+
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (passwords.new !== passwords.confirm) {
+            setPasswordError("Passwords do not match");
+            return;
+        }
+        if (passwords.new.length < 8) {
+            setPasswordError("Password must be at least 8 characters");
+            return;
+        }
+
+        setPasswordLoading(true);
+        setPasswordError(null);
+
+        try {
+            await AuthService.changePassword({
+                currentPassword: passwords.current,
+                newPassword: passwords.new,
+                confirmPassword: passwords.confirm
+            });
+            setShowPasswordModal(false);
+            setPasswords({ current: '', new: '', confirm: '' });
+            alert("Security credentials updated successfully.");
+        } catch (err: any) {
+            setPasswordError(err.response?.data?.message || "Failed to update security key");
+        } finally {
+            setPasswordLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-page p-6 md:p-12 pb-32">
@@ -125,7 +184,7 @@ const ProfilePage = () => {
                 </div>
 
                 {/* Main Settings Sections */}
-                <Section title="Clinical Account">
+                <Section title="Account Settings">
                     <MenuItem 
                         icon={User} 
                         label="Personal Information" 
@@ -134,10 +193,11 @@ const ProfilePage = () => {
                     />
                     <MenuItem 
                         icon={ShieldCheck} 
-                        label="Security & Privacy" 
-                        value="2FA, Session history" 
+                        label="Security & Password" 
+                        value="Change login credentials" 
                         color="text-emerald-600" 
                         bg="bg-emerald-50"
+                        onClick={() => setShowPasswordModal(true)}
                     />
                     <MenuItem 
                         icon={Bell} 
@@ -173,6 +233,14 @@ const ProfilePage = () => {
                         onClick={() => navigate('/help/support')}
                     />
                     <MenuItem 
+                        icon={Star} 
+                        label={latestRating ? "Update My Rating" : "Rate the App"} 
+                        value={latestRating ? `${latestRating.rating} Stars Recited` : "Share your experience"} 
+                        color="text-amber-500" 
+                        bg="bg-amber-50"
+                        onClick={() => setShowRatingModal(true)}
+                    />
+                    <MenuItem 
                         icon={ShieldCheck} 
                         label="Privacy Policy" 
                         color="text-slate-600" 
@@ -188,17 +256,98 @@ const ProfilePage = () => {
                     />
                 </Section>
 
-                <Section title="Version Control">
-                    <div className="p-8 flex items-center justify-between">
+                <Section title="System Information">
+                    <button 
+                        onClick={() => navigate('/help/article/about_mindbalance', { state: { title: 'About MindBalance' } })}
+                        className="w-full p-8 flex items-center justify-between hover:bg-page/50 transition-all group text-left"
+                    >
                         <div>
                             <p className="font-black text-main text-sm">MindBalance Web Platform</p>
                             <p className="text-[11px] text-muted font-bold uppercase tracking-widest mt-1">Stable Release v{webVersion}</p>
                         </div>
-                        <div className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted">
-                            <Info size={20} />
+                        <div className="w-12 h-12 rounded-[1.25rem] bg-page flex items-center justify-center text-muted group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all group-hover:scale-110">
+                            <Info size={22} />
                         </div>
-                    </div>
+                    </button>
                 </Section>
+
+                <AnimatePresence>
+                    {showPasswordModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-card w-full max-w-md rounded-[3rem] p-10 border border-border-card shadow-2xl relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] -mr-32 -mt-32 rounded-full"></div>
+                                
+                                <div className="relative z-10">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h3 className="text-2xl font-black text-main tracking-tight">Security Update</h3>
+                                        <button 
+                                            onClick={() => setShowPasswordModal(false)}
+                                            className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted hover:bg-red-50 hover:text-red-500 transition-colors"
+                                        >
+                                            <Sun size={20} className="rotate-45" /> {/* Close icon substitute if X not imported */}
+                                        </button>
+                                    </div>
+
+                                    <form onSubmit={handlePasswordChange} className="space-y-6">
+                                        <InputField
+                                            label="Current Password"
+                                            name="currentPassword"
+                                            type="password"
+                                            value={passwords.current}
+                                            onChange={(e) => setPasswords(p => ({ ...p, current: e.target.value }))}
+                                            placeholder="••••••••"
+                                            required
+                                        />
+                                        <InputField
+                                            label="New Access Key"
+                                            name="newPassword"
+                                            type="password"
+                                            value={passwords.new}
+                                            onChange={(e) => setPasswords(p => ({ ...p, new: e.target.value }))}
+                                            placeholder="••••••••"
+                                            required
+                                            helperText="Minimum 8 characters"
+                                        />
+                                        <InputField
+                                            label="Confirm New Key"
+                                            name="confirmPassword"
+                                            type="password"
+                                            value={passwords.confirm}
+                                            onChange={(e) => setPasswords(p => ({ ...p, confirm: e.target.value }))}
+                                            placeholder="••••••••"
+                                            required
+                                        />
+
+                                        {passwordError && (
+                                            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-[10px] font-black uppercase tracking-widest text-center">
+                                                {passwordError}
+                                            </div>
+                                        )}
+
+                                        <Button 
+                                            type="submit" 
+                                            isLoading={passwordLoading}
+                                            className="w-full py-6 rounded-[1.5rem] shadow-xl shadow-indigo-100"
+                                        >
+                                            Secure Account
+                                        </Button>
+                                    </form>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                <AppRatingModal 
+                    isOpen={showRatingModal}
+                    onClose={() => setShowRatingModal(false)}
+                    existingRating={latestRating}
+                />
 
 
                 <p className="mt-12 text-center text-[10px] font-black text-muted/50 uppercase tracking-[0.3em]">

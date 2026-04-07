@@ -15,8 +15,25 @@ export interface ChiefComplaintResponse {
         symptoms?: string[];
         mood_markers?: string[];
     };
+    risk_markers?: {
+        risk_level?: 'Low' | 'Moderate' | 'High' | 'Critical';
+        self_harm_detected?: boolean;
+        psychosis_detected?: boolean;
+        violence_detected?: boolean;
+    };
     audio_url?: string;
     createdAt?: string;
+}
+
+export interface ChiefComplaintFilters {
+    patient_id?: number | string;
+    patientId?: number | string;
+    consult_id?: number | string;
+    status?: 'completed' | 'draft';
+    severity?: 'Mild' | 'Moderate' | 'Severe' | 'Critical';
+    risk_level?: 'Low' | 'Moderate' | 'High' | 'Critical';
+    startDate?: string;
+    endDate?: string;
 }
 
 export const ChiefComplaintService = {
@@ -26,11 +43,7 @@ export const ChiefComplaintService = {
         return response.data;
     },
 
-    listComplaints: async (params: {
-        consult_id?: string;
-        patient?: string;
-        patient_id?: string | number;
-        patientId?: string | number;
+    listComplaints: async (params: ChiefComplaintFilters & {
         page?: number;
         limit?: number;
     }) => {
@@ -80,8 +93,8 @@ export const ChiefComplaintService = {
     // ── Patient-scoped routes (/patients/:patientId/chief-complaints) ──────────
     // Backend authorizes these endpoints for the patient role.
 
-    listPatientComplaints: async (patientId: string): Promise<ApiResponse<ChiefComplaintResponse[]>> => {
-        const response = await api.get(`chief-complaints`, { params: { patient_id: patientId } });
+    listPatientComplaints: async (patientId: string, filters?: ChiefComplaintFilters): Promise<ApiResponse<ChiefComplaintResponse[]>> => {
+        const response = await api.get(`chief-complaints`, { params: { patient_id: patientId, ...filters } });
         return response.data;
     },
 

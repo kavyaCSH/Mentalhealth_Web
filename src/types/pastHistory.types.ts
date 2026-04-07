@@ -61,6 +61,8 @@ export interface PsychiatricHistory {
         side_effects: string;
     }[];
     psychotherapy_history?: string;
+    previous_episodes?: string | string[];
+    previous_treatments?: string | string[];
 }
 
 export interface MedicalHistory {
@@ -125,6 +127,7 @@ export interface SocialHistory {
     };
     spiritual_beliefs?: string | null;
     strengths_hobbies?: string | null;
+    substance_use?: string | null;
 }
 
 export interface DetailedTraumaHistory {
