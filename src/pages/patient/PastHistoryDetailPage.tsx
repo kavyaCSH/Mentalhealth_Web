@@ -101,12 +101,14 @@ const PastHistoryDetailPage = () => {
         );
     }
 
+    const traumaData = typeof history.trauma_history === 'object' ? history.trauma_history : null;
+
     const categories = [
-        { label: 'Psychiatric Map', value: history.psychiatric_history?.previous_diagnosis || history.psychiatric_history?.previous_episodes, icon: <Brain size={24} />, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
-        { label: 'Clinical Interventions', value: history.psychiatric_history?.medication_trials || history.psychiatric_history?.previous_treatments, icon: <Activity size={24} />, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100' },
+        { label: 'Psychiatric Map', value: history.psychiatric_history?.previous_diagnosis || (history.psychiatric_history as any)?.previous_episodes, icon: <Brain size={24} />, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
+        { label: 'Clinical Interventions', value: history.psychiatric_history?.medication_trials || (history.psychiatric_history as any)?.previous_treatments, icon: <Activity size={24} />, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100' },
         { label: 'Biometric Status', value: history.medical_history?.chronic_conditions, icon: <ClipboardList size={24} />, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
         { label: 'Genetic Markers', value: history.family_history?.conditions, icon: <Users size={24} />, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
-        { label: 'Substance Profile', value: history.substance_use || history.social_history?.substance_use, icon: <RotateCcw size={24} />, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
+        { label: 'Substance Profile', value: history.substance_use || (history.social_history as any)?.substance_use, icon: <RotateCcw size={24} />, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
         { label: 'Environmental Context', value: history.social_history?.living_situation || history.social_history?.employment, icon: <MessageSquare size={24} />, color: 'text-sky-600', bg: 'bg-sky-50', border: 'border-sky-100' },
         { label: 'Trauma & Resilience', value: typeof history.trauma_history === 'object' ? (history.trauma_history?.significant_losses || history.trauma_history?.physical_abuse) : history.trauma_history, icon: <Shield size={24} />, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-100' }
     ];
