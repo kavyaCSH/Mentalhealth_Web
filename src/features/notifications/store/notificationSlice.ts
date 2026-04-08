@@ -20,8 +20,8 @@ export const fetchUnreadCount = createAsyncThunk(
     'notifications/fetchUnreadCount',
     async (_, { rejectWithValue }) => {
         try {
-            const data = await NotificationService.getNotifications({ page: 1, limit: 100 });
-            return data.filter(n => !n.isRead && !n.read).length;
+            const res = await NotificationService.getNotifications({ page: 1, limit: 100 });
+            return res.data?.unreadCount ?? 0;
         } catch (error: any) {
             return rejectWithValue(error.message || 'Failed to fetch unread count');
         }
