@@ -39,4 +39,19 @@ export const AuthService = {
         const response = await api.get('auth/me');
         return response.data?.data ?? response.data;
     },
+
+    changePassword: async (data: any): Promise<ApiResponse<any>> => {
+        const response = await api.put('auth/change-password', data);
+        return response.data?.data ?? response.data;
+    },
+
+    refreshToken: async (refreshToken: string): Promise<any> => {
+        const response = await api.post('auth/refresh-token', { refreshToken });
+        return response.data?.data ?? response.data;
+    },
+
+    logout: async (refreshToken: string): Promise<any> => {
+        const response = await api.post('auth/logout', { refreshToken });
+        return response.data?.data ?? response.data;
+    },
 };

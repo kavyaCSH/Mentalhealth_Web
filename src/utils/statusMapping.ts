@@ -1,7 +1,8 @@
 export type StatusType = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 
-export const getStatusColor = (status: StatusType | string) => {
-    switch (status.toLowerCase()) {
+export const getStatusColor = (status: StatusType | string | null | undefined) => {
+    const s = String(status || 'default').toLowerCase();
+    switch (s) {
         case 'scheduled':
             return {
                 bg: 'bg-blue-50',

@@ -23,12 +23,13 @@ import {
     Sparkles
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import { useAuth } from '../../hooks/useAuth';
 import { AssessmentService } from '../../api/services/assessment.service';
 import type { AssessmentResult, AssessmentMaster } from '../../types/assessment.types';
 
 // ─── Severity styling ────────────────────────────────────────────────────────
 const getSeverityStyle = (severity?: string, interpretation?: string) => {
-    const key = (severity || interpretation || '').toLowerCase();
+    const key = String(severity || interpretation || '').toLowerCase();
     if (key.includes('severe') || key.includes('high') || key.includes('extreme'))
         return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', fill: 'bg-red-500', icon: AlertTriangle };
     if (key.includes('moderate') || key.includes('medium'))
@@ -42,8 +43,12 @@ const getSeverityStyle = (severity?: string, interpretation?: string) => {
 
 const HistoryPage = () => {
     const navigate = useNavigate();
-    const { patientId } = useParams<{ patientId: string }>();
-    const [history, setHistory] = useState<AssessmentResult[]>([]);
+    const { user } = useAuth();
+    const { patientId: urlPatientId } = useParams<{ patientId: string }>();
+    const patientId = urlPatientId || user?.id || user?._id || '';
+    const numericId = urlPatientId || user?.userId || user?.id || user?._id || '';
+
+    const [history, setHistory] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [masters, setMasters] = useState<AssessmentMaster[]>([]);
 
@@ -83,38 +88,51 @@ const HistoryPage = () => {
         if (reset) setIsLoading(true);
 
         try {
-            let items: AssessmentResult[] = [];
+            // Fetch both types in parallel as per mobile parity logic
+            const [selfRes, profRes] = await Promise.allSettled([
+                AssessmentService.getSelfAssessmentHistory({ page: pageNum, limit: 20 }),
+                numericId ? AssessmentService.getPatientProfessionalHistory(numericId) : Promise.resolve([])
+            ]);
 
-            if (patientId) {
-                // Fetch for specific patient
-                const allAssessments = await AssessmentService.getPatientHistory(patientId);
-                // Filter by category if one is selected
-                items = activeCategory === 'all'
-                    ? allAssessments
-                    : allAssessments.filter(a => a && (a.category === activeCategory || a.slug === activeCategory));
-            } else {
-                // Fetch own history
-                const result = await AssessmentService.getOwnHistory(pageNum, 10, activeCategory);
-                items = result.assessments;
+            let combined: any[] = [];
+
+            if (selfRes.status === 'fulfilled') {
+                const normalized = (selfRes.value as any).assessments || [];
+                combined = [...combined, ...normalized.map((i: any) => ({ ...i, isSelf: true }))];
+                
+                // Extract pagination metadata from the raw data object
+                const rawData = (selfRes.value as any).data;
+                if (rawData && rawData.pagination) {
+                    setHasMore(rawData.pagination.hasMore || false);
+                } else if (rawData && typeof rawData.total === 'number') {
+                    setHasMore(normalized.length < rawData.total);
+                }
             }
 
-            if (reset) {
-                setHistory(items);
-            } else {
-                setHistory(prev => [...prev, ...items]);
+            if (profRes.status === 'fulfilled') {
+                const normalized = (profRes.value as any) || [];
+                // If it's an object with assessments array (unlikely but safe)
+                const items = Array.isArray(normalized) ? normalized : (normalized.assessments || []);
+                combined = [...combined, ...items.map((i: any) => ({ ...i, isSelf: false }))];
             }
 
-            // Simple pagination logic for patient history (if it's not paginated by API)
-            setHasMore(!patientId && items.length >= 10);
-            setPage(pageNum);
+            // Apply category filter if active
+            if (activeCategory !== 'all') {
+                combined = combined.filter(a => a.category === activeCategory || a.wellnessAspect === activeCategory || a.assessment_type === activeCategory);
+            }
+
+            // Sort chronically
+            combined.sort((a, b) => {
+                const dA = new Date(a.createdAt || a.date).getTime();
+                const dB = new Date(b.createdAt || b.date).getTime();
+                return dB - dA;
+            });
+
+            setHistory(combined);
             setFetchError(null);
-        } catch (err: unknown) {
-            const terror = err as { message?: string };
-            if (reset) {
-                setHistory([]);
-                setFetchError(terror.message || 'Failed to synchronize with clinical vault.');
-            }
-            setHasMore(false);
+        } catch (err: any) {
+            setFetchError('Failed to synchronize assessment archive.');
+            console.error(err);
         } finally {
             setIsLoading(false);
         }
@@ -365,9 +383,6 @@ const HistoryPage = () => {
                                 const displaySlug = item.slug || item.type || item.category || 'general';
                                 const displayLabel = item.category || (displaySlug.charAt(0).toUpperCase() + displaySlug.slice(1) + ' Assessment');
 
-                                // Attempt numbering (reverse order based on local list)
-                                const attemptNumber = filteredHistory.length - index;
-
                                 return (
                                     <motion.div
                                         key={item._id || item.id || index}
@@ -389,13 +404,15 @@ const HistoryPage = () => {
                                         {/* Row 1: Attempt & Date & Status */}
                                         <div className="flex items-center justify-between mb-6">
                                             <div className="flex items-center gap-3">
-                                                <div className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                                                    Attempt #{attemptNumber}
+                                                <div className="px-3 py-1 bg-white border border-slate-100 rounded-lg shadow-sm">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">Record #{item.assessmentId || item._id?.slice(-6) || index + 1}</span>
+                                                </div>
+                                                <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${item.isSelf ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                                                    {item.isSelf ? 'Self-Check' : 'Professional'}
                                                 </div>
                                                 <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                                     <Calendar size={12} />
                                                     {new Date(item.date || item.createdAt || '').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                    {item.time && ` · ${item.time}`}
                                                 </span>
                                             </div>
                                             <div className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest border ${item.status === 'draft' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>

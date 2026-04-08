@@ -6,8 +6,9 @@ export const DashboardService = {
         const response = await api.get('dashboards/patient');
         return response.data;
     },
-    getPatientStatistics: async (): Promise<PatientStatsResponse | any> => {
-        const response = await api.get('dashboards/patient/statistics');
+    getPatientStatistics: async (patientId?: string | number): Promise<PatientStatsResponse | any> => {
+        const url = patientId ? `dashboards/patient/statistics?patientId=${patientId}` : 'dashboards/patient/statistics';
+        const response = await api.get(url);
         return response.data;
     },
     getSpecialistDashboard: async () => {

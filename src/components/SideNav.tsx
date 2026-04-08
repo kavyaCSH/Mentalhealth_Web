@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronLeft,
@@ -11,7 +11,6 @@ import {
     Settings,
     ShieldCheck,
     Users,
-    ClipboardList,
     BarChart3,
     Bell,
     Percent,
@@ -27,9 +26,10 @@ import {
     ClipboardCheck,
     Globe
 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
 import { logout } from '../features/auth/store/authSlice';
 import { SystemService } from '../api/services/system.service';
+import { fetchUnreadCount } from '../features/notifications/store/notificationSlice';
+import type { RootState, AppDispatch } from '../store';
 
 interface NavItemProps {
     to: string;
@@ -66,7 +66,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, isCollapsed, b
         </AnimatePresence>
 
         {badge && !isCollapsed && (
-            <span className="ml-auto bg-orange-100 text-orange-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
+            <span className="ml-auto bg-orange-100 text-orange-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest pointer-events-none">
                 {badge}
             </span>
         )}
@@ -87,8 +87,9 @@ interface SideNavProps {
 const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [webVersion, setWebVersion] = useState('...');
-    const { user } = useAuth();
-    const dispatch = useDispatch();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const { unreadCount } = useSelector((state: RootState) => state.notifications);
+    const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
     const role = user?.role;
 
@@ -98,7 +99,10 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
             setWebVersion(v);
         };
         fetchVersion();
-    }, []);
+        if (user) {
+            dispatch(fetchUnreadCount());
+        }
+    }, [user, dispatch]);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -163,25 +167,27 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 <div className="space-y-2">
                     {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Core</p>}
 
-                    {/* Primary Dashboard Link (Role-Aware) */}
-                    {(role === 'psychiatrist' || role === 'psychologist' || role === 'nurse' || role === 'social_worker' || role === 'counselor') ? (
-                        <NavItem to="/" icon={Activity} label="Overview" isCollapsed={isCollapsed} end />
-                    ) : (
-                        <NavItem to="/" icon={Activity} label="Overview" isCollapsed={isCollapsed} end />
-                    )}
+                    <NavItem to="/" icon={Activity} label="Overview" isCollapsed={isCollapsed} end />
 
                     <NavItem to="/profile" icon={Users} label="My Profile" isCollapsed={isCollapsed} />
+                    <NavItem 
+                        to="/notifications" 
+                        icon={Bell} 
+                        label="Notifications" 
+                        isCollapsed={isCollapsed} 
+                        badge={unreadCount > 0 ? String(unreadCount) : undefined}
+                    />
                 </div>
 
                 {/* Patient Sections */}
-                {role === 'patient' && (
+                {String(role).toUpperCase() === 'PATIENT' && (
                     <>
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Care Suite</p>}
                             <NavItem to="/appointments" icon={Calendar} label="Appointments" isCollapsed={isCollapsed} />
-                            <NavItem to="/history" icon={ClipboardList} label="Self-Assessments" isCollapsed={isCollapsed} end />
+                            <NavItem to="/assessments" icon={Brain} label="Self Assessment" isCollapsed={isCollapsed} />
                             <NavItem to="/history/assistant" icon={Sparkles} label="AI History Assistant" isCollapsed={isCollapsed} />
-                            <NavItem to="/notifications" icon={Bell} label="Notifications" isCollapsed={isCollapsed} />
+                            <NavItem to="/history/professional" icon={ShieldCheck} label="Professional Reports" isCollapsed={isCollapsed} />
                             <NavItem to="/statistics" icon={BarChart3} label="Statistics" isCollapsed={isCollapsed} />
                             <NavItem to="/records" icon={Heart} label="Health Records" isCollapsed={isCollapsed} />
                         </div>
@@ -189,7 +195,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 )}
 
                 {/* Practitioner Sections */}
-                {(role === 'psychiatrist' || role === 'psychologist' || role === 'nurse' || role === 'social_worker' || role === 'counselor') && (
+                {['PSYCHIATRIST', 'PSYCHOLOGIST', 'NURSE', 'SOCIAL_WORKER', 'COUNSELOR'].includes(String(role).toUpperCase()) && (
                     <>
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Clinical Workspace</p>}
@@ -220,6 +226,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 )}
 
                 {/* System Admin Sections */}
+                {['ADMIN', 'SUPER_ADMIN'].includes(String(role).toUpperCase()) && (
                     <div className="space-y-2">
                         {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">IT Governance</p>}
                         {role === 'super_admin' && (
@@ -271,7 +278,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                     <div className="w-10 h-10 bg-indigo-50 rounded-xl overflow-hidden border border-border-card">
                         {user?.profileImage ? (
                             <img
-                                src={`${user.profileImage}${user.profileImage.includes('?') ? '&' : '?'}t=${new Date().getTime()}`}
+                                src={`${user.profileImage}${user.profileImage?.includes('?') ? '&' : '?'}t=${new Date().getTime()}`}
                                 alt="avatar"
                                 className="w-full h-full object-cover"
                             />

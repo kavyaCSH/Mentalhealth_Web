@@ -11,10 +11,7 @@ import {
     CalendarRange,
     AlertCircle,
     ArrowLeft,
-    CheckCircle2,
     Plus,
-    ChevronRight,
-    Search
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';

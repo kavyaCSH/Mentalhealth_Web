@@ -1,8 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../store';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Activity, 
     ChevronLeft, 
@@ -16,327 +14,232 @@ import {
     AlertCircle,
     RefreshCw,
     ClipboardCheck,
-    BarChart3
+    BarChart3,
+    LayoutDashboard,
+    BadgeCheck,
+    UserCircle
 } from 'lucide-react';
 import { TreatmentService } from '../../api/services/treatment.service';
-import { AssessmentService } from '../../api/services/assessment.service';
-import { UserService } from '../../api/services/user.service';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 import type { TreatmentProgress, TreatmentStage } from '../../types/treatment.types';
 
 const StatusBadge = ({ status }: { status: TreatmentStage['status'] }) => {
+    const s = status || 'pending';
     const styles = {
-        pending: 'bg-slate-50 text-slate-500 border-slate-200',
-        in_progress: 'bg-amber-50 text-amber-600 border-amber-200',
-        completed: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-        on_hold: 'bg-rose-50 text-rose-600 border-rose-200',
-        skipped: 'bg-slate-100 text-slate-400 border-slate-300'
+        pending: 'bg-page text-muted border-border-card',
+        in_progress: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20 shadow-sm',
+        completed: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-sm',
+        on_hold: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+        skipped: 'bg-page text-muted border-border-card opacity-60'
     };
+    return (
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all ${styles[s]}`}>
+            {s.replace(/_/g, ' ')}
+        </span>
+    );
+};
 
-    const icons = {
-        pending: <RefreshCw size={12} />,
-        in_progress: <Activity size={12} />,
-        completed: <CheckCircle2 size={12} />,
-        on_hold: <AlertCircle size={12} />,
-        skipped: <RefreshCw size={12} className="opacity-50" />
-    };
+const HistoryTabContent = ({ history }: { history: any[] }) => {
+    if (!history || history.length === 0) {
+        return (
+            <div className="p-16 text-center bg-card border-2 border-dashed border-border-card rounded-[3rem] flex flex-col items-center">
+                <ClipboardCheck size={48} className="text-muted mb-6 opacity-20" strokeWidth={1} />
+                <h3 className="text-2xl font-black text-main tracking-tighter uppercase mb-2">No Records Found</h3>
+                <p className="text-[10px] font-bold text-muted uppercase tracking-widest italic opacity-60">Your specialized clinical history will appear here.</p>
+            </div>
+        );
+    }
 
     return (
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${styles[status]}`}>
-            {icons[status]}
-            {status.replace('_', ' ')}
-        </span>
+        <div className="grid md:grid-cols-2 gap-8">
+            {history.filter(Boolean).map((rec, i) => (
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ delay: i * 0.1 }} 
+                    key={rec.id || i} 
+                    className="p-10 bg-card border border-border-card rounded-[3rem] shadow-xl shadow-indigo-500/5 flex flex-col group hover:bg-page transition-all border-b-8 border-b-border-card"
+                >
+                    <div className="flex items-center justify-between mb-8 pb-8 border-b border-border-card">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-main text-card rounded-[1.25rem] flex items-center justify-center shadow-lg">
+                                <Activity size={20} />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 italic leading-none">Session Finalized</span>
+                                <span className="text-lg font-black text-main tracking-tighter italic opacity-80">{new Date(rec.createdAt || rec.date).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div className="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-emerald-500/20 italic">Verified</div>
+                    </div>
+                    <div className="space-y-10 flex-1">
+                        {rec.plan && (
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2.5 ml-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-sm" />
+                                    <span className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">Impression</span>
+                                </div>
+                                <p className="text-[14px] font-bold text-main leading-relaxed italic">"{rec.plan}"</p>
+                            </div>
+                        )}
+                        {rec.medications && (
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2.5 ml-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm" />
+                                    <span className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">Regimen</span>
+                                </div>
+                                <div className="px-6 py-3 bg-rose-500/5 border-l-[5px] border-rose-500 text-[12px] font-black text-rose-500/80 uppercase tracking-tight italic rounded-r-2xl leading-loose">
+                                    {rec.medications}
+                                </div>
+                            </div>
+                        )}
+                        {rec.next_steps && (
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2.5 ml-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm" />
+                                    <span className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">Next Steps</span>
+                                </div>
+                                <p className="text-[11px] font-bold text-muted mb-2 italic pl-4 opacity-80">"{rec.next_steps}"</p>
+                            </div>
+                        )}
+                    </div>
+                    <div className="mt-10 pt-8 border-t border-border-card flex items-center justify-between opacity-40">
+                         <div className="flex items-center gap-2 text-[8px] font-black text-muted uppercase tracking-widest">
+                            <UserCircle size={12} /> specialist record
+                         </div>
+                         <p className="text-[9px] font-black text-main tracking-tighter italic">MindBalance Clinical v1.4</p>
+                    </div>
+                </motion.div>
+            ))}
+        </div>
     );
 };
 
 const PatientTreatmentView = () => {
     const navigate = useNavigate();
-    const { user } = useSelector((state: RootState) => state.auth);
-    const userId = user?.id;
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const userId = currentUser?.id || (currentUser as any)?.userId;
 
     const [progress, setProgress] = useState<TreatmentProgress | null>(null);
+    const [history, setHistory] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState<'journey' | 'history'>('journey');
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
-    const fetchProgress = useCallback(async () => {
+    const fetchLock = useRef(false);
+
+    const fetchData = useCallback(async () => {
+        if (!userId || fetchLock.current) return;
+        fetchLock.current = true;
         setIsLoading(true);
-        setError(null);
         try {
-            // Prioritize Hex ID (user.id) for patient portal requests
-            const hexId = user?._id || user?.id || '';
-            const numericId = user?.userId || '';
-            
-            console.log('[PatientTreatment] Starting fetch. Hex:', hexId, 'Numeric:', numericId);
-            // Prioritize Numeric ID (userId) which is what the treatment service typically expects
-            let resolvedId: string | number = numericId || hexId || userId || '';
-            
-            try {
-                const rawData = await TreatmentService.getPatientProgress(resolvedId);
-                let data = rawData as { 
-                    data?: { 
-                        id?: string; 
-                        _id?: string; 
-                        stage?: string; 
-                        title?: string; 
-                        status?: string; 
-                        notes?: string; 
-                        description?: string; 
-                        createdAt?: string 
-                    }[]; 
-                    diagnosis?: string; 
-                    stages?: { 
-                        id: string; 
-                        title: string; 
-                        status: "pending" | "in_progress" | "completed" | "on_hold"; 
-                        notes?: string; 
-                        description?: string; 
-                        createdAt?: string 
-                    }[]; 
-                    overall_progress?: number; 
-                    patientId?: string 
-                };
+            const [pRes, hRes] = await Promise.allSettled([
+                TreatmentService.getPatientProgress(userId),
+                TreatmentService.getTreatmentHistory(userId)
+            ]);
 
-                // Handle API response mapping if nested in 'data' field
-                if (data && data.data && Array.isArray(data.data)) {
-                    const stageArray = data.data;
-                    data = {
-                        stages: stageArray.map((s: { id?: string; _id?: string; stage?: string; title?: string; status?: string; notes?: string; description?: string; createdAt?: string }) => ({
-                            id: (s.id || s._id) as string,
-                            title: (s.title || s.stage || 'Clinical Milestone') as string,
-                            status: (s.status || 'pending') as "pending" | "in_progress" | "completed" | "on_hold",
-                            notes: s.notes,
-                            description: s.description,
-                            createdAt: s.createdAt
-                        })),
-                        overall_progress: Math.round((stageArray.filter((s: { status?: string }) => s.status === 'completed').length / (stageArray.length || 1)) * 100),
-                        diagnosis: data.diagnosis || 'Therapeutic Framework',
-                        patientId: String(resolvedId)
-                    };
-                }
-
-                if (data && !Array.isArray(data) && data.stages) {
-                    setProgress(data as unknown as TreatmentProgress);
-                } else {
-                    setProgress(null);
-                }
-            } catch (treatmentError: unknown) {
-                // 2. Fallback resolution if first attempt fails
-                const terror = treatmentError as { response?: { status: number } };
-                if (terror.response?.status === 404 || !resolvedId) {
-                    console.warn('[PatientTreatment] First attempt failed, trying fallback ID resolution...');
-                    
-                    // If we tried hex and failed, try numeric
-                    if (resolvedId === hexId && numericId && numericId !== hexId) {
-                        resolvedId = numericId;
-                    } else if (userId && userId !== String(resolvedId)) {
-                        resolvedId = userId;
-                    } else {
-                        // Resolve via AssessmentService as last resort
-                        try {
-                            const assessmentData = await AssessmentService.getQuestions(userId || '');
-                            if (assessmentData.profile?.userId) {
-                                resolvedId = Number(assessmentData.profile.userId);
-                            } else {
-                                const { users } = await UserService.listUsers({ role: 'patient', search: userId });
-                                const match = users.find((u: { _id?: string; id?: string; userId?: string | number }) => String(u._id) === userId || String(u.id) === userId);
-                                if (match) resolvedId = match.userId ? Number(match.userId) : String(match.id);
-                            }
-                        } catch (e) {
-                            console.warn('[PatientTreatment] Resolution fallback failed:', e);
-                        }
-                    }
-
-                    if (resolvedId) {
-                        console.log(`[PatientTreatment] Retrying with resolved ID: ${resolvedId}`);
-                        const fallbackData = await TreatmentService.getPatientProgress(resolvedId);
-                        setProgress(fallbackData as TreatmentProgress);
-                    } else {
-                        console.warn('[PatientTreatment] No further fallback options, ID remained constant');
-                        throw treatmentError;
-                    }
-                } else {
-                    throw treatmentError;
-                }
+            if (pRes.status === 'fulfilled') setProgress(pRes.value);
+            if (hRes.status === 'fulfilled') {
+                const raw = hRes.value.data || hRes.value.history || hRes.value;
+                setHistory(Array.isArray(raw) ? raw : []);
             }
-        } catch (err: unknown) {
-            const terror = err as { message?: string };
-            console.error('[PatientTreatment] Protocol hydration failed:', terror);
-            setError(terror.message || 'We were unable to load your treatment journey. If this persists, please contact support.');
+        } catch (err) {
+            console.error('[PatientView] Sync failed');
         } finally {
             setIsLoading(false);
+            fetchLock.current = false;
         }
-    }, [userId, user?._id, user?.id, user?.userId]);
+    }, [userId]);
 
-    useEffect(() => {
-        if (userId) {
-            fetchProgress();
-        }
-    }, [userId, fetchProgress]);
+    useEffect(() => { fetchData(); }, [fetchData]);
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Loading Treatment Journey...</p>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="p-8 max-w-2xl mx-auto text-center py-20 flex flex-col items-center">
-                <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mb-6">
-                    <AlertCircle size={32} className="text-rose-500" />
-                </div>
-                <h2 className="text-2xl font-black text-slate-900 mb-2">Sync Interrupted</h2>
-                <p className="text-slate-500 font-medium mb-8">
-                    {error}
-                </p>
-                <button 
-                    onClick={fetchProgress}
-                    className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
-                >
-                    Retry Connection
-                </button>
-            </div>
-        );
-    }
-
-    if (!progress) {
-        return (
-            <div className="p-8 max-w-2xl mx-auto text-center py-20 flex flex-col items-center">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                    <Activity size={32} className="text-slate-300" />
-                </div>
-                <h2 className="text-2xl font-black text-slate-900 mb-2">Treatment Not Initialized</h2>
-                <p className="text-slate-500 font-medium mb-8">
-                    Your therapeutic protocol hasn't been established by your clinical team yet.
-                </p>
-                <button 
-                    onClick={() => navigate('/records')}
-                    className="text-indigo-600 font-black uppercase text-xs tracking-widest hover:underline"
-                >
-                    Back to Health Records
-                </button>
+            <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+                <Activity className="animate-spin text-indigo-500 mb-2" size={40} />
+                <p className="text-[10px] font-black text-muted uppercase tracking-[0.4em] italic animate-pulse">Syncing Journey state...</p>
             </div>
         );
     }
 
     return (
-        <div className="p-8 max-w-5xl animate-fade-in pb-20">
-            <header className="mb-10 flex items-center justify-between">
-                <div>
-                    <button
-                        onClick={() => navigate('/records')}
-                        className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors font-bold text-sm mb-4"
-                    >
-                        <ChevronLeft size={18} /> Back to Records
+        <div className="p-8 max-w-7xl mx-auto animate-fade-in pb-24">
+            <header className="mb-14 flex flex-col md:flex-row md:items-end justify-between gap-10">
+                <div className="space-y-6">
+                    <button onClick={() => navigate('/health')} className="flex items-center gap-2 text-[10px] font-black text-muted hover:text-indigo-500 transition-all uppercase tracking-[0.2em] group">
+                        <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Dashboard
                     </button>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <ClipboardCheck className="text-emerald-600" size={32} />
-                        My Treatment Plan
-                    </h1>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 ml-11">Your Guided Path to Recovery</p>
+                    <div>
+                        <div className="flex items-center gap-4 text-indigo-500 mb-3">
+                            <Activity size={32} strokeWidth={2.5} />
+                            <h1 className="text-5xl font-black text-main tracking-tighter leading-none">Your Recovery</h1>
+                        </div>
+                        <p className="text-[11px] font-black text-muted uppercase tracking-[0.4em] opacity-60 ml-1 italic">Interactive Treatment Roadmap</p>
+                    </div>
                 </div>
-                <div className="flex flex-col items-end">
-                    <span className="text-4xl font-black text-emerald-600">{progress.overall_progress}%</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progress</span>
+
+                <div className="flex bg-page p-1.5 rounded-[1.75rem] border border-border-card">
+                    <button onClick={() => setActiveTab('journey')} className={`px-12 py-3.5 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'journey' ? 'bg-card text-indigo-500 shadow-xl border border-border-card' : 'text-muted hover:text-main'}`}>Journey</button>
+                    <button onClick={() => setActiveTab('history')} className={`px-12 py-3.5 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'history' ? 'bg-card text-indigo-500 shadow-xl border border-border-card' : 'text-muted hover:text-main'}`}>History</button>
                 </div>
             </header>
 
-            <div className="grid lg:grid-cols-3 gap-8">
-                {/* Summary Column */}
-                <div className="lg:col-span-1 space-y-6">
-                    <div className="card-premium p-6 space-y-4 bg-white border-slate-100 shadow-sm">
-                        <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Focus</p>
-                            <h2 className="text-lg font-black text-slate-800">{progress.diagnosis}</h2>
-                        </div>
-                        
-                        <div className="pt-4 border-t border-slate-50">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <BarChart3 size={12} className="text-indigo-500" />
-                                Protocol Summary
-                            </p>
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center text-sm font-semibold">
-                                    <span className="text-slate-500">Milestones</span>
-                                    <span className="text-slate-900">{progress.stages.length}</span>
+            <AnimatePresence mode="wait">
+                {activeTab === 'journey' ? (
+                    <motion.div key="journey" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid lg:grid-cols-12 gap-12">
+                        <div className="lg:col-span-4 space-y-8">
+                            <div className="p-12 bg-card border border-border-card rounded-[3rem] shadow-2xl shadow-indigo-500/5 flex flex-col items-center text-center relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
+                                <div className="text-7xl font-black text-main mb-4 tracking-tighter leading-none">{progress?.overall_progress || 0}%</div>
+                                <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em] italic mb-10">Consolidated Mastery</span>
+                                <div className="w-full h-2 bg-page rounded-full overflow-hidden border border-border-card">
+                                    <div className="h-full bg-indigo-500 transition-all duration-700 ease-out shadow-lg shadow-indigo-500/10" style={{ width: `${progress?.overall_progress || 0}%` }} />
                                 </div>
-                                <div className="flex justify-between items-center text-sm font-semibold">
-                                    <span className="text-slate-500">Achieved</span>
-                                    <span className="text-emerald-600">{progress.stages.filter(s => s.status === 'completed').length}</span>
+                            </div>
+
+                            <div className="p-10 bg-page text-main rounded-[3rem] shadow-2xl relative overflow-hidden border border-border-card">
+                                <div className="flex items-center gap-3 mb-8 opacity-40">
+                                    <BadgeCheck size={18} />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Active roadmap</h3>
                                 </div>
-                                <div className="flex justify-between items-center text-sm font-semibold">
-                                    <span className="text-slate-500">Active</span>
-                                    <span className="text-indigo-600">{progress.stages.filter(s => s.status === 'in_progress').length}</span>
+                                <h2 className="text-3xl font-black tracking-tighter leading-tight mb-10">{progress?.diagnosis || 'Therapeutic Milestone Tracking'}</h2>
+                                <div className="flex items-center gap-2.5 pt-8 border-t border-border-card">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/40" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500/60 italic">Live Sync Active</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 mt-6">
-                            <p className="text-[10px] font-bold text-indigo-600 leading-relaxed italic">
-                                "This plan is curated by your clinical team. Please consult with your provider for any adjustments."
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Timeline Column */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Your Milestones</h3>
-                        <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full uppercase tracking-wider">Patient View</span>
-                    </div>
-
-                    <div className="space-y-4 relative">
-                        {/* Vertical line connector */}
-                        <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-slate-100 -z-10" />
-
-                        {progress.stages.map((stage, index) => (
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                key={stage.id}
-                                className={`card-premium p-6 flex gap-6 bg-white border-slate-100 transition-all ${
-                                    stage.status === 'in_progress' ? 'ring-2 ring-indigo-500/20 bg-indigo-50/30' : ''
-                                }`}
-                            >
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
-                                    stage.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                    stage.status === 'in_progress' ? 'bg-indigo-600 text-white border-indigo-700 shadow-lg shadow-indigo-100' :
-                                    'bg-slate-50 text-slate-400 border-slate-100'
-                                }`}>
-                                    {stage.status === 'completed' ? <CheckCircle2 size={24} /> : <span className="text-sm font-black">0{index + 1}</span>}
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <h4 className="font-extrabold text-slate-900 truncate">{stage.title || stage.stage}</h4>
-                                        <StatusBadge status={stage.status} />
+                        <div className="lg:col-span-8 space-y-4">
+                            <div className="px-6 mb-4 flex items-center justify-between">
+                                <h2 className="text-[11px] font-black text-muted uppercase tracking-[0.3em]">Your Roadmap</h2>
+                                <span className="text-[8px] font-bold text-muted/50 uppercase tracking-widest italic">{progress?.stages?.length || 0} Registered Stages</span>
+                            </div>
+                            <div className="grid gap-4">
+                                {progress?.stages?.map((stg, i) => (
+                                    <div key={stg.id || i} className="p-7 bg-card border border-border-card rounded-[2.5rem] flex items-center gap-8 shadow-sm relative group hover:bg-page transition-all">
+                                        <div className={`absolute left-0 top-7 bottom-7 w-1.5 rounded-r-full transition-all ${stg.status === 'completed' ? 'bg-emerald-500 shadow-lg shadow-emerald-500/20' : stg.status === 'in_progress' ? 'bg-indigo-500 shadow-lg shadow-indigo-500/20' : 'bg-border-card'}`} />
+                                        <div className={`w-12 h-12 rounded-[1.25rem] flex items-center justify-center shrink-0 border-2 font-black transition-all ${stg.status === 'completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : stg.status === 'in_progress' ? 'bg-indigo-500 border-indigo-500 text-card shadow-xl shadow-indigo-500/10' : 'bg-page border-border-card text-muted'}`}>
+                                            {stg.status === 'completed' ? <CheckCircle2 size={24} /> : `0${i + 1}`}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1 gap-4">
+                                                <h3 className="text-xl font-black text-main tracking-tighter truncate mr-4 italic leading-none">{stg.title}</h3>
+                                                <StatusBadge status={stg.status} />
+                                            </div>
+                                            <p className="text-xs font-semibold text-muted italic opacity-80">{stg.description || 'Clinical milestone pending evaluation.'}</p>
+                                        </div>
                                     </div>
-                                    <p className="text-xs text-slate-500 font-medium leading-relaxed mb-3 line-clamp-2">
-                                        {stage.description || 'Working towards key milestones for this phase of therapy.'}
-                                    </p>
-                                    
-                                    {stage.notes && (
-                                        <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-100 text-xs font-semibold text-slate-600 italic">
-                                            "{stage.notes}"
-                                        </div>
-                                    )}
-
-                                    {stage.status === 'completed' && stage.createdAt && (
-                                        <div className="mt-3 flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                            <CheckCircle2 size={12} className="text-emerald-500" />
-                                            Completed on {new Date(stage.createdAt).toLocaleDateString()}
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <HistoryTabContent history={history} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

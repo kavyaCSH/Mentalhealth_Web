@@ -198,8 +198,13 @@ const QuestionnairePage = () => {
                 }
             }
 
-            const style = (backendResult as any).severityStyle || getSeverityStyle(backendResult.severity, backendResult.interpretation);
-            setResult({ ...backendResult, severityStyle: style, source: 'backend' });
+            if (targetPatientId) {
+                const style = (backendResult as any).severityStyle || getSeverityStyle(backendResult.severity, backendResult.interpretation);
+                setResult({ ...backendResult, severityStyle: style, source: 'backend' });
+            } else {
+                // For self-assessments, navigate to history as requested
+                navigate('/history');
+            }
         } catch (err: unknown) {
             const error = err as { response?: { data?: { message?: string } } };
             const errorMsg = error.response?.data?.message || 'Failed to submit assessment.';

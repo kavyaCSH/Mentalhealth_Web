@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
 import { Stethoscope, History as HistoryIcon, Activity, Brain } from 'lucide-react';
@@ -18,15 +18,18 @@ import { ClipboardCheck, ClipboardList } from 'lucide-react';
 const Health = () => {
     const navigate = useNavigate();
     const { patientId: userId } = useParams<{ patientId: string }>();
+    const { search } = useLocation();
+    const queryHexId = new URLSearchParams(search).get('hexId');
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
     const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
-
+    console.log("userId",userId);
     const [latestComplaint, setLatestComplaint] = useState<any>(null);
     const [latestHPI, setLatestHPI] = useState<any>(null);
     const [latestMSE, setLatestMSE] = useState<any>(null);
     const [latestHistory, setLatestHistory] = useState<any>(null);
     const [latestROS, setLatestROS] = useState<any>(null);
     const [treatmentProgress, setTreatmentProgress] = useState<TreatmentProgress | null>(null);
+    const [resolvedPatientId, setResolvedPatientId] = useState<string | number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -41,7 +44,7 @@ const Health = () => {
             console.log(`[Health] Resolving health overview for: ${userId}`);
 
             // 1. Fetch user profile to resolve both hex and numeric IDs
-            let hexId = userId || '';
+            let hexId = queryHexId || userId || '';
             let numericId: string | number | undefined = undefined;
 
             // Optimization: If viewing own profile as patient, we already have the IDs
@@ -55,6 +58,7 @@ const Health = () => {
                     if (userProfile) {
                         hexId = userProfile._id || userProfile.id || hexId;
                         numericId = userProfile.userId;
+                        setResolvedPatientId(numericId || hexId);
                         console.log(`[Health] Resolved IDs - Hex: ${hexId}, Numeric: ${numericId}`);
                     }
                 } catch (profileError) {
@@ -77,9 +81,9 @@ const Health = () => {
 
                 // If we don't have a numeric ID yet, try to resolve it
                 if (typeof resolvedTreatmentId === 'string' && resolvedTreatmentId.length > 20) {
-                    const assessmentData = await AssessmentService.getQuestions(resolvedTreatmentId);
-                    if (assessmentData.profile?.userId) {
-                        resolvedTreatmentId = Number(assessmentData.profile.userId);
+                    const assessmentData = await AssessmentService.getProfessionalQuestions(resolvedTreatmentId);
+                    if (assessmentData.data?.patient?.userId) {
+                        resolvedTreatmentId = Number(assessmentData.data.patient.userId);
                     }
                 }
 
@@ -292,7 +296,7 @@ const Health = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    onClick={() => navigate(`/patients/${userId}/treatment`)}
+                    onClick={() => navigate(`/patients/${resolvedPatientId || userId}/treatment`)}
                     className="card-premium p-5 border-slate-100 hover:border-emerald-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center gap-4 mb-4">
@@ -387,8 +391,8 @@ const Health = () => {
                             Start New
                         </button>
                         <button
-                            onClick={() => navigate(`/clinical/assessments/history?patientId=${userId}`)}
-                            className="py-3 px-4 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-colors"
+                            onClick={() => navigate(`/history/professional?patientId=${userId}`)}
+                            className="py-3 px-4 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all"
                         >
                             View History
                         </button>

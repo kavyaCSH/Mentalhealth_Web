@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import { 
@@ -13,10 +13,14 @@ import {
     ChevronLeft,
     ChevronRight,
     ShieldCheck,
-    AlertCircle
+    AlertCircle,
+    Send,
+    X,
+    Bell
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { UserService } from '../../api/services/user.service';
+import { NotificationService } from '../../api/services/notification.service';
 import type { User, UserRole } from '../../types/user.types';
 import type { RootState } from '../../store';
 
@@ -29,6 +33,11 @@ const UserList = () => {
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     
+    // Notification state
+    const [notificationUser, setNotificationUser] = useState<User | null>(null);
+    const [notifForm, setNotifForm] = useState({ title: '', message: '' });
+    const [notifLoading, setNotifLoading] = useState(false);
+
     // Pagination state
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
@@ -101,13 +110,32 @@ const UserList = () => {
         }
     };
 
-    const getRoleBadge = (role: UserRole | string) => {
-        switch (role) {
+    const handleSendNotification = async () => {
+        if (!notificationUser || !notifForm.title || !notifForm.message) return;
+        setNotifLoading(true);
+        try {
+            await NotificationService.sendTargetedNotification({
+                userId: notificationUser.id,
+                title: notifForm.title,
+                message: notifForm.message,
+                type: 'direct'
+            });
+            setNotificationUser(null);
+            setNotifForm({ title: '', message: '' });
+        } catch (error) {
+            console.error('Failed to send notification:', error);
+        } finally {
+            setNotifLoading(false);
+        }
+    };
+
+    const getRoleBadge = (roleValue: UserRole | string) => {
+        switch (roleValue) {
             case 'super_admin':
-            case 'admin': return 'bg-purple-50 text-purple-700 border-purple-100';
-            case 'hospital': return 'bg-blue-50 text-blue-700 border-blue-100';
-            case 'patient': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-            default: return 'bg-indigo-50 text-indigo-700 border-indigo-100';
+            case 'admin': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+            case 'hospital': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+            case 'patient': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+            default: return 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20';
         }
     };
 
@@ -128,7 +156,6 @@ const UserList = () => {
                 )}
             </header>
 
-            {/* Controls Bar */}
             <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
                 <div className="flex p-1 bg-page/80 rounded-2xl w-full lg:w-auto overflow-x-auto no-scrollbar shadow-inner border border-border-card">
                     {tabs.map((tab) => (
@@ -161,8 +188,7 @@ const UserList = () => {
                 </div>
             </div>
 
-            {/* Data Table */}
-            <div className="card-premium overflow-hidden border-border-card shadow-xl shadow-indigo-200/5">
+            <div className="card-premium overflow-hidden border-border-card shadow-xl shadow-indigo-500/5">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -230,24 +256,41 @@ const UserList = () => {
                                                 <p className="text-[10px] font-medium text-muted">{user.phone || 'No Signal Path'}</p>
                                             </td>
                                             <td className="p-5 text-center">
-                                                <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${user.isActive
-                                                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                                                    : 'bg-page text-muted border-border-card'
-                                                    }`}>
-                                                    {user.isActive ? 'Active' : 'Dormant'}
-                                                </span>
+                                                {(() => {
+                                                    const s = (user.isActive ? 'active' : 'dormant');
+                                                    const styles: Record<string, string> = {
+                                                        active: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+                                                        dormant: 'bg-page text-muted border-border-card'
+                                                    };
+                                                    return (
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all ${styles[s]}`}>
+                                                            {s.replace(/_/g, ' ')}
+                                                        </span>
+                                                    );
+                                                })()}
                                             </td>
                                             <td className="p-5 pr-8 text-right">
-                                                <Button
-                                                    variant={user.isActive ? "outline" : "primary"}
-                                                    size="sm"
-                                                    className="w-36 text-[10px] font-black uppercase tracking-widest"
-                                                    isLoading={actionLoading === user.id}
-                                                    onClick={() => handleToggleStatus(user.id, !!user.isActive)}
-                                                    leftIcon={user.isActive ? <UserX size={14} /> : <UserCheck size={14} />}
-                                                >
-                                                    {user.isActive ? 'Decommission' : 'Restore Access'}
-                                                </Button>
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="sm" 
+                                                        className="text-indigo-500 hover:bg-indigo-500/5"
+                                                        onClick={() => setNotificationUser(user)} 
+                                                        leftIcon={<Send size={14} />}
+                                                    >
+                                                        Notify
+                                                    </Button>
+                                                    <Button
+                                                        variant={user.isActive ? "outline" : "primary"}
+                                                        size="sm"
+                                                        className="w-36 text-[10px] font-black uppercase tracking-widest"
+                                                        isLoading={actionLoading === user.id}
+                                                        onClick={() => handleToggleStatus(user.id, !!user.isActive)}
+                                                        leftIcon={user.isActive ? <UserX size={14} /> : <UserCheck size={14} />}
+                                                    >
+                                                        {user.isActive ? 'Decommission' : 'Restore Access'}
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </motion.tr>
                                     ))
@@ -298,6 +341,66 @@ const UserList = () => {
                     </div>
                 )}
             </div>
+
+            <AnimatePresence>
+                {notificationUser && (
+                    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-page/80 backdrop-blur-md">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+                            animate={{ opacity: 1, scale: 1, y: 0 }} 
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+                            className="bg-card border border-border-card rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl overflow-hidden relative"
+                        >
+                            <div className="absolute top-0 right-0 p-6">
+                                <button onClick={() => setNotificationUser(null)} className="p-2 text-muted hover:text-main hover:bg-indigo-500/5 rounded-xl transition-all">
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 font-extrabold">
+                                    <Bell size={28} />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black text-main">Send Alert</h2>
+                                    <p className="text-sm font-bold text-muted uppercase tracking-widest">{notificationUser.firstName} {notificationUser.lastName}</p>
+                                </div>
+                            </div>
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block px-1">Direct Title</label>
+                                    <input 
+                                        type="text" 
+                                        value={notifForm.title} 
+                                        onChange={(e) => setNotifForm({...notifForm, title: e.target.value})} 
+                                        placeholder="e.g. Health Review Ready" 
+                                        className="w-full bg-page border border-border-card focus:border-indigo-500 rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main" 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block px-1">Clinical Message</label>
+                                    <textarea 
+                                        rows={4} 
+                                        value={notifForm.message} 
+                                        onChange={(e) => setNotifForm({...notifForm, message: e.target.value})} 
+                                        placeholder="Enter notification details..." 
+                                        className="w-full bg-page border border-border-card focus:border-indigo-500 rounded-2xl p-4 text-sm font-bold outline-none transition-all resize-none text-main" 
+                                    />
+                                </div>
+                                <Button 
+                                    className="w-full py-5 rounded-2xl shadow-xl shadow-indigo-500/10 font-black uppercase tracking-widest text-xs" 
+                                    size="lg" 
+                                    onClick={handleSendNotification} 
+                                    isLoading={notifLoading} 
+                                    disabled={!notifForm.title || !notifForm.message} 
+                                    leftIcon={<Send size={18} />}
+                                >
+                                    Broadcast Alert
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

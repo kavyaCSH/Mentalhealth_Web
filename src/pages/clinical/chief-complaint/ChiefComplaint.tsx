@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
 import {
@@ -10,16 +10,23 @@ import {
     Plus,
     Clock,
     Trash2,
-    Edit3
+    Edit3,
+    Filter,
+    Calendar,
+    RotateCcw,
+    ShieldAlert,
+    Activity
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { ChiefComplaintService } from '../../../api/services/chiefComplaint.service';
 import { UserService } from '../../../api/services/user.service';
-import type { ChiefComplaintResponse } from '../../../api/services/chiefComplaint.service';
+import type { ChiefComplaintResponse, ChiefComplaintFilters } from '../../../api/services/chiefComplaint.service';
 import type { User, Patient } from '../../../types/user.types';
 
 const ChiefComplaint = () => {
     const { patientId: userId } = useParams<{ patientId: string }>();
+    const { search } = useLocation();
+    const queryHexId = new URLSearchParams(search).get('hexId');
     const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
     const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT' ||
@@ -34,6 +41,11 @@ const ChiefComplaint = () => {
     const [history, setHistory] = useState<ChiefComplaintResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Filters State
+    const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+    const [filters, setFilters] = useState<ChiefComplaintFilters>({ status: 'completed' });
+    const [tempFilters, setTempFilters] = useState<ChiefComplaintFilters>({ status: 'completed' });
 
     const handleDelete = async (ccId: string | number) => {
         if (!window.confirm('Are you sure you want to delete this clinical record? This action cannot be undone.')) {
@@ -67,7 +79,7 @@ const ChiefComplaint = () => {
         if (effectiveUserId) {
             fetchData();
         }
-    }, [effectiveUserId]);
+    }, [effectiveUserId, filters]);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -81,7 +93,8 @@ const ChiefComplaint = () => {
             console.log(`[ChiefComplaint] Loading history for identity: ${effectiveUserId}`);
 
             // 1. Resolve hex ID from user profile
-            let hexId = userId;
+            let hexId = queryHexId || userId;
+            let resolvedUserId = userId;
 
             // Optimization: Bypass unauthorized lookup if patient is viewing self
             const isSelf = isPatient && (
@@ -93,6 +106,7 @@ const ChiefComplaint = () => {
 
             if (isSelf) {
                 hexId = (currentUser as any)?._id || currentUser?.id || hexId;
+                resolvedUserId = String((currentUser as any)?.userId || currentUser?.id || userId);
                 console.log(`[ChiefComplaint] Using session identity: ${hexId}`);
                 if (currentUser) {
                     setPatient(currentUser as any);
@@ -102,7 +116,8 @@ const ChiefComplaint = () => {
                     const userProfile = await UserService.getUserById(userId as string);
                     if (userProfile) {
                         hexId = userProfile._id || userProfile.id || hexId;
-                        console.log(`[ChiefComplaint] Resolved Hex ID: ${hexId}`);
+                        resolvedUserId = String(userProfile.userId || userProfile.id || userId);
+                        console.log(`[ChiefComplaint] Resolved IDs: Hex(${hexId}), User(${resolvedUserId})`);
                         setPatient(userProfile);
                     }
                 } catch (profileError) {
@@ -116,14 +131,13 @@ const ChiefComplaint = () => {
             if (isPatient && hexId) {
                 // Use patient-scoped endpoint — backend authorizes this for patient role
                 console.log(`[ChiefComplaint] Patient: using /patients/${hexId}/chief-complaints`);
-                const queryData = await ChiefComplaintService.listPatientComplaints(hexId as string);
+                const queryData = await ChiefComplaintService.listPatientComplaints(hexId as string, filters);
                 const complaints = queryData?.data || queryData || [];
                 complaintsArray = Array.isArray(complaints) ? complaints : [complaints].filter(Boolean);
             } else {
                 const queryData = await ChiefComplaintService.listComplaints({
-                    patient: hexId,
-                    patientId: hexId,
-                    patient_id: hexId
+                    patient_id: hexId,
+                    ...filters
                 });
                 const complaints = queryData?.data || queryData || [];
                 complaintsArray = Array.isArray(complaints) ? complaints : [complaints].filter(Boolean);
@@ -153,9 +167,13 @@ const ChiefComplaint = () => {
         if (currentUser?.role === 'patient' || (currentUser as any)?.group === 'PATIENT') {
             navigate('/records');
         } else {
-            navigate(`/patients/${userId}/health`);
+            navigate(`/patients/${userId}/health${queryHexId ? `?hexId=${queryHexId}` : ''}`);
         }
     };
+
+    const toggleFilters = () => setIsFilterExpanded(!isFilterExpanded);
+    const applyFilters = () => { setFilters(tempFilters); setIsFilterExpanded(false); };
+    const resetFilters = () => { setTempFilters({ status: 'completed' }); setFilters({ status: 'completed' }); };
 
     if (isLoading) {
         return (
@@ -187,15 +205,127 @@ const ChiefComplaint = () => {
                     </div>
                 </div>
 
-                <Button
-                    variant="primary"
-                    className="rounded-2xl px-8 shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-xs"
-                    onClick={() => navigate(isPatient ? `/records/chief-complaint/new` : `/patients/${userId}/chief-complaint/new`)}
-                    leftIcon={<Plus size={18} />}
-                >
-                    Add Complaint
-                </Button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={toggleFilters}
+                        className={`p-3 rounded-2xl border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest ${isFilterExpanded || (Object.keys(filters).length > 1 || (Object.keys(filters).length === 1 && filters.status !== 'completed'))
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200'
+                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                            }`}
+                    >
+                        <Filter size={18} />
+                        {(Object.keys(filters).length > 1 || (Object.keys(filters).length === 1 && filters.status !== 'completed')) && <span>(Active)</span>}
+                        <span>Filter</span>
+                    </button>
+                    <Button
+                        variant="primary"
+                        className="rounded-2xl px-8 shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-xs"
+                        onClick={() => navigate(isPatient ? `/records/chief-complaint/new` : `/patients/${userId}/chief-complaint/new${queryHexId ? `?hexId=${queryHexId}` : ''}`)}
+                        leftIcon={<Plus size={18} />}
+                    >
+                        Add Complaint
+                    </Button>
+                </div>
             </header>
+
+            {/* Premium Filter Section */}
+            {isFilterExpanded && (
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="card-premium p-8 bg-white/70 backdrop-blur-xl border-indigo-100/50 shadow-2xl shadow-indigo-100/20 space-y-8"
+                >
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {/* Status */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <Clock size={14} /> Record Status
+                            </label>
+                            <div className="flex gap-2">
+                                {['completed', 'draft'].map((s) => (
+                                    <button
+                                        key={s}
+                                        onClick={() => setTempFilters({ ...tempFilters, status: s as any })}
+                                        className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${tempFilters.status === s
+                                            ? 'bg-indigo-600 text-white border-indigo-600'
+                                            : 'bg-slate-50 text-slate-500 border-slate-100 hover:border-indigo-200'
+                                            }`}
+                                    >
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Severity */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <Activity size={14} /> Severity
+                            </label>
+                            <select
+                                value={tempFilters.severity || ''}
+                                onChange={(e) => setTempFilters({ ...tempFilters, severity: e.target.value || undefined as any })}
+                                className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            >
+                                <option value="">All Severities</option>
+                                <option value="Mild">Mild</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Severe">Severe</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+
+                        {/* Risk Level */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <ShieldAlert size={14} /> Risk Level
+                            </label>
+                            <select
+                                value={tempFilters.risk_level || ''}
+                                onChange={(e) => setTempFilters({ ...tempFilters, risk_level: e.target.value || undefined as any })}
+                                className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            >
+                                <option value="">All Risk Levels</option>
+                                <option value="Low">Low</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+
+                        {/* Period */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <Calendar size={14} /> Intake Period
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="date"
+                                    value={tempFilters.startDate || ''}
+                                    onChange={(e) => setTempFilters({ ...tempFilters, startDate: e.target.value })}
+                                    className="flex-1 bg-slate-50/50 border border-slate-100 rounded-xl py-2 px-2 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                />
+                                <input
+                                    type="date"
+                                    value={tempFilters.endDate || ''}
+                                    onChange={(e) => setTempFilters({ ...tempFilters, endDate: e.target.value })}
+                                    className="flex-1 bg-slate-50/50 border border-slate-100 rounded-xl py-2 px-2 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                        <button onClick={resetFilters} className="text-[10px] font-black text-slate-400 uppercase hover:text-rose-500 flex items-center gap-2 transition-colors">
+                            <RotateCcw size={14} /> Reset Filters
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <button onClick={toggleFilters} className="px-6 py-2.5 text-[10px] font-black text-slate-500 uppercase rounded-xl hover:bg-slate-50">Cancel</button>
+                            <Button onClick={applyFilters} variant="primary" className="px-8 py-2.5 rounded-xl shadow-lg shadow-indigo-100 text-[10px] uppercase font-black">Apply View</Button>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {history.length > 0 ? (
@@ -207,7 +337,7 @@ const ChiefComplaint = () => {
                             key={item.chiefComplaintId || item.id || item._id}
                             onClick={() => navigate(isPatient
                                 ? `/records/chief-complaint/${item.chiefComplaintId || item.id || item._id}`
-                                : `/patients/${effectiveUserId}/chief-complaint/${item.chiefComplaintId || item.id || item._id}`)}
+                                : `/patients/${effectiveUserId}/chief-complaint/${item.chiefComplaintId || item.id || item._id}${queryHexId ? `?hexId=${queryHexId}` : ''}`)}
                             className="card-premium p-8 bg-white border-slate-100 hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
                         >
                             <div className="flex items-center justify-between">
@@ -228,14 +358,25 @@ const ChiefComplaint = () => {
                                 {item.narrative}
                             </p>
                             <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">View AI ANALYSIS</span>
+                                <div className="flex items-center gap-2">
+                                    {item.structured?.severity && (
+                                        <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${item.structured.severity === 'Critical' || item.structured.severity === 'Severe' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                                            {item.structured?.severity}
+                                        </span>
+                                    )}
+                                    {item.risk_markers?.risk_level && item.risk_markers.risk_level !== 'Low' && (
+                                        <span className="px-2 py-1 bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-amber-100 flex items-center gap-1">
+                                            <ShieldAlert size={8} /> {item.risk_markers?.risk_level}
+                                        </span>
+                                    )}
+                                </div>
                                 <div className="flex items-center gap-2">
                                     {!isPatient && (
                                         <>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    navigate(`/patients/${effectiveUserId}/chief-complaint/edit/${(item.chiefComplaintId || item.id || item._id) as string | number}`);
+                                                    navigate(`/patients/${effectiveUserId}/chief-complaint/edit/${(item.chiefComplaintId || item.id || item._id) as string | number}${queryHexId ? `?hexId=${queryHexId}` : ''}`);
                                                 }}
                                                 className="p-2.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                                                 title="Edit Record"

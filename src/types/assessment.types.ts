@@ -109,6 +109,10 @@ export interface AssessmentResult {
     recommendation?: string;
     status?: string;
     isSelfAssessment?: boolean;
+    isProfessional?: boolean;
+    clinicianId?: string | number;
+    consultId?: string | number;
+    data?: any;
     responses?: {
         questionId: string | number;
         optionId: string;

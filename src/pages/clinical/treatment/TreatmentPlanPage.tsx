@@ -1,30 +1,26 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Activity, 
     ChevronLeft, 
     CheckCircle2, 
-    Clock, 
-    AlertCircle,
-    Play,
-    Pause,
-    Plus,
-    BarChart3,
-    ArrowRight,
-    FileText,
-    Pill,
-    MessageSquare,
-    ChevronDown,
-    RefreshCw
+    Plus, 
+    LayoutDashboard,
+    ClipboardCheck,
+    X,
+    Save,
+    Calendar,
+    RefreshCw,
+    AlertCircle
 } from 'lucide-react';
-import Button from '../../../components/ui/Button';
 import { TreatmentService } from '../../../api/services/treatment.service';
-import { AssessmentService } from '../../../api/services/assessment.service';
 import { UserService } from '../../../api/services/user.service';
+import { AssessmentService } from '../../../api/services/assessment.service';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../store';
-import type { TreatmentProgress, TreatmentStage, UpdateStageStatusPayload } from '../../../types/treatment.types';
+import type { TreatmentProgress, TreatmentStage } from '../../../types/treatment.types';
+import Button from '../../../components/ui/Button';
 
 const StatusBadge = ({ status }: { status: TreatmentStage['status'] }) => {
     const styles: Record<TreatmentStage['status'], string> = {
@@ -43,115 +39,187 @@ const StatusBadge = ({ status }: { status: TreatmentStage['status'] }) => {
         skipped: <RefreshCw size={12} className="opacity-50" />
     };
 
+    const s = status || 'pending';
     return (
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${styles[status]}`}>
-            {icons[status]}
-            {status.replace('_', ' ')}
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border transition-all ${styles[s]}`}>
+            {s.replace(/_/g, ' ')}
         </span>
     );
 };
 
 const TreatmentPlanPage = () => {
-    const { patientId: userId } = useParams<{ patientId: string }>();
+    const { patientId: userIdFromRoute } = useParams<{ patientId: string }>();
+    const { search } = useLocation();
+    const queryHexId = new URLSearchParams(search).get('hexId');
+
+    console.log("userIdFromRoute",userIdFromRoute);
     const navigate = useNavigate();
     const { user: currentUser } = useSelector((state: RootState) => state.auth);
-    const isPatient = currentUser?.role === 'patient' || 
-                      (currentUser as any)?.role === 'PATIENT';
+    const isPatient = currentUser?.role === 'patient' || (currentUser as any)?.role === 'PATIENT';
+    const isPractitioner = ['psychiatrist', 'psychologist', 'nurse', 'social_worker', 'counselor'].includes(String(currentUser?.role).toLowerCase());
 
-    const [progress, setProgress] = useState<TreatmentProgress | null>(null);
+    const [progress, setProgress] = useState<TreatmentProgress>({ stages: [], overall_progress: 0, patientId: userIdFromRoute || '', diagnosis: '' });
+    const [history, setHistory] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState<'journey' | 'history'>('journey');
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [isActionLoading, setIsActionLoading] = useState(false);
+    const [identities, setIdentities] = useState<{ userId: string; patientId: string } | null>(null);
+
+    // Update Modal State (Compact Form UI)
     const [updatingStage, setUpdatingStage] = useState<TreatmentStage | null>(null);
-    const [updateForm, setUpdateForm] = useState<UpdateStageStatusPayload>({ status: 'completed', notes: '' });
+    const [updateForm, setUpdateForm] = useState({ title: '', status: 'pending' as any, notes: '', completedAt: '' });
     const [isUpdating, setIsUpdating] = useState(false);
 
-    useEffect(() => {
-        fetchProgress();
-    }, [userId]);
+    const fetchLock = useRef(false);
 
-    const fetchProgress = async () => {
+    const fetchData = useCallback(async () => {
+        if (!userIdFromRoute || fetchLock.current) return;
+        fetchLock.current = true;
         setIsLoading(true);
-        setError(null);
         try {
-            console.log(`[TreatmentPlan] Resolving plan for: ${userId}`);
-            let resolvedId: string | number = userId || '';
-            
-            // If patient is viewing self, prioritize their session identity
-            if (isPatient && (currentUser?.userId || currentUser?.id)) {
-                resolvedId = currentUser.userId || currentUser._id || currentUser.id || resolvedId;
-                console.log(`[TreatmentPlan] Patient self-view resolved to: ${resolvedId}`);
-            }
-            
-            try {
-                // 1. Try direct lookup first
-                const rawData = await TreatmentService.getPatientProgress(resolvedId);
-                let data: any = rawData;
+            // High-Fidelity Identity Sync Protocol (Clinical Parity)
+            const resolveFullIdentity = async (idArg: string) => {
+                let resolvedUserId = idArg;
+                let resolvedPatientId = queryHexId || idArg;
 
-                // Handle API response where stages are in a 'data' array (as per user JSON)
-                if (data && data.data && Array.isArray(data.data)) {
-                    const stageArray = data.data;
-                    data = {
-                        stages: stageArray.map((s: any) => ({
-                            id: s.id || s._id,
-                            title: s.title || s.stage || 'Clinical Milestone',
-                            status: s.status || 'pending',
-                            notes: s.notes,
-                            description: s.description,
-                            createdAt: s.createdAt
-                        })),
-                        overall_progress: Math.round((stageArray.filter((s: any) => s.status === 'completed').length / (stageArray.length || 1)) * 100),
-                        diagnosis: data.diagnosis || 'Therapeutic Framework',
-                        patientId: String(resolvedId)
-                    };
-                }
-
-                if (data && !Array.isArray(data) && data.stages) {
-                    setProgress(data);
-                } else {
-                    console.warn('[TreatmentPlan] Received empty or invalid protocol data:', data);
-                    setProgress(null);
-                }
-            } catch (treatmentError: any) {
-                if (treatmentError.response?.status === 404) {
-                    console.warn('[TreatmentPlan] Direct lookup failed, trying clinical fallback resolution...');
-                    // Resolve numeric ID
-                    const assessmentData = await AssessmentService.getQuestions(userId || '');
-                    if (assessmentData.profile?.userId) {
-                        resolvedId = Number(assessmentData.profile.userId);
-                    } else {
-                        const { users } = await UserService.listUsers({ role: 'patient', search: userId });
-                        const match = users.find((u: any) => String(u._id) === userId || String(u.id) === userId);
-                        if (match) resolvedId = match.userId ? Number(match.userId) : String(match.id);
+                try {
+                    const profile = await UserService.getUserById(idArg);
+                    resolvedUserId = String(profile.userId || profile.id || idArg);
+                    resolvedPatientId = String(profile._id || profile.id || resolvedPatientId);
+                } catch (err: any) {
+                    if (err.response?.status === 404) {
+                        const { users } = await UserService.listUsers({ role: 'patient', search: idArg });
+                        const match: any = users.find((u: any) => 
+                            String(u._id) === idArg || String(u.id) === idArg || String(u.userId) === idArg
+                        );
+                        if (match) {
+                            resolvedUserId = String(match.userId || match.id || idArg);
+                            resolvedPatientId = String(match._id || match.id || idArg);
+                        } else {
+                            const pData = await AssessmentService.getProfessionalQuestions(idArg).catch(() => null);
+                            if (pData?.data?.patient?.userId) {
+                                resolvedUserId = String(pData.data.patient.userId);
+                                resolvedPatientId = idArg;
+                            }
+                        }
                     }
-
-                    if (resolvedId && resolvedId !== userId) {
-                        console.log(`[TreatmentPlan] Identity resolved via fallback: ${resolvedId} (${typeof resolvedId})`);
-                        const fallbackData = await TreatmentService.getPatientProgress(resolvedId);
-                        setProgress(fallbackData);
-                    } else {
-                        throw treatmentError;
-                    }
-                } else {
-                    throw treatmentError;
                 }
+                return { userId: resolvedUserId, patientId: resolvedPatientId };
+            };
+
+            const resolvedIdentities = await resolveFullIdentity(userIdFromRoute);
+            setIdentities(resolvedIdentities);
+            console.log(`[Clinical Treatment] Syncing for identities: User(${resolvedIdentities.userId}), Patient(${resolvedIdentities.patientId})`);
+
+            // Trial and Error Fetching (Clinical Parity: Handles 404 "Patient not found" vs "User not found")
+            const syncProgress = async () => {
+                // Try numeric User ID first as primary identity
+                const tryOrder = [resolvedIdentities.userId, resolvedIdentities.patientId];
+                console.log("tryOrder",resolvedIdentities);
+                let lastError = null;
+
+                for (const id of tryOrder) {
+                    try {
+                        console.log(`[Clinical Treatment] Attempting progress sync with ID: ${id}`);
+                        const res = await TreatmentService.getPatientProgress(id);
+                        if (res && res.stages && res.stages.length > 0) return res;
+                        // If empty but no 404, we might want to try the other ID anyway if they are different
+                        if (id === tryOrder[0] && resolvedIdentities.patientId !== resolvedIdentities.userId) continue;
+                        return res;
+                    } catch (err: any) {
+                        lastError = err;
+                        if (err.response?.status === 404) continue;
+                        throw err;
+                    }
+                }
+                throw lastError;
+            };
+
+            const syncHistory = async () => {
+                const tryOrder = [resolvedIdentities.userId, resolvedIdentities.patientId];
+                let lastError = null;
+
+                for (const id of tryOrder) {
+                    try {
+                        console.log(`[Clinical Treatment] Attempting history sync with ID: ${id}`);
+                        const res = await TreatmentService.getTreatmentHistory(id);
+                        const historyList = Array.isArray(res) ? res : (res.data || res.history || []);
+                        if (historyList.length > 0) return historyList;
+                        if (id === tryOrder[0] && resolvedIdentities.userId !== resolvedIdentities.patientId) continue;
+                        return historyList;
+                    } catch (err: any) {
+                        lastError = err;
+                        if (err.response?.status === 404) continue;
+                        throw err;
+                    }
+                }
+                return [];
+            };
+
+            const [pRes, hRes] = await Promise.allSettled([syncProgress(), syncHistory()]);
+
+            if (pRes.status === 'fulfilled') {
+                setProgress(pRes.value);
+            } else {
+                console.warn('[Clinical Treatment] Progress final failure:', pRes.reason);
+                setProgress({ stages: [], overall_progress: 0, patientId: resolvedIdentities.userId, diagnosis: 'No active roadmap found' });
             }
-        } catch (err: any) {
-            console.error('[TreatmentPlan] Fetch failed:', err);
-            setError('No active treatment plan found or failed to load.');
+
+            if (hRes.status === 'fulfilled') {
+                setHistory(hRes.value);
+            }
+        } catch (err) {
+            console.error('[Treatment] Critical failure:', err);
         } finally {
             setIsLoading(false);
+            fetchLock.current = false;
         }
+    }, [userIdFromRoute]);
+
+    useEffect(() => { fetchData(); }, [fetchData]);
+
+    const handleInitializeJourney = async () => {
+        if (!userIdFromRoute) return;
+        setIsActionLoading(true);
+        try {
+            await TreatmentService.initializeJourney(userIdFromRoute);
+            fetchData();
+        } catch {
+            console.error('[Journey] Initialization failed');
+        } finally {
+            setIsActionLoading(false);
+        }
+    };
+
+    const handleOpenUpdate = (stg: TreatmentStage) => {
+        setUpdatingStage(stg);
+        setUpdateForm({
+            title: stg.title,
+            status: stg.status,
+            notes: stg.description || '',
+            completedAt: stg.createdAt ? new Date(stg.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+        });
     };
 
     const handleUpdateStatus = async () => {
         if (!updatingStage) return;
         setIsUpdating(true);
         try {
-            await TreatmentService.updateStageStatus(updatingStage.id, updateForm);
+            const payload: any = {
+                status: updateForm.status,
+                notes: updateForm.notes,
+                stage: updateForm.title
+            };
+
+            if (updateForm.status === 'completed') {
+                payload.completedAt = new Date(updateForm.completedAt).toISOString();
+            }
+
+            await TreatmentService.updateStageStatus(updatingStage.id, payload);
             setUpdatingStage(null);
-            await fetchProgress(); // Refresh data
-        } catch (err: any) {
-            console.error('Failed to update stage status:', err);
+            fetchData();
+        } catch {
+            console.error('[Stage] Update failed');
         } finally {
             setIsUpdating(false);
         }
@@ -159,253 +227,200 @@ const TreatmentPlanPage = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Hydrating Treatment Framework...</p>
-            </div>
-        );
-    }
-
-    if (error || !progress) {
-        return (
-            <div className="p-8 max-w-3xl text-center py-20 flex flex-col items-center">
-                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                    <AlertCircle size={32} className="text-slate-400" />
-                </div>
-                <h2 className="text-2xl font-black text-slate-900 mb-2">No Active Protocol</h2>
-                <p className="text-slate-500 font-medium mb-8 max-w-md">
-                    This patient does not have a therapeutic framework initialized yet. 
-                    Establish a clinical strategy to Begin tracking progress.
-                </p>
-                {!isPatient && (
-                    <Button 
-                        variant="primary" 
-                        onClick={() => navigate(`/patients/${userId}/treatment/new`)}
-                        leftIcon={<Plus size={18} />}
-                        className="px-10"
-                    >
-                        Initialize Protocol
-                    </Button>
-                )}
+            <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
+                <Activity className="animate-spin text-indigo-600" size={32} />
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-50">Syncing Data...</p>
             </div>
         );
     }
 
     return (
-        <div className="p-8 max-w-5xl animate-fade-in pb-20">
-            <header className="mb-10 flex items-center justify-between">
-                <div>
-                    <button
-                        onClick={() => navigate(isPatient ? '/records' : `/patients/${userId}/health`)}
-                        className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors font-bold text-sm mb-4"
-                    >
-                        <ChevronLeft size={18} /> Back to {isPatient ? 'Records' : 'Health Overview'}
+        <div className="p-6 max-w-7xl mx-auto animate-fade-in pb-24">
+            <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button onClick={() => navigate(isPatient ? '/records' : `/patients/${identities?.userId || userIdFromRoute}/health`)} className="flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-[0.2em] group">
+                        <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back
                     </button>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <Activity className="text-indigo-600" size={32} />
-                        Treatment Progress
-                    </h1>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 ml-11">Therapeutic Journey & Clinical Milestones</p>
+                    <div>
+                        <div className="flex items-center gap-3 text-indigo-600 mb-2">
+                            <Activity size={28} strokeWidth={2.5} />
+                            <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Treatment Flow</h1>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] opacity-60 ml-1">Clinical Recovery Suite</p>
+                            <div className="h-2 w-px bg-slate-300 mx-1 opacity-40" />
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest opacity-80">ID: {identities?.patientId || progress.patientId}</p>
+                            {identities?.userId && identities.userId !== (identities.patientId || progress.patientId) && (
+                                <span className="text-[8px] font-medium text-slate-300 tracking-tighter">({identities.userId})</span>
+                            )}
+                        </div>
+                    </div>
                 </div>
-                <div className="flex flex-col items-end">
-                    <span className="text-4xl font-black text-indigo-600">{progress.overall_progress}%</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Overall Completion</span>
+
+                <div className="flex flex-col md:flex-row items-center gap-4">
+                    {isPractitioner && (
+                        <button onClick={() => navigate(`/patients/${userIdFromRoute}/treatment/new`)} className="bg-slate-900 hover:bg-indigo-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 transition-all">
+                            <Plus size={16} /> Record Session
+                        </button>
+                    )}
+                    <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
+                        <button onClick={() => setActiveTab('journey')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'journey' ? 'bg-white text-indigo-600 shadow-lg ring-1 ring-slate-200/50' : 'text-slate-400'}`}>Journey</button>
+                        <button onClick={() => setActiveTab('history')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'history' ? 'bg-white text-indigo-600 shadow-lg ring-1 ring-slate-200/50' : 'text-slate-400'}`}>History</button>
+                    </div>
                 </div>
             </header>
 
-            <div className="grid lg:grid-cols-3 gap-8">
-                {/* Left Column: Summary & Info */}
-                <div className="lg:col-span-1 space-y-6">
-                    <div className="glass-card p-6 space-y-4">
-                        <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Diagnosis</p>
-                            <h2 className="text-lg font-black text-slate-800">{progress.diagnosis}</h2>
-                        </div>
-                        
-                        <div className="pt-4 border-t border-slate-50">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <BarChart3 size={12} className="text-indigo-500" />
-                                Protocol Metrics
-                            </p>
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-500 font-medium">Total Stages</span>
-                                    <span className="font-bold text-slate-900">{progress.stages.length}</span>
+            <AnimatePresence mode="wait">
+                {activeTab === 'journey' ? (
+                    <motion.div key="journey" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid lg:grid-cols-4 gap-8">
+                        <div className="lg:col-span-1 space-y-4">
+                            {!progress?.stages || progress.stages.length === 0 ? (
+                                <div className="p-6 text-center bg-slate-50 border border-dashed border-slate-200 rounded-[1.5rem] shadow-sm flex flex-col items-center">
+                                    <LayoutDashboard size={32} className="text-slate-300 mb-4" />
+                                    <h3 className="text-sm font-black text-slate-900 uppercase">Initialize Plan</h3>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed mt-2 mb-6">Setup the clinical roadmap.</p>
+                                    {isPractitioner && (
+                                        <Button onClick={handleInitializeJourney} isLoading={isActionLoading} variant="primary" className="w-full rounded-[1rem] py-4 uppercase font-black tracking-widest text-[10px]">
+                                            Establish
+                                        </Button>
+                                    )}
                                 </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-500 font-medium">Completed</span>
-                                    <span className="font-bold text-emerald-600">{progress.stages.filter(s => s.status === 'completed').length}</span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-500 font-medium">In Progress</span>
-                                    <span className="font-bold text-indigo-600">{progress.stages.filter(s => s.status === 'in_progress').length}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {!isPatient && (
-                            <div className="pt-6">
-                                <Button 
-                                    variant="outline" 
-                                    className="w-full text-[11px]"
-                                    onClick={() => navigate(`/patients/${userId}/treatment/new`)}
-                                >
-                                    Re-initialize Protocol
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Right Column: Stages Timeline */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Clinical Milestones</h3>
-                        <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full uppercase tracking-wider">Sequential Path</span>
-                    </div>
-
-                    <div className="space-y-4 relative">
-                        {/* Connecting Line */}
-                        <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-slate-100 -z-10" />
-
-                        {progress.stages.length > 0 ? progress.stages.map((stage, index) => (
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                key={stage.id}
-                                className={`glass-card p-5 flex gap-5 group transition-all ${stage.status === 'in_progress' ? 'ring-2 ring-indigo-500/20 bg-indigo-50/10' : ''}`}
-                            >
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${
-                                    stage.status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                    stage.status === 'in_progress' ? 'bg-indigo-600 text-white border-indigo-700' :
-                                    'bg-white text-slate-400 border-slate-100'
-                                }`}>
-                                    {stage.status === 'completed' ? <CheckCircle2 size={24} /> : <span className="text-sm font-black">0{index + 1}</span>}
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <h4 className="font-extrabold text-slate-900 truncate">{stage.title || stage.stage}</h4>
-                                        <StatusBadge status={stage.status} />
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-xl flex flex-col items-center text-center">
+                                        <div className="text-5xl font-black text-slate-900 mb-1 tracking-tighter leading-none">{progress.overall_progress}%</div>
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6 italic">Total Mastery</span>
+                                        <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100"><div className="h-full bg-indigo-600 transition-all duration-700" style={{ width: `${progress.overall_progress}%` }} /></div>
                                     </div>
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <p className="text-xs text-slate-500 font-medium line-clamp-1 flex-1">
-                                            {stage.description || 'Proceeding through established therapeutic interventions for this stage of recovery.'}
-                                        </p>
-                                        {stage.createdAt && (
-                                            <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap bg-slate-50 px-2 py-0.5 rounded-md flex items-center gap-1">
-                                                <Clock size={10} />
-                                                {new Date(stage.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                            </span>
+                                    <div className="p-6 bg-slate-900 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
+                                        <h2 className="text-xl font-black tracking-tight leading-tight mb-6">{progress.diagnosis || 'Active Protocol'}</h2>
+                                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                                            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[9px] font-black uppercase tracking-widest text-emerald-100/60">Live</span></div>
+                                            {isPractitioner && <button onClick={handleInitializeJourney} className="text-[8px] font-black uppercase tracking-[0.2em] text-indigo-400 hover:text-white transition-all">Reset</button>}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="lg:col-span-3">
+                            <div className="grid gap-3">
+                            {progress?.stages?.map((stg, i) => (
+                                <div key={stg.id || i} className={`p-5 bg-white border border-slate-100 rounded-[1.75rem] flex items-center gap-6 transition-all hover:bg-slate-50 shadow-sm relative ${stg.status === 'in_progress' ? 'ring-2 ring-indigo-500/5' : ''}`}>
+                                    <div className={`absolute left-0 top-5 bottom-5 w-1 rounded-r-xl ${stg.status === 'completed' ? 'bg-emerald-500' : stg.status === 'in_progress' ? 'bg-indigo-600' : 'bg-slate-200'}`} />
+                                    
+                                    <div className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center shrink-0 border transition-all ${stg.status === 'completed' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : stg.status === 'in_progress' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                        {stg.status === 'completed' ? <CheckCircle2 size={20} /> : <span className="text-lg font-black tracking-tighter">0{i + 1}</span>}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <h3 className="text-xl font-black text-slate-900 tracking-tighter truncate leading-tight">{stg.title}</h3>
+                                            <StatusBadge status={stg.status} />
+                                        </div>
+                                        <div className="flex items-center justify-between gap-4">
+                                            <p className="text-[13px] font-semibold text-slate-400 italic truncate opacity-80">{stg.description || 'Milestone pending clinical evaluation.'}</p>
+                                            {isPractitioner && (
+                                                <button onClick={() => handleOpenUpdate(stg)} className="shrink-0 text-indigo-600 hover:text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] underline underline-offset-4">
+                                                    Update Stage
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                         {history.length === 0 ? (
+                            <div className="col-span-full p-20 text-center bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-100 flex flex-col items-center">
+                                <ClipboardCheck size={48} className="text-slate-200 mb-6" />
+                                <h3 className="text-xl font-black text-slate-500 uppercase">Records Vault Empty</h3>
+                            </div>
+                        ) : (
+                            history.filter(Boolean).map((rec, i) => (
+                                <div key={rec.id || i} className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm flex flex-col hover:border-indigo-100 transition-all">
+                                     <div className="flex items-center justify-between mb-5 pb-5 border-b border-slate-50">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-slate-900 text-white rounded-[1rem] flex items-center justify-center"><Activity size={18} /></div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[12px] font-black text-slate-900 tracking-tighter italic">{new Date(rec.createdAt || rec.date).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                        <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 tracking-widest uppercase italic">Verified</span>
+                                    </div>
+                                    <div className="space-y-4 flex-1">
+                                        {rec.plan && (
+                                            <div className="space-y-1.5">
+                                                <div className="flex items-center gap-1.5 ml-1"><div className="w-1.5 h-1.5 rounded-full bg-indigo-500" /><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Impression</span></div>
+                                                <p className="text-[13px] font-bold text-slate-600 leading-relaxed italic">{rec.plan}</p>
+                                            </div>
+                                        )}
+                                        {rec.medications && (
+                                            <div className="space-y-1.5 pt-4 border-t border-slate-50">
+                                                <div className="flex items-center gap-1.5 ml-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500" /><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Meds</span></div>
+                                                <p className="text-[11px] font-black text-rose-600 uppercase tracking-tight">{rec.medications}</p>
+                                            </div>
                                         )}
                                     </div>
-                                    
-                                    {stage.notes && (
-                                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 text-[10px] font-medium text-slate-500 italic mb-3">
-                                            "{stage.notes}"
-                                        </div>
-                                    )}
-
-                                    {!isPatient && (
-                                        <div className="flex justify-end">
-                                            <button 
-                                                onClick={() => {
-                                                    setUpdatingStage(stage);
-                                                    setUpdateForm({ status: stage.status, notes: stage.notes || '' });
-                                                }}
-                                                className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] hover:text-indigo-700 flex items-center gap-1 group/btn"
-                                            >
-                                                Update Status <ArrowRight size={10} className="transition-transform group-hover/btn:translate-x-1" />
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
-                            </motion.div>
-                        )) : (
-                            <div className="glass-card p-10 text-center text-slate-400 italic text-sm">
-                                No clinical stages defined for this initial framework.
-                            </div>
+                            ))
                         )}
-                    </div>
-                </div>
-            </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            {/* Update Status Modal */}
+            {/* REDESIGNED UPDATE FORM CARD UI */}
             <AnimatePresence>
                 {updatingStage && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-                            onClick={() => !isUpdating && setUpdatingStage(null)}
-                        />
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white rounded-[2rem] w-full max-w-lg p-8 shadow-2xl relative z-10 space-y-6"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                                    <Activity size={24} />
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-slate-900/60 backdrop-blur-sm shadow-2xl">
+                        <motion.div initial={{ scale: 0.95, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100 relative max-h-[85vh] flex flex-col">
+                            {/* Compact Form Header */}
+                            <div className="px-6 py-5 flex items-center justify-between bg-slate-50 border-b border-slate-100 shrink-0">
+                                <div className="space-y-0.5">
+                                    <h2 className="text-xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Update Protocol</h2>
+                                    <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest opacity-80">Synchronizing stage</p>
                                 </div>
-                                <div>
-                                    <h3 className="text-xl font-black text-slate-900">Update Milestone</h3>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{updatingStage.title}</p>
-                                </div>
+                                <button onClick={() => setUpdatingStage(null)} className="p-2.5 bg-white text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-xl shadow-sm transition-all border border-slate-100"><X size={18} /></button>
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progress Status</label>
+                            <div className="px-6 py-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
+                                {/* Compact Caption Card */}
+                                <div className="space-y-2 p-4 bg-slate-50/50 rounded-[1.25rem] border border-slate-100">
+                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><LayoutDashboard size={10} /> Stage Caption</label>
+                                    <input type="text" value={updateForm.title} onChange={(e) => setUpdateForm({ ...updateForm, title: e.target.value })} className="w-full bg-white border border-slate-100 rounded-xl py-3 px-5 text-[13px] font-black uppercase tracking-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" placeholder="Header" />
+                                </div>
+
+                                {/* Compact Status Grid */}
+                                <div className="space-y-2.5">
+                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Progress Mastery</label>
                                     <div className="grid grid-cols-2 gap-2">
-                                        {(['pending', 'in_progress', 'completed', 'on_hold'] as const).map((status) => (
-                                            <button
-                                                key={status}
-                                                onClick={() => setUpdateForm({ ...updateForm, status })}
-                                                className={`p-3 rounded-xl border-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                    updateForm.status === status 
-                                                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md shadow-indigo-100' 
-                                                        : 'border-slate-100 text-slate-500 hover:border-slate-200'
-                                                }`}
-                                            >
-                                                {status.replace('_', ' ')}
+                                        {(['pending', 'in_progress', 'completed', 'on_hold'] as const).map((s) => (
+                                            <button key={s} onClick={() => setUpdateForm({ ...updateForm, status: s })} className={`px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all ${updateForm.status === s ? (s === 'completed' ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-indigo-600 border-indigo-600 text-white shadow-md') : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-100'}`}>
+                                                {s.replace(/_/g, ' ')}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
+                                {/* Clinical Notes Card */}
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clinical Notes</label>
-                                    <textarea
-                                        value={updateForm.notes}
-                                        onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
-                                        placeholder="Add clinical observations or milestone details..."
-                                        rows={4}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
-                                    />
+                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Clinical findings</label>
+                                    <textarea value={updateForm.notes} onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-[1.25rem] p-4 text-[13px] font-bold text-slate-600 leading-relaxed focus:outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all min-h-[90px] resize-none shadow-inner" placeholder="Log progression..." />
                                 </div>
+
+                                {updateForm.status === 'completed' && (
+                                    <div className="space-y-2.5 animate-fade-in p-4 bg-emerald-50/50 rounded-[1.25rem] border border-emerald-100/50">
+                                        <label className="text-[8px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2"><Calendar size={10} /> Completion Date</label>
+                                        <input type="date" value={updateForm.completedAt} onChange={(e) => setUpdateForm({ ...updateForm, completedAt: e.target.value })} className="w-full bg-white border border-emerald-100/60 rounded-xl py-3 px-5 text-[12px] font-black uppercase tracking-widest focus:outline-none shadow-sm" />
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="flex gap-4 pt-4">
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => setUpdatingStage(null)}
-                                    disabled={isUpdating}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    className="flex-1"
-                                    onClick={handleUpdateStatus}
-                                    isLoading={isUpdating}
-                                >
-                                    Save Progress
+                            <div className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 shrink-0">
+                                <Button onClick={handleUpdateStatus} isLoading={isUpdating} className="w-full rounded-[1.25rem] py-4 flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 hover:scale-[1.01] transition-transform text-[11px] uppercase font-black tracking-widest">
+                                    <Save size={18} /> Commit Status
                                 </Button>
                             </div>
                         </motion.div>

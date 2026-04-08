@@ -9,26 +9,26 @@ import { AssessmentService } from '../../api/services/assessment.service';
 import type { SelfAssessmentQuestion } from '../../types/assessment.types';
 
 const CAT_STYLE: Record<string, { icon: string; color: string; label: string }> = {
-    general:         { icon: 'Brain',          color: '#6366f1', label: 'General Well-being' },
-    depression:      { icon: 'Heart',          color: '#10b981', label: 'Depression' },
-    anxiety:         { icon: 'Activity',       color: '#3b82f6', label: 'Anxiety' },
-    adhd:            { icon: 'Sparkles',       color: '#f59e0b', label: 'ADHD' },
-    panic_disorder:  { icon: 'Zap',            color: '#ef4444', label: 'Panic Disorder' },
-    sleep:           { icon: 'Moon',           color: '#8b5cf6', label: 'Sleep' },
-    stress:          { icon: 'Flame',          color: '#f97316', label: 'Stress' },
-    psychosis:       { icon: 'Eye',            color: '#64748b', label: 'Psychosis' },
-    ocd:             { icon: 'Crosshair',      color: '#7c3aed', label: 'OCD' },
-    mania:           { icon: 'Zap',            color: '#d97706', label: 'Mania / Energy' },
-    anger:           { icon: 'Flame',          color: '#dc2626', label: 'Anger' },
-    somatic:         { icon: 'PersonStanding', color: '#0d9488', label: 'Somatic' },
-    social_anxiety:  { icon: 'Eye',            color: '#4f46e5', label: 'Social Anxiety' },
-    substance_use:   { icon: 'Pill',           color: '#475569', label: 'Substance Use' },
-    eating_disorder: { icon: 'Coffee',         color: '#059669', label: 'Eating' },
-    purpose:         { icon: 'Star',           color: '#ca8a04', label: 'Purpose' },
-    social:          { icon: 'Heart',          color: '#ec4899', label: 'Social Support' },
-    family:          { icon: 'Heart',          color: '#db2777', label: 'Relationships' },
-    financial:       { icon: 'Shield',         color: '#4b5563', label: 'Financial Stress' },
-    'self-image':    { icon: 'Sparkles',       color: '#7c3aed', label: 'Self-image' },
+    general: { icon: 'Brain', color: '#6366f1', label: 'General Well-being' },
+    depression: { icon: 'Heart', color: '#10b981', label: 'Depression' },
+    anxiety: { icon: 'Activity', color: '#3b82f6', label: 'Anxiety' },
+    adhd: { icon: 'Sparkles', color: '#f59e0b', label: 'ADHD' },
+    panic_disorder: { icon: 'Zap', color: '#ef4444', label: 'Panic Disorder' },
+    sleep: { icon: 'Moon', color: '#8b5cf6', label: 'Sleep' },
+    stress: { icon: 'Flame', color: '#f97316', label: 'Stress' },
+    psychosis: { icon: 'Eye', color: '#64748b', label: 'Psychosis' },
+    ocd: { icon: 'Crosshair', color: '#7c3aed', label: 'OCD' },
+    mania: { icon: 'Zap', color: '#d97706', label: 'Mania / Energy' },
+    anger: { icon: 'Flame', color: '#dc2626', label: 'Anger' },
+    somatic: { icon: 'PersonStanding', color: '#0d9488', label: 'Somatic' },
+    social_anxiety: { icon: 'Eye', color: '#4f46e5', label: 'Social Anxiety' },
+    substance_use: { icon: 'Pill', color: '#475569', label: 'Substance Use' },
+    eating_disorder: { icon: 'Coffee', color: '#059669', label: 'Eating' },
+    purpose: { icon: 'Star', color: '#ca8a04', label: 'Purpose' },
+    social: { icon: 'Heart', color: '#ec4899', label: 'Social Support' },
+    family: { icon: 'Heart', color: '#db2777', label: 'Relationships' },
+    financial: { icon: 'Shield', color: '#4b5563', label: 'Financial Stress' },
+    'self-image': { icon: 'Sparkles', color: '#7c3aed', label: 'Self-image' },
 };
 const DEF_CAT = { icon: 'Brain', color: '#6366f1', label: 'Assessment' };
 
@@ -67,30 +67,32 @@ const hex2rgba = (hex: string, a: number) => {
 };
 
 export default function AssessmentCenter() {
-    const [view, setView]       = useState<View>('landing');
-    const [questions, setQs]    = useState<SelfAssessmentQuestion[]>([]);
-    const [idx, setIdx]         = useState(0);
+    const [view, setView] = useState<View>('landing');
+    const [questions, setQs] = useState<SelfAssessmentQuestion[]>([]);
+    const [idx, setIdx] = useState(0);
     const [answers, setAnswers] = useState<Record<number, string>>({});
-    const [notes, setNotes]     = useState('');
-    const [result, setResult]   = useState<any>(null);
+    const [notes, setNotes] = useState('');
+    const [result, setResult] = useState<any>(null);
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [submitting, setSub]  = useState(false);
-    const [error, setError]     = useState<string | null>(null);
+    const [submitting, setSub] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    const q        = questions[idx];
-    const cat      = q ? (CAT_STYLE[q.category] || DEF_CAT) : DEF_CAT;
-    const selOpt   = q ? answers[q.questionId as number] : undefined;
-    const isLast   = idx === questions.length - 1;
+    const q = questions[idx];
+    const cat = q ? (CAT_STYLE[q.category] || DEF_CAT) : DEF_CAT;
+    const selOpt = q ? answers[q.questionId as number] : undefined;
+    const isLast = idx === questions.length - 1;
     const answered = Object.keys(answers).length;
     const progress = questions.length ? ((idx + 1) / questions.length) * 100 : 0;
-    const allDone  = answered >= questions.length;
+    const allDone = answered >= questions.length;
 
     // Auto-advance to success after submit
     useEffect(() => {
         if (showSuccess) {
-            const t = setTimeout(() => setView('success'), 2200);
+            const t = setTimeout(() => {
+                fetchHistory();
+            }, 2200);
             return () => clearTimeout(t);
         }
     }, [showSuccess]);
@@ -99,7 +101,7 @@ export default function AssessmentCenter() {
         setLoading(true); setError(null);
         try {
             const res = await AssessmentService.getSelfAssessmentQuestions();
-            const qs  = res?.data?.questions || [];
+            const qs = res?.data?.questions || [];
             if (!qs.length) throw new Error('No questions available.');
             setQs(qs); setIdx(0); setAnswers({}); setNotes(''); setView('quiz');
         } catch (e: any) {
@@ -160,7 +162,7 @@ export default function AssessmentCenter() {
         <div className="min-h-full bg-slate-50/50 flex flex-col items-center py-12 px-6">
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-6xl space-y-10">
-                
+
                 {/* Header / Hero */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white rounded-[32px] p-8 lg:p-12 border border-slate-100 shadow-sm">
                     <div className="flex-1 space-y-6">
@@ -184,22 +186,22 @@ export default function AssessmentCenter() {
                             </button>
                         </div>
                     </div>
-                    
+
                     {/* Visual Card */}
                     <div className="lg:w-80 shrink-0">
                         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden group">
-                           <div className="absolute top-0 right-0 -translate-y-4 translate-x-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                               <Brain size={180} />
-                           </div>
-                           <div className="relative z-10 space-y-6">
-                               <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
-                                   <Shield size={24} />
-                               </div>
-                               <div>
-                                   <div className="text-sm font-bold opacity-80 uppercase tracking-widest mb-1">Privacy First</div>
-                                   <div className="text-xl font-black leading-tight">Your data is fully encrypted & private.</div>
-                               </div>
-                           </div>
+                            <div className="absolute top-0 right-0 -translate-y-4 translate-x-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                                <Brain size={180} />
+                            </div>
+                            <div className="relative z-10 space-y-6">
+                                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                                    <Shield size={24} />
+                                </div>
+                                <div>
+                                    <div className="text-sm font-bold opacity-80 uppercase tracking-widest mb-1">Privacy First</div>
+                                    <div className="text-xl font-black leading-tight">Your data is fully encrypted & private.</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -237,7 +239,7 @@ export default function AssessmentCenter() {
     if (view === 'history') return (
         <div className="min-h-full bg-slate-50/50 flex flex-col items-center py-12 px-6">
             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-6xl space-y-10">
-                
+
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-1">
                         <button onClick={reset} className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest mb-2">
@@ -268,7 +270,7 @@ export default function AssessmentCenter() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.05 }}
                                 className="bg-white border border-slate-100 rounded-[28px] p-8 text-left hover:shadow-2xl hover:translate-y-[-8px] transition-all group relative overflow-hidden">
-                                
+
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                     <Activity size={80} />
                                 </div>
@@ -280,7 +282,7 @@ export default function AssessmentCenter() {
                                         </span>
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.date ? new Date(item.date).toLocaleDateString() : 'Recent'}</span>
                                     </div>
-                                    
+
                                     <div>
                                         <h3 className="text-xl font-black text-slate-900 leading-tight">Mental Health <br />Self-Check</h3>
                                     </div>
@@ -295,7 +297,7 @@ export default function AssessmentCenter() {
                                             <div className="text-lg font-black text-emerald-500">{item.percentage}%</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex items-center justify-between pt-2">
                                         <span className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
                                             View Report <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
@@ -313,13 +315,13 @@ export default function AssessmentCenter() {
     // ══ QUIZ (Two-Panel Layout) ══════════════════════════════════════════
     if (view === 'quiz' && q) return (
         <div className="flex h-full bg-slate-50/50 overflow-hidden">
-            
+
             {/* ── Left Sidebar: Question Navigation ── */}
             <div className="hidden lg:flex w-72 bg-white border-r border-slate-100 flex-col shrink-0">
                 <div className="p-8 border-b border-slate-50">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg"
-                             style={{ backgroundColor: cat.color }}>
+                            style={{ backgroundColor: cat.color }}>
                             <Ico name={cat.icon} size={20} color="white" />
                         </div>
                         <div>
@@ -349,9 +351,8 @@ export default function AssessmentCenter() {
                                 const isDone = answers[questions[i].questionId as number] !== undefined;
                                 return (
                                     <button key={i} onClick={() => setIdx(i)}
-                                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all ${
-                                            isCurrent ? 'scale-110 shadow-md ring-2 ring-offset-2' : ''
-                                        }`}
+                                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all ${isCurrent ? 'scale-110 shadow-md ring-2 ring-offset-2' : ''
+                                            }`}
                                         style={{
                                             backgroundColor: isCurrent ? cat.color : (isDone ? hex2rgba(cat.color, 0.1) : 'white'),
                                             color: isCurrent ? 'white' : (isDone ? cat.color : '#94a3b8'),
@@ -377,12 +378,12 @@ export default function AssessmentCenter() {
 
             {/* ── Main Content Area ── */}
             <div className="flex-1 flex flex-col min-w-0">
-                
+
                 {/* Mobile Header (Hidden on LG) */}
                 <div className="lg:hidden bg-white border-b border-slate-100 p-4 shrink-0">
                     <div className="flex items-center justify-between mb-3">
-                         <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Question {idx + 1} / {questions.length}</span>
-                         <span className="px-2 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-500 uppercase">{cat.label}</span>
+                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Question {idx + 1} / {questions.length}</span>
+                        <span className="px-2 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-500 uppercase">{cat.label}</span>
                     </div>
                     <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <motion.div className="h-full" style={{ backgroundColor: cat.color }} animate={{ width: `${progress}%` }} />
@@ -398,7 +399,7 @@ export default function AssessmentCenter() {
                                 animate={{ opacity: 1, scale: 1, x: 0 }}
                                 exit={{ opacity: 0, scale: 0.98, x: -20 }}
                                 transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}>
-                                
+
                                 <div className="space-y-10">
                                     <div className="space-y-4">
                                         <div className="inline-flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-[0.2em]">
@@ -419,32 +420,28 @@ export default function AssessmentCenter() {
                                                 <motion.button key={optId} onClick={() => pick(optId)}
                                                     whileHover={{ scale: 1.01 }}
                                                     whileTap={{ scale: 0.98 }}
-                                                    className={`group relative p-6 rounded-[24px] border-2 text-left transition-all ${
-                                                        isSelected ? 'shadow-xl' : 'hover:border-slate-200 hover:bg-white'
-                                                    }`}
+                                                    className={`group relative p-6 rounded-[24px] border-2 text-left transition-all ${isSelected ? 'shadow-xl' : 'hover:border-slate-200 hover:bg-white'
+                                                        }`}
                                                     style={{
                                                         backgroundColor: isSelected ? 'white' : 'transparent',
                                                         borderColor: isSelected ? cat.color : '#f1f5f9',
                                                     }}>
                                                     <div className="flex items-center gap-4">
-                                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                                                            isSelected ? '' : 'group-hover:border-slate-300'
-                                                        }`}
-                                                        style={{ 
-                                                            borderColor: isSelected ? cat.color : '#e2e8f0',
-                                                            backgroundColor: isSelected ? cat.color : 'transparent'
-                                                        }}>
+                                                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${isSelected ? '' : 'group-hover:border-slate-300'
+                                                            }`}
+                                                            style={{
+                                                                borderColor: isSelected ? cat.color : '#e2e8f0',
+                                                                backgroundColor: isSelected ? cat.color : 'transparent'
+                                                            }}>
                                                             {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className={`font-black tracking-tight transition-colors ${
-                                                                isSelected ? 'text-slate-900' : 'text-slate-500'
-                                                            }`}>{opt.text}</p>
+                                                            <p className={`font-black tracking-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-500'
+                                                                }`}>{opt.text}</p>
                                                         </div>
                                                         {opt.score !== undefined && (
-                                                            <div className={`text-[10px] font-black px-2 py-1 rounded-lg transition-colors ${
-                                                                isSelected ? 'bg-slate-50 text-slate-400' : 'bg-white text-slate-300'
-                                                            }`}>
+                                                            <div className={`text-[10px] font-black px-2 py-1 rounded-lg transition-colors ${isSelected ? 'bg-slate-50 text-slate-400' : 'bg-white text-slate-300'
+                                                                }`}>
                                                                 +{opt.score}
                                                             </div>
                                                         )}
@@ -481,7 +478,7 @@ export default function AssessmentCenter() {
                         <div className="hidden lg:block">
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Step {idx + 1} of {questions.length}</p>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 w-full lg:w-auto">
                             {idx > 0 && (
                                 <button onClick={() => setIdx(i => i - 1)}
@@ -516,16 +513,16 @@ export default function AssessmentCenter() {
 
     // ══ SUCCESS / DETAIL (Split Layout) ══════════════════════════════════════
     const isDetail = view === 'detail';
-    
+
     return (
         <div className="min-h-full bg-white flex flex-col">
-            
+
             {/* Top Navigation Bar */}
             <div className="bg-white border-b border-slate-100 px-8 py-6 shrink-0 z-20">
                 <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
                     <div className="flex items-center gap-5">
-                        <button onClick={isDetail ? fetchHistory : reset} 
-                                className="w-12 h-12 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 transition-colors">
+                        <button onClick={isDetail ? fetchHistory : reset}
+                            className="w-12 h-12 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 transition-colors">
                             <ChevronLeft size={24} />
                         </button>
                         <div>
@@ -546,11 +543,11 @@ export default function AssessmentCenter() {
             </div>
 
             <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-                
+
                 {/* ── Left Panel: Summary Score ── */}
                 <div className="lg:w-[400px] border-r border-slate-100 p-8 lg:p-12 overflow-auto shrink-0 bg-slate-50/30">
                     <div className="space-y-10 max-w-sm mx-auto lg:mx-0">
-                        
+
                         {/* Summary Card */}
                         <div className="bg-white rounded-[32px] p-8 lg:p-10 shadow-2xl shadow-indigo-100/50 border border-slate-50 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-5 translate-x-2 -translate-y-2 group-hover:scale-110 transition-transform">
@@ -570,9 +567,9 @@ export default function AssessmentCenter() {
                                     <div className="text-sm font-bold text-slate-400 mt-2 uppercase">out of {result?.maxPossibleScore ?? result?.maxScore ?? '100'}</div>
                                 </div>
                                 <div className="pt-6 border-t border-slate-50">
-                                     <div className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-xs font-black uppercase tracking-widest">
-                                         <Shield size={14} /> {result?.interpretation ?? result?.severity ?? 'Optimized'}
-                                     </div>
+                                    <div className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-xs font-black uppercase tracking-widest">
+                                        <Shield size={14} /> {result?.interpretation ?? result?.severity ?? 'Optimized'}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -603,7 +600,7 @@ export default function AssessmentCenter() {
                 {/* ── Right Panel: Full Breakdown ── */}
                 <div className="flex-1 bg-white overflow-auto p-8 lg:p-12">
                     <div className="max-w-4xl mx-auto space-y-12">
-                        
+
                         <div className="flex items-center justify-between border-b border-slate-100 pb-6">
                             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Full Response Breakdown</h2>
                             <span className="px-4 py-2 bg-slate-50 rounded-xl text-xs font-black text-slate-400 uppercase tracking-widest">
@@ -617,12 +614,12 @@ export default function AssessmentCenter() {
                                 const isId = (val: string) => /^[0-9a-fA-F]{24}$/.test(val || '');
                                 const displayAnswer = r.answerText || (!isId(r.selectedOption) ? r.selectedOption : 'Option Selected');
                                 const score = r.score ?? 0;
-                                
+
                                 return (
-                                    <motion.div 
-                                        key={i} 
-                                        initial={{ opacity: 0, y: 10 }} 
-                                        animate={{ opacity: 1, y: 0 }} 
+                                    <motion.div
+                                        key={i}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.03 }}
                                         className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-50/30 transition-all group"
                                     >
@@ -646,9 +643,8 @@ export default function AssessmentCenter() {
                                         </div>
                                         <div className="shrink-0 flex items-center gap-4 pl-14 md:pl-0">
                                             <div className="h-8 w-[1px] bg-slate-100 hidden md:block" />
-                                            <div className={`px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[64px] border transition-all ${
-                                                score > 0 ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100 opacity-60'
-                                            }`}>
+                                            <div className={`px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[64px] border transition-all ${score > 0 ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100 opacity-60'
+                                                }`}>
                                                 <span className={`text-sm font-black leading-none ${score > 0 ? 'text-indigo-600' : 'text-slate-400'}`}>
                                                     {score > 0 ? `+${score}` : score}
                                                 </span>
@@ -670,17 +666,17 @@ export default function AssessmentCenter() {
                             <div className="pt-12 border-t border-slate-100">
                                 <h3 className="text-xl font-black text-slate-900 tracking-tight mb-6">Recommendations & Notes</h3>
                                 <div className="bg-indigo-600 rounded-[32px] p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden">
-                                     <div className="absolute top-0 right-0 p-8 opacity-10">
-                                         <Activity size={100} />
-                                     </div>
-                                     <div className="relative z-10 space-y-4">
-                                         <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
-                                             <Sparkles size={20} />
-                                         </div>
-                                         <p className="text-lg font-medium leading-relaxed italic opacity-90">
-                                             "{result.recommendation || result.notes}"
-                                         </p>
-                                     </div>
+                                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                                        <Activity size={100} />
+                                    </div>
+                                    <div className="relative z-10 space-y-4">
+                                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                                            <Sparkles size={20} />
+                                        </div>
+                                        <p className="text-lg font-medium leading-relaxed italic opacity-90">
+                                            "{result.recommendation || result.notes}"
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         )}

@@ -12,15 +12,25 @@ import {
     AlertCircle,
     Star,
     Clock,
-    Filter
+    Filter,
+    Settings,
+    Bot
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import type { RootState, AppDispatch } from '../../store';
+import { decrementUnreadCount, fetchUnreadCount } from '../../features/notifications/store/notificationSlice';
 import Button from '../../components/ui/Button';
 import { NotificationService } from '../../api/services/notification.service';
 import type { Notification } from '../../types/common.types';
 
 const PatientNotificationsPage = () => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
+    const { user } = useSelector((state: RootState) => state.auth);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isTriggeringAi, setIsTriggeringAi] = useState(false);
     const [filter, setFilter] = useState<'all' | 'unread' | 'alerts'>('all');
 
     useEffect(() => {
@@ -41,7 +51,11 @@ const PatientNotificationsPage = () => {
 
     const handleMarkAsRead = async (id: string) => {
         try {
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true, read: true } : n));
+            const notif = notifications.find(n => n.id === id || n._id === id);
+            if (notif && !notif.isRead && !notif.read) {
+                dispatch(decrementUnreadCount());
+            }
+            setNotifications(prev => prev.map(n => (n.id === id || n._id === id) ? { ...n, isRead: true, read: true } : n));
             await NotificationService.markAsRead(id);
         } catch {
             // Silently fail as per original logic
@@ -52,13 +66,48 @@ const PatientNotificationsPage = () => {
         try {
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
             await NotificationService.markAllAsRead();
+            dispatch(fetchUnreadCount()); // Sync count after global read
         } catch {
             // Silently fail as per original logic
         }
     };
 
-    const handleDelete = async (id: string) => {
-        setNotifications(prev => prev.filter(n => n.id !== id));
+    const handleTriggerAi = async () => {
+        try {
+            setIsTriggeringAi(true);
+            const res = await NotificationService.triggerAiEngagement();
+            if (res.success) {
+                alert('AI Engagement broadcasted successfully!');
+            }
+        } catch (error) {
+            alert('Failed to trigger AI engagement');
+        } finally {
+            setIsTriggeringAi(false);
+        }
+    };
+
+    const handleDelete = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setNotifications(prev => prev.filter(n => n.id !== id && n._id !== id));
+    };
+
+    const getNotificationDisplayTime = (dateValue: string | Date | undefined) => {
+        if (!dateValue) return '';
+        const now = new Date();
+        const msgDate = new Date(dateValue);
+        const diff = now.getTime() - msgDate.getTime();
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(minutes / 60);
+
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24 && now.getDate() === msgDate.getDate()) return `${hours}h ago`;
+        
+        return msgDate.toLocaleDateString([], { 
+            month: 'short', 
+            day: 'numeric',
+            year: now.getFullYear() !== msgDate.getFullYear() ? 'numeric' : undefined
+        });
     };
 
     const getIconInfo = (type?: string) => {
@@ -131,18 +180,36 @@ const PatientNotificationsPage = () => {
                     </p>
                 </div>
                 
-                <div className="flex bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100">
+                <div className="flex items-center gap-3 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 shadow-sm">
+                    {(user?.role === 'admin' || user?.role === 'super_admin') && (
+                        <button
+                            onClick={handleTriggerAi}
+                            disabled={isTriggeringAi}
+                            className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100 group"
+                            title="Trigger AI Engagement"
+                        >
+                            <Bot size={20} className={isTriggeringAi ? 'animate-spin' : 'group-hover:scale-110 transition-transform'} />
+                        </button>
+                    )}
+                    <button
+                        onClick={() => navigate('/profile/notifications')}
+                        className="w-12 h-12 bg-white text-slate-400 rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-slate-100"
+                        title="Notification Settings"
+                    >
+                        <Settings size={20} />
+                    </button>
+                    <div className="w-[1.5px] h-8 bg-slate-200 mx-1 hidden md:block"></div>
                     <button
                         onClick={handleMarkAllAsRead}
                         disabled={unreadCount === 0}
                         className={`flex items-center gap-3 px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
                             ${unreadCount > 0 
-                                ? 'bg-white text-indigo-600 shadow-md border border-slate-100 hover:scale-105 active:scale-95' 
+                                ? 'bg-white text-indigo-600 shadow-md border border-slate-100 hover:scale-105 active:scale-95 text-xs' 
                                 : 'text-slate-300 cursor-not-allowed'}
                         `}
                     >
                         <CheckCircle2 size={16} />
-                        Acknowledge All
+                        Mark All Read
                     </button>
                 </div>
             </header>
@@ -164,7 +231,7 @@ const PatientNotificationsPage = () => {
                                     : 'text-slate-400 hover:text-slate-600'}
                             `}
                         >
-                            {f === 'all' ? 'Full Archive' : f.charAt(0).toUpperCase() + f.slice(1)}
+                            {f.toUpperCase()}
                         </button>
                     ))}
                 </div>
@@ -191,16 +258,17 @@ const PatientNotificationsPage = () => {
                                         const isRead = notif.isRead || notif.read;
                                         return (
                                             <motion.div
-                                                key={notif.id}
+                                                key={notif.id || notif._id}
                                                 layout
                                                 initial={{ opacity: 0, scale: 0.98 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 exit={{ opacity: 0, x: -50 }}
                                                 transition={{ delay: index * 0.05 }}
-                                                className={`group relative p-8 rounded-[3rem] border transition-all flex flex-col md:flex-row md:items-center gap-8
+                                                onClick={() => !isRead && handleMarkAsRead(notif.id || notif._id!)}
+                                                className={`group relative p-8 rounded-[2rem] border border-l-4 transition-all flex flex-col md:flex-row md:items-center gap-8 cursor-pointer
                                                     ${isRead 
-                                                        ? 'bg-white border-slate-100 hover:border-indigo-100' 
-                                                        : 'bg-indigo-50/30 border-indigo-100 shadow-xl shadow-indigo-500/5'}
+                                                        ? 'bg-white border-slate-100 border-l-slate-200 hover:border-indigo-100 hover:bg-slate-50/30' 
+                                                        : 'bg-indigo-50/30 border-indigo-100 border-l-indigo-600 shadow-xl shadow-indigo-500/5 hover:bg-indigo-50/50'}
                                                 `}
                                             >
                                                 <div className={`w-16 h-16 shrink-0 rounded-[1.5rem] flex items-center justify-center border transition-all group-hover:scale-110 shadow-sm ${colorClass}`}>
@@ -209,7 +277,7 @@ const PatientNotificationsPage = () => {
 
                                                 <div className="flex-1 min-w-0 space-y-2">
                                                     <div className="flex items-center gap-4">
-                                                        <h3 className={`text-xl font-black tracking-tight ${isRead ? 'text-slate-800' : 'text-slate-900'}`}>
+                                                        <h3 className={`text-xl font-black tracking-tight ${isRead ? 'text-slate-800 font-bold' : 'text-slate-900 font-black'}`}>
                                                             {notif.title}
                                                         </h3>
                                                         {!isRead && <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full shadow-lg shadow-indigo-200"></div>}
@@ -219,14 +287,14 @@ const PatientNotificationsPage = () => {
                                                     </p>
                                                     <div className="flex items-center gap-3 pt-2 text-[10px] font-black text-slate-300 uppercase tracking-widest">
                                                         <Clock size={12} />
-                                                        <span>Received {new Date(notif.createdAt || notif.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        <span>{getNotificationDisplayTime(notif.createdAt || notif.created_at)}</span>
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-center gap-3 self-end md:self-center">
                                                     {!isRead && (
                                                         <button
-                                                            onClick={() => handleMarkAsRead(notif.id)}
+                                                            onClick={(e) => { e.stopPropagation(); handleMarkAsRead(notif.id || notif._id!); }}
                                                             className="w-12 h-12 bg-white border border-slate-100 text-indigo-600 rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                                                             title="Mark as Read"
                                                         >
@@ -234,7 +302,7 @@ const PatientNotificationsPage = () => {
                                                         </button>
                                                     )}
                                                     <button
-                                                        onClick={() => handleDelete(notif.id)}
+                                                        onClick={(e) => handleDelete(notif.id || notif._id!, e)}
                                                         className="w-12 h-12 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl flex items-center justify-center transition-all"
                                                         title="Dismiss"
                                                     >
@@ -255,7 +323,7 @@ const PatientNotificationsPage = () => {
                         </div>
                         <h3 className="text-3xl font-black text-slate-900 mb-2">Caught Up!</h3>
                         <p className="text-slate-500 font-medium max-w-sm mx-auto text-lg leading-relaxed">
-                            No active signals require your immediate biological focus.
+                            {filter === 'unread' ? "You've read everything." : "No new notifications right now."}
                         </p>
                         <Button className="mt-12 px-12 py-6 rounded-[2rem] shadow-2xl shadow-indigo-100" onClick={() => { setFilter('all'); fetchNotifications(); }}>
                             Reload Stream

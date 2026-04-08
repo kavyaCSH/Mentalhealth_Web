@@ -1,5 +1,5 @@
 import api from '../client';
-import type { ROSSection, ROSSubmission, ROSResponse } from '../../types/ros.types';
+import type { ROSSection, ROSSubmission, ROSResponse, ROSFilters } from '../../types/ros.types';
 import type { ApiResponse } from '../../types/common.types';
 
 export const ROSService = {
@@ -18,8 +18,8 @@ export const ROSService = {
         return response.data;
     },
 
-    getROSByPatient: async (patient_id: string | number): Promise<ApiResponse<ROSResponse[]>> => {
-        const response = await api.get('ros', { params: { patient_id } });
+    getROSByPatient: async (patient_id: string | number, filters?: ROSFilters): Promise<ApiResponse<ROSResponse[]>> => {
+        const response = await api.get('ros', { params: { patient_id, ...filters } });
         return response.data;
     },
 

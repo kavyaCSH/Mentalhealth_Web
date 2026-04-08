@@ -296,7 +296,7 @@ const Teleconsult = () => {
                                             {activeTool === 'clinical_intake' && (
                                                 <ConsultClinicalIntake
                                                     patientId={patientId || ''}
-                                                    consultId={id}
+                                                    consultId={liveAppointment?.consult_id || id}
                                                     onSave={() => setActiveTool(null)}
                                                 />
                                             )}
@@ -304,7 +304,7 @@ const Teleconsult = () => {
                                             {activeTool === 'mse' && (
                                                 <ConsultMSE
                                                     patientId={patientId || ''}
-                                                    consultId={id}
+                                                    consultId={liveAppointment?.consult_id || id}
                                                     initialTab="new"
                                                     onSave={() => setActiveTool(null)}
                                                 />
@@ -364,7 +364,7 @@ const Teleconsult = () => {
                                             {activeTool === 'past_history' && (
                                                 <ConsultPastHistory
                                                     patientId={patientId || ''}
-                                                    consultId={id}
+                                                    consultId={liveAppointment?.consult_id || id}
                                                     initialTab="history"
                                                     onSave={() => setActiveTool(null)}
                                                 />
@@ -379,7 +379,7 @@ const Teleconsult = () => {
                                             {activeTool === 'treatment' && (
                                                 <ConsultTreatment
                                                     patientId={patientId || ''}
-                                                    consultId={id}
+                                                    consultId={liveAppointment?.consult_id || id}
                                                 />
                                             )}
                                         </div>

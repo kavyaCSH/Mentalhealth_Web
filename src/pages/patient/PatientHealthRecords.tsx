@@ -9,8 +9,16 @@ import { HPIService } from '../../api/services/hpi.service';
 import { MSEService } from '../../api/services/mse.service';
 import { ROSService } from '../../api/services/ros.service';
 import { TreatmentService } from '../../api/services/treatment.service';
+import { SymptomService } from '../../api/services/symptom.service';
 import { UserService } from '../../api/services/user.service';
+import { AssessmentService } from '../../api/services/assessment.service';
+import { Shield } from 'lucide-react';
 import type { TreatmentProgress } from '../../types/treatment.types';
+import type { ChiefComplaintResponse } from '../../api/services/chiefComplaint.service';
+import type { HPIResponse } from '../../api/services/hpi.service';
+import type { MSEResponse } from '../../types/mse.types';
+import type { ROSResponse } from '../../types/ros.types';
+import type { SymptomRecord } from '../../api/services/symptom.service';
 
 const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
     return Promise.race([
@@ -21,14 +29,22 @@ const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promis
     ]);
 };
 
+const formatDate = (dateString?: string) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date.toLocaleDateString();
+};
+
 const PatientHealthRecords = () => {
     const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
 
-    const [latestComplaint, setLatestComplaint] = useState<unknown>(null);
-    const [latestHPI, setLatestHPI] = useState<unknown>(null);
-    const [latestMSE, setLatestMSE] = useState<unknown>(null);
-    const [latestROS, setLatestROS] = useState<unknown>(null);
+    const [latestComplaint, setLatestComplaint] = useState<ChiefComplaintResponse | null>(null);
+    const [latestHPI, setLatestHPI] = useState<HPIResponse | null>(null);
+    const [latestMSE, setLatestMSE] = useState<MSEResponse | null>(null);
+    const [latestROS, setLatestROS] = useState<ROSResponse | null>(null);
+    const [latestSymptom, setLatestSymptom] = useState<SymptomRecord | null>(null);
+    const [latestProfAssessment, setLatestProfAssessment] = useState<any | null>(null);
     const [treatmentProgress, setTreatmentProgress] = useState<TreatmentProgress | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -36,14 +52,7 @@ const PatientHealthRecords = () => {
 
     const hasFullUser = !!(user?._id || user?.id);
     const fetchLock = useRef(false);
-
-    // Final fallback: never block for more than 10 seconds total
-    const emergencyTimeout = useMemo(() => setTimeout(() => {
-        setIsLoading((prev) => {
-            if (prev) console.warn('[PatientHealthRecords] Final hydration emergency escape triggered');
-            return false;
-        });
-    }, 10000), []);
+    const emergencyTimerRef = useRef<NodeJS.Timeout | null>(null);
 
 
     const fetchRecords = useCallback(async () => {
@@ -82,9 +91,9 @@ const PatientHealthRecords = () => {
             // 2. Background fetching clinical models...
             console.log('[PatientHealthRecords] Initiating clinical stream for patient:', resolvedHexId);
 
-            const handleResult = (res: PromiseSettledResult<unknown>, setter: (val: unknown) => void, label: string) => {
+            const handleResult = <T,>(res: PromiseSettledResult<unknown>, setter: (val: T) => void, label: string) => {
                 if (res.status === 'fulfilled') {
-                    const data = res.value as { data?: unknown[] };
+                    const data = res.value as { data?: T[] };
                     const list = data?.data || (Array.isArray(data) ? data : []);
                     if (list.length > 0) {
                         console.log(`[PatientHealthRecords] ${label} data popped in.`);
@@ -127,7 +136,6 @@ const PatientHealthRecords = () => {
             // Parallelized non-blocking cards
             Promise.allSettled([
                 withTimeout(ChiefComplaintService.listComplaints({
-                    patient: resolvedHexId,
                     patientId: resolvedHexId,
                     patient_id: resolvedHexId,
                     limit: 1
@@ -136,12 +144,33 @@ const PatientHealthRecords = () => {
                     patient_id: resolvedHexId
                 }), 5000, 'HPI'),
                 withTimeout(MSEService.listMSEByPatient(resolvedHexId), 5000, 'MSE'),
-                withTimeout(ROSService.getROSByPatient(resolvedHexId), 5000, 'ROS')
-            ]).then(([complaintsRes, hpiRes, mseRes, rosRes]) => {
+                withTimeout(ROSService.getROSByPatient(resolvedHexId), 5000, 'ROS'),
+                withTimeout(SymptomService.getPatientSymptomHistory(resolvedHexId, 1, 1), 5000, 'Symptoms'),
+                withTimeout(AssessmentService.getPatientProfessionalHistory(resolvedNumericId || resolvedHexId), 5000, 'ProfessionalHistory'),
+            ]).then(([complaintsRes, hpiRes, mseRes, rosRes, symptomsRes, profRes]) => {
                 handleResult(complaintsRes, setLatestComplaint, 'Complaint');
                 handleResult(hpiRes, setLatestHPI, 'HPI');
                 handleResult(mseRes, setLatestMSE, 'MSE');
                 handleResult(rosRes, setLatestROS, 'ROS');
+
+                // Specialized symptom handler
+                if (symptomsRes.status === 'fulfilled') {
+                    const sData = symptomsRes.value as { data?: { symptoms?: SymptomRecord[] } };
+                    const sList = sData?.data?.symptoms || [];
+                    if (sList.length > 0) {
+                        console.log('[PatientHealthRecords] Symptom history popped in.');
+                        setLatestSymptom(sList[0]);
+                    }
+                }
+
+                // Professional History handler
+                if (profRes.status === 'fulfilled') {
+                    const pList = profRes.value as any[] || [];
+                    if (Array.isArray(pList) && pList.length > 0) {
+                        console.log('[PatientHealthRecords] Professional history popped in.');
+                        setLatestProfAssessment(pList[0]);
+                    }
+                }
             });
 
             fetchTreatment();
@@ -151,14 +180,23 @@ const PatientHealthRecords = () => {
             setError('We encountered a problem loading your history profile.');
             setIsLoading(false);
         } finally {
-            clearTimeout(emergencyTimeout);
+            if (emergencyTimerRef.current) clearTimeout(emergencyTimerRef.current);
         }
-    }, [user?._id, user?.id, user?.userId, emergencyTimeout]);
+    }, [user?._id, user?.id, user?.userId]);
 
     useEffect(() => {
         // Trigger fetch if we have any valid ID and haven't fetched yet
         if (hasFullUser && !fetchLock.current) {
             fetchLock.current = true;
+
+            // Set emergency escape timer
+            emergencyTimerRef.current = setTimeout(() => {
+                setIsLoading((prev) => {
+                    if (prev) console.warn('[PatientHealthRecords] Final hydration emergency escape triggered');
+                    return false;
+                });
+            }, 10000);
+
             fetchRecords();
         }
 
@@ -175,7 +213,10 @@ const PatientHealthRecords = () => {
             }
         }, 5000);
 
-        return () => clearTimeout(escapeTimeout);
+        return () => {
+            clearTimeout(escapeTimeout);
+            if (emergencyTimerRef.current) clearTimeout(emergencyTimerRef.current);
+        };
     }, [hasFullUser, user, isLoading, fetchRecords]);
 
     const resolvedUserId = resolvedIds.hex || user?._id || user?.id || '';
@@ -241,7 +282,7 @@ const PatientHealthRecords = () => {
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Primary Symptom</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
-                            {latestComplaint ? `"${(latestComplaint as { narrative?: string }).narrative}"` : '"No chief complaint recorded yet."'}
+                            {latestComplaint ? `"${latestComplaint.narrative}"` : '"No chief complaint recorded yet."'}
                         </p>
                     </div>
                 </motion.div>
@@ -266,7 +307,7 @@ const PatientHealthRecords = () => {
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Clinical Narrative</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
-                            {latestHPI ? `"${(latestHPI as { narrative?: string; content?: string }).narrative || (latestHPI as { narrative?: string; content?: string }).content}"` : '"No HPI history recorded yet."'}
+                            {latestHPI ? `"${latestHPI.narrative}"` : '"No HPI history recorded yet."'}
                         </p>
                     </div>
                 </motion.div>
@@ -290,7 +331,9 @@ const PatientHealthRecords = () => {
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Examination Activity</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
-                            {latestMSE ? `Last assessed on ${new Date((latestMSE as any).createdAt).toLocaleDateString()}` : '"No mental status exam conducted."'}
+                            {latestMSE
+                                ? `Last assessed on ${formatDate(latestMSE.createdAt) || 'recent date'}`
+                                : '"No mental status exam conducted."'}
                         </p>
                     </div>
                 </motion.div>
@@ -315,7 +358,9 @@ const PatientHealthRecords = () => {
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Systems Scan</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
-                            {latestROS ? `Last reviewed on ${new Date((latestROS as any).createdAt).toLocaleDateString()}` : '"No systematic review conducted."'}
+                            {latestROS
+                                ? `Last reviewed on ${formatDate(latestROS.createdAt) || 'recent date'}`
+                                : '"No systematic review conducted."'}
                         </p>
                     </div>
                 </motion.div>
@@ -327,19 +372,52 @@ const PatientHealthRecords = () => {
                     onClick={() => navigate(`/patients/${resolvedUserId}/symptoms?tab=history`)}
                     className="card-premium p-5 border-slate-100 hover:border-amber-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:scale-110 transition-transform">
-                            <Activity size={20} />
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:scale-110 transition-transform">
+                                <Activity size={20} />
+                            </div>
+                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Symptom history</h2>
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Symptom history</h2>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Longitudinal Trends</p>
                         <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
-                            Review your psychological and physical trends over time.
+                            {latestSymptom
+                                ? `Last logged on ${formatDate(latestSymptom.createdAt) || 'recent date'}`
+                                : 'Review your psychological and physical trends over time.'}
                         </p>
                     </div>
                 </motion.div>
+
+                {/* Professional Assessment History Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.55 }}
+                    onClick={() => navigate(`/history/professional`)}
+                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
+                                <Shield size={20} />
+                            </div>
+                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Professional Reports</h2>
+                        </div>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Clinical Archive</span>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Verified Evaluations</p>
+                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                            {latestProfAssessment
+                                ? `Last verified report on ${formatDate(latestProfAssessment.date || latestProfAssessment.createdAt) || 'recent date'}`
+                                : '"Awaiting clinical evaluation synthesis."'}
+                        </p>
+                    </div>
+                </motion.div>
+
 
 
                 {/* Treatment Journey Card */}
@@ -347,14 +425,17 @@ const PatientHealthRecords = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45 }}
-                    onClick={() => navigate(`/patients/${resolvedNumericId || resolvedUserId}/treatment`)}
+                    onClick={() => navigate(`/treatment`)}
                     className="card-premium p-5 border-slate-100 hover:border-emerald-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:scale-110 transition-transform">
-                            <ClipboardCheck size={20} />
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:scale-110 transition-transform">
+                                <ClipboardCheck size={20} />
+                            </div>
+                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Treatment Plan</h2>
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Treatment Plan</h2>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Protocol Status</p>

@@ -2,9 +2,10 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
-    Send, Bot, ChevronLeft, Activity, Moon, HeartCrack, Flame, Leaf, ArrowUpRight
+    Send, Bot, ChevronLeft, Activity, Moon, HeartCrack, Flame, Leaf, ArrowUpRight, User, MoreVertical, Trash2, HelpCircle, X
 } from 'lucide-react';
 import { connectSocket, getSocket } from '../../api/socketService';
+import MindBalanceHelpModal from '../../components/clinical/MindBalanceHelpModal';
 import type { RootState } from '../../store';
 
 const SUGGESTION_CATEGORIES = [
@@ -55,6 +56,8 @@ const ChatPage = () => {
     const [connecting, setConnecting] = useState(true);
     const [isTyping, setIsTyping] = useState(false);
     const [activeCat, setActiveCat] = useState(0);
+    const [showMenu, setShowMenu] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -65,6 +68,12 @@ const ChatPage = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages, isTyping]);
+
+    const isAIMessage = useCallback((name?: string) => {
+        if (!name) return false;
+        const n = name.toLowerCase();
+        return n.includes('ai') || n.includes('bot') || n.includes('sky') || n === 'skyheal ai';
+    }, []);
 
     const sanitizeAIContent = (content: string) => {
         return content
@@ -106,7 +115,7 @@ const ChatPage = () => {
             socket.on('chat_history', (history: Message[]) => {
                 const cleaned = history.map(m => ({
                     ...m,
-                    content: m.sender_name === 'Skyheal AI' ? sanitizeAIContent(m.content) : m.content
+                    content: isAIMessage(m.sender_name) ? sanitizeAIContent(m.content) : m.content
                 }));
                 // Filter unique
                 const unique = cleaned.filter((msg, index, self) =>
@@ -119,11 +128,12 @@ const ChatPage = () => {
             });
 
             socket.on('new_message', (msg: Message) => {
-                const cleanedContent = msg.sender_name === 'Skyheal AI' ? sanitizeAIContent(msg.content) : msg.content;
-                if (msg.sender_name === 'Skyheal AI') setIsTyping(false);
+                const isAI = isAIMessage(msg.sender_name);
+                const cleanedContent = isAI ? sanitizeAIContent(msg.content) : msg.content;
+                if (isAI) setIsTyping(false);
 
                 setMessages((prev) => {
-                    if (msg.sender_name !== 'Skyheal AI') {
+                    if (!isAI) {
                         const optimisticMatchIndex = [...prev].reverse().findIndex(m =>
                             m._id?.toString().startsWith('temp_') &&
                             m.content.trim().toLowerCase() === cleanedContent.trim().toLowerCase()
@@ -236,6 +246,30 @@ const ChatPage = () => {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
+    const handleClearChat = () => {
+        const socket = getSocket();
+        const activeId = roomId || user?.id || user?._id || user?.userId;
+        if (socket && activeId) {
+            socket.emit('clear_chat', { room_id: String(activeId), session_id: 'main' });
+            setMessages([]);
+            setShowMenu(false);
+        }
+    };
+
+    const getContextualSuggestions = () => {
+        if (messages.length === 0 || isTyping) return [];
+        
+        const lastMsg = messages[messages.length - 1].content.toLowerCase();
+        let catIndex = 4; // Default to self-care
+        
+        if (lastMsg.includes('sad') || lastMsg.includes('low')) catIndex = 0;
+        else if (lastMsg.includes('anxio') || lastMsg.includes('panic')) catIndex = 1;
+        else if (lastMsg.includes('sleep') || lastMsg.includes('tire')) catIndex = 2;
+        else if (lastMsg.includes('stress') || lastMsg.includes('work')) catIndex = 3;
+        
+        return SUGGESTION_CATEGORIES[catIndex].questions.slice(0, 3);
+    };
+
     return (
         <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] bg-slate-50 md:rounded-3xl shadow-2xl relative overflow-hidden animate-fade-in group w-full max-w-7xl mx-auto md:my-6 border border-slate-100">
             {/* Premium Header */}
@@ -260,6 +294,65 @@ const ChatPage = () => {
                             <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-0.5">Virtual Companion</p>
                         </div>
                     </div>
+                </div>
+
+                <div className="relative">
+                    <button 
+                        onClick={() => setShowMenu(!showMenu)}
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${showMenu ? 'bg-indigo-600 text-white' : 'bg-slate-50 hover:bg-slate-100 text-slate-600'}`}
+                    >
+                        <MoreVertical size={20} />
+                    </button>
+                    
+                    {showMenu && (
+                        <>
+                            <div 
+                                className="fixed inset-0 z-40 bg-transparent" 
+                                onClick={() => setShowMenu(false)}
+                            />
+                            <div className="absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in slide-in-from-top-4 duration-300">
+                                <div className="p-2 space-y-1">
+                                    <button 
+                                        onClick={handleClearChat}
+                                        className="w-full flex items-center gap-3 px-4 py-4 text-left text-sm font-black text-rose-600 hover:bg-rose-50 rounded-2xl transition-all group"
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-rose-50 group-hover:bg-rose-100 flex items-center justify-center transition-colors">
+                                            <Trash2 size={18} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span>Clear Chat</span>
+                                            <span className="text-[10px] font-medium text-rose-300 uppercase tracking-widest mt-0.5">Erase all history</span>
+                                        </div>
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => { setShowHelp(true); setShowMenu(false); }}
+                                        className="w-full flex items-center gap-3 px-4 py-4 text-left text-sm font-black text-slate-700 hover:bg-slate-50 rounded-2xl transition-all group"
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-slate-100 flex items-center justify-center transition-colors">
+                                            <HelpCircle size={18} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span>About MindBalance</span>
+                                            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">Learn more about AI</span>
+                                        </div>
+                                    </button>
+                                    
+                                    <div className="h-px bg-slate-50 my-1 mx-4" />
+                                    
+                                    <button 
+                                        onClick={() => setShowMenu(false)}
+                                        className="w-full flex items-center gap-3 px-4 py-4 text-left text-sm font-black text-slate-400 hover:bg-slate-50 rounded-2xl transition-all group"
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-slate-100 flex items-center justify-center transition-colors">
+                                            <X size={18} />
+                                        </div>
+                                        <span>Cancel</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </header>
 
@@ -311,20 +404,33 @@ const ChatPage = () => {
                 ) : (
                     <div className="max-w-4xl mx-auto w-full space-y-6">
                         {messages.map((msg, i) => {
-                            const isAI = msg.sender_name === 'Skyheal AI';
+                            const isAI = isAIMessage(msg.sender_name);
                             return (
-                                <div key={msg._id || i} className={`flex items-end gap-3 ${isAI ? 'justify-start' : 'justify-end'}`}>
+                                <div key={msg._id || i} className={`flex items-end gap-3 ${isAI ? 'justify-start' : 'justify-end animate-slide-up'}`}>
                                     {isAI && (
-                                        <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-200">
-                                            <Bot size={20} />
+                                        <div className="flex flex-col items-center gap-1 shrink-0">
+                                            <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+                                                <Bot size={20} />
+                                            </div>
                                         </div>
                                     )}
-                                    <div className={`max-w-[80%] md:max-w-[70%] p-5 rounded-[1.5rem] shadow-sm relative ${isAI ? 'bg-white border border-slate-100 rounded-bl-sm text-slate-800' : 'bg-slate-900 border border-slate-800 rounded-br-sm text-white shadow-xl'}`}>
+                                    <div className={`max-w-[80%] md:max-w-[70%] p-5 rounded-[2rem] shadow-sm relative transition-all duration-300 group/bubble ${
+                                        isAI 
+                                            ? 'bg-white border border-indigo-50/50 rounded-bl-sm text-slate-800 shadow-xl shadow-indigo-50/20' 
+                                            : 'bg-slate-900 border-none rounded-br-sm text-white shadow-2xl shadow-slate-200'
+                                    }`}>
                                         <p className="text-[15px] leading-relaxed font-medium whitespace-pre-wrap">{msg.content}</p>
-                                        <span className={`text-[9px] font-bold block mt-3 ${isAI ? 'text-slate-400' : 'text-slate-400 text-right'}`}>
-                                            {formatTime(msg.createdAt)}
-                                        </span>
+                                        <div className={`flex items-center gap-2 mt-3 opacity-60 ${isAI ? 'text-slate-400' : 'text-slate-400 justify-end'}`}>
+                                            <span className="text-[9px] font-black uppercase tracking-widest">
+                                                {formatTime(msg.createdAt)}
+                                            </span>
+                                        </div>
                                     </div>
+                                    {!isAI && (
+                                        <div className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-slate-400 flex items-center justify-center shrink-0 shadow-sm">
+                                            <User size={20} />
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
@@ -347,6 +453,24 @@ const ChatPage = () => {
             </div>
 
             <div className="p-4 md:px-8 md:pb-8 md:pt-4 bg-white border-t border-slate-100 z-20">
+                {/* Contextual Suggestions */}
+                {messages.length > 0 && !isTyping && (
+                    <div className="max-w-4xl mx-auto mb-4 animate-fade-in">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 ml-2 italic">Suggested Continuations</p>
+                        <div className="flex flex-wrap gap-2">
+                            {getContextualSuggestions().map((q, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => sendMessage(q)}
+                                    className="px-4 py-2 bg-indigo-50/50 hover:bg-indigo-600 text-indigo-600 hover:text-white border border-indigo-100 hover:border-indigo-600 rounded-xl text-xs font-black transition-all duration-300 active:scale-95 shadow-sm hover:shadow-indigo-200"
+                                >
+                                    {q}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <form 
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -370,6 +494,13 @@ const ChatPage = () => {
                     </button>
                 </form>
             </div>
+
+            {/* Help Modal */}
+            <MindBalanceHelpModal 
+                isOpen={showHelp} 
+                onClose={() => setShowHelp(false)} 
+                slug="about_mindbalance" 
+            />
         </div>
     );
 };

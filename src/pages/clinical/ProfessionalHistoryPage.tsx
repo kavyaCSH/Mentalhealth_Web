@@ -1,30 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import {
     Activity,
-    Calendar,
-    ChevronDown,
-    ChevronRight,
-    Search,
-    Download,
     Brain,
-    ClipboardList,
-    TrendingUp,
     Shield,
     CheckCircle2,
-    BarChart3,
-    Settings2,
+    TrendingUp,
     ChevronLeft,
-    AlertCircle
+    ChevronRight,
+    AlertCircle,
+    Download
 } from 'lucide-react';
 import { AssessmentService } from '../../api/services/assessment.service';
+import { UserService } from '../../api/services/user.service';
+import { useAuth } from '../../hooks/useAuth';
 import type { AssessmentResult } from '../../types/assessment.types';
 import Button from '../../components/ui/Button';
 
 // ─── Severity styling ────────────────────────────────────────────────────────
 const getSeverityStyle = (severity?: string, interpretation?: string) => {
-    const key = (severity || interpretation || '').toLowerCase();
+    const key = String(severity || interpretation || '').toLowerCase();
     if (key.includes('severe') || key.includes('high') || key.includes('extreme'))
         return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', fill: 'bg-red-500', icon: AlertCircle };
     if (key.includes('moderate') || key.includes('medium'))
@@ -35,83 +31,137 @@ const getSeverityStyle = (severity?: string, interpretation?: string) => {
 };
 
 const ProfessionalHistoryPage = () => {
+    const { user } = useAuth();
     const navigate = useNavigate();
+    const { patientId: routePatientId } = useParams<{ patientId: string }>();
     const [searchParams] = useSearchParams();
-    const patientId = searchParams.get('patientId');
-    const topicParam = searchParams.get('topic');
+    const urlPatientId = searchParams.get('patientId');
+    const isPatient = String(user?.role).toUpperCase() === 'PATIENT';
+    const patientId = routePatientId || urlPatientId || (isPatient ? (user?.userId || user?.id || user?._id) : null);
+    const categoryParam = searchParams.get('category') || searchParams.get('topic');
 
     const [history, setHistory] = useState<AssessmentResult[]>([]);
+    const [patientInfo, setPatientInfo] = useState<{ name: string } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     // Filters
-    const [categoryFilter, setCategoryFilter] = useState(topicParam || 'all');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
+    const [categoryFilter] = useState(categoryParam || 'all');
+    const [searchQuery] = useState('');
 
     const loadHistory = useCallback(async () => {
         setIsLoading(true);
+        setFetchError(null);
         try {
-            let res;
             if (patientId) {
-                res = await AssessmentService.getPatientProfessionalHistory(patientId);
-                setHistory(res.data || []);
+                let assessments: AssessmentResult[] = [];
+                
+                if (isPatient) {
+                    // For patients, fetch their combined history and filter for clinical entries
+                    // This mirrors mobile AssessmentHistoryScreen logic (fetch both & filter)
+                    const res = await AssessmentService.getSelfAssessmentHistory({ limit: 50 });
+                    assessments = (res.assessments || []).filter(item => 
+                        item.isProfessional || 
+                        item.tScore != null || 
+                        item.clinicalResults || 
+                        item.clinicianId != null ||
+                        item.assessment_type === 'professional'
+                    );
+
+                    // Also try to fetch specific professional results if the numeric userId is available
+                    if (user?.userId) {
+                        try {
+                            const profHistory = await AssessmentService.getPatientProfessionalHistory(user.userId);
+                            if (profHistory && profHistory.length > 0) {
+                                // Merge and deduplicate
+                                const existingIds = new Set(assessments.map(a => a.id));
+                                profHistory.forEach(a => {
+                                    if (!existingIds.has(a.id)) assessments.push(a);
+                                });
+                            }
+                        } catch (pErr) {
+                            console.warn('[History] Patient professional sub-fetch failed:', pErr);
+                        }
+                    }
+                } else {
+                    // Specialist view
+                    assessments = await AssessmentService.getPatientProfessionalHistory(patientId);
+                    
+                    try {
+                        const profile = await UserService.getUserById(String(patientId));
+                        if (profile) setPatientInfo({ name: `${profile.firstName} ${profile.lastName}` });
+                    } catch (err) {
+                        console.warn('Failed to load patient name:', err);
+                    }
+                }
+                
+                setHistory(assessments || []);
             } else {
-                // Global view: fetch all clinical assessments
-                const response = await AssessmentService.getAllAdmin();
-                setHistory(Array.isArray(response) ? response : (response as any).data || []);
+                // Global/Admin view
+                const assessments = await AssessmentService.getAllAdmin();
+                setHistory(assessments || []);
             }
         } catch (err: any) {
             console.error('Failed to load professional history:', err);
+            setFetchError('Failed to synchronize clinical reports archive.');
         } finally {
             setIsLoading(false);
         }
-    }, [patientId]);
+    }, [patientId, isPatient, user?.userId]);
 
     useEffect(() => {
         loadHistory();
     }, [loadHistory]);
 
     const filteredHistory = history.filter(item => {
-        const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+        // Robust check for professional-grade reports
+        const isActuallyProf = 
+            (item as any).isProfessional || 
+            item.tScore != null || 
+            item.clinicalResults || 
+            item.clinicianId != null ||
+            item.assessment_type === 'professional';
+
+        const matchesCategory = categoryFilter === 'all' || 
+            (item.category || '').toLowerCase() === categoryFilter.toLowerCase() ||
+            (item.slug || '').toLowerCase() === categoryFilter.toLowerCase();
+
         const matchesSearch = 
             (item.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (item.notes || '').toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
+
+        return isActuallyProf && matchesCategory && matchesSearch;
     });
 
-    const uniqueCategories = Array.from(new Set(history.map(h => h.category).filter(Boolean)));
 
     return (
         <div className="p-8 max-w-6xl  space-y-8 animate-fade-in pb-20">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    {patientId ? (
+                    {isPatient ? (
                         <button
-                            onClick={() => navigate(`/patients/${patientId}?view=focused`)}
+                            onClick={() => navigate('/records')}
                             className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
                         >
-                            <ChevronLeft size={14} /> Back to Patient Record
+                            <ChevronLeft size={14} /> Back to Health Overview
                         </button>
                     ) : (
                         <button
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate(patientId ? `/patients/${patientId}/clinical-hub` : '/')}
                             className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
                         >
-                            <ChevronLeft size={14} /> Back to Dashboard
+                            <ChevronLeft size={14} /> {patientId ? 'Back to Patient Hub' : 'Back to Dashboard'}
                         </button>
                     )}
-                    <div className="flex items-center gap-3 text-indigo-600 mb-2">
-                        <ClipboardList size={18} />
-                        <span className="text-xs font-black uppercase tracking-widest">{patientId ? 'Patient Assessment History' : 'Global Clinical History'}</span>
-                    </div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Clinical Records</h1>
-                    <p className="text-slate-500 font-medium max-w-xl mt-1">
-                        {patientId 
-                            ? 'Longitudinal tracking of clinical assessments performed for this patient.' 
-                            : 'A comprehensive history of clinical assessments performed across your practice.'}
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-4">
+                        <Shield className="text-indigo-600" size={32} />
+                        {isPatient ? 'Your Professional Reports' : (patientInfo ? `${patientInfo.name}'s History` : 'Clinical Archive')}
+                    </h1>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">
+                        {isPatient ? 'Authorized Clinician Evaluations & Diagnostic Outcomes' : `Longitudinal Clinical Synthesis & Verified Outcomes for ${patientInfo?.name || 'Authorized Recipient'}`}
                     </p>
                 </div>
+
                 <div className="flex gap-4">
                     <Button
                         variant="ghost"
@@ -131,207 +181,103 @@ const ProfessionalHistoryPage = () => {
                 </div>
             </header>
 
-            {/* Filter Bar */}
-            <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative group">
-                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Search assessments, notes..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input-base pl-12 shadow-sm border-slate-100 hover:border-slate-200 w-full"
-                    />
-                </div>
-                <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`px-6 py-4 rounded-2xl flex items-center gap-2 font-black text-xs uppercase tracking-widest transition-all border
-                        ${showFilters ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200'}
-                    `}
-                >
-                    <Settings2 size={16} /> Filters
-                </button>
-            </div>
-
-            <AnimatePresence>
-                {showFilters && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm overflow-hidden"
-                    >
-                        <div className="space-y-4">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filter by Category</p>
-                            <div className="flex flex-wrap gap-2">
-                                <button
-                                    onClick={() => setCategoryFilter('all')}
-                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all
-                                        ${categoryFilter === 'all' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-500 border-slate-100'}
-                                    `}
-                                >
-                                    All Categories
-                                </button>
-                                {uniqueCategories.map(cat => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setCategoryFilter(cat!)}
-                                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all
-                                            ${categoryFilter === cat ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 text-slate-500 border-slate-100'}
-                                        `}
-                                    >
-                                        {cat?.replace(/_/g, ' ')}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {isLoading ? (
-                <div className="py-20 text-center">
-                    <Activity className="animate-spin mx-auto text-indigo-500 mb-4" size={40} />
-                    <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Loading clinical history...</p>
-                </div>
-            ) : filteredHistory.length === 0 ? (
-                <div className="bg-white rounded-[2.5rem] p-24 text-center border border-slate-100 shadow-sm">
-                    <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <ClipboardList size={40} className="text-slate-200" />
+            {/* List */}
+            <div className="space-y-3">
+                {isLoading ? (
+                    <div className="py-20 text-center">
+                        <Activity className="animate-spin mx-auto text-indigo-400 mb-4" size={32} />
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Synchronizing Archive...</p>
                     </div>
-                    <h3 className="text-xl font-black text-slate-900 mb-2">No Records Found</h3>
-                    <p className="text-slate-500 font-medium max-w-sm mx-auto">There are no professional assessments matching your criteria.</p>
-                </div>
-            ) : (
-                <div className="space-y-6">
-                    {filteredHistory.map((assessment, i) => {
-                        const style = getSeverityStyle(assessment.severity, assessment.interpretation);
-                        const isExpanded = expandedId === assessment._id;
-                        
+                ) : filteredHistory.length > 0 ? (
+                    filteredHistory.map((item, index) => {
+                        const style = getSeverityStyle(item.severity, item.interpretation);
+                        const SeverityIcon = style.icon;
                         return (
                             <motion.div
-                                key={assessment._id}
-                                initial={{ opacity: 0, y: 20 }}
+                                key={item.id || index}
+                                initial={{ opacity: 0, y: 15 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.05 }}
-                                className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-indigo-50/50 transition-all border-l-4"
-                                style={{ borderLeftColor: style.bg.replace('bg-', '') === 'red-50' ? '#ef4444' : style.bg.replace('bg-', '') === 'orange-50' ? '#f97316' : '#6366f1' }}
+                                transition={{ delay: index * 0.04 }}
+                                onClick={() => navigate(`/history/${item.id}${patientId ? `?patientId=${patientId}` : ''}`)}
+                                className="bg-white rounded-2xl border border-slate-100 shadow-sm transition-all overflow-hidden group mb-2.5 cursor-pointer hover:shadow-lg hover:border-indigo-200 active:scale-[0.98]"
                             >
-                                <div className="p-5">
-                                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${style.bg} ${style.color}`}>
-                                                <Brain size={22} />
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-0.5">
-                                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-md">
-                                                        {assessment.category?.replace(/_/g, ' ')}
-                                                    </span>
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                                                        <Calendar size={10} />
-                                                        {new Date(assessment.createdAt || '').toLocaleDateString()}
-                                                    </span>
-                                                </div>
-                                                <h3 className="text-lg font-black text-slate-900 capitalize leading-tight">
-                                                    {assessment.category?.replace(/_/g, ' ')} Assessment
-                                                </h3>
-                                            </div>
+                                {/* Card Header - Navigation Style */}
+                                <div className="p-3.5 border-b border-slate-50 flex items-center justify-between group-hover:bg-slate-50/30 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bg} ${style.color} group-hover:scale-110 transition-transform shadow-sm`}>
+                                            <Brain size={16} />
                                         </div>
-
-                                        <div className="flex items-center gap-6 bg-slate-50/50 p-4 rounded-2xl border border-slate-50">
-                                            <div className="text-center px-4 border-r border-slate-100">
-                                                <p className="text-2xl font-black text-slate-900 leading-none">
-                                                    {assessment.totalScore}
-                                                    <span className="text-[10px] text-slate-400 ml-0.5 font-medium">/ {assessment.maxPossibleScore || 21}</span>
-                                                </p>
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Score</p>
+                                        <div className="space-y-0 text-left">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">{item.date}</p>
+                                            <div className="flex items-center gap-1 mt-0.5">
+                                                <span className={`px-1 py-0.5 rounded-[4px] text-[6px] font-black uppercase tracking-widest ${item.isProfessional ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
+                                                    {item.isProfessional ? 'Clinical' : 'Self'}
+                                                </span>
+                                                <span className={`px-1 py-0.5 rounded-full text-[6px] font-black uppercase tracking-widest border flex items-center gap-1 ${style.bg} ${style.color} ${style.border}`}>
+                                                    <SeverityIcon size={6} />
+                                                    {item.severity || 'Normal'}
+                                                </span>
                                             </div>
-                                            <div className="text-center px-4">
-                                                <div className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${style.bg} ${style.color} ${style.border}`}>
-                                                    {assessment.interpretation || assessment.severity || 'Completed'}
-                                                </div>
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Result</p>
-                                            </div>
-                                            <button 
-                                                onClick={() => setExpandedId(isExpanded ? null : assessment._id || null)}
-                                                className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
-                                            >
-                                                {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                                            </button>
                                         </div>
                                     </div>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="hidden sm:block text-right mr-2 border-r border-slate-100 pr-2">
+                                            <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest italic opacity-60">ID</p>
+                                            <p className="text-[9px] font-bold text-slate-900 tracking-tight leading-none">#{item.id?.slice(-4).toUpperCase()}</p>
+                                        </div>
+                                        <div className="p-1 px-1.5 bg-slate-50 rounded-md group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                            <ChevronRight size={14} />
+                                        </div>
+                                    </div>
+                                </div>
 
-                                    {assessment.notes && (
-                                        <div className="mt-5 p-4 bg-amber-50 rounded-xl border border-amber-100 flex gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
-                                                <ClipboardList size={16} />
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] font-black text-amber-400 uppercase tracking-widest">Note</p>
-                                                <p className="text-xs font-bold text-amber-900 leading-relaxed italic">
-                                                    "{assessment.notes}"
+                                {/* Card Body - Synthesis Preview */}
+                                <div className="p-4 pb-3 space-y-2">
+                                    <h3 className="text-base font-black text-slate-900 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">
+                                        {item.category || 'General Assessment'}
+                                    </h3>
+                                    <div className="space-y-1.5 text-left">
+                                        <p className="text-[11px] text-slate-600 font-medium leading-relaxed italic line-clamp-1 opacity-80">
+                                            {item.interpretation || 'No additional synthesis recorded.'}
+                                        </p>
+                                        {item.notes && (
+                                            <div className="p-2.5 bg-amber-50/40 rounded-xl border border-amber-100/50 group-hover:bg-amber-50 transition-colors">
+                                                <p className="text-[10px] font-semibold text-amber-900 leading-tight line-clamp-2">
+                                                    <span className="font-black text-amber-600 uppercase text-[8px] mr-1">Clinician Note:</span>
+                                                    "{item.notes}"
                                                 </p>
                                             </div>
-                                        </div>
-                                    )}
-
-                                    <AnimatePresence>
-                                        {isExpanded && (
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: 'auto', opacity: 1 }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                                className="mt-6 pt-6 border-t border-slate-100"
-                                            >
-                                                <div className="flex items-center gap-2 mb-6">
-                                                    <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                                        <BarChart3 size={16} />
-                                                    </div>
-                                                    <h4 className="text-md font-black text-slate-900 tracking-tight">Responses</h4>
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {assessment.responses?.map((resp, ri) => {
-                                                        const isId = (val: string) => /^[0-9a-fA-F]{24}$/.test(val || '');
-                                                        const displayAnswer = resp.answerText || (!isId(resp.selectedOption || resp.optionId) ? (resp.selectedOption || resp.optionId) : 'Value Recorded');
-                                                        
-                                                        return (
-                                                            <div key={ri} className="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 flex flex-col justify-between gap-4 group hover:bg-white hover:border-indigo-100 hover:shadow-lg transition-all">
-                                                                <div className="flex items-start gap-4">
-                                                                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 shrink-0 shadow-sm group-hover:text-indigo-500 transition-colors">
-                                                                        {String(ri + 1).padStart(2, '0')}
-                                                                    </div>
-                                                                    <div className="space-y-2.5 flex-1">
-                                                                        <p className="text-xs font-bold text-slate-800 leading-tight group-hover:text-indigo-900 transition-colors">
-                                                                            {resp.questionText || `Item Inquiry ${resp.questionId}`}
-                                                                        </p>
-                                                                        <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-white border border-slate-100 rounded-md shadow-sm">
-                                                                            <div className="w-1 h-1 rounded-full bg-slate-300 group-hover:bg-indigo-400 transition-colors" />
-                                                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight">
-                                                                                {displayAnswer}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex justify-end pt-2 border-t border-slate-50">
-                                                                    <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${resp.score ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
-                                                                        {resp.score ? `+${resp.score}` : '0'} pts
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </motion.div>
                                         )}
-                                    </AnimatePresence>
+                                    </div>
                                 </div>
                             </motion.div>
                         );
-                    })}
-                </div>
-            )}
+                    })
+                ) : (
+                    <div className="py-32 text-center bg-white rounded-[3rem] border border-dashed border-slate-200">
+                        {fetchError ? (
+                            <AlertCircle className="mx-auto text-rose-500 mb-4" size={48} />
+                        ) : (
+                            <Shield className="mx-auto text-slate-300 mb-4" size={48} />
+                        )}
+                        <h3 className="text-xl font-black text-slate-900 uppercase">
+                            {fetchError ? 'Sync Failure' : 'No Assessment Records'}
+                        </h3>
+                        <p className="text-slate-400 font-medium mt-2">
+                            {fetchError || 'There are no professional assessments recorded for this profile yet.'}
+                        </p>
+                        {fetchError && (
+                            <Button
+                                variant="outline"
+                                className="mt-8 rounded-2xl border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                                onClick={loadHistory}
+                            >
+                                Retry Sync
+                            </Button>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

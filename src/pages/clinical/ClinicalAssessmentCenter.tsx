@@ -176,7 +176,7 @@ const ClinicalAssessmentCenter = () => {
     };
 
     const handleViewHistory = (slug: string) => {
-        if (targetPatientId) navigate(`/patients/${targetPatientId}/history?category=${slug}`);
+        if (targetPatientId) navigate(`/history/professional?patientId=${targetPatientId}&category=${slug}`);
     };
 
     const getTopicProgress = (topicSlug: string) => {
@@ -292,7 +292,7 @@ const ClinicalAssessmentCenter = () => {
                                 Back to Assessment Center
                             </Button>
                             <button 
-                                onClick={() => navigate(`/clinical/assessments/history?patientId=${targetPatientId}&topic=${submittedResult.category}`)}
+                                onClick={() => navigate(`/history/professional?patientId=${targetPatientId}&category=${submittedResult.category}`)}
                                 className="w-full py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors flex items-center justify-center gap-2"
                             >
                                 <TrendingUp size={14} /> View Longitudinal History <ChevronRight size={14} />

@@ -19,7 +19,7 @@ export const PastHistoryService = {
     },
 
     extractFromNarrative: async (narrative: string, patient_id: string | number): Promise<ApiResponse<Partial<PastHistoryResponse>>> => {
-        const response = await api.post('past-history/analyze', { narrative, patient_id }, { timeout: 90000 });
+        const response = await api.post('past-history/extract', { narrative, patient_id }, { timeout: 90000 });
         return response.data;
     },
 

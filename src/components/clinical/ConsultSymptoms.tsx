@@ -93,12 +93,13 @@ export const ConsultSymptoms: React.FC<ConsultSymptomsProps> = ({ patientId, con
         setSaving(true);
         try {
             const payload = { 
-                patient_id: String(patientId), 
-                consult_id: consultId ? String(consultId) : undefined, 
+                patientId: !isNaN(Number(patientId)) ? Number(patientId) : patientId, 
+                consultId: consultId && !isNaN(Number(consultId)) ? Number(consultId) : consultId,
+                consult_id: consultId && !isNaN(Number(consultId)) ? Number(consultId) : consultId,
                 scores, 
                 notes 
             };
-            const res = await SymptomService.saveSymptomScores(payload as any);
+            const res = await SymptomService.saveSymptomScores(payload);
             if (res.code === 201 || res.success) {
                 setNotes('');
                 setActiveTab('history');

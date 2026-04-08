@@ -15,6 +15,7 @@ export interface SymptomRecord {
 export const SymptomService = {
     saveSymptomScores: async (data: {
         patientId: string | number;
+        consultId?: number | string;
         consult_id?: number | string;
         scores: Record<string, number>;
         notes?: string;

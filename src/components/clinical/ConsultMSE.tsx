@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Brain,
-    Sparkles,
     Clock,
     ChevronRight,
     Activity,
     CheckCircle2,
     FileText,
-    Target
+    Target,
+    ChevronLeft
 } from 'lucide-react';
 import { MSEService } from '../../api/services/mse.service';
 import Button from '../ui/Button';
@@ -28,20 +28,38 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
     const [activeTab, setActiveTab] = useState<'new' | 'history'>(initialTab);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [extracting, setExtracting] = useState(false);
+
     const [history, setHistory] = useState<any[]>([]);
     const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
 
-    // Form State (Mobile Parity UI)
-    const [narrative, setNarrative] = useState('');
-    const [findings, setFindings] = useState<Record<string, any>>({});
-    const [analysis, setAnalysis] = useState<any>(null);
+    // Form State
+    const [sections, setSections] = useState<any[]>([]);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [responses, setResponses] = useState<Record<string, any>>({});
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (activeTab === 'history' && patientId) {
             fetchHistory();
+        } else if (activeTab === 'new' && sections.length === 0) {
+            fetchQuestionnaire();
         }
     }, [activeTab, patientId]);
+
+
+
+    const fetchQuestionnaire = async () => {
+        try {
+            setLoading(true);
+            const res = await MSEService.getQuestions();
+            const data = (res as any).data || res;
+            if (Array.isArray(data)) setSections(data);
+        } catch (err) {
+            console.error('[ConsultMSE] Failed to load MSE components:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchHistory = async () => {
         if (!patientId) return;
@@ -57,45 +75,48 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
         }
     };
 
-    const handleAIExtract = async () => {
-        if (!narrative.trim()) return;
-        setExtracting(true);
-        try {
-            const res = await MSEService.extractFromNarrative(narrative, patientId);
-            if (res) {
-                const extractionData = res as any;
-                setFindings(extractionData.structured || extractionData.data?.structured || extractionData.data || {});
-                setAnalysis(extractionData.analysis || extractionData.data?.analysis || null);
-                // alert('AI Clinical Intake successful: Mental status markers synthesized.');
-            }
-        } catch (error) {
-            console.error('[ConsultMSE] AI Extraction failed:', error);
-        } finally {
-            setExtracting(false);
-        }
+    const handleValueChange = (section: string, key: string, value: any) => {
+        setResponses(prev => ({
+            ...prev,
+            [section]: { ...(prev[section] || {}), [key]: value }
+        }));
     };
 
+    const handleMultiselectToggle = (section: string, key: string, option: string) => {
+        setResponses(prev => {
+            const currentSection = prev[section] || {};
+            const currentArr = Array.isArray(currentSection[key]) ? [...currentSection[key]] : [];
+            const newArr = currentArr.includes(option) ? currentArr.filter((o: string) => o !== option) : [...currentArr, option];
+            return { ...prev, [section]: { ...currentSection, [key]: newArr } };
+        });
+    };
+
+
+
     const handleSave = async () => {
-        if (!narrative.trim() && Object.keys(findings).length === 0) return;
+        const submissionData: any = { 
+            patient_id: String(patientId), 
+            consult_id: consultId ? Number(consultId) : 1,
+            status: 'completed'
+        };
+        
+        let hasData = false;
+        sections.forEach(s => {
+            const sectionData = responses[s.section];
+            if (sectionData && Object.keys(sectionData).length > 0) {
+                submissionData[s.section] = sectionData;
+                hasData = true;
+            }
+        });
+
+        if (!hasData) return;
+
         setSaving(true);
         try {
-            const responses = Object.entries(findings).map(([key, value]) => ({
-                questionCode: key,
-                value: value
-            }));
-
-            const payload = {
-                patient_id: String(patientId),
-                consult_id: consultId ? String(consultId) : undefined,
-                narrative: narrative,
-                responses: responses,
-                analysis: analysis
-            };
-
-            const res = await MSEService.createMSE(payload as any);
+            const res = await MSEService.createMSE(submissionData);
             if (res) {
                 if (onSave) onSave(res);
-                resetForm();
+                setResponses({});
                 setActiveTab('history');
                 fetchHistory();
             }
@@ -106,11 +127,42 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
         }
     };
 
-    const resetForm = () => {
-        setNarrative('');
-        setFindings({});
-        setAnalysis(null);
+    const renderQuestion = (section: string, q: any) => {
+        const val = responses[section]?.[q.key];
+        switch (q.type) {
+            case 'select':
+            case 'multiselect':
+                return (
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        {q.options?.map((opt: string) => {
+                            const isSel = q.type === 'select' ? val === opt : (Array.isArray(val) && val.includes(opt));
+                            return (
+                                <button key={opt} onClick={() => q.type === 'select' ? handleValueChange(section, q.key, opt) : handleMultiselectToggle(section, q.key, opt)}
+                                    className={`p-3 rounded-xl border text-left transition-all ${isSel ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'}`}>
+                                    <span className="text-[10px] font-bold uppercase tracking-tight">{opt}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                );
+            case 'boolean':
+                return (
+                    <div className="flex gap-2 mt-2">
+                        {[true, false].map(v => (
+                            <button key={v ? 'y' : 'n'} onClick={() => handleValueChange(section, q.key, v)}
+                                className={`flex-1 p-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${val === v ? (v ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-800 border-slate-800 text-white') : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                {v ? 'Normal' : 'Atypical'}
+                            </button>
+                        ))}
+                    </div>
+                );
+            case 'text':
+                return <textarea value={val || ''} onChange={e => handleValueChange(section, q.key, e.target.value)} className="w-full h-24 bg-slate-50 border-2 border-slate-100 rounded-xl p-4 text-[10px] font-bold mt-2 outline-none focus:bg-white transition-all resize-none" />;
+            default: return null;
+        }
     };
+
+    const currentSection = sections[currentStep];
 
     const renderHistory = () => (
         <div className="space-y-4 pt-2">
@@ -152,12 +204,6 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
                             <p className="text-[11px] font-bold text-slate-600 leading-relaxed line-clamp-2">
                                 {record.narrative ? `"${record.narrative}"` : 'Mental status documentation available.'}
                             </p>
-                            <div className="flex gap-2 mt-3">
-                                {record.analysis && (
-                                    <span className="px-2 py-0.5 bg-violet-50 text-violet-600 rounded-md text-[8px] font-black uppercase tracking-tight border border-violet-100">AI Analyzed</span>
-                                )}
-                                <span className="px-2 py-0.5 border border-slate-200 text-slate-400 rounded-md text-[8px] font-black uppercase tracking-tight">Status Exam</span>
-                            </div>
                         </button>
                     ))}
                 </div>
@@ -166,74 +212,46 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
     );
 
     const renderNew = () => (
-        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 pb-20 pt-2">
-            {/* Multi-modal Intake */}
-            <div className="bg-white border-2 border-slate-200 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-violet-900 text-white flex items-center justify-center">
-                        <Target size={16} />
-                    </div>
-                    <div>
-                        <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Mental Observation</h3>
-                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tight">Real-time Clinical Intake</p>
-                    </div>
-                </div>
+        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500 pb-20 pt-1">
+             <div className="flex items-center justify-between mb-4">
+                 <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Mental State Exam</h3>
+             </div>
 
-                <textarea
-                    value={narrative}
-                    onChange={(e) => setNarrative(e.target.value)}
-                    placeholder="Describe patient's appearance, mood, behavior, and cognitive function..."
-                    className="w-full h-40 bg-slate-50 border-2 border-slate-100 rounded-xl p-4 text-[11px] font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-300 transition-all resize-none shadow-inner"
-                />
 
-                <div className="flex justify-end mt-4">
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        disabled={extracting || !narrative.trim()}
-                        onClick={handleAIExtract}
-                        className="rounded-lg px-6 font-black uppercase text-[9px] tracking-widest bg-violet-600 hover:bg-violet-700"
-                    >
-                        {extracting ? '...' : (
-                            <div className="flex items-center gap-2">
-                                <Sparkles size={12} /> AI Extract Markers
-                            </div>
-                        )}
-                    </Button>
-                </div>
-            </div>
-
-            {/* Structured Output Preview */}
-            {Object.keys(findings).length > 0 && (
-                <div className="p-5 bg-violet-50/50 border-2 border-dashed border-violet-200 rounded-2xl space-y-4">
-                    <h4 className="text-[9px] font-black text-violet-600 uppercase tracking-widest flex items-center gap-2">
-                        <CheckCircle2 size={12} /> Extracted Clinical Findings
-                    </h4>
-                    <div className="space-y-2">
-                        {Object.entries(findings).slice(0, 5).map(([key, value]) => (
-                            <div key={key} className="flex justify-between items-center py-2 border-b border-violet-100 last:border-none">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">{key.replace(/_/g, ' ')}</span>
-                                <span className="text-[10px] font-bold text-violet-700 truncate max-w-[60%]">{String(value)}</span>
-                            </div>
+                <div className="space-y-4">
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {sections.map((s, idx) => (
+                             <button key={s.section} onClick={() => setCurrentStep(idx)} className={`px-4 py-3 rounded-xl border-2 whitespace-nowrap text-[9px] font-black uppercase tracking-widest transition-all ${idx === currentStep ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-100'}`}>{s.title}</button>
                         ))}
-                        {Object.keys(findings).length > 5 && (
-                            <p className="text-[8px] font-bold text-violet-400 text-center uppercase tracking-widest pt-2">
-                                + {Object.keys(findings).length - 5} additional clinical attributes
-                            </p>
+                    </div>
+
+                    {currentSection && (
+                        <div className="card-premium p-6 bg-white border-slate-100 space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                             <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <div className="w-1 h-5 bg-indigo-600 rounded-full" /> {currentSection.title}
+                             </h4>
+                             <div className="space-y-8">
+                                {currentSection.questions.map((q: any) => (
+                                    <div key={q.key} className="space-y-1">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1">{q.label}</label>
+                                        {renderQuestion(currentSection.section, q)}
+                                    </div>
+                                ))}
+                             </div>
+                        </div>
+                    )}
+
+                    <div className="flex gap-3 pt-6">
+                        {currentStep > 0 && <Button variant="outline" className="flex-1 h-14 rounded-xl font-black uppercase text-[10px]" onClick={() => setCurrentStep(prev => prev - 1)}>Back</Button>}
+                        {currentStep < sections.length - 1 ? (
+                            <Button variant="primary" className="flex-1 h-14 rounded-xl bg-indigo-600 border-none font-black uppercase text-[10px]" onClick={() => setCurrentStep(prev => prev + 1)}>Next domain</Button>
+                        ) : (
+                            <Button variant="primary" className="flex-1 h-14 rounded-xl bg-slate-900 border-none font-black uppercase text-[10px]" onClick={handleSave} isLoading={saving}>Finalize Exam</Button>
                         )}
                     </div>
                 </div>
-            )}
 
-            <Button
-                variant="primary"
-                className="w-full h-14 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-100"
-                isLoading={saving}
-                disabled={!narrative.trim() && Object.keys(findings).length === 0}
-                onClick={handleSave}
-            >
-                Finalize Exam
-            </Button>
+
         </div>
     );
 
@@ -243,7 +261,7 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
                 onClick={() => setSelectedRecord(null)}
                 className="flex items-center gap-1.5 text-slate-400 font-black text-[9px] uppercase tracking-widest mb-2 hover:text-indigo-600 transition-colors"
             >
-                <ChevronRight size={14} className="rotate-180" />
+                <ChevronLeft size={14} />
                 Back to clinical Archive
             </button>
 
@@ -262,29 +280,6 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
                 <p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">
                     "{selectedRecord.narrative || 'Mental status documentation summary'}"
                 </p>
-                <div className="mt-6 pt-6 border-t border-slate-100 space-y-4">
-                    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-tight">
-                        <span className="text-slate-400">Markers Detected</span>
-                        <span className="text-indigo-600">{Object.keys(selectedRecord.responses || {}).length} Attributes</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <CheckCircle2 size={12} className="text-emerald-500" />
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">MSE Protocol Verified</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-white border-2 border-slate-200 rounded-xl flex flex-col items-center justify-center text-center">
-                    <Brain size={16} className="text-slate-400 mb-2" />
-                    <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Cognition</span>
-                    <span className="text-[10px] font-black text-slate-900 uppercase tracking-tight mt-1">Verified</span>
-                </div>
-                <div className="p-4 bg-white border-2 border-slate-200 rounded-xl flex flex-col items-center justify-center text-center">
-                    <Activity size={16} className="text-slate-400 mb-2" />
-                    <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Behavior</span>
-                    <span className="text-[10px] font-black text-slate-900 uppercase tracking-tight mt-1">Observed</span>
-                </div>
             </div>
         </div>
     );
@@ -296,15 +291,13 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
                     <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
                         <button
                             onClick={() => { setActiveTab('history'); setSelectedRecord(null); }}
-                            className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-white text-violet-600 shadow-sm border border-slate-200' : 'text-slate-400'
-                                }`}
+                            className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-white text-violet-600 shadow-sm border border-slate-200' : 'text-slate-400'}`}
                         >
                             History
                         </button>
                         <button
                             onClick={() => { setActiveTab('new'); setSelectedRecord(null); }}
-                            className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-white text-violet-600 shadow-sm border border-slate-200' : 'text-slate-400'
-                                }`}
+                            className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-white text-violet-600 shadow-sm border border-slate-200' : 'text-slate-400'}`}
                         >
                             New Exam
                         </button>
@@ -312,7 +305,7 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
                 </div>
             )}
 
-            <div className="flex-1 overflow-y-auto no-scrollbar">
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
                 {selectedRecord ? renderDetail() : (activeTab === 'history' ? renderHistory() : renderNew())}
             </div>
         </div>
