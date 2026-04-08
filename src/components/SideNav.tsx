@@ -271,6 +271,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                         )}
                         <NavItem to="/admin/settings" icon={Settings} label="Global Config" isCollapsed={isCollapsed} />
                     </div>
+                )}
             </div>
 
             <div className="p-5 border-t border-border-card bg-page/30 space-y-3">
