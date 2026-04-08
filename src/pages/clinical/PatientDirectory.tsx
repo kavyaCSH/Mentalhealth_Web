@@ -11,7 +11,8 @@ import {
     UserPlus,
     Mail,
     Lock,
-    Stethoscope
+    Stethoscope,
+    User as UserIcon
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
