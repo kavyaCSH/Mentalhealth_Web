@@ -64,6 +64,7 @@ export interface User {
     createdAt?: string;
     updatedAt?: string;
     plan?: string;
+    isVerified?: boolean;
 }
 
 export interface Patient extends User {

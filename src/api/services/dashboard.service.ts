@@ -21,5 +21,9 @@ export const DashboardService = {
     getHealth: async () => {
         const response = await api.get('health');
         return response.data;
+    },
+    getSuperAdminStats: async (): Promise<any> => {
+        const response = await api.get('dashboards/super-admin');
+        return response.data?.data ?? response.data;
     }
 };

@@ -15,9 +15,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     useEffect(() => {
         const fetchCount = async () => {
             try {
-                const notifications = await NotificationService.getNotifications({ page: 1, limit: 10 });
-                const unread = notifications.filter(n => !n.read).length;
-                setUnreadCount(unread);
+                const response = await NotificationService.getNotifications({ page: 1, limit: 1 });
+                const count = response.data?.unreadCount ?? 0;
+                setUnreadCount(count);
             } catch (error) {
                 console.error('Failed to fetch notification count:', error);
             }

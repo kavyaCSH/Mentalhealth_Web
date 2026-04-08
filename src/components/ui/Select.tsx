@@ -45,7 +45,7 @@ const Select: React.FC<SelectProps> = ({
     return (
         <div className={`space-y-2 relative ${className}`} ref={containerRef}>
             {label && (
-                <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-xs font-black text-muted uppercase tracking-widest px-1">
                     {label}
                 </label>
             )}
@@ -54,20 +54,20 @@ const Select: React.FC<SelectProps> = ({
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`w-full bg-slate-50 border-2 rounded-2xl p-4 text-left transition-all duration-200 flex items-center justify-between group
-                        ${isOpen ? 'border-indigo-500 bg-white ring-4 ring-indigo-50' : 'border-transparent'}
-                        ${error ? 'border-red-200 bg-red-50' : ''}
+                    className={`w-full bg-page border-2 rounded-2xl p-4 text-left transition-all duration-200 flex items-center justify-between group
+                        ${isOpen ? 'border-indigo-500 bg-card ring-4 ring-indigo-500/10' : 'border-border-card'}
+                        ${error ? 'border-red-200 bg-red-500/10' : ''}
                     `}
                 >
                     <div className="flex items-center gap-3">
                         {selectedOption?.icon && (
-                            <selectedOption.icon size={18} className={`transition-colors ${isOpen ? 'text-indigo-500' : 'text-slate-400'}`} />
+                            <selectedOption.icon size={18} className={`transition-colors ${isOpen ? 'text-indigo-500' : 'text-muted'}`} />
                         )}
-                        <span className={`text-sm font-semibold ${selectedOption ? 'text-slate-900' : 'text-slate-400'}`}>
+                        <span className={`text-sm font-semibold ${selectedOption ? 'text-main' : 'text-muted'}`}>
                             {selectedOption ? selectedOption.label : placeholder}
                         </span>
                     </div>
-                    <ChevronDown size={18} className={`text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-500' : ''}`} />
+                    <ChevronDown size={18} className={`text-muted transition-transform duration-300 ${isOpen ? 'rotate-180 text-indigo-500' : ''}`} />
                 </button>
 
                 <AnimatePresence>
@@ -77,7 +77,7 @@ const Select: React.FC<SelectProps> = ({
                             animate={{ opacity: 1, y: 5, scale: 1 }}
                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute left-0 right-0 top-full z-50 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden py-2"
+                            className="absolute left-0 right-0 top-full z-50 bg-card rounded-2xl shadow-2xl border border-border-card overflow-hidden py-2 shadow-indigo-200/5"
                         >
                             <div className="max-h-60 overflow-y-auto custom-scrollbar">
                                 {options.map((option) => (
@@ -89,7 +89,7 @@ const Select: React.FC<SelectProps> = ({
                                             setIsOpen(false);
                                         }}
                                         className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all
-                                            ${value === option.value ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600'}
+                                            ${value === option.value ? 'bg-indigo-500/10 text-indigo-500' : 'text-muted hover:bg-page hover:text-indigo-500'}
                                         `}
                                     >
                                         <div className="flex items-center gap-3">

@@ -14,28 +14,39 @@ export const UserService = {
         });
         return response.data?.data ?? response.data;
     },
-    listUsers: async (params: { role?: string; search?: string; page?: number; limit?: number; isActive?: boolean }): Promise<{ users: User[], total: number }> => {
+    listUsers: async (params: { 
+        role?: string; 
+        search?: string; 
+        page?: number; 
+        limit?: number; 
+        isActive?: boolean; 
+        isVerified?: boolean;
+        hospitalId?: number;
+        professionalId?: number;
+    }): Promise<{ users: User[], total: number, pagination?: any }> => {
         const response = await api.get('users/list', { params });
         const data = response.data?.data ?? response.data;
 
         let users = [];
         let total = 0;
+        let pagination = null;
 
         if (Array.isArray(data)) {
-            users = data;
+            users = data.map((u: any) => ({ ...u, id: u.id || u._id }));
             total = data.length;
         } else {
-            users = data?.users || [];
-            total = data?.totalCount || data?.total || users.length;
+            users = (data?.users || []).map((u: any) => ({ ...u, id: u.id || u._id }));
+            pagination = data?.pagination || null;
+            total = pagination?.total || data?.totalCount || data?.total || users.length;
         }
 
-        return { users, total };
+        return { users, total, pagination };
     },
     getUserStats: async (): Promise<unknown> => {
         const response = await api.get('users/stats');
         return response.data?.data ?? response.data;
     },
-    toggleUserStatus: async (userId: string): Promise<{ success: boolean }> => {
+    toggleUserStatus: async (userId: string): Promise<{ success: boolean; message?: string }> => {
         const response = await api.put(`users/${userId}/toggle-status`);
         return response.data;
     },
@@ -49,7 +60,11 @@ export const UserService = {
         return Array.isArray(data) ? data : [];
     },
     createUserByRole: async (role: string, data: Partial<User>): Promise<User> => {
-        const response = await api.post(`users/create-by-role/${role}`, data);
+        const response = await api.post(`users/${role}`, data);
+        return response.data?.data ?? response.data;
+    },
+    toggleVerification: async (userId: string): Promise<User> => {
+        const response = await api.put(`users/${userId}/toggle-verification`);
         return response.data?.data ?? response.data;
     }
 };

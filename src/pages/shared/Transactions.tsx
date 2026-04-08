@@ -106,7 +106,7 @@ const Transactions = () => {
                         <div className="absolute -right-8 -top-8 w-32 h-32 bg-indigo-800 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
                         <div className="relative z-10 space-y-6">
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Total Expenditure</p>
-                            <h2 className="text-4xl font-black">${totalSpent.toFixed(2)}</h2>
+                            <h2 className="text-4xl font-black">₹{totalSpent.toLocaleString('en-IN')}</h2>
                             <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-bold opacity-60">
                                 <span>Recent: {transactions.length > 0 ? new Date(transactions[0].createdAt || '').toLocaleDateString() : 'None'}</span>
                                 <span className="text-emerald-400">Live Data</span>
@@ -123,7 +123,7 @@ const Transactions = () => {
                                         <Calendar size={16} className="text-indigo-600" />
                                         <span className="text-xs font-bold text-slate-700">{new Date(tx.scheduled_at || tx.createdAt || '').toLocaleDateString()}</span>
                                     </div>
-                                    <span className="text-xs font-black text-slate-900">${tx.totalPrice || '0.00'}</span>
+                                    <span className="text-xs font-black text-slate-900">₹{tx.totalPrice || '0.00'}</span>
                                 </div>
                             )) : (
                                 <p className="text-[10px] text-slate-400 italic">No upcoming payments.</p>
@@ -202,7 +202,7 @@ const Transactions = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6 text-center">
-                                                    <p className="text-sm font-black text-slate-900">${tx.totalPrice || '150.00'}</p>
+                                                    <p className="text-sm font-black text-slate-900">₹{tx.totalPrice || '150.00'}</p>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex justify-center">

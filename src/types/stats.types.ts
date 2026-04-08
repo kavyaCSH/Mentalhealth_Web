@@ -55,5 +55,24 @@ export interface PatientStats {
     };
 }
 
+export interface SuperAdminStats {
+    revenue: {
+        total: number;
+        formatted: string;
+    };
+    users: {
+        total: number;
+        byRole: Record<string, number>;
+    };
+    consultations: {
+        active: number;
+        total: number;
+    };
+    entities: {
+        hospitals: number;
+    };
+}
+
 export interface SpecialistStatsResponse extends ApiResponse<SpecialistStats> { }
 export interface PatientStatsResponse extends ApiResponse<PatientStats> { }
+export interface SuperAdminStatsResponse extends ApiResponse<SuperAdminStats> { }

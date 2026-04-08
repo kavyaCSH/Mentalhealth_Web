@@ -195,7 +195,7 @@ const EditProfilePage = () => {
                     {/* Avatar Selection */}
                     <div className="flex flex-col items-center">
                         <div className="relative group">
-                            <div className="w-32 h-32 rounded-[3rem] bg-indigo-50 border-4 border-white shadow-xl flex items-center justify-center text-indigo-600 overflow-hidden relative">
+                            <div className="w-32 h-32 rounded-[3rem] bg-indigo-500/10 border-4 border-card shadow-xl flex items-center justify-center text-indigo-500 overflow-hidden relative">
                                 {isUploading ? (
                                     <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
                                 ) : user?.profileImage ? (
@@ -215,7 +215,7 @@ const EditProfilePage = () => {
                                 type="button" 
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isUploading}
-                                className="absolute -bottom-2 -right-2 w-10 h-10 bg-white border border-slate-100 rounded-2xl shadow-lg flex items-center justify-center text-indigo-600 hover:scale-110 transition-transform disabled:opacity-50 disabled:scale-100"
+                                className="absolute -bottom-2 -right-2 w-10 h-10 bg-card border border-border-card rounded-2xl shadow-lg flex items-center justify-center text-indigo-500 hover:scale-110 transition-transform disabled:opacity-50 disabled:scale-100"
                             >
                                 <Camera size={18} />
                             </button>
@@ -314,6 +314,7 @@ const EditProfilePage = () => {
                                     value={formData.username}
                                     onChange={handleChange}
                                     leftIcon={<UserCircle size={18} />}
+                                    placeholder="Enter your username"
                                 />
                                 <InputField
                                     label="Phone Number"
@@ -509,7 +510,7 @@ const EditProfilePage = () => {
                                     type="button"
                                     onClick={() => handleToggle('is2fa')}
                                     className={`w-14 h-8 rounded-full transition-all flex items-center px-1
-                                        ${formData.is2fa ? 'bg-indigo-600' : 'bg-slate-200'}
+                                        ${formData.is2fa ? 'bg-indigo-600' : 'bg-border-card'}
                                     `}
                                 >
                                     <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform transform ${formData.is2fa ? 'translate-x-6' : 'translate-x-0'}`}></div>
@@ -531,7 +532,7 @@ const EditProfilePage = () => {
                                             onClick={() => handleCommToggle(ch.id as any)}
                                             className={`flex items-center gap-3 px-6 py-3.5 rounded-2xl border-2 transition-all font-black text-xs uppercase tracking-widest
                                                 ${formData.communicationPreferences[ch.id as keyof typeof formData.communicationPreferences] 
-                                                    ? 'bg-indigo-50 border-indigo-600 text-indigo-600' 
+                                                    ? 'bg-indigo-500/10 border-indigo-600 text-indigo-500' 
                                                     : 'bg-card border-border-card text-muted hover:border-indigo-500 hover:text-main'}
                                             `}
                                         >
@@ -546,14 +547,14 @@ const EditProfilePage = () => {
 
                     {/* Submit Status Alerts */}
                     {error && (
-                        <div className="p-6 bg-red-50 border border-red-100 rounded-3xl text-red-600 text-xs font-black uppercase tracking-widest flex items-center gap-3">
+                        <div className="p-6 bg-error/10 border border-error/20 rounded-3xl text-error text-xs font-black uppercase tracking-widest flex items-center gap-3">
                             <AlertCircle size={18} />
                             {error}
                         </div>
                     )}
 
                     {success && (
-                        <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-3xl text-emerald-700 text-xs font-black uppercase tracking-widest flex items-center gap-3">
+                        <div className="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl text-emerald-500 text-xs font-black uppercase tracking-widest flex items-center gap-3">
                             <CheckCircle size={18} />
                             Profile Updated Successfully
                         </div>
@@ -563,7 +564,7 @@ const EditProfilePage = () => {
                         <Button
                             type="submit"
                             isLoading={isLoading}
-                            className="w-full md:w-auto px-16 py-6 rounded-[2rem] shadow-2xl shadow-indigo-200"
+                            className="w-full md:w-auto px-16 py-6 rounded-[2rem] shadow-2xl shadow-indigo-500/10"
                         >
                             Confirm Updates
                         </Button>
@@ -572,7 +573,7 @@ const EditProfilePage = () => {
                     {/* Map Modal */}
                     <AnimatePresence>
                         {showMap && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-page/80 backdrop-blur-sm animate-fade-in">
                                 <motion.div 
                                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}

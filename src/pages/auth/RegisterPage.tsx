@@ -115,17 +115,17 @@ const RegisterPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-[#F9FBFA] flex items-center justify-center p-8 py-20">
+        <div className="min-h-screen bg-[#F9FBFA] flex items-center justify-center py-8 px-4 md:px-8">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-[800px] glass-card p-12 overflow-hidden relative"
+                className="w-full max-w-full p-4 overflow-hidden relative"
             >
                 {/* Decorative background pulse */}
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-50 rounded-full blur-3xl opacity-50" />
                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-50 rounded-full blur-3xl opacity-50" />
 
-                <div className="mb-12 relative flex items-start justify-between">
+                <div className="mb-8 relative flex items-start justify-between">
                     <div>
                         <Link to="/login" className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors mb-6 group">
                             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
@@ -157,9 +157,9 @@ const RegisterPage = () => {
                     )}
                 </AnimatePresence>
 
-                <form onSubmit={handleRegister} className="space-y-12">
+                <form onSubmit={handleRegister} className="space-y-8">
                     {/* Section 1: Personal Information */}
-                    <section className="space-y-8">
+                    <section className="space-y-6">
                         <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
                             <User className="text-indigo-600" size={18} />
                             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Personal Information</h3>
@@ -169,7 +169,7 @@ const RegisterPage = () => {
                             <InputField label="Last Name" placeholder="Doe" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
                             <InputField label="Date of Birth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} leftIcon={<Calendar size={18} />} required />
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Gender</label>
+                                <label className="text-[10px] font-black text-slate-40  0 uppercase tracking-widest ml-1">Gender</label>
                                 <div className="flex p-1 bg-slate-50 rounded-xl gap-1">
                                     {['male', 'female', 'other'].map((g) => (
                                         <button
@@ -193,7 +193,7 @@ const RegisterPage = () => {
                             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Account & Security</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <InputField label="Username" placeholder="johndoe_01" value={username} onChange={(e) => setUsername(e.target.value)} leftIcon={<User size={18} />} className="md:col-span-2" required />
+                            <InputField label="Username" placeholder="Enter your username" value={username} onChange={(e) => setUsername(e.target.value)} leftIcon={<User size={18} />} className="md:col-span-2" required />
                             <InputField label="Email Address" type="email" placeholder="john.doe@health.com" value={email} onChange={(e) => setEmail(e.target.value)} leftIcon={<Mail size={18} />} required />
                             <InputField label="Security Password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} leftIcon={<ShieldCheck size={18} />} required />
                             <div className="grid grid-cols-4 gap-4 md:col-span-2">
@@ -233,7 +233,7 @@ const RegisterPage = () => {
                                         onClick={() => {
                                             setRole(cat.role as UserRole);
                                         }}
-                                        className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.5rem] transition-all duration-300 ${role === cat.role || (cat.id === 'clinical' && role !== 'patient') ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-100/50' : 'text-slate-400 hover:text-slate-600'
+                                        className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-[1.5rem] transition-all duration-300 ${role === cat.role || (cat.id === 'clinical' && role !== 'patient') ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-100/50' : 'text-slate-400 hover:text-slate-600'
                                             }`}
                                     >
                                         <cat.icon size={20} />
@@ -325,7 +325,7 @@ const RegisterPage = () => {
                             <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Security & Preferences</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all">
+                            <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all">
                                 <div className="flex items-center gap-4">
                                     <div className="p-3 bg-white rounded-xl text-indigo-600 shadow-sm group-hover:scale-110 transition-transform">
                                         <ShieldCheck size={20} />
@@ -368,7 +368,7 @@ const RegisterPage = () => {
                             type="submit"
                             disabled={isLoading}
                             isLoading={isLoading}
-                            className="w-full py-6 rounded-2xl shadow-xl shadow-indigo-100"
+                            className="w-full py-4 rounded-2xl shadow-xl shadow-indigo-100"
                             size="lg"
                             rightIcon={<ChevronRight size={18} />}
                         >

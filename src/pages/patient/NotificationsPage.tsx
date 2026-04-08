@@ -30,8 +30,8 @@ const PatientNotificationsPage = () => {
     const fetchNotifications = async () => {
         try {
             setIsLoading(true);
-            const data = await NotificationService.getNotifications({ page: 1, limit: 100 });
-            setNotifications(Array.isArray(data) ? data : []);
+            const response = await NotificationService.getNotifications({ page: 1, limit: 100 });
+            setNotifications(response.data?.notifications || []);
         } catch {
             setNotifications([]);
         } finally {

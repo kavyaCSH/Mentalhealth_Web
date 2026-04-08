@@ -28,6 +28,7 @@ import {
     Plus,
     Mic,
     Brain,
+    IndianRupee,
     ChevronRight
 } from 'lucide-react';
 
@@ -198,7 +199,7 @@ const PractitionerDashboard = () => {
             id: 'total_revenue',
             label: 'Total Revenue',
             value: stats?.totalRevenue !== undefined ? `₹${stats.totalRevenue}` : (isStatsLoading ? '...' : '₹0'),
-            icon: MapPin,
+            icon: IndianRupee,
             color: 'text-teal-600',
             bg: 'bg-teal-50'
         },

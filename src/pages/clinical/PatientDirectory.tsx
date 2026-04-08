@@ -106,10 +106,10 @@ const PatientDirectory = () => {
 
     const getRiskColor = (risk: string) => {
         switch (risk?.toLowerCase()) {
-            case 'high': return 'text-red-600 bg-red-50 border-red-100';
-            case 'medium': return 'text-orange-600 bg-orange-50 border-orange-100';
-            case 'low': return 'text-emerald-600 bg-emerald-50 border-emerald-100';
-            default: return 'text-slate-600 bg-slate-50 border-slate-100';
+            case 'high': return 'text-error bg-error/10 border-error/20';
+            case 'medium': return 'text-orange-500 bg-orange-500/10 border-orange-500/20';
+            case 'low': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+            default: return 'text-muted bg-page border-border-card';
         }
     };
 
@@ -129,13 +129,13 @@ const PatientDirectory = () => {
                 </div>
                 <div className="flex gap-4 w-full lg:w-auto">
                     <div className="relative flex-1 lg:w-80">
-                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                         <input
                             type="text"
                             placeholder="Search by name, email..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
+                            className="w-full bg-card border border-border-card rounded-2xl py-3 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm text-main"
                         />
                     </div>
                 </div>
@@ -147,20 +147,20 @@ const PatientDirectory = () => {
                     <Activity className="animate-spin text-indigo-600" size={40} />
                 </div>
             ) : filteredPatients.length > 0 ? (
-                <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-visible">
+                <div className="bg-card rounded-[2.5rem] border border-border-card shadow-sm overflow-visible">
                     <div className="overflow-x-visible">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50/50 border-b border-slate-100">
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] first:rounded-tl-[2.5rem]">Patient</th>
-                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Risk Status</th>
-                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact</th>
-                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Clinical markers</th>
-                                    <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Status</th>
-                                    <th className="px-4 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right last:rounded-tr-[2.5rem]">Actions</th>
+                                <tr className="bg-page/50 border-b border-border-card">
+                                    <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em] first:rounded-tl-[2.5rem]">Patient</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em]">Risk Status</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em]">Contact</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em]">Clinical markers</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em] text-right">Status</th>
+                                    <th className="px-4 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em] text-right last:rounded-tr-[2.5rem]">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody className="divide-y divide-border-card">
                                 {filteredPatients.map((patient, index) => {
                                     const patientId = patient.id || patient._id || `patient-${index}`;
 
@@ -170,19 +170,19 @@ const PatientDirectory = () => {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.03 }}
-                                            className="group transition-all cursor-pointer relative hover:bg-indigo-50/30 font-bold"
+                                            className="group transition-all cursor-pointer relative hover:bg-indigo-500/5 font-bold"
                                             onClick={() => navigate(`/patients/${patient.userId || patient.id || patient._id}`)}
                                         >
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-sm border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-black text-sm border border-indigo-500/20 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
                                                         {patient.firstName?.charAt(0)}{patient.lastName?.charAt(0)}
                                                     </div>
                                                     <div>
-                                                        <p className="font-black text-slate-900 leading-tight group-hover:text-indigo-700 transition-colors tracking-tight text-base">
+                                                        <p className="font-black text-main leading-tight group-hover:text-indigo-500 transition-colors tracking-tight text-base">
                                                             {patient.firstName} {patient.lastName}
                                                         </p>
-                                                        <p className="text-[11px] font-bold text-slate-400 mt-1">{patient.email}</p>
+                                                        <p className="text-[11px] font-bold text-muted mt-1">{patient.email}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -191,26 +191,26 @@ const PatientDirectory = () => {
                                                     {patient.riskLevel || 'Low'}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-5 text-sm font-semibold text-slate-600">
+                                            <td className="px-6 py-5 text-sm font-semibold text-main">
                                                 <div className="flex flex-col gap-1">
                                                     <span className="flex items-center gap-2 tracking-tight">
-                                                        <Phone size={12} className="text-slate-300" /> {patient.phone || 'N/A'}
+                                                        <Phone size={12} className="text-muted/30" /> {patient.phone || 'N/A'}
                                                     </span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
                                                 <div className="max-w-[200px]">
-                                                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider truncate border-b border-transparent group-hover:border-indigo-100 transition-all inline-block">
+                                                    <p className="text-[11px] font-black text-muted uppercase tracking-wider truncate border-b border-transparent group-hover:border-indigo-500/20 transition-all inline-block">
                                                         {patient.diagnosis || 'Standard Observation'}
                                                     </p>
-                                                    <p className="text-[10px] font-bold text-slate-500 mt-1">Last Sync: {patient.lastSession ? new Date(patient.lastSession).toLocaleDateString() : 'Pending'}</p>
+                                                    <p className="text-[10px] font-bold text-muted/60 mt-1">Last Sync: {patient.lastSession ? new Date(patient.lastSession).toLocaleDateString() : 'Pending'}</p>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 text-right">
                                                 <div className="flex items-center justify-end">
                                                     <div className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${patient.isActive !== false
-                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                                        : 'bg-slate-100 text-slate-400 border-slate-200'
+                                                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                                        : 'bg-page text-muted border-border-card'
                                                         }`}>
                                                         {patient.isActive !== false ? 'Active' : 'Archived'}
                                                     </div>
@@ -235,7 +235,7 @@ const PatientDirectory = () => {
                                                             e.stopPropagation();
                                                             navigate(`/patients/${patient.userId || patient.id || patient._id}`);
                                                         }}
-                                                        className="p-2 bg-slate-50 text-slate-500 hover:bg-slate-900 hover:text-white rounded-xl transition-all shadow-sm group/btn"
+                                                        className="p-2 bg-page text-muted hover:bg-main hover:text-white rounded-xl transition-all shadow-sm group/btn"
                                                         title="Patient Profile"
                                                     >
                                                         <User size={16} />
@@ -258,11 +258,11 @@ const PatientDirectory = () => {
                 </div>
             ) : (
                 <div className="text-center py-24 glass-card">
-                    <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
-                        <Users size={40} className="text-slate-300" />
+                    <div className="w-24 h-24 bg-page rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
+                        <Users size={40} className="text-muted/30" />
                     </div>
-                    <h3 className="text-2xl font-black text-slate-900 mb-2">Clinical Archive Empty</h3>
-                    <p className="text-slate-500 font-medium tracking-tight">No patient profiles match the active filter criteria.</p>
+                    <h3 className="text-2xl font-black text-main mb-2">Clinical Archive Empty</h3>
+                    <p className="text-muted font-medium tracking-tight">No patient profiles match the active filter criteria.</p>
                 </div>
             )}
 
@@ -275,21 +275,21 @@ const PatientDirectory = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsAddModalOpen(false)}
-                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                            className="absolute inset-0 bg-page/80 backdrop-blur-sm"
                         />
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
+                            className="relative w-full max-w-2xl bg-card rounded-[2.5rem] shadow-2xl border border-border-card overflow-hidden flex flex-col max-h-[90vh]"
                         >
                             <div className="p-8 pb-4 flex justify-between items-start flex-shrink-0">
                                 <div>
-                                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Provision Profile</h2>
-                                    <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest mt-1">New Clinical Identity</p>
+                                    <h2 className="text-2xl font-black text-main tracking-tight">Provision Profile</h2>
+                                    <p className="text-muted text-[11px] font-black uppercase tracking-widest mt-1">New Clinical Identity</p>
                                 </div>
-                                <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-slate-50 rounded-xl transition-colors">
-                                    <X size={20} className="text-slate-400" />
+                                <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-page rounded-xl transition-colors">
+                                    <X size={20} className="text-muted" />
                                 </button>
                             </div>
 
@@ -335,15 +335,15 @@ const PatientDirectory = () => {
                                         onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                                         required
                                     />
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Gender</label>
-                                        <div className="flex p-1 bg-slate-50 rounded-xl gap-1">
+                                     <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Gender</label>
+                                        <div className="flex p-1 bg-page rounded-xl gap-1">
                                             {['male', 'female', 'other'].map((g) => (
                                                 <button
                                                     key={g}
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, gender: g })}
-                                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold capitalize transition-all ${formData.gender === g ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
+                                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold capitalize transition-all ${formData.gender === g ? 'bg-indigo-600 text-white shadow-md' : 'text-muted hover:text-main'}`}
                                                 >
                                                     {g}
                                                 </button>
@@ -380,16 +380,16 @@ const PatientDirectory = () => {
                                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                 />
 
-                                <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                                <div className="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Lock size={12} className="text-indigo-600" />
-                                        <span className="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Auto-generated Security Token</span>
+                                        <Lock size={12} className="text-indigo-500" />
+                                        <span className="text-[10px] font-black text-indigo-900 dark:text-indigo-300 uppercase tracking-widest">Auto-generated Security Token</span>
                                     </div>
                                     <code className="text-[11px] font-black text-indigo-500 uppercase tracking-widest">{formData.password}</code>
                                 </div>
 
                                 {provisionError && (
-                                    <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-xs font-black uppercase tracking-tight">
+                                    <div className="p-4 bg-error/10 border border-error/20 rounded-2xl text-error text-xs font-black uppercase tracking-tight">
                                         {provisionError}
                                     </div>
                                 )}

@@ -1,5 +1,5 @@
 import api from '../client';
-import type { SystemSettingResponse } from '../../types/system.types';
+import type { SystemSetting, SystemSettingResponse } from '../../types/system.types';
 
 export const SystemService = {
     /**
@@ -11,11 +11,20 @@ export const SystemService = {
     },
 
     /**
-     * Update a system setting by key
+     * Update/Create a system setting by key
      */
-    updateSystemSetting: async (key: string, value: string): Promise<SystemSettingResponse> => {
-        const response = await api.post('system-settings', { key, value });
+    updateSystemSetting: async (payload: Partial<SystemSetting>): Promise<SystemSettingResponse> => {
+        const response = await api.post('system-settings', payload);
         return response.data;
+    },
+
+    /**
+     * List all platform-level variables
+     */
+    listAllSettings: async (): Promise<SystemSetting[]> => {
+        const response = await api.get('system-settings');
+        const data = response.data?.data ?? response.data;
+        return Array.isArray(data) ? data : data?.settings || [];
     },
 
     /**
@@ -24,17 +33,10 @@ export const SystemService = {
     getWebVersion: async (): Promise<string> => {
         try {
             const res = await SystemService.getSystemSetting('web_version');
-            return res.data.value;
+            return res.data?.value || '1.0.0';
         } catch (error) {
             console.error('Failed to fetch web version:', error);
-            return '1.0.0'; // Fallback
+            return '1.0.0';
         }
-    },
-
-    /**
-     * Helper to update the web version
-     */
-    updateWebVersion: async (version: string): Promise<SystemSettingResponse> => {
-        return SystemService.updateSystemSetting('web_version', version);
     }
 };

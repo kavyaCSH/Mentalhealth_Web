@@ -48,6 +48,8 @@ import ProfessionalHistoryPage from './pages/clinical/ProfessionalHistoryPage';
 import UserList from './pages/admin/UserList';
 import CreateUser from './pages/admin/CreateUser';
 import GlobalSettingsPage from './pages/admin/GlobalSettingsPage';
+import GatekeeperPage from './pages/admin/GatekeeperPage';
+import FinancialSetupPage from './pages/admin/FinancialSetupPage';
 import CreateConsultation from './pages/hospital/CreateConsultation';
 import StatisticsPage from './pages/patient/StatisticsPage';
 import SpecialistsPage from './pages/patient/SpecialistsPage';
@@ -68,6 +70,16 @@ import HistoryAssistantPage from './pages/patient/HistoryAssistantPage';
 import SupportTicket from './pages/patient/SupportTicket';
 import TicketHistory from './pages/patient/TicketHistory';
 import SpecialistStatistics from './pages/clinical/SpecialistStatistics';
+import KnowledgeBasePage from './pages/admin/KnowledgeBasePage';
+import AuditLogsPage from './pages/admin/AuditLogsPage';
+import CommunicationCenter from './pages/admin/CommunicationCenter';
+import ApiAccessPage from './pages/admin/ApiAccessPage';
+import AutomationManagerPage from './pages/admin/AutomationManagerPage';
+import ScheduleControlPage from './pages/admin/ScheduleControlPage';
+import FeedbackGovernancePage from './pages/admin/FeedbackGovernancePage';
+import AssessmentOversightPage from './pages/admin/AssessmentOversightPage';
+import ClinicalIntelligencePage from './pages/admin/ClinicalIntelligencePage';
+import GlobalAnalyticsPage from './pages/admin/GlobalAnalyticsPage';
 
 const AppRouter = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -205,10 +217,22 @@ const AppRouter = () => {
 
                                 {/* Admin Portal Routes */}
                                 <Route path="admin" element={<ProtectedRoute allowedGroup="ADMIN" />}>
+                                    <Route path="financials" element={<FinancialSetupPage />} />
                                     <Route path="users" element={<UserList />} />
                                     <Route path="users/new" element={<CreateUser />} />
                                     <Route path="consultations/new" element={<CreateConsultation />} />
                                     <Route path="settings" element={<GlobalSettingsPage />} />
+                                    <Route path="knowledge-base" element={<KnowledgeBasePage />} />
+                                    <Route path="audit-logs" element={<ProtectedRoute allowedRoles={['super_admin']}><AuditLogsPage /></ProtectedRoute>} />
+                                    <Route path="communication" element={<ProtectedRoute allowedRoles={['super_admin']}><CommunicationCenter /></ProtectedRoute>} />
+                                    <Route path="api-access" element={<ProtectedRoute allowedRoles={['super_admin']}><ApiAccessPage /></ProtectedRoute>} />
+                                    <Route path="automation" element={<ProtectedRoute allowedRoles={['super_admin']}><AutomationManagerPage /></ProtectedRoute>} />
+                                    <Route path="schedule-control" element={<ProtectedRoute allowedRoles={['super_admin', 'admin']}><ScheduleControlPage /></ProtectedRoute>} />
+                                    <Route path="feedback-desk" element={<ProtectedRoute allowedRoles={['super_admin']}><FeedbackGovernancePage /></ProtectedRoute>} />
+                                    <Route path="assessment-oversight" element={<AssessmentOversightPage />} />
+                                    <Route path="clinical-intelligence" element={<ProtectedRoute allowedRoles={['super_admin', 'psychiatrist']}><ClinicalIntelligencePage /></ProtectedRoute>} />
+                                    <Route path="global-analytics" element={<ProtectedRoute allowedRoles={['super_admin', 'admin', 'psychiatrist']}><GlobalAnalyticsPage /></ProtectedRoute>} />
+                                    <Route path="gatekeeper" element={<ProtectedRoute allowedRoles={['super_admin']}><GatekeeperPage /></ProtectedRoute>} />
                                 </Route>
 
                                 {/* 404 handler within layout */}

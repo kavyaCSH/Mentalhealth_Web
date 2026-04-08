@@ -13,7 +13,7 @@ import {
     Calendar,
     Stethoscope,
     Briefcase,
-    DollarSign,
+    IndianRupee,
     Info,
     CheckCircle2
 } from 'lucide-react';
@@ -103,17 +103,17 @@ const UserManagement = () => {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="card-premium p-12 text-center max-w-md w-full space-y-6 shadow-2xl shadow-emerald-100"
+                    className="card-premium p-12 text-center max-w-md w-full space-y-6 shadow-2xl shadow-indigo-200/10 border border-border-card"
                 >
-                    <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-[2rem] flex items-center justify-center mx-auto glow-emerald">
+                    <div className="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-[2rem] flex items-center justify-center mx-auto border border-emerald-500/20 shadow-lg shadow-emerald-500/10">
                         <CheckCircle2 size={40} />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Account Created!</h2>
-                        <p className="text-slate-500 font-medium leading-relaxed">The new {formData.role.replace('_', ' ')} profile has been successfully registered to the system.</p>
+                        <h2 className="text-2xl font-black text-main tracking-tight">Account Created!</h2>
+                        <p className="text-muted font-medium leading-relaxed">The new {formData.role.replace('_', ' ')} profile has been successfully registered to the system.</p>
                     </div>
                     <div className="pt-4">
-                        <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="w-full h-1 bg-page rounded-full overflow-hidden border border-border-card">
                             <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: '100%' }}
@@ -121,7 +121,7 @@ const UserManagement = () => {
                                 className="h-full bg-emerald-500"
                             />
                         </div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4">Redirecting to Directory...</p>
+                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mt-4">Redirecting to Directory...</p>
                     </div>
                 </motion.div>
             </div>
@@ -133,24 +133,24 @@ const UserManagement = () => {
             <header className="space-y-2">
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                    className="flex items-center gap-2 text-xs font-black text-muted uppercase tracking-widest hover:text-indigo-500 transition-colors mb-4"
                 >
                     <ArrowLeft size={14} /> Go Back
                 </button>
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight">System Registration</h1>
-                <p className="text-slate-500 font-medium italic">"Every clinician added strengthens the web of collective care."</p>
+                <h1 className="text-4xl font-black text-main tracking-tight">System Registration</h1>
+                <p className="text-muted font-medium italic">"Every clinician added strengthens the web of collective care."</p>
             </header>
 
             <form onSubmit={handleSubmit} className="space-y-10">
                 {/* Role Selection Block */}
-                <section className="card-premium p-10 space-y-8">
+                <section className="card-premium p-10 space-y-8 border-border-card shadow-lg shadow-indigo-200/5">
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
                             <Shield size={20} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Access Permissions</h2>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Define user credentials and hierarchy</p>
+                            <h2 className="text-xl font-black text-main tracking-tight">Access Permissions</h2>
+                            <p className="text-xs font-bold text-muted uppercase tracking-widest mt-0.5">Define user credentials and hierarchy</p>
                         </div>
                     </div>
 
@@ -166,21 +166,21 @@ const UserManagement = () => {
                             name="username"
                             value={formData.username}
                             onChange={handleInputChange}
-                            placeholder="e.g. jdoe_psych"
+                            placeholder="Enter your username"
                             required
                         />
                     </div>
                 </section>
 
                 {/* Identity Information Block */}
-                <section className="card-premium p-10 space-y-8">
+                <section className="card-premium p-10 space-y-8 border-border-card shadow-lg shadow-indigo-200/5">
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 shadow-sm">
+                        <div className="w-10 h-10 bg-indigo-500/10 text-indigo-500 rounded-xl flex items-center justify-center border border-indigo-500/20 shadow-sm">
                             <UserIcon size={20} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Personal Identity</h2>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Basic profile details and demographics</p>
+                            <h2 className="text-xl font-black text-main tracking-tight">Personal Identity</h2>
+                            <p className="text-xs font-bold text-muted uppercase tracking-widest mt-0.5">Basic profile details and demographics</p>
                         </div>
                     </div>
 
@@ -253,15 +253,15 @@ const UserManagement = () => {
                     <motion.section
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="card-premium p-10 space-y-8"
+                        className="card-premium p-10 space-y-8 border-border-card shadow-lg shadow-indigo-200/5"
                     >
                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-100">
+                            <div className="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center border border-emerald-500/20">
                                 <Stethoscope size={20} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Clinical Metrics</h2>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Specialization and experience parameters</p>
+                                <h2 className="text-xl font-black text-main tracking-tight">Clinical Metrics</h2>
+                                <p className="text-xs font-bold text-muted uppercase tracking-widest mt-0.5">Specialization and experience parameters</p>
                             </div>
                         </div>
 
@@ -300,25 +300,25 @@ const UserManagement = () => {
                                     placeholder="0"
                                 />
                                 <InputField
-                                    label="Fee ($)"
+                                    label="Fee (₹)"
                                     name="consultationFee"
                                     type="number"
                                     value={formData.consultationFee}
                                     onChange={handleInputChange}
                                     placeholder="0"
-                                    leftIcon={<DollarSign size={16} />}
+                                    leftIcon={<IndianRupee size={16} />}
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Professional Bio</label>
+                            <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Professional Bio</label>
                             <textarea
                                 name="about"
                                 value={formData.about}
                                 onChange={handleInputChange}
                                 rows={4}
                                 placeholder="Describe your professional background and clinical approach..."
-                                className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl p-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                                className="w-full bg-page/50 border border-border-card rounded-2xl p-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-main"
                             />
                         </div>
                     </motion.section>
@@ -329,15 +329,15 @@ const UserManagement = () => {
                     <motion.section
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="card-premium p-10 space-y-8"
+                        className="card-premium p-10 space-y-8 border-border-card shadow-lg shadow-indigo-200/5"
                     >
                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center border border-orange-100">
+                            <div className="w-10 h-10 bg-orange-500/10 text-orange-500 rounded-xl flex items-center justify-center border border-orange-500/20">
                                 <Info size={20} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Emergency Protocol</h2>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Care coordinates and emergency contacts</p>
+                                <h2 className="text-xl font-black text-main tracking-tight">Emergency Protocol</h2>
+                                <p className="text-xs font-bold text-muted uppercase tracking-widest mt-0.5">Care coordinates and emergency contacts</p>
                             </div>
                         </div>
 
@@ -351,12 +351,12 @@ const UserManagement = () => {
                                     leftIcon={<Phone size={16} />}
                                 />
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Blood Group</label>
+                                    <label className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-1">Blood Group</label>
                                     <select 
                                         name="bloodGroup"
                                         value={formData.bloodGroup}
                                         onChange={handleInputChange}
-                                        className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl p-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                                        className="w-full bg-page/50 border border-border-card rounded-2xl p-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-main"
                                     >
                                         <option value="">Select Blood Group</option>
                                         {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (

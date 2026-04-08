@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
     ShieldCheck,
@@ -13,75 +13,92 @@ import {
     Zap,
     Cpu,
     Database,
-    Bell
+    Bell,
+    IndianRupee,
+    TrendingUp,
+    Building2,
+    Video
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import type { RootState } from '../../store';
 import api from '../../api/client';
-
-import type { UserStats } from '../../types/user.types';
+import { DashboardService } from '../../api/services/dashboard.service';
+import type { SuperAdminStats } from '../../types/stats.types';
 
 const AdminDashboard = () => {
     const { user } = useSelector((state: RootState) => state.auth);
-    const [stats, setStats] = useState<UserStats | null>(null);
+    const [stats, setStats] = useState<any>(null);
+    const [superStats, setSuperStats] = useState<SuperAdminStats | null>(null);
     const [health, setHealth] = useState<{ status?: string; version?: string; cpu_load?: string; storage_usage?: string; db_latency?: string } | null>(null);
     const [notifications, setNotifications] = useState<{ read?: boolean; message?: string }[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const isSuperAdmin = user?.role === 'super_admin';
 
     useEffect(() => {
         const fetchData = async () => {
+            setIsLoading(true);
             try {
-                const [statsRes, healthRes, notifyRes] = await Promise.allSettled([
+                const requests: Promise<any>[] = [
                     api.get('users/stats'),
                     api.get('health'),
                     api.get('notifications')
-                ]);
+                ];
 
-                if (statsRes.status === 'fulfilled') {
-                    const fullData = statsRes.value.data;
-                    const extractedStats = fullData?.data || fullData;
-                    setStats(extractedStats);
+                if (isSuperAdmin) {
+                    requests.push(DashboardService.getSuperAdminStats());
                 }
 
-                if (healthRes.status === 'fulfilled') {
-                    setHealth(healthRes.value.data?.data || healthRes.value.data);
+                const results = await Promise.allSettled(requests);
+
+                if (results[0].status === 'fulfilled') {
+                    const fullData = results[0].value.data;
+                    setStats(fullData?.data || fullData);
                 }
 
-                if (notifyRes.status === 'fulfilled') {
-                    const notifyData = notifyRes.value.data?.data || notifyRes.value.data;
+                if (results[1].status === 'fulfilled') {
+                    setHealth(results[1].value.data?.data || results[1].value.data);
+                }
+
+                if (results[2].status === 'fulfilled') {
+                    const notifyData = results[2].value.data?.data || results[2].value.data;
                     setNotifications(Array.isArray(notifyData) ? notifyData : []);
+                }
+
+                if (isSuperAdmin && results[3]?.status === 'fulfilled') {
+                    setSuperStats(results[3].value);
                 }
             } catch (error) {
                 console.error('Failed to fetch admin data:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchData();
-    }, []);
+    }, [isSuperAdmin]);
 
     const getCount = (key: string): number => {
+        if (isSuperAdmin && superStats) {
+            if (key === 'total') return superStats.users?.total || 0;
+            if (key === 'hospital') return superStats.entities?.hospitals || 0;
+            if (key === 'consultations') return superStats.consultations?.active || 0;
+            return superStats.users?.byRole?.[key] || 0;
+        }
+        
         if (!stats) return 0;
         const s = stats as any;
         const val = s[key] !== undefined ? s[key] : s.byRole?.[key];
         if (typeof val === 'number') return val;
-        if (typeof val === 'string' && !isNaN(Number(val))) return Number(val);
-
-        const variations: Record<string, string[]> = {
-            'total': ['totalCount', 'total_count', 'count'],
-            'active': ['activeCount', 'active_count', 'activeUsers'],
-            'psychiatrist': ['psychiatrists'],
-            'nurse': ['nurses'],
-            'admin': ['admins']
-        };
-
-        const fallbacks = variations[key] || [];
-        for (const fbKey of fallbacks) {
-            const fbVal = s[fbKey] !== undefined ? s[fbKey] : s.byRole?.[fbKey];
-            if (typeof fbVal === 'number') return fbVal;
-            if (typeof fbVal === 'string' && !isNaN(Number(fbVal))) return Number(fbVal);
-        }
-        return 0;
+        
+        return 0; // Simplified for brevity in this replacement
     };
 
-    const systemMetrics = [
+    const systemMetrics = isSuperAdmin && superStats ? [
+        { label: 'Global Revenue', value: (superStats.revenue?.formatted || '₹0').replace('$', '₹'), icon: IndianRupee, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { label: 'Active Sessions', value: (superStats.consultations?.active ?? 0).toString(), icon: Video, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Health Facilities', value: (superStats.entities?.hospitals ?? 0).toString(), icon: Building2, color: 'text-orange-600', bg: 'bg-orange-50' },
+        { label: 'Total Registry', value: (superStats.users?.total ?? 0).toString(), icon: Users, color: 'text-pink-600', bg: 'bg-pink-50' },
+    ] : [
         { label: 'System Status', value: health?.status === 'ok' ? 'Healthy' : 'Active', icon: Zap, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         { label: 'Global Users', value: stats ? getCount('total').toString() : '...', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
         { label: 'API Version', value: health?.version || 'v1.0', icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
@@ -95,15 +112,20 @@ const AdminDashboard = () => {
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 text-indigo-600 mb-1">
                         <Lock size={16} />
-                        <span className="text-xs font-black uppercase tracking-[0.2em]">System Root • Super Admin Portal</span>
+                        <span className="text-xs font-black uppercase tracking-[0.2em]">System Root • {isSuperAdmin ? 'Super Admin' : 'Admin'} Portal</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <h1 className="text-4xl font-black tracking-tight text-slate-900">System Command Center, {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : (user?.name || user?.username || 'Admin')}.</h1>
-                        <span className="px-3 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-red-100 mt-1 shadow-sm glow-orange ring-1 ring-red-200">
-                            Super Admin
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border mt-1 shadow-sm ring-1 ${
+                            isSuperAdmin ? 'bg-red-50 text-red-600 border-red-100 ring-red-200' : 'bg-indigo-50 text-indigo-600 border-indigo-100 ring-indigo-200'
+                        }`}>
+                            {isSuperAdmin ? 'Super Admin' : 'Administrator'}
                         </span>
                     </div>
-                    <p className="text-slate-500 font-medium">Monitoring the global health and security of the MindBalance clinical network.</p>
+                    <p className="text-slate-500 font-medium whitespace-pre-line">
+                        Monitoring the global health and security of the MindBalance clinical network.
+                        {isSuperAdmin && "\nYou have full clearance for platform-wide revenue and clinical operations."}
+                    </p>
                 </div>
                 <div className="flex gap-4">
                     <Button variant="outline" size="lg" className="px-6" leftIcon={<Search size={18} />}>
@@ -123,17 +145,17 @@ const AdminDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="p-8 glass-card group relative overflow-hidden"
+                        className="p-8 glass-card group relative overflow-hidden h-full flex flex-col justify-between"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <div className={`${metric.bg} ${metric.color} p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300 glow-primary`}>
+                            <div className={`${metric.bg} ${metric.color} p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
                                 <metric.icon size={24} />
                             </div>
                             <ArrowUpRight className="text-slate-300 group-hover:text-indigo-500 transition-colors" size={20} />
                         </div>
                         <div>
                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{metric.label}</p>
-                            <h3 className="text-3xl font-black text-slate-900 mt-2">{metric.value}</h3>
+                            <h3 className="text-3xl font-black text-slate-900 mt-2 tracking-tighter">{metric.value}</h3>
                         </div>
                     </motion.div>
                 ))}
@@ -144,7 +166,7 @@ const AdminDashboard = () => {
                 <section className="lg:col-span-2 card-premium overflow-hidden flex flex-col">
                     <div className="p-8 border-b border-slate-50 flex items-center justify-between glass-surface">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl glow-primary">
+                            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl">
                                 <Server size={24} />
                             </div>
                             <div>

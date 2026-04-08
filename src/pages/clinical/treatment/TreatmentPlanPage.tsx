@@ -11,7 +11,12 @@ import {
     Pause,
     Plus,
     BarChart3,
-    ArrowRight
+    ArrowRight,
+    FileText,
+    Pill,
+    MessageSquare,
+    ChevronDown,
+    RefreshCw
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { TreatmentService } from '../../../api/services/treatment.service';
@@ -22,18 +27,20 @@ import type { RootState } from '../../../store';
 import type { TreatmentProgress, TreatmentStage, UpdateStageStatusPayload } from '../../../types/treatment.types';
 
 const StatusBadge = ({ status }: { status: TreatmentStage['status'] }) => {
-    const styles = {
-        pending: 'bg-slate-100 text-slate-600 border-slate-200',
-        in_progress: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-        completed: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-        on_hold: 'bg-orange-50 text-orange-600 border-orange-100'
+    const styles: Record<TreatmentStage['status'], string> = {
+        pending: 'bg-slate-50 text-slate-500 border-slate-200',
+        in_progress: 'bg-amber-50 text-amber-600 border-amber-200',
+        completed: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+        on_hold: 'bg-rose-50 text-rose-600 border-rose-200',
+        skipped: 'bg-slate-100 text-slate-400 border-slate-300'
     };
 
-    const icons = {
-        pending: <Clock size={12} />,
-        in_progress: <Play size={12} />,
+    const icons: Record<TreatmentStage['status'], React.ReactNode> = {
+        pending: <RefreshCw size={12} />,
+        in_progress: <Activity size={12} />,
         completed: <CheckCircle2 size={12} />,
-        on_hold: <Pause size={12} />
+        on_hold: <AlertCircle size={12} />,
+        skipped: <RefreshCw size={12} className="opacity-50" />
     };
 
     return (

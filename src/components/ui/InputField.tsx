@@ -49,8 +49,8 @@ const InputField: React.FC<InputFieldProps> = ({
                     {...props}
                     type={inputType}
                     className={`
-                        w-full bg-page border-2 border-transparent rounded-2xl py-4 transition-all duration-200 text-sm font-medium outline-none text-main
-                        focus:border-indigo-500 focus:bg-card
+                        w-full bg-[var(--input-bg)] border-2 border-transparent rounded-2xl py-3 transition-all duration-200 text-sm font-medium outline-none text-main
+                        focus:border-indigo-500 focus:bg-[var(--card-bg)]
                         ${leftIcon ? 'pl-12' : 'px-5'}
                         ${(rightIcon || isPassword) ? 'pr-12' : 'px-5'}
                         ${error ? 'border-red-200 bg-red-50 focus:border-red-500' : ''}

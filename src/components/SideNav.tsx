@@ -18,7 +18,14 @@ import {
     LogOut,
     Brain,
     Sparkles,
-    MessageCircle
+    MessageCircle,
+    Receipt,
+    Megaphone,
+    ShieldAlert,
+    Zap,
+    MessageSquare,
+    ClipboardCheck,
+    Globe
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { logout } from '../features/auth/store/authSlice';
@@ -213,14 +220,50 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                 )}
 
                 {/* System Admin Sections */}
-                {(role === 'admin' || role === 'super_admin') && (
                     <div className="space-y-2">
                         {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">IT Governance</p>}
+                        {role === 'super_admin' && (
+                            <NavItem to="/admin/gatekeeper" icon={ShieldCheck} label="Gatekeeper Cabinet" isCollapsed={isCollapsed} />
+                        )}
+                        {(role === 'admin' || role === 'super_admin') && (
+                            <NavItem to="/admin/financials" icon={Receipt} label="Financial Master" isCollapsed={isCollapsed} />
+                        )}
                         <NavItem to="/admin/users" icon={Users} label="User Management" isCollapsed={isCollapsed} />
-                        <NavItem to="/admin/logs" icon={Activity} label="System Logs" isCollapsed={isCollapsed} />
+                        {(role === 'admin' || role === 'super_admin' || role === 'hospital') && (
+                            <NavItem to="/admin/consultations/new" icon={Calendar} label="Book Consult" isCollapsed={isCollapsed} />
+                        )}
+                        {(role === 'admin' || role === 'super_admin' || role === 'hospital') && (
+                            <NavItem to="/admin/knowledge-base" icon={BookOpen} label="Knowledge Base" isCollapsed={isCollapsed} />
+                        )}
+                        {(role === 'admin' || role === 'super_admin' || role === 'hospital') && (
+                            <NavItem to="/admin/assessment-oversight" icon={ClipboardCheck} label="EHR Oversight" isCollapsed={isCollapsed} />
+                        )}
+                        {(role === 'super_admin' || role === 'psychiatrist') && (
+                            <NavItem to="/admin/clinical-intelligence" icon={Brain} label="Clinical AI" isCollapsed={isCollapsed} />
+                        )}
+                        {(role === 'admin' || role === 'super_admin' || role === 'psychiatrist') && (
+                            <NavItem to="/admin/global-analytics" icon={Globe} label="Global Analytics" isCollapsed={isCollapsed} />
+                        )}
+                        {role === 'super_admin' && (
+                            <NavItem to="/admin/audit-logs" icon={ShieldCheck} label="Audit Trail" isCollapsed={isCollapsed} />
+                        )}
+                        {role === 'super_admin' && (
+                            <NavItem to="/admin/communication" icon={Megaphone} label="Megaphone Hub" isCollapsed={isCollapsed} />
+                        )}
+                        {role === 'super_admin' && (
+                            <NavItem to="/admin/api-access" icon={ShieldAlert} label="Access Governance" isCollapsed={isCollapsed} />
+                        )}
+                        {role === 'super_admin' && (
+                            <NavItem to="/admin/automation" icon={Zap} label="Automation Manager" isCollapsed={isCollapsed} />
+                        )}
+                        {(role === 'super_admin' || role === 'admin') && (
+                            <NavItem to="/admin/schedule-control" icon={Calendar} label="Schedule Control" isCollapsed={isCollapsed} />
+                        )}
+                        {role === 'super_admin' && (
+                            <NavItem to="/admin/feedback-desk" icon={MessageSquare} label="Support Desk" isCollapsed={isCollapsed} />
+                        )}
                         <NavItem to="/admin/settings" icon={Settings} label="Global Config" isCollapsed={isCollapsed} />
                     </div>
-                )}
             </div>
 
             <div className="p-5 border-t border-border-card bg-page/30 space-y-3">

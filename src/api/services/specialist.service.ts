@@ -7,6 +7,10 @@ export const SpecialistService = {
         const response = await api.get(url);
         return response.data;
     },
+    getSpecialistProfile: async (id: number | string): Promise<ApiResponse<any>> => {
+        const response = await api.get(`specialists/${id}`);
+        return response.data;
+    },
     getDirectory: async (params?: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> => {
         const response = await api.get('specialists/schedule/directory', { params });
         return response.data;

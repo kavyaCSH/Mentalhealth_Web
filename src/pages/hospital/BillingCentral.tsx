@@ -13,7 +13,7 @@ import {
     Calendar,
     ChevronRight,
     Activity,
-    DollarSign
+    IndianRupee
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
@@ -185,7 +185,7 @@ const BillingCentral = () => {
                     <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] space-y-8 shadow-sm">
                         <div className="space-y-6">
                             {[
-                                { label: 'Average Ticket', value: '$124.50', icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                                { label: 'Average Ticket', value: '₹10,500', icon: IndianRupee, color: 'text-indigo-600', bg: 'bg-indigo-50' },
                                 { label: 'Billing Efficiency', value: '94%', icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50' },
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-4">

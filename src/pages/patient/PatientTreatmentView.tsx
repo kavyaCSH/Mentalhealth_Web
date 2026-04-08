@@ -10,9 +10,13 @@ import {
     Clock, 
     Play, 
     Pause,
-    BarChart3,
+    FileText,
+    Download,
+    MessageSquare,
+    AlertCircle,
+    RefreshCw,
     ClipboardCheck,
-    AlertCircle
+    BarChart3
 } from 'lucide-react';
 import { TreatmentService } from '../../api/services/treatment.service';
 import { AssessmentService } from '../../api/services/assessment.service';
@@ -21,17 +25,19 @@ import type { TreatmentProgress, TreatmentStage } from '../../types/treatment.ty
 
 const StatusBadge = ({ status }: { status: TreatmentStage['status'] }) => {
     const styles = {
-        pending: 'bg-slate-100 text-slate-600 border-slate-200',
-        in_progress: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-        completed: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-        on_hold: 'bg-orange-50 text-orange-600 border-orange-100'
+        pending: 'bg-slate-50 text-slate-500 border-slate-200',
+        in_progress: 'bg-amber-50 text-amber-600 border-amber-200',
+        completed: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+        on_hold: 'bg-rose-50 text-rose-600 border-rose-200',
+        skipped: 'bg-slate-100 text-slate-400 border-slate-300'
     };
 
     const icons = {
-        pending: <Clock size={12} />,
-        in_progress: <Play size={12} />,
+        pending: <RefreshCw size={12} />,
+        in_progress: <Activity size={12} />,
         completed: <CheckCircle2 size={12} />,
-        on_hold: <Pause size={12} />
+        on_hold: <AlertCircle size={12} />,
+        skipped: <RefreshCw size={12} className="opacity-50" />
     };
 
     return (

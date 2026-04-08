@@ -88,3 +88,29 @@ export interface TaxCode {
     is_active?: boolean;
     createdAt?: string;
 }
+
+export interface ChargeCode {
+    id: string;
+    _id?: string;
+    code: string;
+    name: string;
+    amount: number;
+    specialist_id: string | number;
+    tax_codes: (string | number)[];
+    is_active: boolean;
+    createdAt?: string;
+}
+
+export interface BroadcastPayload {
+    title: string;
+    message: string;
+    role: 'patient' | 'psychiatrist' | 'psychologist' | 'hospital' | 'all';
+    type: 'alert' | 'info' | 'success' | string;
+}
+
+export interface TargetedPayload {
+    userId: string | number;
+    title: string;
+    message: string;
+    type: 'alert' | 'info' | 'success' | string;
+}

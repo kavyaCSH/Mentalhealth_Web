@@ -5,9 +5,14 @@ export interface AssessmentQuestion {
     id?: string;
     questionId?: string | number;
     text: string;
+    patientText?: string;
+    professionalText?: string;
     category: string;
-    type: string;
+    type: 'scale' | 'boolean' | 'choice' | string;
     uiType?: string;
+    minAge?: number;
+    maxAge?: number;
+    gender?: 'male' | 'female' | 'other' | 'all';
     options: {
         _id: string;
         text: string;
