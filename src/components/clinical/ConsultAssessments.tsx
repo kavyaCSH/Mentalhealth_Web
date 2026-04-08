@@ -42,9 +42,7 @@ export const ConsultAssessments: React.FC<ConsultAssessmentsProps> = ({ patientI
         setLoading(true);
         try {
             const res = await AssessmentService.getPatientProfessionalHistory(patientId);
-            if (res.code === 200 || res.success) {
-                setHistory(res.data?.assessments || Array.isArray(res.data) ? res.data : []);
-            }
+            setHistory(Array.isArray(res) ? res : []);
         } catch (error) {
             console.error('Failed to fetch history:', error);
         } finally {

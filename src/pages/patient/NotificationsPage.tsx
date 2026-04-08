@@ -75,7 +75,7 @@ const PatientNotificationsPage = () => {
     const handleTriggerAi = async () => {
         try {
             setIsTriggeringAi(true);
-            const res = await NotificationService.triggerAiEngagement();
+            const res = await NotificationService.triggerAIEngagement();
             if (res.success) {
                 alert('AI Engagement broadcasted successfully!');
             }
