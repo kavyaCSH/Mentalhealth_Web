@@ -20,7 +20,8 @@ import {
     X,
     CalendarDays,
     Settings2,
-    Sparkles
+    Sparkles,
+    Plus
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../hooks/useAuth';
@@ -232,11 +233,11 @@ const HistoryPage = () => {
                     </Button>
                     <Button
                         variant="outline"
-                        leftIcon={<Sparkles size={18} />}
+                        leftIcon={<Plus size={18} />}
                         className="rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50 font-extrabold uppercase text-[10px] tracking-widest"
-                        onClick={() => navigate('/history/assistant')}
+                        onClick={() => navigate('/history/assistant?mode=manual')}
                     >
-                        History Assistant
+                        Add Manual History
                     </Button>
                 </div>
             </header>

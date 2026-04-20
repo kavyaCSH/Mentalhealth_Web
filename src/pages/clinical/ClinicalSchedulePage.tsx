@@ -16,36 +16,29 @@ import {
     ArrowLeft,
     Settings,
     RefreshCw,
-    MessageSquare,
-    MoreHorizontal,
-    AlertCircle,
-    Play
+    ChevronRight as ChevronRightIcon
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../api/client';
 import { TeleConsultService } from '../../api/services/teleconsult.service';
 import { UserService } from '../../api/services/user.service';
-import { ScheduleService } from '../../api/services/schedule.service';
+import { SpecialistService } from '../../api/services/specialist.service';
 import type { RootState } from '../../store';
 import type { Consultation } from '../../types/common.types';
 import type { Patient } from '../../types/user.types';
 import Button from '../../components/ui/Button';
-import InputField from '../../components/ui/InputField';
 
 const ClinicalSchedulePage = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    
-    // View State
     const [viewDate, setViewDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [appointments, setAppointments] = useState<Consultation[]>([]);
-    const [mainAvailableSlots, setMainAvailableSlots] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Booking & Reschedule Modals
+    // Booking Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [bookingStep, setBookingStep] = useState<'patient' | 'details'>('patient');
     const [bookingReason, setBookingReason] = useState('');
@@ -57,6 +50,7 @@ const ClinicalSchedulePage = () => {
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [bookingError, setBookingError] = useState('');
 
+    // Reschedule State
     const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
     const [rescheduleData, setRescheduleData] = useState<Consultation | null>(null);
     const [rescheduleDate, setRescheduleDate] = useState(new Date().toISOString().split('T')[0]);
@@ -67,12 +61,15 @@ const ClinicalSchedulePage = () => {
     const [rescheduleError, setRescheduleError] = useState('');
     const [rescheduleSuccess, setRescheduleSuccess] = useState(false);
 
-    // Patient Selection
+    // Main view slots fetch for selected date
+    const [mainAvailableSlots, setMainAvailableSlots] = useState<any[]>([]);
+    const [isLoadingMainSlots, setIsLoadingMainSlots] = useState(false);
+
+    // Patient Selection State
     const [patients, setPatients] = useState<Patient[]>([]);
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
     const [patientSearch, setPatientSearch] = useState('');
 
-    // Fetch Logic
     const fetchSchedule = useCallback(async (isRefresh = false) => {
         try {
             if (!isRefresh) setIsLoading(true);
@@ -84,71 +81,258 @@ const ClinicalSchedulePage = () => {
             });
             const consultData = res.data?.consults || (res.data as any) || [];
             setAppointments(Array.isArray(consultData) ? consultData : []);
-            
-            // Get actual override shift objects
-            const currentUid = user?.userId || user?.id;
-            if (currentUid) {
-                const data = await ScheduleService.listOverrides(currentUid);
-                // We'll merge these into the timeline in a future iteration if needed,
-                // for now we ensure the fetch works without 400s.
-                
-                const slotsData = await ScheduleService.getAvailableSlots({
-                    specialist_id: currentUid,
-                    date: selectedDate.toISOString().split('T')[0],
-                });
-                setMainAvailableSlots(slotsData);
-            }
         } catch {
             setAppointments([]);
         } finally {
             setIsLoading(false);
         }
-    }, [user, selectedDate]);
+    }, [user]);
 
     useEffect(() => {
         fetchSchedule();
     }, [fetchSchedule]);
 
-    // Sorting & Filtering
-    const dayAppointments = useMemo(() => {
-        return appointments
-            .filter((e) => new Date(e.scheduled_at || '').toDateString() === selectedDate.toDateString())
-            .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
-    }, [appointments, selectedDate]);
+    // Main view slots fetch for selected date
+    useEffect(() => {
+        const fetchMainSlots = async () => {
+            if (!user) return;
+            setIsLoadingMainSlots(true);
+            try {
+                const res = await SpecialistService.getAvailableSlots({
+                    specialist_id: user.userId || user.id,
+                    date: selectedDate.toISOString().split('T')[0],
+                });
+                const slotsData = (res as any).data?.slots || (res as any).slots || [];
+                setMainAvailableSlots(Array.isArray(slotsData) ? slotsData : []);
+            } catch (err) {
+                console.error('Failed to fetch main view slots', err);
+                setMainAvailableSlots([]);
+            } finally {
+                setIsLoadingMainSlots(false);
+            }
+        };
+        fetchMainSlots();
+    }, [selectedDate, user]);
 
-    const timelineItems = useMemo(() => {
-        const items: { type: 'booked' | 'available', data: any, time: string }[] = [
-            ...dayAppointments.map((a: Consultation) => ({ type: 'booked' as const, data: a, time: new Date(a.scheduled_at!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) })),
-            ...mainAvailableSlots
-                .filter(s => s.available && !dayAppointments.some((a: Consultation) => new Date(a.scheduled_at!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) === s.startTime))
-                .map(s => ({ type: 'available' as const, data: s, time: s.startTime }))
-        ];
-        return items.sort((a, b) => a.time.localeCompare(b.time));
-    }, [dayAppointments, mainAvailableSlots]);
+    const openBookingModalWithPatient = useCallback((patient: Patient) => {
+        setBookingStep('details');
+        setBookingReason('');
+        setSelectedPatient(patient);
+        setBookingError('');
+        setBookingSuccess(false);
+        setPatientSearch('');
+        const today = new Date();
+        setBookingDate(today.toISOString().split('T')[0]);
+        setBookingTime('');
+        setIsModalOpen(true);
+    }, []);
 
-    const nextSession = useMemo(() => {
-        const now = new Date();
-        return appointments
-            .filter(a => new Date(a.scheduled_at!) > now && a.status === 'scheduled')
-            .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())[0];
-    }, [appointments]);
+    const fetchPatients = useCallback(async (searchTerm = '') => {
+        try {
+            const res = await UserService.listUsers({
+                role: 'patient',
+                search: searchTerm,
+                isActive: true,
+                page: 1,
+                limit: 10
+            });
+            setPatients((res as any).data?.users || res.users || (res as any).data || []);
+        } catch (err) {
+            console.error('Error fetching patients:', err);
+        }
+    }, []);
 
-    // Handlers
+    const openBookingModal = useCallback(() => {
+        setBookingStep('patient');
+        setBookingReason('');
+        setSelectedPatient(null);
+        setBookingError('');
+        setBookingSuccess(false);
+        setPatientSearch('');
+        const today = new Date();
+        setBookingDate(today.toISOString().split('T')[0]);
+        setBookingTime('');
+        setIsModalOpen(true);
+        fetchPatients('');
+    }, [fetchPatients]);
+
+    useEffect(() => {
+        const patientId = searchParams.get('patientId');
+        if (patientId && !selectedPatient) {
+            const fetchAndSelect = async () => {
+                try {
+                    const res = await api.get(`/users/${patientId}`);
+                    const patient = res.data?.data || res.data;
+                    if (patient) {
+                        openBookingModalWithPatient(patient as Patient);
+                    }
+                } catch (err) {
+                    console.error('Failed to preselect patient', err);
+                }
+            };
+            fetchAndSelect();
+        } else if (searchParams.get('action') === 'book' && !isModalOpen) {
+            openBookingModal();
+        }
+    }, [searchParams, isModalOpen, selectedPatient, openBookingModalWithPatient, openBookingModal]);
+
+    useEffect(() => {
+        if (bookingStep === 'details' && (user?.userId || user?.id)) {
+            const fetchSlots = async () => {
+                setIsLoadingSlots(true);
+                try {
+                    const res = await SpecialistService.getAvailableSlots({
+                        specialist_id: user.userId || user.id,
+                        date: bookingDate,
+                    });
+                    const slotsData = (res as any).data?.slots || (res as any).slots || [];
+                    setAvailableSlots(Array.isArray(slotsData) ? slotsData : []);
+                } catch (err) {
+                    console.error('Failed to fetch slots', err);
+                    setAvailableSlots([]);
+                } finally {
+                    setIsLoadingSlots(false);
+                }
+            };
+            fetchSlots();
+        }
+    }, [bookingDate, bookingStep, user]);
+
+    useEffect(() => {
+        if (isRescheduleModalOpen && (user?.userId || user?.id)) {
+            const fetchSlots = async () => {
+                setIsLoadingRescheduleSlots(true);
+                try {
+                    const res = await SpecialistService.getAvailableSlots({
+                        specialist_id: user.userId || user.id,
+                        date: rescheduleDate,
+                    });
+                    const slotsData = (res as any).data?.slots || (res as any).slots || [];
+                    setRescheduleAvailableSlots(Array.isArray(slotsData) ? slotsData : []);
+                } catch (err) {
+                    console.error('Failed to fetch slots', err);
+                    setRescheduleAvailableSlots([]);
+                } finally {
+                    setIsLoadingRescheduleSlots(false);
+                }
+            };
+            fetchSlots();
+        }
+    }, [rescheduleDate, isRescheduleModalOpen, user]);
+
     const handleJoinCall = useCallback(async (session: Consultation) => {
         const apptId = session.id || session.consult_id || (session as any)._id;
+        if (!apptId) return;
+
         const publisher = session.participants?.find((p: any) =>
-            p.role === 'publisher' || String(p.ref_number) === String(user?.userId || user?.id)
+            p.role === 'publisher' ||
+            p.participant_type?.code === 'professional' ||
+            String(p.ref_number) === String(user?.userId || user?.id)
         );
         const token = publisher?.token || (session as any).publisher_token || (session as any).token;
 
         if (token) {
-            navigate(`/teleconsult/${apptId}`, { state: { appointment: session, token } });
+            try {
+                const validation = await TeleConsultService.tokenValidate(token, 'publisher');
+                const success = validation.success || (validation as any).code === 200;
+                navigate(`/teleconsult/${apptId}`, {
+                    state: { appointment: session, token }
+                });
+            } catch (err) {
+                navigate(`/teleconsult/${apptId}`, {
+                    state: { appointment: session, token }
+                });
+            }
         } else {
             alert('Consultation token not found.');
         }
     }, [user, navigate]);
 
-    // Calendar Helpers
+    const handleBookAppointment = useCallback(async () => {
+        if (!selectedPatient || !bookingReason.trim()) {
+            setBookingError('Please select a patient and provide a reason');
+            return;
+        }
+        if (!bookingTime) {
+            setBookingError('Please select an available time slot');
+            return;
+        }
+
+        setIsBooking(true);
+        try {
+            const [y, m, d] = bookingDate.split('-').map(Number);
+            const [h, min] = bookingTime.split(':').map(Number);
+            const scheduledAt = new Date(y, m - 1, d, h, min).toISOString();
+
+            const submissionData = {
+                scheduled_at: scheduledAt,
+                reason: bookingReason.trim(),
+                consult_type: 'virtual',
+                participants: [
+                    { participant_type: { id: 1, code: 'professional', name: 'Professional' }, ref_number: (user?.userId || user?.id || '').toString() },
+                    { participant_type: { id: 2, code: 'patient', name: 'Patient' }, ref_number: (selectedPatient.userId || selectedPatient.id || '').toString() }
+                ],
+                additional_info: { notes: bookingReason.trim() }
+            };
+
+            const res = await TeleConsultService.createConsultation(submissionData);
+            if (res.success || (res as any).code === 201) {
+                setBookingSuccess(true);
+                setTimeout(() => {
+                    setIsModalOpen(false);
+                    fetchSchedule(true);
+                }, 2000);
+            }
+        } catch (err: any) {
+            setBookingError(err.response?.data?.message || 'Error occurred while scheduling');
+        } finally {
+            setIsBooking(false);
+        }
+    }, [selectedPatient, bookingReason, bookingTime, bookingDate, user, fetchSchedule]);
+
+    const handleRescheduleClick = (appt: Consultation) => {
+        setRescheduleData(appt);
+        const apptDate = appt.scheduled_at ? new Date(appt.scheduled_at) : new Date();
+        setRescheduleDate(apptDate.toISOString().split('T')[0]);
+        setRescheduleTime('');
+        setRescheduleError('');
+        setRescheduleSuccess(false);
+        setIsRescheduleModalOpen(true);
+    };
+
+    const submitReschedule = async () => {
+        if (!rescheduleData) return;
+        if (!rescheduleTime) {
+            setRescheduleError('Please select an available time slot');
+            return;
+        }
+
+        setIsRescheduling(true);
+        try {
+            const [y, m, d] = rescheduleDate.split('-').map(Number);
+            const [h, min] = rescheduleTime.split(':').map(Number);
+            const newScheduledAt = new Date(y, m - 1, d, h, min).toISOString();
+            const apptId = rescheduleData.id || rescheduleData.consult_id || (rescheduleData as any)._id;
+
+            const res = await TeleConsultService.rescheduleConsultation(String(apptId), newScheduledAt);
+            if (res.success || (res as any).code === 200) {
+                setRescheduleSuccess(true);
+                setTimeout(() => {
+                    setIsRescheduleModalOpen(false);
+                    fetchSchedule(true);
+                }, 2000);
+            } else {
+                setRescheduleError((res as any).message || 'Failed to reschedule');
+            }
+        } catch (err: any) {
+            setRescheduleError(err.response?.data?.message || err.message || 'Error occurred while rescheduling');
+        } finally {
+            setIsRescheduling(false);
+        }
+    };
+
+    const isSameDate = (d1: Date, d2: Date) => d1.toDateString() === d2.toDateString();
+
     const weekDays = useMemo(() => {
         const days = [];
         const start = new Date(viewDate);
@@ -161,270 +345,645 @@ const ClinicalSchedulePage = () => {
         return days;
     }, [viewDate]);
 
+    const dayAppointments = appointments.filter((e) => isSameDate(new Date(e.scheduled_at || ''), selectedDate));
+
     return (
-        <div className="min-h-screen bg-page p-8 flex gap-8">
-            {/* Sidebar: Mini Calendar & Stats */}
-            <aside className="w-80 flex-shrink-0 space-y-8 h-[calc(100vh-64px)] overflow-y-auto no-scrollbar pb-10">
-                <div className="card-premium p-6 border-border-card">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xs font-black text-muted uppercase tracking-widest italic">Clinical Calendar</h3>
-                        <div className="flex gap-2">
-                            <button onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() - 1)))} className="p-1.5 hover:bg-page rounded-lg text-main"><ChevronLeft size={16} /></button>
-                            <button onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() + 1)))} className="p-1.5 hover:bg-page rounded-lg text-main"><ChevronRight size={16} /></button>
+        <>
+            <div className="p-8 max-w-7xl animate-fade-in pb-20 space-y-10">
+                {/* Premium Header */}
+                <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3 text-indigo-600 mb-1">
+                            <CalendarIcon size={16} />
+                            <span className="text-xs font-black uppercase tracking-[0.2em]">Clinical Calendar • Session Management</span>
                         </div>
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight text-gradient-primary">Clinical Schedule</h1>
+                        <p className="text-slate-500 font-semibold text-sm">Review, manage and launch your patient sessions.</p>
                     </div>
-                    
-                    <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-muted uppercase mb-4">
-                        {['S','M','T','W','T','F','S'].map(d => <div key={d}>{d}</div>)}
+                    <div className="flex gap-4">
+                        <Button
+                            variant="secondary"
+                            leftIcon={<Settings size={20} />}
+                            onClick={() => navigate('/clinical/availability')}
+                            className="rounded-2xl shadow-xl shadow-slate-100 py-3.5"
+                        >
+                            Manage Availability
+                        </Button>
+                        <Button
+                            variant="primary"
+                            leftIcon={<Plus size={20} />}
+                            onClick={openBookingModal}
+                            className="rounded-2xl shadow-xl shadow-indigo-100 py-3.5"
+                        >
+                            Schedule Session
+                        </Button>
                     </div>
-                    
-                    <div className="grid grid-cols-7 gap-1">
-                        {/* Month Rendering Logic would go here, simplified for now to selected week */}
-                        {weekDays.map(d => (
-                            <button
-                                key={d.toISOString()}
-                                onClick={() => setSelectedDate(d)}
-                                className={`h-10 rounded-xl flex flex-col items-center justify-center transition-all ${
-                                    d.toDateString() === selectedDate.toDateString()
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 glow-primary'
-                                    : 'hover:bg-page text-main font-bold'
-                                }`}
-                            >
-                                <span className="text-xs">{d.getDate()}</span>
-                                {appointments.some(a => new Date(a.scheduled_at!).toDateString() === d.toDateString()) && (
-                                    <div className={`w-1 h-1 rounded-full mt-0.5 ${d.toDateString() === selectedDate.toDateString() ? 'bg-white' : 'bg-indigo-400'}`} />
-                                )}
+                </header>
+
+                {/* Horizontal Weekly Calendar */}
+                <section className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                        <CalendarIcon size={120} />
+                    </div>
+                    <div className="flex items-center justify-between mb-8 relative z-10">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                <Clock size={24} />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-slate-900 uppercase tracking-widest text-xs">
+                                    {viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                </h3>
+                                <p className="text-[10px] font-black text-slate-400 mt-0.5 uppercase tracking-tighter">Weekly View Pipeline</p>
+                            </div>
+                        </div>
+                        <div className="flex p-1 bg-slate-50 rounded-xl gap-1">
+                            <button onClick={() => {
+                                const d = new Date(viewDate);
+                                d.setDate(d.getDate() - 7);
+                                setViewDate(d);
+                            }} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-indigo-600 transition-all">
+                                <ChevronLeft size={20} />
                             </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Daily Bandwidth Stats */}
-                <div className="card-premium p-6 border-transparent bg-gradient-to-br from-indigo-600 to-indigo-900 text-white overflow-hidden relative shadow-lg shadow-indigo-500/20">
-                    <div className="relative z-10">
-                        <h3 className="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] mb-4">Today's Bandwidth</h3>
-                        <div className="flex items-end gap-2 mb-2">
-                            <span className="text-4xl font-black">{dayAppointments.length}</span>
-                            <span className="text-sm font-bold text-indigo-300 mb-1.5">Sessions</span>
+                            <button onClick={() => setViewDate(new Date())} className="px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all">Today</button>
+                            <button onClick={() => {
+                                const d = new Date(viewDate);
+                                d.setDate(d.getDate() + 7);
+                                setViewDate(d);
+                            }} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-indigo-600 transition-all">
+                                <ChevronRight size={20} />
+                            </button>
                         </div>
-                        <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                            <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${Math.min(dayAppointments.length * 10, 100)}%` }}
-                                className="h-full bg-indigo-400"
-                            />
-                        </div>
-                        <p className="text-[10px] italic text-indigo-200 mt-4 leading-relaxed font-medium">
-                            {dayAppointments.length > 5 ? "Heavy caseload detected. Ensure adequate hydration and breaks." : "Balanced load today."}
-                        </p>
                     </div>
-                    <Activity size={100} className="absolute -bottom-8 -right-8 text-white/5 rotate-12" />
-                </div>
 
-                {/* Quick Patient Search */}
-                <div className="card-premium p-6 border-border-card">
-                    <h3 className="text-xs font-black text-muted uppercase tracking-widest mb-4">Recent Patients</h3>
-                    <div className="space-y-4">
-                        {/* Placeholder for recent patients */}
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="flex items-center gap-3 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer">
-                                <div className="w-10 h-10 rounded-xl bg-page flex items-center justify-center font-bold text-muted">P{i}</div>
+                    <div className="grid grid-cols-7 gap-4 relative z-10">
+                        {weekDays.map((date, i) => {
+                            const isSelected = isSameDate(date, selectedDate);
+                            const isToday = isSameDate(date, new Date());
+                            const hasAppt = appointments.some(a => isSameDate(new Date(a.scheduled_at || ''), date));
+
+                            return (
+                                <button
+                                    key={i}
+                                    onClick={() => setSelectedDate(date)}
+                                    className={`flex flex-col items-center gap-4 py-6 rounded-[2rem] transition-all relative group/day ${isSelected ? 'bg-indigo-600 text-white shadow-2xl scale-105 glow-primary' : 'hover:bg-slate-50 text-slate-700'}`}
+                                >
+                                    <span className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? 'text-indigo-100' : 'text-slate-300'}`}>
+                                        {date.toLocaleString('default', { weekday: 'short' })}
+                                    </span>
+                                    <span className={`text-xl font-black ${isToday && !isSelected ? 'text-indigo-600' : ''}`}>
+                                        {date.getDate()}
+                                    </span>
+                                    {hasAppt && (
+                                        <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-indigo-500'} shadow-sm`} />
+                                    )}
+                                    {!hasAppt && mainAvailableSlots.some(s => s.available !== false) && isSameDate(date, selectedDate) && (
+                                        <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isSelected ? 'bg-white/50' : 'bg-emerald-500/50'}`} />
+                                    )}
+                                    {isToday && !isSelected && (
+                                        <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-indigo-500 rounded-full" />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </section>
+
+                <div className="grid lg:grid-cols-12 gap-10">
+                    {/* Timeline Column */}
+                    <div className="lg:col-span-8 space-y-8">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-1.5 h-8 bg-indigo-600 rounded-full" />
                                 <div>
-                                    <p className="text-xs font-bold text-main">Patient #{i}04</p>
-                                    <p className="text-[10px] font-black text-indigo-500 uppercase">View History</p>
+                                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                                        {selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                                    </h2>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                                        {dayAppointments.length} Upcoming Appointments
+                                    </p>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </aside>
+                        </div>
 
-            {/* Main Content: Timeline */}
-            <main className="flex-1 space-y-10 pb-32">
-                {/* Hero Section: Up Next */}
-                <AnimatePresence mode="wait">
-                    {nextSession ? (
-                        <motion.section 
-                            key="next-session"
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="relative"
-                        >
-                            <div className="card-premium p-10 border-indigo-500/20 bg-card shadow-2xl shadow-indigo-500/5 group overflow-hidden">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-32 -mt-32" />
-                                
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-10 relative z-10">
-                                    <div className="flex gap-8 items-center">
-                                        <div className="w-24 h-24 rounded-3xl bg-indigo-600 flex items-center justify-center text-white shadow-xl glow-primary relative overflow-hidden">
-                                            <Video size={40} className="relative z-10" />
-                                            <motion.div 
-                                                animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
-                                                transition={{ duration: 2, repeat: Infinity }}
-                                                className="absolute inset-0 bg-white" 
-                                            />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <span className="px-3 py-1 bg-indigo-500/10 text-indigo-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-indigo-500/20">Up Next</span>
-                                                <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-                                                    <Clock size={14} /> {new Date(nextSession.scheduled_at!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </span>
-                                            </div>
-                                            <h2 className="text-4xl font-black text-main tracking-tight leading-none mb-4">
-                                                Teleconsult Session
-                                            </h2>
-                                            <div className="flex items-center gap-4 text-muted font-medium">
-                                                <div className="flex -space-x-2">
-                                                    <div className="w-8 h-8 rounded-full border-2 border-border-card bg-page" />
-                                                </div>
-                                                <p className="text-sm italic">"Reviewing previous trauma markers and anxiety response."</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <Button 
-                                        variant="primary" 
-                                        leftIcon={<Play size={20} />}
-                                        onClick={() => handleJoinCall(nextSession)}
-                                        className="h-16 px-10 rounded-[2rem] text-lg font-black tracking-widest uppercase shadow-2xl shadow-indigo-200"
+                        {isLoading ? (
+                            <div className="flex justify-center py-20 opacity-30 animate-pulse">
+                                <Activity size={32} className="animate-spin text-indigo-600" />
+                            </div>
+                        ) : dayAppointments.length > 0 ? (
+                            <div className="space-y-6 relative before:absolute before:left-8 before:top-4 before:bottom-4 before:w-px before:bg-slate-100">
+                                {dayAppointments.map((appt, idx) => (
+                                    <motion.div
+                                        key={appt.id || (appt as any)._id || idx}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="relative pl-20 group"
                                     >
-                                        Join Room
-                                    </Button>
-                                </div>
-                            </div>
-                        </motion.section>
-                    ) : (
-                        <div className="p-10 border-2 border-dashed border-border-card rounded-[3rem] text-center bg-card/50">
-                            <h2 className="text-2xl font-black text-muted uppercase tracking-widest">No Sessions Ready</h2>
-                            <p className="text-muted italic">Your next session will appear here when it's time.</p>
-                        </div>
-                    )}
-                </AnimatePresence>
+                                        <div className="absolute left-[30px] top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border-2 border-white bg-indigo-500 ring-4 ring-indigo-50 z-10 group-hover:scale-125 transition-transform" />
 
-                {/* Timeline Header */}
-                <div className="flex items-center justify-between px-2">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-card rounded-2xl flex items-center justify-center text-main shadow-sm border border-border-card">
-                            <Clock size={20} />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black text-main tracking-tight">Today's Pulse</h2>
-                            <p className="text-[10px] font-black text-muted uppercase tracking-widest mt-0.5">{selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                                        <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 flex flex-col md:flex-row md:items-center justify-between gap-8 group/card">
+                                            <div className="flex items-start gap-8">
+                                                <div className="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-100 rounded-2xl group-hover/card:bg-indigo-50 group-hover/card:border-indigo-100 transition-colors">
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+                                                        {new Date(appt.scheduled_at || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).split(' ')[1]}
+                                                    </p>
+                                                    <p className="text-lg font-black text-slate-900 leading-none">
+                                                        {new Date(appt.scheduled_at || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).split(' ')[0]}
+                                                    </p>
+                                                </div>
+
+                                                <div>
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-2.5 py-1 rounded-lg">
+                                                            {appt.consult_type === 'virtual' ? 'Video Consult' : 'In-Person'}
+                                                        </span>
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID: {String(appt.id || (appt as any)._id).slice(-5)}</span>
+                                                    </div>
+                                                    <h4 className="text-xl font-black text-slate-900 leading-tight mb-3">
+                                                        {appt.reason || 'Symptom Review & Follow-up'}
+                                                    </h4>
+                                                    <div className="flex items-center gap-3">
+                                                        {(() => {
+                                                            const p = appt.participants?.find((part: any) =>
+                                                                part.role === 'subscriber' ||
+                                                                part.role === 'patient' ||
+                                                                part.participant_type?.code === 'patient' ||
+                                                                part.participant_type?.code === 'subscriber' ||
+                                                                part.participant_type?.code === 'customer'
+                                                            ) as any;
+                                                            const pInfo = p?.participant_info;
+                                                            const pName =
+                                                                pInfo?.name ||
+                                                                (p?.firstName ? `${p.firstName} ${p.lastName || ''}`.trim() : null) ||
+                                                                (p?.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : null) ||
+                                                                (pInfo?.firstName ? `${pInfo.firstName} ${pInfo.lastName || ''}`.trim() : null) ||
+                                                                (pInfo?.first_name ? `${pInfo.first_name} ${pInfo.last_name || ''}`.trim() : null) ||
+                                                                p?.name ||
+                                                                p?.additional_info?.x_name ||
+                                                                'Assigned Patient';
+                                                            return (
+                                                                <>
+                                                                    <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-[10px] font-black border-2 border-white shadow-md">
+                                                                        {pName.charAt(0).toUpperCase()}
+                                                                    </div>
+                                                                    <p className="text-sm font-bold text-slate-600">
+                                                                        {pName}
+                                                                    </p>
+                                                                </>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-slate-50 pt-6 md:pt-0 md:pl-8">
+                                                {appt.consult_type === 'virtual' && (
+                                                    <Button
+                                                        variant="primary"
+                                                        leftIcon={<Video size={16} />}
+                                                        onClick={() => handleJoinCall(appt)}
+                                                        className="rounded-2xl text-[10px] py-4 px-8 shadow-lg shadow-indigo-100"
+                                                    >
+                                                        Start Session
+                                                    </Button>
+                                                )}
+                                                <button
+                                                    className="p-4 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-2xl transition-all"
+                                                    onClick={() => handleRescheduleClick(appt)}
+                                                    title="Reschedule Session"
+                                                >
+                                                    <RefreshCw size={20} />
+                                                </button>
+                                                <button className="p-4 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all" title="Cancel Session"><X size={20} /></button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="bg-slate-50/50 rounded-[4rem] p-24 text-center border-2 border-dashed border-slate-100">
+                                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner shadow-slate-100/50">
+                                    <CalendarIcon size={40} className="text-slate-200" />
+                                </div>
+                                <p className="font-black text-slate-900 uppercase tracking-[0.2em] text-sm text-gradient-primary">Quiet Pipeline</p>
+                                <p className="text-slate-400 font-semibold text-sm mt-2">No clinical appointments scheduled for this date.</p>
+                            </div>
+                        )}
+
+                        {/* Highly Visible Availability Section */}
+                        <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm space-y-8">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100"><Clock size={20} /></div>
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-900 uppercase">Open Clinical Capacity</h3>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                                            {mainAvailableSlots.filter((s: any) => s.available !== false).length} Available Slot(s) for {selectedDate.toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <Button variant="outline" className="rounded-xl py-3 px-6 text-[10px] uppercase font-black tracking-widest" onClick={() => navigate('/clinical/availability')}>Adjust Rules</Button>
+                            </div>
+
+                            {isLoadingMainSlots ? (
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
+                                    {[1, 2, 3, 4].map(i => <div key={i} className="h-14 bg-slate-50 rounded-2xl" />)}
+                                </div>
+                            ) : mainAvailableSlots.length > 0 ? (
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                                    {mainAvailableSlots.map((slot: any, idx: number) => (
+                                        <div
+                                            key={idx}
+                                            className={`p-4 rounded-2xl border ${slot.available !== false ? 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-lg hover:-translate-y-1' : 'bg-slate-50 border-slate-50 opacity-40'} transition-all cursor-pointer group`}
+                                            onClick={() => {
+                                                if (slot.available !== false) {
+                                                    setBookingDate(selectedDate.toISOString().split('T')[0]);
+                                                    setBookingTime(slot.startTime);
+                                                    setIsModalOpen(true);
+                                                    setBookingStep('patient');
+                                                }
+                                            }}
+                                        >
+                                            <div className="flex flex-col gap-1">
+                                                <span className={`text-sm font-black ${slot.available !== false ? 'text-slate-900 group-hover:text-indigo-600' : 'text-slate-400'}`}>{slot.startTime}</span>
+                                                <span className="text-[9px] font-black uppercase text-slate-400 tracking-tighter">
+                                                    {slot.available !== false ? 'Available' : 'Booked'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-10 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-100 flex flex-col items-center">
+                                    <Activity size={32} className="text-slate-200 mb-4" />
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No available slots configured for this duration.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
-                    <Button variant="outline" leftIcon={<Plus size={18} />} className="rounded-2xl" onClick={() => setIsModalOpen(true)}>Manual Booking</Button>
-                </div>
 
-                {/* The Timeline */}
-                <div className="relative pl-12 space-y-8">
-                    {/* Vertical Line */}
-                    <div className="absolute left-6 top-8 bottom-8 w-[2px] bg-border-card" />
-                    
-                    {timelineItems.length === 0 && !isLoading && (
-                        <div className="py-20 text-center opacity-30 italic">No activity for this date.</div>
-                    )}
-
-                    {isLoading ? (
-                         <div className="py-20 text-center opacity-30"><RefreshCw className="animate-spin mx-auto" size={32} /></div>
-                    ) : timelineItems.map((item, idx) => (
-                        <motion.div 
-                            key={idx}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="relative"
-                        >
-                            {/* Marker */}
-                             <div className={`absolute -left-8 top-8 w-4 h-4 rounded-full border-4 border-page shadow-sm z-10 ${
-                                item.type === 'booked' 
-                                    ? (item.data.status === 'completed' ? 'bg-emerald-500' : 'bg-indigo-600') 
-                                    : 'bg-muted/30'
-                            }`} />
-                            
-                            <div className={`card-premium p-6 border-border-card hover:border-indigo-500/30 transition-all group flex items-center justify-between ${
-                                item.type === 'available' ? 'bg-card/30 border-dashed' : ''
-                            }`}>
-                                <div className="flex items-center gap-6">
-                                    <div className="text-center w-16">
-                                        <p className="text-base font-black text-main">{item.time}</p>
-                                        <p className="text-[10px] font-black text-muted uppercase">30min</p>
+                    {/* Info Column */}
+                    <div className="lg:col-span-4 space-y-6">
+                        <div className="bg-indigo-900 rounded-[3rem] p-8 text-white relative overflow-hidden group shadow-2xl shadow-indigo-200/50">
+                            <div className="absolute -right-12 -top-12 w-48 h-48 bg-indigo-800 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000 opacity-50"></div>
+                            <div className="relative z-10 space-y-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20">
+                                        <Activity size={28} />
                                     </div>
-                                    <div className="w-[1px] h-10 bg-border-card" />
-                                    
-                                    {item.type === 'booked' ? (
-                                         <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-sm font-black text-main">Virtual Consultation</span>
-                                                {item.data.status === 'completed' && <CheckCircle2 size={14} className="text-emerald-500" />}
+                                    <div>
+                                        <p className="text-indigo-300 text-[10px] font-black uppercase tracking-widest">Clinical Bandwidth</p>
+                                        <p className="font-bold text-xl">42% Capacity used</p>
+                                    </div>
+                                </div>
+                                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                                    <motion.div initial={{ width: 0 }} animate={{ width: '42%' }} className="h-full bg-white rounded-full" />
+                                </div>
+                                <p className="text-xs text-indigo-100/70 font-medium leading-relaxed">
+                                    You have 3 more available slots for emergency triage today.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="card-premium p-8 space-y-6">
+                            <h3 className="font-black text-slate-900 text-xs uppercase tracking-widest border-b border-slate-50 pb-4">Recent Notes</h3>
+                            <div className="space-y-4">
+                                {[1, 2].map(i => (
+                                    <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-indigo-100 transition-all">
+                                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">Patient Feedback • 2h ago</p>
+                                        <p className="text-xs font-bold text-slate-700 leading-relaxed italic line-clamp-2">"Patient reported significant improvement in sleep hygiene after last session..."</p>
+                                    </div>
+                                ))}
+                            </div>
+                            <Button variant="outline" className="w-full text-[10px] py-4 rounded-xl font-black uppercase tracking-widest border-2">Review Archive</Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Premium 2-Step Booking Modal */}
+            <AnimatePresence>
+                {isModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
+
+                        {bookingSuccess ? (
+                            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative bg-white rounded-[4rem] p-16 text-center shadow-2xl space-y-8 max-w-md w-full border border-indigo-50">
+                                <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-xl shadow-emerald-100/50"><CheckCircle2 size={48} /></div>
+                                <div>
+                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Success!</h3>
+                                    <p className="text-slate-500 font-semibold mt-2">The session with {selectedPatient?.firstName} has been synchronized.</p>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="relative bg-white rounded-[3rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100">
+                                <header className="p-8 border-b border-slate-50 flex items-center justify-between shrink-0 glass-surface relative z-10">
+                                    <div className="flex items-center gap-4">
+                                        {bookingStep === 'details' && (
+                                            <button onClick={() => setBookingStep('patient')} className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all">
+                                                <ArrowLeft size={18} />
+                                            </button>
+                                        )}
+                                        <div>
+                                            <h3 className="font-black text-slate-900 text-xl tracking-tight uppercase">
+                                                {bookingStep === 'patient' ? 'Select Patient' : 'Session Details'}
+                                            </h3>
+                                            <div className="flex gap-2 mt-1">
+                                                <div className={`h-1 rounded-full transition-all duration-500 ${bookingStep === 'patient' ? 'w-8 bg-indigo-600' : 'w-4 bg-emerald-500'}`} />
+                                                <div className={`h-1 rounded-full transition-all duration-500 ${bookingStep === 'details' ? 'w-8 bg-indigo-600' : 'w-4 bg-slate-200'}`} />
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${
-                                                    item.data.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'
-                                                }`}>
-                                                    {item.data.status}
-                                                </span>
-                                                <span className="text-[10px] text-muted font-bold italic">{item.data.reason || 'General Follow-up'}</span>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setIsModalOpen(false)} className="p-3 bg-slate-50 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-all"><X size={20} /></button>
+                                </header>
+
+                                <div className="flex-1 overflow-y-auto p-10 space-y-8">
+                                    {bookingStep === 'patient' ? (
+                                        <div className="space-y-8 animate-fade-in">
+                                            <div className="relative group">
+                                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={20} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search clinicial database by name or ID..."
+                                                    value={patientSearch}
+                                                    onChange={(e) => {
+                                                        setPatientSearch(e.target.value);
+                                                        if (e.target.value.length >= 2 || e.target.value === '') {
+                                                            fetchPatients(e.target.value);
+                                                        }
+                                                    }}
+                                                    className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl py-4.5 pl-16 pr-6 text-sm font-bold focus:outline-none focus:border-indigo-500/20 focus:bg-white transition-all shadow-inner"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Recent & Matching Patients</p>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {patients.map((patient: any, idx) => (
+                                                        <button
+                                                            key={patient.id || idx}
+                                                            onClick={() => {
+                                                                setSelectedPatient(patient);
+                                                                setBookingStep('details');
+                                                            }}
+                                                            className={`flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all group/p ${selectedPatient?.id === patient.id ? 'border-indigo-600 bg-indigo-50' : 'border-slate-50 hover:border-indigo-100 hover:bg-slate-50/50'}`}
+                                                        >
+                                                            <div className="w-14 h-14 rounded-2xl bg-slate-900 border-4 border-white flex items-center justify-center text-white text-sm font-black shadow-lg group-hover/p:scale-110 transition-transform">
+                                                                {(patient.firstName || patient.first_name || patient.name || '?').charAt(0).toUpperCase()}
+                                                                {(patient.lastName || patient.last_name || '').charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div className="text-left flex-1">
+                                                                <p className="font-black text-slate-900 tracking-tighter">
+                                                                    {patient.firstName || patient.first_name || patient.name?.split(' ')[0] || ''} {patient.lastName || patient.last_name || patient.name?.split(' ').slice(1).join(' ') || ''}
+                                                                </p>
+                                                                <p className="text-[10px] font-bold text-slate-400 mt-0.5">ID: {String(patient.id || patient.userId).slice(-8)}</p>
+                                                            </div>
+                                                            <div className="w-8 h-8 rounded-full bg-white border border-slate-100 flex items-center justify-center opacity-0 group-hover/p:opacity-100 transition-opacity">
+                                                                <Plus size={16} className="text-indigo-600" />
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     ) : (
-                                         <div>
-                                            <p className="text-sm font-bold text-muted italic">Available Block</p>
-                                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-1">Open for Booking</p>
+                                        <div className="space-y-10 animate-fade-in">
+                                            <div className="bg-indigo-50 rounded-[2rem] p-6 border border-indigo-100 flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm"><UserCheck size={24} /></div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1">Assigned Patient</p>
+                                                        <p className="text-lg font-black text-indigo-900 leading-none">{selectedPatient?.firstName} {selectedPatient?.lastName}</p>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => setBookingStep('patient')} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline px-4 py-2 bg-white rounded-xl shadow-sm">Change</button>
+                                            </div>
+
+                                            <div className="space-y-8 bg-slate-50/50 p-6 rounded-[2.5rem] border border-slate-100">
+                                                {/* Date Selector */}
+                                                <div className="space-y-4">
+                                                    <div className="flex items-center justify-between px-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-xl bg-indigo-100/50 text-indigo-600 flex items-center justify-center">
+                                                                <CalendarIcon size={16} />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none mb-1">Session Date</label>
+                                                                <span className="text-[10px] font-semibold text-slate-400">Choose a day for consultation</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <input
+                                                        type="date"
+                                                        value={bookingDate}
+                                                        onChange={e => setBookingDate(e.target.value)}
+                                                        className="w-full bg-white rounded-2xl py-4 px-6 text-slate-700 text-sm font-bold border-2 border-slate-100 focus:border-indigo-500/30 focus:shadow-xl focus:shadow-indigo-500/10 transition-all outline-none"
+                                                    />
+                                                </div>
+
+                                                <div className="h-px bg-slate-200/50 w-full" />
+
+                                                {/* Slot Selector */}
+                                                <div className="space-y-5">
+                                                    <div className="flex items-center justify-between px-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-xl bg-indigo-100/50 text-indigo-600 flex items-center justify-center">
+                                                                <Clock size={16} />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none mb-1">Available Slots</label>
+                                                                <span className="text-[10px] font-semibold text-slate-400">Select an open timeframe</span>
+                                                            </div>
+                                                        </div>
+                                                        {availableSlots.length > 0 && !isLoadingSlots && (
+                                                            <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full">
+                                                                {availableSlots.filter((s: any) => s.available !== false).length} Slots
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {isLoadingSlots ? (
+                                                        <div className="flex flex-col items-center justify-center p-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm">
+                                                            <Activity className="animate-spin text-indigo-500 mb-3" size={28} />
+                                                            <span className="text-xs font-bold text-slate-400 animate-pulse">Scanning schedule...</span>
+                                                        </div>
+                                                    ) : availableSlots.length > 0 ? (
+                                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[16rem] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {availableSlots.map((slot: any, idx) => {
+                                                                const isSelected = bookingTime === slot.startTime;
+                                                                const disabled = slot.available === false;
+                                                                return (
+                                                                    <button
+                                                                        key={idx}
+                                                                        type="button"
+                                                                        onClick={() => setBookingTime(slot.startTime)}
+                                                                        disabled={disabled}
+                                                                        className={`relative overflow-hidden py-3 px-2 rounded-2xl border text-xs transition-all duration-300 ${disabled
+                                                                                ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed opacity-60'
+                                                                                : isSelected
+                                                                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-105 z-10'
+                                                                                    : 'bg-white border-slate-200 text-slate-600 font-bold hover:border-indigo-400 hover:text-indigo-700 hover:shadow-md hover:-translate-y-0.5'
+                                                                            }`}
+                                                                    >
+                                                                        {isSelected && <div className="absolute inset-0 bg-white/20" />}
+                                                                        <span className={`relative z-10 ${isSelected ? 'font-black' : ''}`}>
+                                                                            {slot.startTime} {slot.endTime ? `\n- ${slot.endTime}` : ''}
+                                                                        </span>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="bg-white rounded-[2rem] py-8 px-6 text-center border border-slate-100 shadow-sm flex flex-col items-center gap-3">
+                                                            <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                                                                <CalendarIcon size={24} />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-black text-slate-700">Fully Booked</p>
+                                                                <p className="text-xs font-semibold text-slate-400 mt-1">No open slots on this date.</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-2 px-2">
+                                                    <FileText size={14} className="text-slate-400" />
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clinical Reason / Objective</label>
+                                                </div>
+                                                <textarea
+                                                    value={bookingReason}
+                                                    onChange={e => setBookingReason(e.target.value)}
+                                                    placeholder="Specify the consultation objective (e.g. Anxiety Assessment, Med Review)..."
+                                                    rows={4}
+                                                    className="w-full bg-slate-50 rounded-3xl py-5 px-6 text-sm font-semibold border-2 border-transparent focus:border-indigo-500/20 focus:bg-white transition-all outline-none resize-none leading-relaxed"
+                                                />
+                                            </div>
+
+                                            {bookingError && (
+                                                <div className="bg-rose-50 p-4 rounded-2xl border border-rose-100 flex items-center gap-3">
+                                                    <div className="w-2 h-2 rounded-full bg-rose-500" />
+                                                    <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">{bookingError}</p>
+                                                </div>
+                                            )}
+
+                                            <Button
+                                                variant="primary"
+                                                className="w-full rounded-[2rem] py-6 flex items-center justify-center text-sm font-black uppercase tracking-widest shadow-2xl shadow-indigo-200"
+                                                onClick={handleBookAppointment}
+                                                disabled={isBooking}
+                                            >
+                                                {isBooking ? <Activity className="animate-spin" size={24} /> : (
+                                                    <div className="flex items-center gap-3">
+                                                        Finalize Clinical Schedule
+                                                        <ChevronRightIcon size={18} />
+                                                    </div>
+                                                )}
+                                            </Button>
                                         </div>
                                     )}
                                 </div>
-                                
-                                <div className="flex gap-2">
-                                    {item.type === 'booked' ? (
-                                         <>
-                                            <button className="p-2 text-muted/30 hover:text-indigo-500 hover:bg-indigo-500/10 rounded-xl transition-all"><MessageSquare size={18} /></button>
-                                            <button className="p-2 text-muted/30 hover:text-indigo-500 hover:bg-page rounded-xl transition-all"><MoreHorizontal size={18} /></button>
-                                            {item.data.status === 'scheduled' && (
-                                                <button 
-                                                    onClick={() => handleJoinCall(item.data)}
-                                                    className="ml-4 h-10 px-6 rounded-xl bg-indigo-600 text-white text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
-                                                >
-                                                    Enter
-                                                </button>
-                                            )}
-                                        </>
-                                     ) : (
-                                        <Button variant="outline" size="sm" className="rounded-xl px-4 text-[10px] font-black tracking-widest uppercase text-muted" onClick={() => setIsModalOpen(true)}>Book</Button>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            </main>
-
-            {/* Booking Modal (Simplified restyle) */}
-            <AnimatePresence>
-                 {isModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-page/80 backdrop-blur-md">
-                        <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }} 
-                            animate={{ scale: 1, opacity: 1 }} 
-                            exit={{ scale: 0.9, opacity: 0 }} 
-                            className="bg-card rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative border border-border-card"
-                        >
-                            <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 p-3 text-muted/30 hover:text-main rounded-2xl transition-all"><X size={20} /></button>
-                            <h3 className="text-3xl font-black text-main tracking-tight mb-8">Manual Session</h3>
-                            {/* Reuse existing booking logic components here */}
-                            <p className="text-muted text-sm mb-6 font-medium italic">Please use the centralized booking engine for complex scheduling.</p>
-                            <Button variant="primary" className="w-full h-14 rounded-2xl" onClick={() => setIsModalOpen(false)}>Close</Button>
-                        </motion.div>
+                            </motion.div>
+                        )}
                     </div>
                 )}
             </AnimatePresence>
 
-            <style>{`
-                .no-scrollbar::-webkit-scrollbar { display: none; }
-                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-                 .glow-primary { box-shadow: 0 0 20px rgba(79, 70, 229, 0.4); }
-                .card-premium { background: var(--card-bg); border-radius: 2rem; border: 1px solid var(--border-border-card); }
-            `}</style>
-        </div>
+            {/* Reschedule Modal */}
+            <AnimatePresence>
+                {isRescheduleModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsRescheduleModalOpen(false)} />
+
+                        {rescheduleSuccess ? (
+                            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative bg-white rounded-[4rem] p-16 text-center shadow-2xl space-y-8 max-w-md w-full border border-indigo-50">
+                                <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-xl shadow-emerald-100/50"><CheckCircle2 size={48} /></div>
+                                <div>
+                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Success!</h3>
+                                    <p className="text-slate-500 font-semibold mt-2">The session has been successfully rescheduled.</p>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="relative bg-white rounded-[3rem] shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] border border-slate-100">
+                                <header className="p-8 border-b border-slate-50 flex items-center justify-between shrink-0 glass-surface relative z-10">
+                                    <div>
+                                        <h3 className="font-black text-slate-900 text-xl tracking-tight uppercase">Reschedule Session</h3>
+                                        <p className="text-sm text-slate-500 font-semibold">Select a new date and time</p>
+                                    </div>
+                                    <button onClick={() => setIsRescheduleModalOpen(false)} className="p-3 bg-slate-50 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-all"><X size={20} /></button>
+                                </header>
+
+                                <div className="flex-1 overflow-y-auto p-10 space-y-8">
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none mb-1">New Date</label>
+                                        <input
+                                            type="date"
+                                            value={rescheduleDate}
+                                            onChange={e => setRescheduleDate(e.target.value)}
+                                            className="w-full bg-slate-50 rounded-2xl py-4 px-6 text-slate-700 text-sm font-bold border-2 border-slate-100 focus:border-indigo-500/30 focus:shadow-xl focus:shadow-indigo-500/10 transition-all outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none">Available Slots</label>
+                                            {rescheduleAvailableSlots.length > 0 && !isLoadingRescheduleSlots && (
+                                                <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full">
+                                                    {rescheduleAvailableSlots.filter((s: any) => s.available !== false).length} Slots
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {isLoadingRescheduleSlots ? (
+                                            <div className="flex justify-center p-8"><Activity className="animate-spin text-indigo-500" size={24} /></div>
+                                        ) : rescheduleAvailableSlots.length > 0 ? (
+                                            <div className="grid grid-cols-2 gap-3 max-h-[16rem] overflow-y-auto pr-2 custom-scrollbar">
+                                                {rescheduleAvailableSlots.map((slot: any, idx) => {
+                                                    const isSelected = rescheduleTime === slot.startTime;
+                                                    const disabled = slot.available === false;
+                                                    return (
+                                                        <button
+                                                            key={idx}
+                                                            type="button"
+                                                            onClick={() => setRescheduleTime(slot.startTime)}
+                                                            disabled={disabled}
+                                                            className={`relative py-3 px-2 rounded-2xl border text-xs transition-all ${disabled ? 'bg-slate-50 border-slate-100 text-slate-300 opacity-60' :
+                                                                    isSelected ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' :
+                                                                        'bg-white border-slate-200 text-slate-600 hover:border-indigo-400'
+                                                                }`}
+                                                        >
+                                                            <span className={isSelected ? 'font-black' : 'font-bold'}>{slot.startTime}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="p-8 text-center text-slate-400 text-sm font-semibold">No open slots on this date.</div>
+                                        )}
+                                    </div>
+
+                                    {rescheduleError && (
+                                        <div className="bg-rose-50 p-4 rounded-2xl border border-rose-100 flex items-center gap-3">
+                                            <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">{rescheduleError}</p>
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        variant="primary"
+                                        className="w-full rounded-[2rem] py-6 flex items-center justify-center text-sm font-black uppercase tracking-widest shadow-xl"
+                                        onClick={submitReschedule}
+                                        disabled={isRescheduling}
+                                    >
+                                        {isRescheduling ? <Activity className="animate-spin" size={24} /> : 'Confirm Reschedule'}
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </div>
+                )}
+            </AnimatePresence>
+        </>
     );
 };
 

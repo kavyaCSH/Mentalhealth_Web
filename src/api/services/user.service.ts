@@ -83,5 +83,9 @@ export const UserService = {
         } catch (err) {
             console.warn('Deep enrollment ping failed', err);
         }
+    },
+    updateUserById: async (userId: string, data: Partial<User>): Promise<User> => {
+        const response = await api.put(`users/${userId}`, data);
+        return response.data?.data ?? response.data;
     }
 };

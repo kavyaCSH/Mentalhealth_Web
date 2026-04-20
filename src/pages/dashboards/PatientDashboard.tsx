@@ -63,15 +63,6 @@ const PatientDashboard = () => {
             border: 'border-indigo-100'
         },
         {
-            id: 'book',
-            label: 'Book Session',
-            icon: <Calendar size={24} />,
-            onPress: () => navigate('/schedule?action=book'),
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            border: 'border-emerald-100'
-        },
-        {
             id: 'records',
             label: 'My Records',
             icon: <FileText size={24} />,
@@ -80,6 +71,16 @@ const PatientDashboard = () => {
             bg: 'bg-amber-50',
             border: 'border-amber-100'
         },
+        {
+            id: 'book',
+            label: 'Book Session',
+            icon: <Calendar size={24} />,
+            onPress: () => navigate('/schedule?action=book'),
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+            border: 'border-emerald-100'
+        },
+        
         {
             id: 'history',
             label: 'Health History',
@@ -93,7 +94,7 @@ const PatientDashboard = () => {
             id: 'history-assistant',
             label: 'AI History Asst',
             icon: <Bot size={24} />,
-            onPress: () => navigate('/history/assistant?view=assistant'),
+            onPress: () => navigate('/history/assistant?view=assistant&source=assistant'),
             color: 'text-violet-600',
             bg: 'bg-violet-50',
             border: 'border-violet-100'

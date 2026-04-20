@@ -11,11 +11,15 @@ import {
     RefreshCw,
     Mail,
     Video,
-    MoreVertical,
-    ShieldCheck
+    Phone,
+    ShieldCheck,
+    Monitor,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
+import Pagination from '../../components/ui/Pagination';
 import { UserService } from '../../api/services/user.service';
 import type { User } from '../../types/user.types';
 
@@ -26,6 +30,11 @@ const StaffDirectory = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+    // Pagination
+    const [page, setPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const roles = [
         { id: '', label: 'All Staff', icon: <Users size={16} /> },
@@ -40,25 +49,34 @@ const StaffDirectory = () => {
     const fetchUsers = useCallback(async () => {
         setIsLoading(true);
         try {
-            const params: Record<string, any> = { limit: 100, page: 1 };
+            const params: Record<string, any> = { limit: itemsPerPage, page };
             if (roleFilter) {
                 params.role = roleFilter;
             } else {
                 params.role = 'psychiatrist,psychologist,nurse,counselor,social_worker';
             }
+            if (searchQuery) {
+                params.search = searchQuery;
+            }
 
             const data = await UserService.listUsers(params);
-            setUsers((data as any).users || data || []);
+            const fetched = (data as any).users || data || [];
+            setUsers(Array.isArray(fetched) ? fetched : []);
+            setTotal((data as any).total || fetched.length || 0);
         } catch (error) {
             console.error('Failed to fetch staff:', error);
             setUsers([]);
+            setTotal(0);
         } finally {
             setIsLoading(false);
         }
-    }, [roleFilter]);
+    }, [roleFilter, searchQuery, page, itemsPerPage]);
 
     useEffect(() => {
-        fetchUsers();
+        const timer = setTimeout(() => {
+            fetchUsers();
+        }, 300);
+        return () => clearTimeout(timer);
     }, [fetchUsers]);
 
     const handleToggleStatus = async (user: User) => {
@@ -66,7 +84,10 @@ const StaffDirectory = () => {
         setActionLoading(userId);
         try {
             await UserService.toggleUserStatus(String(userId));
-            setUsers(prev => prev.map(u => (u.id || u._id || u.userId) === userId ? { ...u, isActive: !u.isActive } : u));
+            setUsers(prev => prev.map(u => {
+                const uid = String(u.id || u._id || u.userId);
+                return uid === userId ? { ...u, isActive: !u.isActive } : u;
+            }));
         } catch (error) {
             console.error('Failed to toggle status:', error);
         } finally {
@@ -74,26 +95,20 @@ const StaffDirectory = () => {
         }
     };
 
-    const filteredUsers = users.filter(u => {
-        const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
-        const query = searchQuery.toLowerCase();
-        return fullName.includes(query) ||
-            u.username?.toLowerCase().includes(query) ||
-            u.email?.toLowerCase().includes(query);
-    });
-
     const getRoleColor = (role: string) => {
         switch (role?.toLowerCase()) {
-            case 'psychiatrist': return 'bg-indigo-50 text-indigo-700 border-indigo-100';
-            case 'psychologist': return 'bg-purple-50 text-purple-700 border-purple-100';
-            case 'nurse': return 'bg-pink-50 text-pink-700 border-pink-100';
-            case 'counselor': return 'bg-amber-50 text-amber-700 border-amber-100';
-            case 'social_worker': return 'bg-teal-50 text-teal-700 border-teal-100';
-            case 'hospital': return 'bg-orange-50 text-orange-700 border-orange-100';
-            case 'admin': return 'bg-red-50 text-red-700 border-red-100';
-            default: return 'bg-slate-50 text-slate-700 border-slate-100';
+            case 'psychiatrist': return 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20';
+            case 'psychologist': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+            case 'nurse': return 'bg-pink-500/10 text-pink-500 border-pink-500/20';
+            case 'counselor': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+            case 'social_worker': return 'bg-teal-500/10 text-teal-500 border-teal-500/20';
+            case 'hospital': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+            case 'admin': return 'bg-red-500/10 text-red-500 border-red-500/20';
+            default: return 'bg-page text-muted border-border-card';
         }
     };
+
+    const totalPages = Math.ceil(total / itemsPerPage) || 1;
 
     return (
         <div className="p-8 max-w-7xl  space-y-8 animate-fade-in pb-20">
@@ -101,22 +116,22 @@ const StaffDirectory = () => {
                 <div className="space-y-2">
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> Back to Dashboard
                     </button>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Staff Directory</h1>
-                    <p className="text-slate-500 font-medium">Manage and monitor all clinical professionals in your facility.</p>
+                    <h1 className="text-4xl font-black text-main tracking-tight">Staff Directory</h1>
+                    <p className="text-muted font-medium">Manage and monitor all clinical professionals in your facility.</p>
                 </div>
                 <div className="flex gap-4">
                     <Button
                         variant="outline"
                         size="lg"
-                        onClick={fetchUsers}
+                        onClick={() => { setPage(1); fetchUsers(); }}
                         isLoading={isLoading}
                         leftIcon={<RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />}
                     >
-                        Refresh Directory
+                        Refresh
                     </Button>
                     <Button
                         variant="primary"
@@ -124,18 +139,19 @@ const StaffDirectory = () => {
                         onClick={() => navigate('/staff/new')}
                         leftIcon={<Plus size={18} />}
                     >
-                        Register New Staff
+                        Register Staff
                     </Button>
                 </div>
             </header>
 
+            {/* Filters Row */}
             <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
-                <div className="flex p-1 bg-slate-100/80 rounded-2xl w-full lg:w-auto overflow-x-auto no-scrollbar">
+                <div className="flex p-1 bg-page/80 rounded-2xl w-full lg:w-auto overflow-x-auto no-scrollbar shadow-inner border border-border-card">
                     {roles.map((role) => (
                         <button
                             key={role.id}
-                            onClick={() => setRoleFilter(role.id)}
-                            className={`flex items-center gap-2 whitespace-nowrap px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${roleFilter === role.id ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                            onClick={() => { setRoleFilter(role.id); setPage(1); }}
+                            className={`flex items-center gap-2 whitespace-nowrap px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${roleFilter === role.id ? 'bg-card text-indigo-500 shadow-sm border border-border-card' : 'text-muted hover:text-main'
                                 }`}
                         >
                             {role.icon} {role.label}
@@ -144,127 +160,192 @@ const StaffDirectory = () => {
                 </div>
 
                 <div className="relative w-full lg:w-80 shrink-0">
-                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                     <input
                         type="text"
-                        placeholder="Search by name, email, or username..."
+                        placeholder="Search by name, email..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
+                        onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+                        className="w-full bg-card border border-border-card rounded-2xl py-3.5 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm text-main"
                     />
                 </div>
             </div>
 
-            {isLoading ? (
-                <div className="py-24 text-center">
-                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-400 font-black text-xs uppercase tracking-[0.2em]">Synchronizing Directory...</p>
-                </div>
-            ) : filteredUsers.length > 0 ? (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    <AnimatePresence>
-                        {filteredUsers.map((member, index) => (
-                            <motion.div
-                                key={member.id || member._id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                                className="card-premium group hover:shadow-2xl hover:shadow-indigo-100/50 transition-all duration-500"
-                            >
-                                <div className="p-6 space-y-6">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-slate-50 flex items-center justify-center font-black text-indigo-600 text-xl border border-indigo-100 group-hover:scale-110 transition-transform duration-500 shadow-sm">
-                                                {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+            {/* Table */}
+            <div className="card-premium overflow-hidden border-border-card shadow-xl shadow-indigo-500/5">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-page/50 border-b border-border-card">
+                                <th className="p-5 pl-8 text-[10px] font-black text-muted uppercase tracking-[0.2em] whitespace-nowrap">Staff Member</th>
+                                <th className="p-5 text-[10px] font-black text-muted uppercase tracking-[0.2em] whitespace-nowrap">Role</th>
+                                <th className="p-5 text-[10px] font-black text-muted uppercase tracking-[0.2em] whitespace-nowrap">Contact</th>
+                                <th className="p-5 text-[10px] font-black text-muted uppercase tracking-[0.2em] whitespace-nowrap">Specialization</th>
+                                <th className="p-5 text-[10px] font-black text-muted uppercase tracking-[0.2em] whitespace-nowrap text-center">Status</th>
+                                <th className="p-5 pr-8 text-[10px] font-black text-muted uppercase tracking-[0.2em] whitespace-nowrap text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <AnimatePresence mode="wait">
+                                {isLoading ? (
+                                    <motion.tr key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                        <td colSpan={6} className="p-20 text-center">
+                                            <div className="flex flex-col items-center gap-4">
+                                                <Activity className="animate-spin text-indigo-500" size={32} />
+                                                <p className="text-[10px] font-black text-muted uppercase tracking-widest">Synchronizing Directory...</p>
                                             </div>
-                                            <div>
-                                                <h3 className="font-black text-slate-900 text-lg leading-tight">
-                                                    {member.firstName} {member.lastName}
-                                                </h3>
-                                                <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest flex items-center gap-2">
-                                                    @{member.username}
-                                                    {member.isActive !== false ? (
-                                                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                                                    ) : (
-                                                        <span className="w-1.5 h-1.5 bg-slate-300 rounded-full"></span>
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <button className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
-                                            <MoreVertical size={20} />
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-3 text-slate-500">
-                                            <div className="p-2 rounded-lg bg-slate-50">
-                                                <Mail size={14} />
-                                            </div>
-                                            <span className="text-sm font-medium truncate">{member.email}</span>
-                                        </div>
-                                        {(member as any).specialization && (
-                                            <div className="flex items-center gap-3 text-slate-500">
-                                                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-500">
-                                                    <Activity size={14} />
-                                                </div>
-                                                <span className="text-sm font-bold text-slate-600 truncate">{(member as any).specialization}</span>
-                                            </div>
-                                        )}
-                                        {(member as any).qualifications && (
-                                            <div className="flex items-center gap-3 text-slate-400 pl-1">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest truncate">{(member as any).qualifications}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
-                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getRoleColor(member.role)}`}>
-                                            {member.role?.replace('_', ' ')}
-                                        </span>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="px-3 py-2 text-[10px] h-auto rounded-xl"
-                                                onClick={() => navigate(`/hospital/consultations/new?professionalId=${member.id || member._id}`)}
-                                                leftIcon={<Video size={14} />}
+                                        </td>
+                                    </motion.tr>
+                                ) : users.length > 0 ? (
+                                    users.map((member, index) => {
+                                        const memberId = String(member.id || member._id || member.userId);
+                                        return (
+                                            <motion.tr
+                                                key={memberId}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.03 }}
+                                                className="border-b border-border-card hover:bg-indigo-500/5 transition-colors group"
                                             >
-                                                Schedule
-                                            </Button>
-                                            <Button
-                                                variant={member.isActive !== false ? "outline" : "primary"}
-                                                size="sm"
-                                                className="px-4 py-2 text-[10px] h-auto rounded-xl"
-                                                isLoading={actionLoading === (member.id || member._id)}
-                                                onClick={() => handleToggleStatus(member)}
-                                                leftIcon={member.isActive !== false ? <UserX size={14} /> : <UserCheck size={14} />}
-                                            >
-                                                {member.isActive !== false ? 'Deactivate' : 'Activate'}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
+                                                {/* Staff Member */}
+                                                <td className="p-5 pl-8">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-black text-sm border border-indigo-500/20 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm shrink-0">
+                                                            {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-black text-main leading-tight text-base group-hover:text-indigo-500 transition-colors tracking-tight">
+                                                                {member.firstName} {member.lastName}
+                                                            </p>
+                                                            <p className="text-[11px] font-bold text-muted mt-0.5 flex items-center gap-2">
+                                                                @{member.username}
+                                                                {member.isActive !== false ? (
+                                                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                                                ) : (
+                                                                    <span className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                {/* Role */}
+                                                <td className="p-5">
+                                                    <span className={`inline-flex px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getRoleColor(member.role)}`}>
+                                                        {member.role?.replace('_', ' ')}
+                                                    </span>
+                                                </td>
+
+                                                {/* Contact */}
+                                                <td className="p-5">
+                                                    <div className="space-y-1">
+                                                        <p className="text-sm font-bold text-main flex items-center gap-2">
+                                                            <Mail size={12} className="text-muted/40" />
+                                                            <span className="truncate max-w-[180px]">{member.email}</span>
+                                                        </p>
+                                                        {member.phone && (
+                                                            <p className="text-[11px] font-medium text-muted flex items-center gap-2">
+                                                                <Phone size={11} className="text-muted/30" />
+                                                                {member.phone}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </td>
+
+                                                {/* Specialization */}
+                                                <td className="p-5">
+                                                    <div className="max-w-[180px]">
+                                                        <p className="text-[11px] font-black text-muted uppercase tracking-wider truncate">
+                                                            {(member as any).specialization || '—'}
+                                                        </p>
+                                                        {(member as any).qualifications && (
+                                                            <p className="text-[10px] font-bold text-muted/60 mt-1 truncate">
+                                                                {(member as any).qualifications}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </td>
+
+                                                {/* Status */}
+                                                <td className="p-5 text-center">
+                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
+                                                        member.isActive !== false
+                                                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                                            : 'bg-page text-muted border-border-card'
+                                                    }`}>
+                                                        {member.isActive !== false ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                </td>
+
+                                                {/* Actions */}
+                                                <td className="p-5 pr-8 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={() => navigate(`/consultations/new?professionalId=${member.id || member._id}`)}
+                                                            className="p-2.5 bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500 hover:text-white rounded-xl transition-all shadow-sm"
+                                                            title="Schedule Consult"
+                                                        >
+                                                            <Video size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleToggleStatus(member)}
+                                                            disabled={actionLoading === memberId}
+                                                            className={`p-2.5 rounded-xl transition-all shadow-sm ${
+                                                                member.isActive !== false
+                                                                    ? 'bg-page text-muted hover:bg-red-500 hover:text-white'
+                                                                    : 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white'
+                                                            }`}
+                                                            title={member.isActive !== false ? 'Deactivate' : 'Activate'}
+                                                        >
+                                                            {actionLoading === memberId ? (
+                                                                <Activity size={16} className="animate-spin" />
+                                                            ) : member.isActive !== false ? (
+                                                                <UserX size={16} />
+                                                            ) : (
+                                                                <UserCheck size={16} />
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </motion.tr>
+                                        );
+                                    })
+                                ) : (
+                                    <tr key="empty">
+                                        <td colSpan={6} className="p-20 text-center text-muted">
+                                            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                                                <Monitor size={56} className="mx-auto mb-4 text-muted opacity-20" />
+                                                <p className="font-black text-main mb-1 uppercase tracking-widest text-sm">No Results Found</p>
+                                                <p className="text-xs font-medium">We couldn't find any staff members matching your criteria.</p>
+                                                <Button
+                                                    variant="primary"
+                                                    size="md"
+                                                    className="mt-6"
+                                                    onClick={() => { setSearchQuery(''); setRoleFilter(''); setPage(1); }}
+                                                >
+                                                    Clear All Filters
+                                                </Button>
+                                            </motion.div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </AnimatePresence>
+                        </tbody>
+                    </table>
                 </div>
-            ) : (
-                <div className="py-32 text-center card-premium bg-slate-50/50 border-dashed">
-                    <Users size={48} className="mx-auto mb-4 text-slate-200" />
-                    <p className="font-black text-slate-900 mb-1 uppercase tracking-widest text-sm">No Results Found</p>
-                    <p className="text-slate-400 font-medium text-sm">We couldn't find any staff members matching your criteria.</p>
-                    <Button
-                        variant="primary"
-                        size="md"
-                        className="mt-6"
-                        onClick={() => { setSearchQuery(''); setRoleFilter(''); }}
-                    >
-                        Clear All Filters
-                    </Button>
-                </div>
-            )}
+
+                <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    totalItems={total}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={(p) => setPage(p)}
+                    onItemsPerPageChange={(count) => {
+                        setItemsPerPage(count);
+                        setPage(1);
+                    }}
+                />
+            </div>
         </div>
     );
 };

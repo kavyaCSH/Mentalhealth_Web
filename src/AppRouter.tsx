@@ -59,6 +59,8 @@ import StaffDirectory from './pages/hospital/StaffDirectory';
 import FacilityStatus from './pages/hospital/FacilityStatus';
 import BillingCentral from './pages/hospital/BillingCentral';
 import TaxCodeManagement from './pages/hospital/TaxCodeManagement';
+import HospitalPatientDirectory from './pages/hospital/HospitalPatientDirectory';
+import HospitalEditPatient from './pages/hospital/HospitalEditPatient';
 import Transactions from './pages/shared/Transactions';
 import UserManagement from './pages/shared/UserManagement';
 import TreatmentPlanPage from './pages/clinical/treatment/TreatmentPlanPage';
@@ -222,6 +224,8 @@ const AppRouter = () => {
                                 {/* Hospital Portal Routes */}
                                 <Route element={<ProtectedRoute allowedGroup="HOSPITAL" />}>
                                     <Route path="facility" element={<FacilityStatus />} />
+                                    <Route path="hospital-patients" element={<HospitalPatientDirectory />} />
+                                    <Route path="hospital-patients/:patientId/edit" element={<HospitalEditPatient />} />
                                     <Route path="staff" element={<StaffDirectory />} />
                                     <Route path="staff/new" element={<UserManagement />} />
                                     <Route path="billing" element={<BillingCentral />} />

@@ -186,7 +186,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                             {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Care Suite</p>}
                             <NavItem to="/appointments" icon={Calendar} label="Appointments" isCollapsed={isCollapsed} />
                             <NavItem to="/assessments" icon={Brain} label="Self Assessment" isCollapsed={isCollapsed} />
-                            <NavItem to="/history/assistant" icon={Sparkles} label="AI History Assistant" isCollapsed={isCollapsed} />
+                            <NavItem to="/history/assistant?view=assistant&source=assistant" icon={Sparkles} label="AI History Assistant" isCollapsed={isCollapsed} />
                             <NavItem to="/history/professional" icon={ShieldCheck} label="Professional Reports" isCollapsed={isCollapsed} />
                             <NavItem to="/statistics" icon={BarChart3} label="Statistics" isCollapsed={isCollapsed} />
                             <NavItem to="/records" icon={Heart} label="Health Records" isCollapsed={isCollapsed} />
@@ -215,6 +215,7 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                         <div className="space-y-2">
                             {!isCollapsed && <p className="text-[11px] font-black text-muted uppercase tracking-widest px-4 mb-4">Operations</p>}
                             <NavItem to="/facility" icon={ShieldCheck} label="Facility Status" isCollapsed={isCollapsed} />
+                            <NavItem to="/hospital-patients" icon={ClipboardCheck} label="Patient Directory" isCollapsed={isCollapsed} />
                             <NavItem to="/staff" icon={Users} label="Staff Directory" isCollapsed={isCollapsed} />
                         </div>
                         <div className="space-y-2">

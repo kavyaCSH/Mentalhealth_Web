@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Sparkles,
@@ -35,8 +35,15 @@ const HistoryAssistantPage = () => {
     const patientId = urlPatientId || user?.id || user?._id || '';
     const isProfessional = user?.role && user.role !== 'patient';
 
-    // Navigation State
-    const [viewState, setViewState] = useState<ViewState>('list');
+    // Navigation State — read URL query params for initial view
+    const [searchParams] = useSearchParams();
+    const [viewState, setViewState] = useState<ViewState>(() => {
+        const view = searchParams.get('view');
+        const mode = searchParams.get('mode');
+        if (view === 'assistant') return 'assistant';
+        if (view === 'manual' || mode === 'manual') return 'manual';
+        return 'list';
+    });
     const [selectedRecord, setSelectedRecord] = useState<PastHistoryResponse | null>(null);
 
     // List State
@@ -342,7 +349,8 @@ const HistoryAssistantPage = () => {
                 <p className="text-slate-600 font-bold uppercase text-[11px] tracking-widest">{subtitle}</p>
             </div>
 
-            {viewState === 'list' && (
+            {((isProfessional && (viewState === 'list' || viewState === 'assistant')) || 
+              (!isProfessional && viewState === 'assistant')) && (
                 <div className="flex flex-wrap gap-4">
                     <button 
                         onClick={handleAddManual}
@@ -350,8 +358,8 @@ const HistoryAssistantPage = () => {
                     >
                         <Plus size={20} /> Add Manual
                     </button>
-                    <button onClick={() => setViewState('assistant')} className="h-16 px-10 bg-indigo-600 text-white rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-100 flex items-center gap-4 hover:scale-105 transition-transform active:scale-95">
-                        <Mic size={20} /> Record New History
+                    <button onClick={() => setViewState('assistant')} className={`h-16 px-10 rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center gap-4 transition-all active:scale-95 ${viewState === 'assistant' ? 'bg-slate-900 text-white shadow-slate-200' : 'bg-indigo-600 text-white shadow-indigo-100 hover:scale-105'}`}>
+                        <Mic size={20} /> {viewState === 'assistant' ? 'AI Recording Active' : 'Record New History'}
                     </button>
                 </div>
             )}
@@ -410,37 +418,7 @@ const HistoryAssistantPage = () => {
 
     const renderAssistant = () => (
         <div className="space-y-12">
-            {/* Context-Aware Hero Section */}
-            <div className="relative p-10 bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl shadow-indigo-200/20 mb-8 border border-white/5">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600 blur-[120px] opacity-20 -mr-20 -mt-20" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-rose-500 blur-[100px] opacity-10 -ml-20 -mb-20" />
 
-                <div className="flex items-center justify-between relative z-10">
-                    <div className="flex items-center gap-6">
-                        <div className="p-4 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-600/30">
-                            <Sparkles size={32} />
-                        </div>
-                        <div className="space-y-1">
-                            <h1 className="text-3xl font-black text-white tracking-tight uppercase italic break-all">
-                                {isProfessional ? "Clinical History Assistant" : "Your AI Health History Assistant"}
-                            </h1>
-                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">
-                                {isProfessional ? "Conducting AI-Augmented Clinical Intake" : "Deep Clinical Synthesis Engine v4.0"}
-                            </p>
-                        </div>
-                    </div>
-                    {isProfessional && (
-                        <Button 
-                            variant="primary" 
-                            size="sm" 
-                            onClick={() => navigate(`/patients/${patientId}/health`)}
-                            className="bg-white/10 hover:bg-white/20 text-white border-none rounded-xl font-black uppercase text-[9px] tracking-widest px-6"
-                        >
-                            Return to Hub
-                        </Button>
-                    )}
-                </div>
-            </div>
 
             {renderHeader(isProfessional ? "Clinical Extraction" : "History Assistant", "AI-Powered clinical entity extraction from your narrative.", true)}
 
