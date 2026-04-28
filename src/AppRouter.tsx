@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout.tsx';
 import Dashboard from './pages/Dashboard.tsx';
 import LoginPage from './pages/auth/LoginPage';
@@ -109,7 +109,7 @@ const AppRouter = () => {
     }
 
     return (
-        <HashRouter>
+        <BrowserRouter>
             <Routes>
                 {/* Public Routes */}
                 <Route
@@ -263,7 +263,7 @@ const AppRouter = () => {
                 {/* Global Redirect */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-        </HashRouter>
+        </BrowserRouter>
     );
 };
 
