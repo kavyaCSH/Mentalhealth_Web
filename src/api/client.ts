@@ -30,8 +30,8 @@ api.interceptors.response.use(
         if (error.response?.status === 401 && !isAuthRequest) {
             localStorage.removeItem('token');
             // If already on login, don't reload to avoid losing state
-            if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
+            if (window.location.hash !== '#/login') {
+                window.location.href = '/#/login';
             }
         }
         return Promise.reject(error);
