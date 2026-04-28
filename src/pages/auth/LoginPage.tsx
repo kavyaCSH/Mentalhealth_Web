@@ -164,7 +164,7 @@ const LoginPage = () => {
                             <h2 className="text-4xl font-black text-slate-900 tracking-tighter">MindBalance</h2>
                         </div>
                         <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-sm">
-                            Welcome back! Please choose your role and sign in below.
+                            Welcome back!! Please choose your role and sign in below.
                         </p>
                     </div>
 
