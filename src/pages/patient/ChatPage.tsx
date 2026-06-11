@@ -271,13 +271,13 @@ const ChatPage = () => {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] bg-slate-50 md:rounded-3xl shadow-2xl relative overflow-hidden animate-fade-in group w-full max-w-7xl mx-auto md:my-6 border border-slate-100">
+        <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] bg-page md:rounded-3xl shadow-2xl relative overflow-hidden animate-fade-in group w-full max-w-7xl mx-auto md:my-6 border border-border-card">
             {/* Premium Header */}
-            <header className="h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-6 z-20 sticky top-0">
+            <header className="h-20 bg-card/80 backdrop-blur-xl border-b border-border-card flex items-center justify-between px-6 z-20 sticky top-0">
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => navigate(-1)}
-                        className="w-10 h-10 rounded-2xl flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors"
+                        className="w-10 h-10 rounded-2xl flex items-center justify-center bg-page hover:bg-card text-muted transition-colors"
                     >
                         <ChevronLeft size={24} />
                     </button>
@@ -288,7 +288,7 @@ const ChatPage = () => {
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h1 className="text-lg font-black text-slate-900 tracking-tight">Skyheal AI</h1>
+                                <h1 className="text-lg font-black text-main tracking-tight">Skyheal AI</h1>
                                 <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
                             </div>
                             <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-0.5">Virtual Companion</p>
@@ -299,7 +299,7 @@ const ChatPage = () => {
                 <div className="relative">
                     <button 
                         onClick={() => setShowMenu(!showMenu)}
-                        className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${showMenu ? 'bg-indigo-600 text-white' : 'bg-slate-50 hover:bg-slate-100 text-slate-600'}`}
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${showMenu ? 'bg-indigo-600 text-white' : 'bg-page hover:bg-card text-muted'}`}
                     >
                         <MoreVertical size={20} />
                     </button>
@@ -310,7 +310,7 @@ const ChatPage = () => {
                                 className="fixed inset-0 z-40 bg-transparent" 
                                 onClick={() => setShowMenu(false)}
                             />
-                            <div className="absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in slide-in-from-top-4 duration-300">
+                            <div className="absolute right-0 mt-3 w-64 bg-card rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-border-card z-50 overflow-hidden animate-in fade-in zoom-in slide-in-from-top-4 duration-300">
                                 <div className="p-2 space-y-1">
                                     <button 
                                         onClick={handleClearChat}
@@ -327,9 +327,9 @@ const ChatPage = () => {
                                     
                                     <button 
                                         onClick={() => { setShowHelp(true); setShowMenu(false); }}
-                                        className="w-full flex items-center gap-3 px-4 py-4 text-left text-sm font-black text-slate-700 hover:bg-slate-50 rounded-2xl transition-all group"
+                                        className="w-full flex items-center gap-3 px-4 py-4 text-left text-sm font-black text-main hover:bg-page rounded-2xl transition-all group"
                                     >
-                                        <div className="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-slate-100 flex items-center justify-center transition-colors">
+                                        <div className="w-10 h-10 rounded-xl bg-page group-hover:bg-card flex items-center justify-center transition-colors">
                                             <HelpCircle size={18} />
                                         </div>
                                         <div className="flex flex-col">
@@ -357,31 +357,31 @@ const ChatPage = () => {
             </header>
 
             {/* Chat Area */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 relative z-10 bg-gradient-to-b from-slate-50 to-white no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 relative z-10 bg-page no-scrollbar">
                 {connecting ? (
                     <div className="flex flex-col items-center justify-center h-full opacity-50 space-y-4">
                         <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-                        <p className="text-xs font-black uppercase tracking-widest text-slate-400">Establishing Connection...</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-muted">Establishing Connection...</p>
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center px-4 animate-fade-in">
                         <div className="relative mb-8">
                             <div className="absolute inset-0 bg-indigo-500 blur-[60px] opacity-20 rounded-full"></div>
-                            <div className="w-24 h-24 bg-white rounded-3xl shadow-2xl flex items-center justify-center border border-slate-100 relative z-10">
+                            <div className="w-24 h-24 bg-card rounded-3xl shadow-2xl flex items-center justify-center border border-border-card relative z-10">
                                 <Bot size={48} className="text-indigo-600" />
                             </div>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Hello, {user?.firstName || 'there'}.</h2>
-                        <p className="text-slate-500 font-medium mb-12">I'm your personalized wellness companion. How are you feeling today?</p>
+                        <h2 className="text-3xl font-black text-main tracking-tight mb-2">Hello, {user?.firstName || 'there'}.</h2>
+                        <p className="text-muted font-medium mb-12">I'm your personalized wellness companion. How are you feeling today?</p>
                         
-                        <div className="w-full text-left bg-white p-6 rounded-[2rem] shadow-xl border border-slate-50">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 ml-2">Suggested Topics</p>
+                        <div className="w-full text-left bg-card p-6 rounded-[2rem] shadow-xl border border-border-card">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted mb-4 ml-2">Suggested Topics</p>
                             <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar mb-4">
                                 {SUGGESTION_CATEGORIES.map((cat, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => setActiveCat(idx)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap border ${activeCat === idx ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' : 'bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100'}`}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap border ${activeCat === idx ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' : 'bg-page text-muted border-border-card hover:bg-card'}`}
                                     >
                                         {cat.icon} {cat.label}
                                     </button>
@@ -392,7 +392,7 @@ const ChatPage = () => {
                                     <button
                                         key={j}
                                         onClick={() => sendMessage(q)}
-                                        className="flex items-center justify-between p-4 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 rounded-2xl text-left text-sm font-semibold transition-colors group border border-transparent hover:border-indigo-100"
+                                        className="flex items-center justify-between p-4 bg-page hover:bg-indigo-50 hover:text-indigo-700 text-main rounded-2xl text-left text-sm font-semibold transition-colors group border border-transparent hover:border-indigo-100"
                                     >
                                         <span className="truncate pr-4">{q}</span>
                                         <ArrowUpRight size={16} className="text-slate-400 group-hover:text-indigo-500 shrink-0" />
@@ -416,18 +416,18 @@ const ChatPage = () => {
                                     )}
                                     <div className={`max-w-[80%] md:max-w-[70%] p-5 rounded-[2rem] shadow-sm relative transition-all duration-300 group/bubble ${
                                         isAI 
-                                            ? 'bg-white border border-indigo-50/50 rounded-bl-sm text-slate-800 shadow-xl shadow-indigo-50/20' 
-                                            : 'bg-slate-900 border-none rounded-br-sm text-white shadow-2xl shadow-slate-200'
+                                            ? 'bg-card border border-border-card rounded-bl-sm text-main shadow-xl shadow-indigo-50/20' 
+                                            : 'bg-indigo-600 border-none rounded-br-sm text-white shadow-2xl shadow-indigo-200'
                                     }`}>
                                         <p className="text-[15px] leading-relaxed font-medium whitespace-pre-wrap">{msg.content}</p>
-                                        <div className={`flex items-center gap-2 mt-3 opacity-60 ${isAI ? 'text-slate-400' : 'text-slate-400 justify-end'}`}>
+                                        <div className={`flex items-center gap-2 mt-3 opacity-60 ${isAI ? 'text-muted' : 'text-indigo-100 justify-end'}`}>
                                             <span className="text-[9px] font-black uppercase tracking-widest">
                                                 {formatTime(msg.createdAt)}
                                             </span>
                                         </div>
                                     </div>
                                     {!isAI && (
-                                        <div className="w-10 h-10 rounded-2xl bg-white border border-slate-100 text-slate-400 flex items-center justify-center shrink-0 shadow-sm">
+                                        <div className="w-10 h-10 rounded-2xl bg-card border border-border-card text-muted flex items-center justify-center shrink-0 shadow-sm">
                                             <User size={20} />
                                         </div>
                                     )}
@@ -440,7 +440,7 @@ const ChatPage = () => {
                                 <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-200">
                                     <Bot size={20} />
                                 </div>
-                                <div className="bg-white border border-slate-100 p-5 rounded-[1.5rem] rounded-bl-sm shadow-sm flex gap-1.5 items-center">
+                                <div className="bg-card border border-border-card p-5 rounded-[1.5rem] rounded-bl-sm shadow-sm flex gap-1.5 items-center">
                                     <div className="w-2.5 h-2.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                                     <div className="w-2.5 h-2.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                                     <div className="w-2.5 h-2.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
@@ -452,7 +452,7 @@ const ChatPage = () => {
                 )}
             </div>
 
-            <div className="p-4 md:px-8 md:pb-8 md:pt-4 bg-white border-t border-slate-100 z-20">
+            <div className="p-4 md:px-8 md:pb-8 md:pt-4 bg-card border-t border-border-card z-20">
                 {/* Contextual Suggestions */}
                 {messages.length > 0 && !isTyping && (
                     <div className="max-w-4xl mx-auto mb-4 animate-fade-in">
@@ -483,7 +483,7 @@ const ChatPage = () => {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Message your Virtual Companion..."
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-slate-900 rounded-full py-4 pl-6 pr-16 text-[15px] font-medium transition-all outline-none"
+                        className="w-full bg-page border border-border-card focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-main rounded-full py-4 pl-6 pr-16 text-[15px] font-medium transition-all outline-none"
                     />
                     <button
                         type="submit"

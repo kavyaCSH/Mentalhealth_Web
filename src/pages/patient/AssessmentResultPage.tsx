@@ -100,8 +100,8 @@ const AssessmentResultPage = () => {
         return (
             <div className="p-8 max-w-3xl text-center py-20">
                 <AlertTriangle className="text-orange-500 mx-auto mb-4" size={48} />
-                <h2 className="text-2xl font-black text-slate-900 mb-2">Unable to Load</h2>
-                <p className="text-slate-500 mb-8">{error || 'Assessment not found.'}</p>
+                <h2 className="text-2xl font-black text-main mb-2">Unable to Load</h2>
+                <p className="text-muted mb-8">{error || 'Assessment not found.'}</p>
                 <Button onClick={() => navigate(patientId ? `/history/professional/${patientId}` : '/history')}>Back to History</Button>
             </div>
         );
@@ -116,9 +116,9 @@ const AssessmentResultPage = () => {
             <header className="flex items-center justify-between">
                 <button
                     onClick={() => navigate(patientId ? `/history/professional/${patientId}` : '/history')}
-                    className="flex items-center gap-3 text-slate-400 hover:text-indigo-600 transition-all font-black text-[10px] uppercase tracking-widest group"
+                    className="flex items-center gap-3 text-muted hover:text-indigo-600 transition-all font-black text-[10px] uppercase tracking-widest group"
                 >
-                    <div className="p-2 bg-slate-50 rounded-xl group-hover:bg-indigo-50 transition-colors">
+                    <div className="p-2 bg-page rounded-xl group-hover:bg-indigo-50 transition-colors">
                         <ChevronLeft size={16} />
                     </div>
                     {patientId ? 'Back to Professional History' : 'Back to History'}
@@ -132,14 +132,14 @@ const AssessmentResultPage = () => {
                         {getCategoryIcon(assessment.slug)}
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-3">
+                        <h1 className="text-4xl font-black text-main tracking-tight leading-none mb-3">
                             {assessment.category || assessment.slug || 'General'} Result
                         </h1>
                         <div className="flex flex-wrap items-center gap-2">
                             <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${assessment.isProfessional ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white shadow-lg shadow-amber-100'}`}>
                                 {assessment.isProfessional ? 'Clinical Assessment' : 'Patient Self-Check'}
                             </span>
-                            <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-[9px] font-black uppercase tracking-widest">{assessment.slug || 'standard'}</span>
+                            <span className="px-3 py-1 bg-slate-100 text-muted rounded-lg text-[9px] font-black uppercase tracking-widest">{assessment.slug || 'standard'}</span>
                         </div>
                     </div>
                 </div>
@@ -154,9 +154,9 @@ const AssessmentResultPage = () => {
                 <div className="relative z-10 bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 rounded-[3rem] p-10 md:p-14 text-white shadow-2xl shadow-indigo-200 overflow-hidden border border-white/10">
                     <div className="flex flex-col md:flex-row md:items-center gap-12 relative z-20">
                         {/* Circular Score Metric */}
-                        <div className="flex-shrink-0 flex flex-col items-center justify-center w-40 h-40 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/20 shadow-inner group-hover:scale-105 transition-transform duration-500">
+                        <div className="flex-shrink-0 flex flex-col items-center justify-center w-40 h-40 rounded-full bg-card/10 backdrop-blur-md border-2 border-white/20 shadow-inner group-hover:scale-105 transition-transform duration-500">
                             <span className="text-6xl font-black">{assessment.score ?? assessment.totalScore ?? 0}</span>
-                            <div className="w-10 h-0.5 bg-white/30 my-2 rounded-full" />
+                            <div className="w-10 h-0.5 bg-card/30 my-2 rounded-full" />
                             <span className="text-sm font-black opacity-60">
                                 {assessment.maxScore || assessment.maxPossibleScore || 100}
                             </span>
@@ -177,12 +177,12 @@ const AssessmentResultPage = () => {
                                         <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Severity Index</span>
                                         <span className="text-sm font-black">{assessment.percentage}%</span>
                                     </div>
-                                    <div className="h-2.5 bg-white/10 rounded-full overflow-hidden border border-white/5">
+                                    <div className="h-2.5 bg-card/10 rounded-full overflow-hidden border border-white/5">
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${Math.min(assessment.percentage, 100)}%` }}
                                             transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                                            className="h-full bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                                            className="h-full bg-card rounded-full shadow-[0_0_15px_rgba(255,255,255,0.5)]"
                                         />
                                     </div>
                                 </div>
@@ -193,17 +193,17 @@ const AssessmentResultPage = () => {
                     {/* Meta Footer */}
                     <div className="mt-12 pt-8 border-t border-white/10 flex flex-wrap gap-8 relative z-20">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white/10 rounded-lg"><Calendar size={14} /></div>
+                            <div className="p-2 bg-card/10 rounded-lg"><Calendar size={14} /></div>
                             <span className="text-xs font-black uppercase tracking-widest">{assessment.date || 'Date Unknown'}</span>
                         </div>
                         {assessment.time && (
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-white/10 rounded-lg"><Clock size={14} /></div>
+                                <div className="p-2 bg-card/10 rounded-lg"><Clock size={14} /></div>
                                 <span className="text-xs font-black uppercase tracking-widest">{assessment.time}</span>
                             </div>
                         )}
                         <div className="flex items-center gap-3 ml-auto">
-                            <div className="p-2 bg-white/10 rounded-lg"><Brain size={14} /></div>
+                            <div className="p-2 bg-card/10 rounded-lg"><Brain size={14} /></div>
                             <span className="text-xs font-black uppercase tracking-widest italic opacity-80">Electronic Record Validated</span>
                         </div>
                     </div>
@@ -215,7 +215,7 @@ const AssessmentResultPage = () => {
                 <div className="space-y-6">
                     <div className="flex items-center gap-3 ml-2">
                         <div className="w-1 h-5 bg-indigo-600 rounded-full" />
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <h3 className="text-sm font-black text-main uppercase tracking-widest flex items-center gap-2">
                             Clinical Guidance <Lightbulb size={16} className="text-amber-500" />
                         </h3>
                     </div>
@@ -226,12 +226,12 @@ const AssessmentResultPage = () => {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.1 }}
-                                className="bg-white p-6 rounded-3xl border border-slate-100 flex gap-4 hover:border-indigo-100 transition-all shadow-sm group"
+                                className="bg-card p-6 rounded-3xl border border-border-card flex gap-4 hover:border-indigo-100 transition-all shadow-sm group"
                             >
                                 <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-black text-xs group-hover:scale-110 transition-transform">
                                     {i + 1}
                                 </div>
-                                <p className="text-sm font-semibold text-slate-700 leading-relaxed pt-1">{rec}</p>
+                                <p className="text-sm font-semibold text-main opacity-90 leading-relaxed pt-1">{rec}</p>
                             </motion.div>
                         ))}
                     </div>
@@ -243,7 +243,7 @@ const AssessmentResultPage = () => {
                 <div className="space-y-6 pt-6">
                     <div className="flex items-center gap-3 ml-2">
                         <div className="w-1 h-5 bg-indigo-600 rounded-full" />
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <h3 className="text-sm font-black text-main uppercase tracking-widest flex items-center gap-2">
                             Itemized Analysis <FileText size={16} className="text-indigo-600" />
                         </h3>
                     </div>
@@ -267,21 +267,21 @@ const AssessmentResultPage = () => {
                                     whileInView={{ opacity: 1, x: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: i * 0.05 }}
-                                    className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-indigo-100 hover:shadow-2xl hover:shadow-indigo-50/50 transition-all"
+                                    className="group bg-card p-6 md:p-8 rounded-[2.5rem] border border-border-card flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-indigo-100 hover:shadow-2xl hover:shadow-indigo-50/50 transition-all"
                                 >
                                     <div className="flex items-start gap-6 flex-1">
-                                        <div className="w-12 h-12 bg-slate-50 border border-slate-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-all group-hover:scale-110">
-                                            <span className="text-[11px] font-black text-slate-400 group-hover:text-indigo-600">
+                                        <div className="w-12 h-12 bg-page border border-slate-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-all group-hover:scale-110">
+                                            <span className="text-[11px] font-black text-muted group-hover:text-indigo-600">
                                                 {String(i + 1).padStart(2, '0')}
                                             </span>
                                         </div>
                                         <div className="space-y-4">
-                                            <p className="text-[17px] font-black text-slate-900 leading-tight group-hover:text-indigo-900 transition-colors tracking-tight">
+                                            <p className="text-[17px] font-black text-main leading-tight group-hover:text-indigo-900 transition-colors tracking-tight">
                                                 {(resp as any).questionText || (resp as any).question?.text || `Item Analysis ${i + 1}`}
                                             </p>
                                             <div className="flex flex-col gap-1">
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Subjective Response</p>
-                                                <div className="inline-flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl group-hover:bg-indigo-50/30 transition-all border border-transparent group-hover:border-indigo-100">
+                                                <p className="text-[9px] font-black text-muted uppercase tracking-widest italic">Subjective Response</p>
+                                                <div className="inline-flex items-center gap-3 px-4 py-2 bg-page rounded-xl group-hover:bg-indigo-50/30 transition-all border border-transparent group-hover:border-indigo-100">
                                                     <span className="text-sm font-black text-indigo-600">
                                                         {displayAnswer}
                                                     </span>
@@ -293,12 +293,12 @@ const AssessmentResultPage = () => {
                                     <div className="shrink-0 flex items-center gap-6 pl-16 md:pl-0">
                                         <div className="h-10 w-[1.5px] bg-slate-100 hidden md:block" />
                                         <div className={`px-6 py-3 rounded-2xl flex flex-col items-center justify-center min-w-[90px] border transition-all ${
-                                            (resp as any).score ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-50 border-slate-100 opacity-50'
+                                            (resp as any).score ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-page border-border-card opacity-50'
                                         }`}>
                                             <span className="text-lg font-black leading-none">
                                                 {(resp as any).score ? `+${(resp as any).score}` : '0'}
                                             </span>
-                                            <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${(resp as any).score ? 'text-indigo-100' : 'text-slate-400'}`}>pts</span>
+                                            <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${(resp as any).score ? 'text-indigo-100' : 'text-muted'}`}>pts</span>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -313,15 +313,15 @@ const AssessmentResultPage = () => {
                 <div className="space-y-4">
                     <div className="flex items-center gap-3 ml-2">
                         <div className="w-1 h-5 bg-indigo-600 rounded-full" />
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <h3 className="text-sm font-black text-main uppercase tracking-widest flex items-center gap-2">
                             Clinician Annotations <Brain size={16} className="text-indigo-600" />
                         </h3>
                     </div>
-                    <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 relative overflow-hidden group">
+                    <div className="bg-page p-8 rounded-[2.5rem] border border-border-card relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                             <FileText size={80} />
                         </div>
-                        <p className="text-lg font-semibold text-slate-700 leading-relaxed italic relative z-10">"{assessment.notes}"</p>
+                        <p className="text-lg font-semibold text-main opacity-90 leading-relaxed italic relative z-10">"{assessment.notes}"</p>
                     </div>
                 </div>
             )}
@@ -330,7 +330,7 @@ const AssessmentResultPage = () => {
             <div className="pt-10 flex flex-col sm:flex-row gap-5">
                 <Button 
                     variant="outline" 
-                    className="flex-1 py-6 border-slate-200 text-slate-500 rounded-3xl hover:bg-slate-50 hover:text-indigo-600 transition-all font-black uppercase tracking-[0.2em] text-[10px]" 
+                    className="flex-1 py-6 border-border-card text-muted rounded-3xl hover:bg-page hover:text-indigo-600 transition-all font-black uppercase tracking-[0.2em] text-[10px]" 
                     onClick={() => navigate(patientId ? `/history/professional/${patientId}` : '/history')}
                 >
                     {patientId ? 'Back to Clinical Archive' : 'Return to Comprehensive Hub'}

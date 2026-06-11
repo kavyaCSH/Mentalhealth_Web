@@ -159,11 +159,11 @@ const Health = () => {
     return (
         <div className="p-8 max-w-7xl animate-fade-in pb-16">
             <header className="mb-10">
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                <h1 className="text-4xl font-black text-main tracking-tight flex items-center gap-3">
                     <Activity className="text-indigo-600" size={32} />
                     Health overview
                 </h1>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 ml-11">Comprehensive Clinical Profile Journey</p>
+                <p className="text-[10px] font-black text-muted uppercase tracking-widest mt-2 ml-11">Comprehensive Clinical Profile Journey</p>
             </header>
 
             {/* Three Card Row */}
@@ -174,17 +174,17 @@ const Health = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                     onClick={() => navigate(`/patients/${userId}/chief-complaint`)}
-                    className="card-premium p-5 border-slate-100 hover:border-rose-200 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="bg-card p-5 border border-border-card rounded-3xl hover:border-rose-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] shadow-sm"
                 >
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl group-hover:scale-110 transition-transform">
+                        <div className="p-2.5 bg-rose-500/10 text-rose-500 rounded-xl group-hover:scale-110 transition-transform">
                             <Stethoscope size={20} />
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Chief Complaint</h2>
+                        <h2 className="text-sm font-black text-main tracking-tight">Chief Complaint</h2>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Primary Symptom</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Primary Symptom</p>
+                        <p className="text-sm font-semibold text-main/80 leading-relaxed">
                             {latestComplaint ? latestComplaint.narrative : 'No chief complaint recorded yet.'}
                         </p>
                     </div>
@@ -196,17 +196,17 @@ const Health = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                     onClick={() => navigate(`/patients/${userId}/hpi`)}
-                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="bg-card p-5 border border-border-card rounded-3xl hover:border-indigo-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] shadow-sm"
                 >
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
+                        <div className="p-2.5 bg-indigo-500/10 text-indigo-500 rounded-xl group-hover:scale-110 transition-transform">
                             <HistoryIcon size={20} />
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">HPI history</h2>
+                        <h2 className="text-sm font-black text-main tracking-tight">HPI history</h2>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Clinical Narrative</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Clinical Narrative</p>
+                        <p className="text-sm font-semibold text-main/80 leading-relaxed italic">
                             {latestHPI ? `"${latestHPI.narrative || latestHPI.content}"` : '"No HPI history recorded yet."'}
                         </p>
                     </div>
@@ -217,30 +217,30 @@ const Health = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="card-premium p-5 border-slate-100 hover:border-violet-100 transition-all group h-full flex flex-col"
+                    className="bg-card p-5 border border-border-card rounded-3xl hover:border-violet-500/30 transition-all group h-full flex flex-col shadow-sm"
                 >
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl group-hover:scale-110 transition-transform">
+                        <div className="p-2.5 bg-violet-500/10 text-violet-500 rounded-xl group-hover:scale-110 transition-transform">
                             <Brain size={20} />
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Mental Status</h2>
+                        <h2 className="text-sm font-black text-main tracking-tight">Mental Status</h2>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Examination History</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic mb-6">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Examination History</p>
+                        <p className="text-sm font-semibold text-main/80 leading-relaxed italic mb-6">
                             {latestMSE ? `Last assessed on ${new Date(latestMSE.createdAt).toLocaleDateString()}` : 'No mental status exam conducted.'}
                         </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <Link
                             to={`/patients/${userId}/mse/new`}
-                            className="py-3 px-4 bg-violet-600 text-white rounded-xl text-[10px] flex items-center justify-center font-black uppercase tracking-widest hover:bg-violet-700 transition-colors shadow-lg shadow-violet-100"
+                            className="py-3 px-4 bg-violet-600 text-white rounded-xl text-[10px] flex items-center justify-center font-black uppercase tracking-widest hover:bg-violet-700 transition-colors shadow-lg shadow-violet-500/20"
                         >
                             Start New
                         </Link>
                         <Link
                             to={`/patients/${userId}/mse`}
-                            className="py-3 px-4 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-[10px] flex items-center justify-center font-black uppercase tracking-widest hover:bg-slate-100 transition-colors"
+                            className="py-3 px-4 bg-page text-main border border-border-card rounded-xl text-[10px] flex items-center justify-center font-black uppercase tracking-widest hover:bg-card transition-colors"
                         >
                             View List
                         </Link>
@@ -253,17 +253,17 @@ const Health = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                     onClick={() => navigate(`/patients/${userId}/ai-history-assistant?consult_id=${latestHistory?.consult_id || ''}`)}
-                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="bg-card p-5 border border-border-card rounded-3xl hover:border-indigo-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] shadow-sm"
                 >
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
+                        <div className="p-2.5 bg-indigo-500/10 text-indigo-500 rounded-xl group-hover:scale-110 transition-transform">
                             <HistoryIcon size={20} />
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">AI History Assistant</h2>
+                        <h2 className="text-sm font-black text-main tracking-tight">AI History Assistant</h2>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Historical Intake</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Historical Intake</p>
+                        <p className="text-sm font-semibold text-main/80 leading-relaxed">
                             {latestHistory ? `Last intake documented on ${new Date(latestHistory.createdAt).toLocaleDateString()}` : 'No comprehensive history intake performed.'}
                         </p>
                     </div>
@@ -275,17 +275,17 @@ const Health = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.35 }}
                     onClick={() => navigate(`/patients/${userId}/ros`)}
-                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="bg-card p-5 border border-border-card rounded-3xl hover:border-indigo-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] shadow-sm"
                 >
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
+                        <div className="p-2.5 bg-indigo-500/10 text-indigo-500 rounded-xl group-hover:scale-110 transition-transform">
                             <Stethoscope size={20} />
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Review of Systems</h2>
+                        <h2 className="text-sm font-black text-main tracking-tight">Review of Systems</h2>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Systems Review</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Systems Review</p>
+                        <p className="text-sm font-semibold text-main/80 leading-relaxed">
                             {latestROS ? `Last review completed on ${new Date(latestROS.createdAt).toLocaleDateString()}` : 'No systematic review of systems performed.'}
                         </p>
                     </div>
@@ -297,26 +297,26 @@ const Health = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                     onClick={() => navigate(`/patients/${resolvedPatientId || userId}/treatment`)}
-                    className="card-premium p-5 border-slate-100 hover:border-emerald-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="bg-card p-5 border border-border-card rounded-3xl hover:border-emerald-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] shadow-sm"
                 >
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:scale-110 transition-transform">
+                        <div className="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-xl group-hover:scale-110 transition-transform">
                             <ClipboardCheck size={20} />
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Treatment Plan</h2>
+                        <h2 className="text-sm font-black text-main tracking-tight">Treatment Plan</h2>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Protocol Status</p>
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Protocol Status</p>
                         {treatmentProgress ? (
                             <div className="space-y-2">
-                                <p className="text-sm font-semibold text-slate-700 leading-relaxed truncate">
+                                <p className="text-sm font-semibold text-main/80 leading-relaxed truncate">
                                     {treatmentProgress.diagnosis}
                                 </p>
-                                <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                <div className="flex items-center justify-between text-[10px] font-black text-muted uppercase tracking-widest">
                                     <span>Progress</span>
-                                    <span className="text-emerald-600">{treatmentProgress.overall_progress}%</span>
+                                    <span className="text-emerald-500">{treatmentProgress.overall_progress}%</span>
                                 </div>
-                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="w-full h-1.5 bg-page rounded-full overflow-hidden">
                                     <div
                                         className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
                                         style={{ width: `${treatmentProgress.overall_progress}%` }}
@@ -324,7 +324,7 @@ const Health = () => {
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                            <p className="text-sm font-semibold text-main/80 leading-relaxed">
                                 No active treatment protocol identified.
                             </p>
                         )}
@@ -369,30 +369,30 @@ const Health = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45 }}
-                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col"
+                    className="bg-card p-5 border border-border-card rounded-3xl hover:border-indigo-500/30 transition-all group h-full flex flex-col shadow-sm"
                 >
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
+                        <div className="p-2.5 bg-indigo-500/10 text-indigo-500 rounded-xl group-hover:scale-110 transition-transform">
                             <ClipboardList size={20} />
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Clinical Assessments</h2>
+                        <h2 className="text-sm font-black text-main tracking-tight">Clinical Assessments</h2>
                     </div>
                     <div className="flex-1 mb-6">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Evaluation Pool</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Evaluation Pool</p>
+                        <p className="text-sm font-semibold text-main/80 leading-relaxed">
                             Assign or conduct standardized clinical evaluations for this patient.
                         </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <button
                             onClick={() => navigate(`/clinical/assessments?patientId=${userId}`)}
-                            className="py-3 px-4 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
+                            className="py-3 px-4 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
                         >
                             Start New
                         </button>
                         <button
                             onClick={() => navigate(`/history/professional?patientId=${userId}`)}
-                            className="py-3 px-4 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all"
+                            className="py-3 px-4 bg-page text-main border border-border-card rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-card transition-all"
                         >
                             View History
                         </button>
@@ -405,22 +405,22 @@ const Health = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.55 }}
                     onClick={() => navigate(`/patients/${userId}/symptoms`)}
-                    className="card-premium p-5 border-slate-100 hover:border-amber-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="bg-card p-5 border border-border-card rounded-3xl hover:border-amber-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] shadow-sm"
                 >
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:scale-110 transition-transform">
+                        <div className="p-2.5 bg-amber-500/10 text-amber-500 rounded-xl group-hover:scale-110 transition-transform">
                             <Activity size={20} />
                         </div>
-                        <h2 className="text-sm font-black text-slate-900 tracking-tight">Symptom Snapshots</h2>
+                        <h2 className="text-sm font-black text-main tracking-tight">Symptom Snapshots</h2>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Patient Monitoring</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Patient Monitoring</p>
+                        <p className="text-sm font-semibold text-main/80 leading-relaxed italic">
                             Track mood, anxiety, and physiological vital signs across time.
                         </p>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-slate-50">
-                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Open Analytics</span>
+                    <div className="mt-4 pt-4 border-t border-border-card">
+                        <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Open Analytics</span>
                     </div>
                 </motion.div>
 

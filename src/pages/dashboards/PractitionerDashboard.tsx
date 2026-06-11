@@ -160,13 +160,13 @@ const PractitionerDashboard = () => {
 
     const getConsultStatusColor = (status: string) => {
         const s = status?.toLowerCase() || '';
-        if (s === 'scheduled') return 'bg-blue-50 text-blue-600 border-blue-100';
-        if (s === 'in_progress' || s === 'in progress' || s === 'waiting') return 'bg-amber-50 text-amber-600 border-amber-100';
-        if (s === 'confirmed') return 'bg-teal-50 text-teal-600 border-teal-100';
-        if (s === 'completed') return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-        if (s === 'cancelled' || s === 'canceled') return 'bg-red-50 text-red-500 border-red-100';
-        if (s === 'payment_pending') return 'bg-orange-50 text-orange-600 border-orange-100';
-        return 'bg-slate-50 text-slate-500 border-slate-100';
+        if (s === 'scheduled') return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+        if (s === 'in_progress' || s === 'in progress' || s === 'waiting') return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+        if (s === 'confirmed') return 'bg-teal-500/10 text-teal-500 border-teal-500/20';
+        if (s === 'completed') return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+        if (s === 'cancelled' || s === 'canceled') return 'bg-error/10 text-error border-error/20';
+        if (s === 'payment_pending') return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+        return 'bg-page text-muted border-border-card';
     };
 
     const metrics = [
@@ -176,32 +176,32 @@ const PractitionerDashboard = () => {
             // Show ... so user knows it's triggering/loading
             value: stats?.activePatients !== undefined ? stats.activePatients.toString() : (isStatsLoading ? '...' : '0'),
             icon: Users,
-            color: 'text-indigo-600',
-            bg: 'bg-indigo-50'
+            color: 'text-indigo-500',
+            bg: 'bg-indigo-500/10'
         },
         {
             id: 'total_sessions',
             label: 'Total Sessions',
             value: stats?.totalSessions !== undefined ? stats.totalSessions.toString() : (isStatsLoading ? '...' : '0'),
             icon: ClipboardList,
-            color: 'text-orange-600',
-            bg: 'bg-orange-50'
+            color: 'text-orange-500',
+            bg: 'bg-orange-500/10'
         },
         {
             id: 'today_sessions',
             label: 'Today\'s Sessions',
             value: todaySessions.length.toString(),
             icon: Calendar,
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50'
+            color: 'text-emerald-500',
+            bg: 'bg-emerald-500/10'
         },
         {
             id: 'total_revenue',
             label: 'Total Revenue',
             value: stats?.totalRevenue !== undefined ? `₹${stats.totalRevenue}` : (isStatsLoading ? '...' : '₹0'),
             icon: IndianRupee,
-            color: 'text-teal-600',
-            bg: 'bg-teal-50'
+            color: 'text-teal-500',
+            bg: 'bg-teal-500/10'
         },
     ];
 
@@ -216,14 +216,14 @@ const PractitionerDashboard = () => {
                         <span className="text-xs font-black uppercase tracking-[0.2em]">{user?.role?.replace('_', ' ')} • Clinical Portal</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <h1 className="text-4xl font-black tracking-tight text-slate-900">Welcome, Dr. {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : (user?.name || user?.username || 'Practitioner')}.</h1>
+                        <h1 className="text-4xl font-black tracking-tight text-main">Welcome, Dr. {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : (user?.name || user?.username || 'Practitioner')}.</h1>
                         <div className="flex flex-col gap-1 mt-1">
                             <div className="flex items-center gap-2">
-                                <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+                                <span className="px-3 py-1 bg-indigo-500/10 text-indigo-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">
                                     {user?.role?.includes('psych') ? 'Specialist' : user?.role?.replace('_', ' ')}
                                 </span>
                                 {connectionStatus !== 'stable' && (
-                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter border ${connectionStatus === 'unresponsive' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter border ${connectionStatus === 'unresponsive' ? 'bg-error/10 text-error border-error/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
                                         {connectionStatus === 'unresponsive' ? 'Server Unresponsive' : 'Sync Delay'}
                                     </span>
                                 )}
@@ -238,7 +238,7 @@ const PractitionerDashboard = () => {
                     </div>
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="secondary" leftIcon={<Settings size={18} />} onClick={() => navigate('/clinical/availability')} className="rounded-2xl shadow-sm border-slate-200 py-3.5">
+                    <Button variant="secondary" leftIcon={<Settings size={18} />} onClick={() => navigate('/clinical/availability')} className="rounded-2xl shadow-sm border-border-card py-3.5">
                         Manage Availability
                     </Button>
                     <Button variant="primary" leftIcon={<Calendar size={18} />} onClick={() => navigate('/clinical-schedule')} className="rounded-2xl shadow-lg shadow-indigo-100 py-3.5">
@@ -252,16 +252,16 @@ const PractitionerDashboard = () => {
                 <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
-                    className="p-6 bg-amber-50 border border-amber-100 rounded-3xl"
+                    className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-3xl"
                 >
                     <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowTroubleshoot(!showTroubleshoot)}>
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+                            <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500">
                                 <Info size={20} />
                             </div>
                             <div>
-                                <h4 className="font-black text-slate-900 text-sm italic uppercase tracking-wider">Sync Troubleshooting</h4>
-                                <p className="text-[10px] text-amber-700 font-bold uppercase tracking-widest mt-0.5">Your server is taking too long to respond</p>
+                                <h4 className="font-black text-main text-sm italic uppercase tracking-wider">Sync Troubleshooting</h4>
+                                <p className="text-[10px] text-amber-500/80 font-bold uppercase tracking-widest mt-0.5">Your server is taking too long to respond</p>
                             </div>
                         </div>
                         <div className="p-2 hover:bg-amber-100/50 rounded-lg transition-colors">
@@ -270,10 +270,10 @@ const PractitionerDashboard = () => {
                     </div>
 
                     {showTroubleshoot && (
-                        <div className="mt-6 space-y-4 text-xs font-bold text-slate-600 leading-relaxed border-t border-amber-100 pt-6">
-                            <p>We detected that your browser sent the request (GET /dashboards/specialist), but your <span className="text-amber-700">backend server at :5000</span> failed to respond in time.</p>
-                            <div className="bg-white/50 p-4 rounded-2xl space-y-2">
-                                <p className="text-slate-900 uppercase text-[10px] tracking-widest">Recommended Actions:</p>
+                        <div className="mt-6 space-y-4 text-xs font-bold text-muted leading-relaxed border-t border-amber-500/20 pt-6">
+                            <p>We detected that your browser sent the request (GET /dashboards/specialist), but your <span className="text-amber-500">backend server at :5000</span> failed to respond in time.</p>
+                            <div className="bg-card p-4 rounded-2xl space-y-2">
+                                <p className="text-main uppercase text-[10px] tracking-widest">Recommended Actions:</p>
                                 <ul className="list-disc pl-4 space-y-1.5 marker:text-amber-500">
                                     <li>Check if your **backend terminal** (port 5000) is running and not crashed.</li>
                                     <li>If you see "failed to load response data" in F12, restart your backend server.</li>
@@ -282,7 +282,7 @@ const PractitionerDashboard = () => {
                             </div>
                             <button
                                 onClick={() => fetchStats()}
-                                className="w-full py-3 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-xl font-black uppercase tracking-widest transition-all"
+                                className="w-full py-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 rounded-xl font-black uppercase tracking-widest transition-all"
                             >
                                 Force Re-Sync Now
                             </button>
@@ -305,20 +305,20 @@ const PractitionerDashboard = () => {
                             <div className={`${metric.bg} ${metric.color} p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300 glow-primary`}>
                                 <metric.icon size={24} />
                             </div>
-                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${(statsError && metric.id !== 'today_sessions') ? 'text-amber-500 bg-amber-50' : 'text-emerald-500 bg-emerald-50'}`}>
+                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${(statsError && metric.id !== 'today_sessions') ? 'text-amber-500 bg-amber-500/10' : 'text-emerald-500 bg-emerald-500/10'}`}>
                                 {(statsError && metric.id !== 'today_sessions') ? 'Stale Data' : 'Active'}
                             </span>
                         </div>
                         <div>
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{metric.label}</p>
+                            <p className="text-xs font-black text-muted opacity-80 uppercase tracking-widest">{metric.label}</p>
                             <div className="flex items-baseline justify-between mt-2">
-                                <h3 className="text-3xl font-black text-slate-900">
+                                <h3 className="text-3xl font-black text-main">
                                     {metric.value}
                                 </h3>
                                 {(statsError && metric.id !== 'today_sessions') && !isStatsLoading && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); fetchStats(); }}
-                                        className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                        className="p-1.5 hover:bg-page rounded-lg text-muted opacity-80 hover:text-indigo-500 transition-colors"
                                         title="Retry"
                                     >
                                         <RefreshCw size={14} className={isStatsLoading ? 'animate-spin' : ''} />
@@ -341,23 +341,22 @@ const PractitionerDashboard = () => {
                 <div className="flex items-center justify-between px-2">
                     <div className="flex items-center gap-4">
                         <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
-                        <h2 className="text-xl font-black text-slate-900 tracking-tight">Recent Patient Insights</h2>
+                        <h2 className="text-xl font-black text-main tracking-tight">Recent Patient Insights</h2>
                     </div>
                     <button onClick={() => navigate('/clinical/assessments/history')} className="text-xs font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-700">View History</button>
                 </div>
 
-                {/* Mobile-Parity Quick Actions */}
                 <div className="flex gap-4 px-2">
                     <button
                         onClick={() => navigate('/patients')}
-                        className="flex-1 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100 font-black uppercase tracking-widest text-[10px] hover:bg-indigo-700 transition-all active:scale-95"
+                        className="flex-1 flex items-center justify-center gap-3 p-4 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-500/20 font-black uppercase tracking-widest text-[10px] hover:bg-indigo-700 transition-all active:scale-95"
                     >
                         <Plus size={16} />
                         New Clinical Entry
                     </button>
                     <button
                         onClick={() => navigate('/patients')} // Practitioners must pick a patient first
-                        className="flex-1 flex items-center justify-center gap-3 p-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all active:scale-95"
+                        className="flex-1 flex items-center justify-center gap-3 p-4 bg-card border border-border-card text-muted rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-page transition-all active:scale-95"
                     >
                         <Mic size={16} className="text-rose-500" />
                         Quick Voice Note
@@ -392,12 +391,12 @@ const PractitionerDashboard = () => {
                                     navigate('/patients');
                                 }
                             }}
-                            className="min-w-[300px] max-w-[300px] p-6 card-premium bg-white border-slate-100 hover:border-indigo-100 transition-all cursor-pointer shadow-sm flex flex-col gap-4"
+                            className="min-w-[300px] max-w-[300px] p-6 card-premium bg-card border-border-card hover:border-indigo-100 transition-all cursor-pointer shadow-sm flex flex-col gap-4"
                         >
                             <div className="flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3">
                                     <div className="w-1.5 h-6 rounded-full" style={{ backgroundColor: insight.risk_markers?.risk_level === 'high' ? '#f43f5e' : insight.risk_markers?.risk_level === 'medium' ? '#f59e0b' : '#10b981' }} />
-                                    <h4 className="font-black text-slate-900 line-clamp-1">
+                                    <h4 className="font-black text-main line-clamp-1">
                                         {insight.patient_name ||
                                             (typeof insight.patient === 'object' && insight.patient?.firstName
                                                 ? `${insight.patient.firstName} ${insight.patient.lastName || ''}`
@@ -410,22 +409,22 @@ const PractitionerDashboard = () => {
                                     <Bot size={14} className="text-indigo-400 opacity-60" />
                                 )}
                             </div>
-                            <p className="text-xs font-medium text-slate-500 line-clamp-2 italic leading-relaxed">
+                            <p className="text-xs font-medium text-muted line-clamp-2 italic leading-relaxed">
                                 "{insight.ai_summary || insight.narrative || 'Clinical observation logged...'}"
                             </p>
-                            <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                                <div className="px-2 py-0.5 rounded bg-slate-50 border border-slate-100 text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                            <div className="mt-auto pt-4 border-t border-border-card flex items-center justify-between">
+                                <div className="px-2 py-0.5 rounded bg-page border border-border-card text-[8px] font-black text-muted opacity-80 uppercase tracking-widest">
                                     {insight.risk_markers?.risk_level || 'Normal'} Risk
                                 </div>
-                                <span className="text-[10px] font-bold text-slate-400">
+                                <span className="text-[10px] font-bold text-muted opacity-80">
                                     {new Date(insight.createdAt).toLocaleDateString([], { day: 'numeric', month: 'short' })}
                                 </span>
                             </div>
                         </motion.div>
                     )) : (
-                        <div className="flex-1 text-center p-12 bg-slate-50/50 rounded-[2.5rem] border border-dashed border-slate-200">
-                            <Bot size={32} className="mx-auto text-slate-300 mb-2" />
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">AI Insights will appear as cases are processed</p>
+                        <div className="flex-1 text-center p-12 bg-page/50 rounded-[2.5rem] border border-dashed border-border-card">
+                            <Bot size={32} className="mx-auto text-muted opacity-60 mb-2" />
+                            <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest italic">AI Insights will appear as cases are processed</p>
                         </div>
                     )}
                 </div>
@@ -436,14 +435,14 @@ const PractitionerDashboard = () => {
             <div className="grid gap-8">
                 {/* Appointment Queue */}
                 <section className="card-premium overflow-hidden flex flex-col">
-                    <div className="p-8 border-b border-slate-50 flex items-center justify-between glass-surface">
+                    <div className="p-8 border-b border-border-card flex items-center justify-between glass-surface">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl glow-primary">
                                 <Clock size={24} />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Today's Sessions</h1>
-                                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-1">
+                                <h1 className="text-2xl font-black text-main tracking-tight">Today's Sessions</h1>
+                                <p className="text-muted opacity-80 font-bold text-[10px] uppercase tracking-widest mt-1">
                                     {isSessionsLoading ? 'Refreshing sessions...' : 'Live patient encounters'}
                                     {lastUpdated && statsError && (
                                         <span className="ml-2 text-amber-500">• Last stats sync: {new Date(lastUpdated).toLocaleTimeString()}</span>
@@ -458,12 +457,12 @@ const PractitionerDashboard = () => {
                             {isSessionsLoading ? (
                                 // Loading Skeletons
                                 [1, 2, 3].map((i) => (
-                                    <div key={i} className="p-6 bg-slate-50/50 rounded-[2rem] border border-slate-50 animate-pulse">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-16 h-16 bg-slate-200 rounded-2xl" />
+                                    <div key={i} className="p-6 bg-page/50 rounded-[2rem] border border-border-card animate-pulse">
+                                        <div className="flex items-center gap-6 opacity-50">
+                                            <div className="w-16 h-16 bg-page rounded-2xl" />
                                             <div className="flex-1 space-y-3">
-                                                <div className="h-4 bg-slate-200 rounded-full w-1/3" />
-                                                <div className="h-3 bg-slate-200 rounded-full w-1/2" />
+                                                <div className="h-4 bg-page rounded-full w-1/3" />
+                                                <div className="h-3 bg-page rounded-full w-1/2" />
                                             </div>
                                         </div>
                                     </div>
@@ -504,25 +503,25 @@ const PractitionerDashboard = () => {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: i * 0.05 }}
-                                            className="card-premium bg-white p-5 border-slate-100 hover:border-indigo-200 transition-all cursor-pointer group"
+                                            className="card-premium bg-card p-5 border-border-card hover:border-indigo-200 transition-all cursor-pointer group"
                                             onClick={() => setExpandedSession(isExpanded ? null : String(session.id || session._id))}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-5">
-                                                    <div className="w-14 h-14 rounded-2xl bg-slate-900 border-4 border-white flex items-center justify-center text-white text-sm font-black shadow-lg group-hover:scale-110 transition-transform shrink-0">
+                                                    <div className="w-14 h-14 rounded-2xl bg-indigo-500 text-white border border-indigo-500/20 flex items-center justify-center text-sm font-black shadow-sm group-hover:scale-110 transition-transform shrink-0">
                                                         {pName.charAt(0).toUpperCase()}
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <h3 className="text-lg font-black text-slate-900 line-clamp-1 truncate leading-tight">
+                                                        <h3 className="text-lg font-black text-main line-clamp-1 truncate leading-tight">
                                                             {pName}
                                                         </h3>
                                                         <div className="flex items-center gap-3 mt-1.5 overflow-hidden">
-                                                            <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 shrink-0">
+                                                            <span className="text-xs font-bold text-muted flex items-center gap-1.5 shrink-0">
                                                                 <Clock size={12} className="text-indigo-500" />
                                                                 {dt ? dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
                                                             </span>
-                                                            <span className="text-xs font-medium text-slate-400 truncate flex items-center gap-1.5">
-                                                                <span className="w-1 h-1 bg-slate-300 rounded-full shrink-0" />
+                                                            <span className="text-xs font-medium text-muted opacity-80 truncate flex items-center gap-1.5">
+                                                                <span className="w-1 h-1 bg-muted rounded-full shrink-0" />
                                                                 {session.reason || 'Standard Consultation'}
                                                             </span>
                                                         </div>
@@ -545,7 +544,7 @@ const PractitionerDashboard = () => {
                                                     <div className="flex items-center gap-2">
                                                         {isVirtual && (
                                                             <button
-                                                                className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95"
+                                                                className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95"
                                                                 onClick={async (e) => {
                                                                     e.stopPropagation();
 
@@ -581,7 +580,7 @@ const PractitionerDashboard = () => {
                                                                 <Video size={18} />
                                                             </button>
                                                         )}
-                                                        <div className={`w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                                                        <div className={`w-8 h-8 rounded-full bg-page flex items-center justify-center text-muted opacity-80 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
                                                             <ChevronDown size={18} />
                                                         </div>
                                                     </div>
@@ -592,19 +591,19 @@ const PractitionerDashboard = () => {
                                                 <motion.div
                                                     initial={{ height: 0, opacity: 0 }}
                                                     animate={{ height: 'auto', opacity: 1 }}
-                                                    className="mt-6 pt-6 border-t border-slate-50 space-y-4"
+                                                    className="mt-6 pt-6 border-t border-border-card space-y-4"
                                                 >
                                                     <div className="grid grid-cols-2 gap-4">
-                                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Session Type</p>
-                                                            <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                                        <div className="p-4 bg-page rounded-2xl border border-border-card">
+                                                            <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1">Session Type</p>
+                                                            <p className="text-sm font-bold text-main opacity-90 flex items-center gap-2">
                                                                 {isVirtual ? <Video size={14} /> : <MapPin size={14} />}
                                                                 {isVirtual ? 'Virtual Consultation' : 'In-Person Visit'}
                                                             </p>
                                                         </div>
-                                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Appointment ID</p>
-                                                            <p className="text-sm font-mono font-bold text-slate-700">#{String(session.id || session._id).slice(-8).toUpperCase()}</p>
+                                                        <div className="p-4 bg-page rounded-2xl border border-border-card">
+                                                            <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1">Appointment ID</p>
+                                                            <p className="text-sm font-mono font-bold text-main opacity-90">#{String(session.id || session._id).slice(-8).toUpperCase()}</p>
                                                         </div>
                                                     </div>
 
@@ -636,7 +635,7 @@ const PractitionerDashboard = () => {
                                                         </Button>
                                                         <Button
                                                             variant="outline"
-                                                            className="flex-1 rounded-2xl py-6 font-black uppercase tracking-widest text-xs border-slate-200"
+                                                            className="flex-1 rounded-2xl py-6 font-black uppercase tracking-widest text-xs border-border-card"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 const patient = session.participants?.find((p: Participant) => p.role === 'subscriber' || p.role === 'patient');
@@ -658,7 +657,7 @@ const PractitionerDashboard = () => {
                                     );
                                 })
                             ) : (
-                                <div className="text-center p-8 bg-slate-50 rounded-[1.5rem] border border-slate-100 text-slate-400 text-sm font-bold">
+                                <div className="text-center p-8 bg-page rounded-[1.5rem] border border-border-card text-muted opacity-80 text-sm font-bold">
                                     No sessions scheduled for today
                                 </div>
                             )}

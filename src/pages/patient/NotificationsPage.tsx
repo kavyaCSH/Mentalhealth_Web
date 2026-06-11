@@ -114,19 +114,19 @@ const PatientNotificationsPage = () => {
         const props = { size: 22 };
         switch (type) {
             case 'alert':
-                return { icon: <AlertCircle {...props} />, colorClass: 'text-rose-600 bg-rose-50 border-rose-100' };
+                return { icon: <AlertCircle {...props} />, colorClass: 'text-rose-500 bg-rose-500/10 border-rose-500/20' };
             case 'appointment':
-                return { icon: <Calendar {...props} />, colorClass: 'text-indigo-600 bg-indigo-50 border-indigo-100' };
+                return { icon: <Calendar {...props} />, colorClass: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20' };
             case 'reminder':
-                return { icon: <Clock {...props} />, colorClass: 'text-amber-500 bg-amber-50 border-amber-100' };
+                return { icon: <Clock {...props} />, colorClass: 'text-amber-500 bg-amber-500/10 border-amber-500/20' };
             case 'welcome':
-                return { icon: <Star {...props} />, colorClass: 'text-blue-500 bg-blue-50 border-blue-100' };
+                return { icon: <Star {...props} />, colorClass: 'text-blue-500 bg-blue-500/10 border-blue-500/20' };
             case 'assessment':
-                return { icon: <Activity {...props} />, colorClass: 'text-emerald-600 bg-emerald-50 border-emerald-100' };
+                return { icon: <Activity {...props} />, colorClass: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' };
             case 'message':
-                return { icon: <MessageCircle {...props} />, colorClass: 'text-purple-600 bg-purple-50 border-purple-100' };
+                return { icon: <MessageCircle {...props} />, colorClass: 'text-purple-500 bg-purple-500/10 border-purple-500/20' };
             default:
-                return { icon: <Bell {...props} />, colorClass: 'text-slate-600 bg-slate-100 border-slate-200' };
+                return { icon: <Bell {...props} />, colorClass: 'text-muted bg-page border-border-card' };
         }
     };
 
@@ -167,7 +167,7 @@ const PatientNotificationsPage = () => {
                         <Inbox size={18} />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em]">Signal Stream</span>
                     </div>
-                    <h1 className="text-5xl font-black text-slate-900 tracking-tighter flex items-center gap-4">
+                    <h1 className="text-5xl font-black text-main tracking-tighter flex items-center gap-4">
                         Notifications
                         {unreadCount > 0 && (
                             <span className="bg-indigo-600 text-white text-[11px] font-black px-4 py-1.5 rounded-full shadow-2xl shadow-indigo-200 uppercase tracking-widest animate-pulse">
@@ -175,12 +175,12 @@ const PatientNotificationsPage = () => {
                             </span>
                         )}
                     </h1>
-                    <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl">
+                    <p className="text-muted font-medium text-lg leading-relaxed max-w-xl">
                         A real-time ledger of your clinical journey and systemic updates.
                     </p>
                 </div>
                 
-                <div className="flex items-center gap-3 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 shadow-sm">
+                <div className="flex items-center gap-3 bg-page p-1.5 rounded-[2rem] border border-border-card shadow-sm">
                     {(user?.role === 'admin' || user?.role === 'super_admin') && (
                         <button
                             onClick={handleTriggerAi}
@@ -193,19 +193,19 @@ const PatientNotificationsPage = () => {
                     )}
                     <button
                         onClick={() => navigate('/profile/notifications')}
-                        className="w-12 h-12 bg-white text-slate-400 rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-slate-100"
+                        className="w-12 h-12 bg-card text-muted rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-border-card"
                         title="Notification Settings"
                     >
                         <Settings size={20} />
                     </button>
-                    <div className="w-[1.5px] h-8 bg-slate-200 mx-1 hidden md:block"></div>
+                    <div className="w-[1.5px] h-8 bg-border-card mx-1 hidden md:block"></div>
                     <button
                         onClick={handleMarkAllAsRead}
                         disabled={unreadCount === 0}
                         className={`flex items-center gap-3 px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
                             ${unreadCount > 0 
-                                ? 'bg-white text-indigo-600 shadow-md border border-slate-100 hover:scale-105 active:scale-95 text-xs' 
-                                : 'text-slate-300 cursor-not-allowed'}
+                                ? 'bg-card text-indigo-600 shadow-md border border-border-card hover:scale-105 active:scale-95 text-xs' 
+                                : 'text-muted opacity-50 cursor-not-allowed'}
                         `}
                     >
                         <CheckCircle2 size={16} />
@@ -216,19 +216,19 @@ const PatientNotificationsPage = () => {
 
             {/* Advanced Filters */}
             <div className="flex items-center gap-4 py-2">
-                <div className="flex items-center gap-3 text-slate-400 mr-2">
+                <div className="flex items-center gap-3 text-muted mr-2">
                     <Filter size={16} />
                     <span className="text-[10px] font-black uppercase tracking-widest">Filter Stream</span>
                 </div>
-                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-[1.5rem] border border-slate-100">
+                <div className="flex items-center gap-2 bg-page p-1.5 rounded-[1.5rem] border border-border-card">
                     {(['all', 'unread', 'alerts'] as const).map(f => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
                             className={`px-8 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
                                 ${filter === f
-                                    ? 'bg-white text-indigo-600 shadow-sm border border-slate-100'
-                                    : 'text-slate-400 hover:text-slate-600'}
+                                    ? 'bg-card text-indigo-600 shadow-sm border border-border-card'
+                                    : 'text-muted hover:text-main'}
                             `}
                         >
                             {f.toUpperCase()}
@@ -241,14 +241,14 @@ const PatientNotificationsPage = () => {
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-40 space-y-6">
                         <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-[1.5rem] animate-spin"></div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Syncing Communication Hub</p>
+                        <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em] animate-pulse">Syncing Communication Hub</p>
                     </div>
                 ) : notifications.length > 0 ? (
                     groupNotifications(notifications).map((section) => (
                         <div key={section.title} className="space-y-6">
                             <div className="flex items-center gap-4">
                                 <div className="w-8 h-1 bg-indigo-600 rounded-full opacity-20"></div>
-                                <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">{section.title}</h2>
+                                <h2 className="text-[11px] font-black text-muted uppercase tracking-[0.4em]">{section.title}</h2>
                             </div>
                             
                             <div className="grid gap-4">
@@ -267,8 +267,8 @@ const PatientNotificationsPage = () => {
                                                 onClick={() => !isRead && handleMarkAsRead(notif.id || notif._id!)}
                                                 className={`group relative p-8 rounded-[2rem] border border-l-4 transition-all flex flex-col md:flex-row md:items-center gap-8 cursor-pointer
                                                     ${isRead 
-                                                        ? 'bg-white border-slate-100 border-l-slate-200 hover:border-indigo-100 hover:bg-slate-50/30' 
-                                                        : 'bg-indigo-50/30 border-indigo-100 border-l-indigo-600 shadow-xl shadow-indigo-500/5 hover:bg-indigo-50/50'}
+                                                        ? 'bg-card border-border-card border-l-border-card hover:border-indigo-500/30 hover:bg-page' 
+                                                        : 'bg-indigo-500/5 border-border-card border-l-indigo-600 shadow-xl shadow-indigo-500/5 hover:bg-indigo-500/10'}
                                                 `}
                                             >
                                                 <div className={`w-16 h-16 shrink-0 rounded-[1.5rem] flex items-center justify-center border transition-all group-hover:scale-110 shadow-sm ${colorClass}`}>
@@ -277,15 +277,15 @@ const PatientNotificationsPage = () => {
 
                                                 <div className="flex-1 min-w-0 space-y-2">
                                                     <div className="flex items-center gap-4">
-                                                        <h3 className={`text-xl font-black tracking-tight ${isRead ? 'text-slate-800 font-bold' : 'text-slate-900 font-black'}`}>
+                                                        <h3 className={`text-xl font-black tracking-tight ${isRead ? 'text-main font-bold opacity-90' : 'text-main font-black'}`}>
                                                             {notif.title}
                                                         </h3>
                                                         {!isRead && <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full shadow-lg shadow-indigo-200"></div>}
                                                     </div>
-                                                    <p className={`text-base leading-relaxed max-w-3xl ${isRead ? 'text-slate-500 font-medium' : 'text-slate-600 font-bold'}`}>
+                                                    <p className={`text-base leading-relaxed max-w-3xl ${isRead ? 'text-muted font-medium' : 'text-main font-bold'}`}>
                                                         {notif.message}
                                                     </p>
-                                                    <div className="flex items-center gap-3 pt-2 text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                                    <div className="flex items-center gap-3 pt-2 text-[10px] font-black text-muted opacity-60 uppercase tracking-widest">
                                                         <Clock size={12} />
                                                         <span>{getNotificationDisplayTime(notif.createdAt || notif.created_at)}</span>
                                                     </div>
@@ -295,7 +295,7 @@ const PatientNotificationsPage = () => {
                                                     {!isRead && (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleMarkAsRead(notif.id || notif._id!); }}
-                                                            className="w-12 h-12 bg-white border border-slate-100 text-indigo-600 rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                                            className="w-12 h-12 bg-card border border-border-card text-indigo-600 rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                                                             title="Mark as Read"
                                                         >
                                                             <CheckCircle2 size={22} />
@@ -303,7 +303,7 @@ const PatientNotificationsPage = () => {
                                                     )}
                                                     <button
                                                         onClick={(e) => handleDelete(notif.id || notif._id!, e)}
-                                                        className="w-12 h-12 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl flex items-center justify-center transition-all"
+                                                        className="w-12 h-12 text-muted opacity-60 hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 rounded-2xl flex items-center justify-center transition-all"
                                                         title="Dismiss"
                                                     >
                                                         <Trash size={18} />
@@ -317,12 +317,12 @@ const PatientNotificationsPage = () => {
                         </div>
                     ))
                 ) : (
-                    <div className="text-center py-40 bg-white rounded-[4rem] border-2 border-dashed border-slate-100">
-                        <div className="w-28 h-28 bg-slate-50 rounded-[3rem] flex items-center justify-center mx-auto mb-8 shadow-inner ring-8 ring-slate-50/50">
-                            <Sparkles size={48} className="text-slate-200" />
+                    <div className="text-center py-40 bg-card rounded-[4rem] border-2 border-dashed border-border-card">
+                        <div className="w-28 h-28 bg-page rounded-[3rem] flex items-center justify-center mx-auto mb-8 shadow-inner ring-8 ring-page/50">
+                            <Sparkles size={48} className="text-muted opacity-40" />
                         </div>
-                        <h3 className="text-3xl font-black text-slate-900 mb-2">Caught Up!</h3>
-                        <p className="text-slate-500 font-medium max-w-sm mx-auto text-lg leading-relaxed">
+                        <h3 className="text-3xl font-black text-main mb-2">Caught Up!</h3>
+                        <p className="text-muted font-medium max-w-sm mx-auto text-lg leading-relaxed">
                             {filter === 'unread' ? "You've read everything." : "No new notifications right now."}
                         </p>
                         <Button className="mt-12 px-12 py-6 rounded-[2rem] shadow-2xl shadow-indigo-100" onClick={() => { setFilter('all'); fetchNotifications(); }}>

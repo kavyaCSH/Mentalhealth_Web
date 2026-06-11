@@ -97,17 +97,17 @@ const ClinicalNotificationsPage = () => {
         switch (type) {
             case 'alert':
             case 'emergency':
-                return { icon: <AlertCircle {...props} />, colorClass: 'text-rose-600 bg-rose-50 border-rose-100' };
+                return { icon: <AlertCircle {...props} />, colorClass: 'text-rose-500 bg-rose-500/10 border-rose-500/20' };
             case 'appointment':
-                return { icon: <Calendar {...props} />, colorClass: 'text-indigo-600 bg-indigo-50 border-indigo-100' };
+                return { icon: <Calendar {...props} />, colorClass: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20' };
             case 'assessment':
-                return { icon: <Activity {...props} />, colorClass: 'text-emerald-600 bg-emerald-50 border-emerald-100' };
+                return { icon: <Activity {...props} />, colorClass: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' };
             case 'message':
-                return { icon: <MessageCircle {...props} />, colorClass: 'text-orange-600 bg-orange-50 border-orange-100' };
+                return { icon: <MessageCircle {...props} />, colorClass: 'text-orange-500 bg-orange-500/10 border-orange-500/20' };
             case 'patient':
-                return { icon: <User {...props} />, colorClass: 'text-blue-600 bg-blue-50 border-blue-100' };
+                return { icon: <User {...props} />, colorClass: 'text-blue-500 bg-blue-500/10 border-blue-500/20' };
             default:
-                return { icon: <Bell {...props} />, colorClass: 'text-slate-600 bg-slate-100 border-slate-200' };
+                return { icon: <Bell {...props} />, colorClass: 'text-muted bg-border-card border-border-card' };
         }
     };
 
@@ -146,7 +146,7 @@ const ClinicalNotificationsPage = () => {
                 <div className="space-y-4">
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-[0.2em] hover:text-indigo-600 transition-colors"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-[0.2em] hover:text-indigo-600 transition-colors"
                     >
                         <ChevronLeft size={16} /> Central Terminal
                     </button>
@@ -155,7 +155,7 @@ const ClinicalNotificationsPage = () => {
                             <Inbox size={18} />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Clinical Telemetry</span>
                         </div>
-                        <h1 className="text-5xl font-black text-slate-900 tracking-tighter flex items-center gap-4">
+                        <h1 className="text-5xl font-black text-main tracking-tighter flex items-center gap-4">
                             System Alerts
                             {unreadCount > 0 && (
                                 <span className="bg-rose-600 text-white text-[11px] font-black px-4 py-1.5 rounded-full shadow-2xl shadow-rose-100 uppercase tracking-widest animate-pulse">
@@ -163,16 +163,16 @@ const ClinicalNotificationsPage = () => {
                                 </span>
                             )}
                         </h1>
-                        <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-2xl">
+                        <p className="text-muted font-medium text-lg leading-relaxed max-w-2xl">
                             Real-time monitoring of patient interventions and systemic health events.
                         </p>
                     </div>
                 </div>
                 
-                <div className="flex items-center gap-3 bg-slate-100/50 p-1.5 rounded-[2rem] border border-slate-100 shadow-sm">
+                <div className="flex items-center gap-3 bg-border-card/50 p-1.5 rounded-[2rem] border border-border-card shadow-sm">
                     <button
                         onClick={() => navigate('/profile/notifications')}
-                        className="w-12 h-12 bg-white text-slate-400 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-slate-100"
+                        className="w-12 h-12 bg-card text-muted opacity-80 rounded-2xl flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-border-card"
                         title="Notification Settings"
                     >
                         <Settings size={20} />
@@ -183,8 +183,8 @@ const ClinicalNotificationsPage = () => {
                         disabled={unreadCount === 0}
                         className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
                             ${unreadCount > 0 
-                                ? 'bg-white text-rose-600 shadow-md border border-slate-100 hover:scale-105 active:scale-95' 
-                                : 'text-slate-300 cursor-not-allowed'}
+                                ? 'bg-card text-rose-600 shadow-md border border-border-card hover:scale-105 active:scale-95' 
+                                : 'text-muted opacity-60 cursor-not-allowed'}
                         `}
                     >
                         <CheckCircle2 size={16} />
@@ -195,22 +195,22 @@ const ClinicalNotificationsPage = () => {
 
             {/* Filter Terminal */}
             <div className="flex items-center justify-between py-2">
-                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-[1.5rem] border border-slate-100">
+                <div className="flex items-center gap-2 bg-page p-1.5 rounded-[1.5rem] border border-border-card">
                     {(['all', 'unread', 'alerts'] as const).map(f => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
                             className={`px-10 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
                                 ${filter === f
-                                    ? 'bg-white text-rose-600 shadow-sm border border-slate-100 font-black'
-                                    : 'text-slate-400 hover:text-slate-600'}
+                                    ? 'bg-card text-rose-600 shadow-sm border border-border-card font-black'
+                                    : 'text-muted opacity-80 hover:text-muted'}
                             `}
                         >
                             {f === 'unread' ? 'Active Feed' : f === 'all' ? 'Archive' : 'Priority'}
                         </button>
                     ))}
                 </div>
-                <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
+                <div className="text-[10px] font-black text-muted opacity-60 uppercase tracking-[0.3em]">
                     Synced {new Date().toLocaleTimeString()}
                 </div>
             </div>
@@ -220,8 +220,8 @@ const ClinicalNotificationsPage = () => {
                     <div className="flex flex-col items-center justify-center py-48 space-y-6 text-center">
                         <div className="w-16 h-16 border-4 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
                         <div className="space-y-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] animate-pulse">Establishing Secure Clinical Connection</p>
-                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">End-to-End Encrypted Tunnel</p>
+                            <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.4em] animate-pulse">Establishing Secure Clinical Connection</p>
+                            <p className="text-[10px] font-black text-muted opacity-60 uppercase tracking-widest">End-to-End Encrypted Tunnel</p>
                         </div>
                     </div>
                 ) : notifications.length > 0 ? (
@@ -229,7 +229,7 @@ const ClinicalNotificationsPage = () => {
                         <div key={section.title} className="space-y-6">
                             <div className="flex items-center gap-4">
                                 <div className="w-8 h-1 bg-rose-600 rounded-full opacity-20"></div>
-                                <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">{section.title}</h2>
+                                <h2 className="text-[11px] font-black text-muted opacity-80 uppercase tracking-[0.4em]">{section.title}</h2>
                             </div>
                             
                             <div className="grid gap-4">
@@ -249,7 +249,7 @@ const ClinicalNotificationsPage = () => {
                                                 className={`p-8 flex flex-col md:flex-row md:items-center gap-8 group cursor-pointer border-l-4 rounded-[2rem] border transition-all
                                                     ${!isRead 
                                                         ? 'border-rose-100 bg-rose-50/10 border-l-rose-600 shadow-xl shadow-rose-100/20' 
-                                                        : 'border-slate-100 border-l-slate-200 bg-white hover:border-indigo-100'}
+                                                        : 'border-border-card border-l-slate-200 bg-card hover:border-indigo-100'}
                                                 `}
                                             >
                                                 <div className={`w-16 h-16 shrink-0 rounded-[1.5rem] flex items-center justify-center border transition-all group-hover:scale-110 shadow-sm ${colorClass}`}>
@@ -258,7 +258,7 @@ const ClinicalNotificationsPage = () => {
 
                                                 <div className="flex-1 min-w-0 space-y-2">
                                                     <div className="flex items-center gap-4">
-                                                        <h3 className={`text-xl font-black tracking-tight ${!isRead ? 'text-slate-900' : 'text-slate-700'}`}>
+                                                        <h3 className={`text-xl font-black tracking-tight ${!isRead ? 'text-main' : 'text-main opacity-90'}`}>
                                                             {notif.title}
                                                         </h3>
                                                         {!isRead && (
@@ -267,10 +267,10 @@ const ClinicalNotificationsPage = () => {
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className={`text-base leading-relaxed ${!isRead ? 'text-slate-600 font-bold' : 'text-slate-400'}`}>
+                                                    <p className={`text-base leading-relaxed ${!isRead ? 'text-muted font-bold' : 'text-muted opacity-80'}`}>
                                                         {notif.message}
                                                     </p>
-                                                    <div className="flex items-center gap-3 pt-2 text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                                    <div className="flex items-center gap-3 pt-2 text-[10px] font-black text-muted opacity-60 uppercase tracking-widest">
                                                         <Clock size={12} />
                                                         <span>{getNotificationDisplayTime(notif.createdAt || notif.created_at)}</span>
                                                         {notif.patientName && (
@@ -286,7 +286,7 @@ const ClinicalNotificationsPage = () => {
                                                     {!isRead && (
                                                         <button
                                                             onClick={() => handleMarkAsRead(notif.id)}
-                                                            className="w-12 h-12 flex items-center justify-center bg-white border border-slate-200 text-rose-600 hover:bg-rose-600 hover:text-white rounded-2xl transition-all shadow-sm"
+                                                            className="w-12 h-12 flex items-center justify-center bg-card border border-border-card text-rose-600 hover:bg-rose-600 hover:text-white rounded-2xl transition-all shadow-sm"
                                                             title="Acknowledge Alert"
                                                         >
                                                             <CheckCircle2 size={24} />
@@ -294,7 +294,7 @@ const ClinicalNotificationsPage = () => {
                                                     )}
                                                     <button
                                                         onClick={() => handleDelete(notif.id)}
-                                                        className="w-12 h-12 flex items-center justify-center text-slate-300 hover:bg-slate-100 hover:text-slate-600 rounded-2xl transition-all"
+                                                        className="w-12 h-12 flex items-center justify-center text-muted opacity-60 hover:bg-border-card hover:text-muted rounded-2xl transition-all"
                                                         title="Archive"
                                                     >
                                                         <Trash size={18} />
@@ -308,12 +308,12 @@ const ClinicalNotificationsPage = () => {
                         </div>
                     ))
                 ) : (
-                    <div className="text-center py-48 card-premium bg-slate-50/50 border-dashed border-2 flex flex-col items-center">
-                        <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mb-8 shadow-inner ring-8 ring-slate-100/50">
+                    <div className="text-center py-48 card-premium bg-page/50 border-dashed border-2 flex flex-col items-center">
+                        <div className="w-24 h-24 bg-card rounded-[2.5rem] flex items-center justify-center mb-8 shadow-inner ring-8 ring-slate-100/50">
                             <Sparkles size={40} className="text-slate-200" />
                         </div>
-                        <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] mb-3">Clear Horizon</h3>
-                        <p className="text-slate-500 font-medium max-w-sm mx-auto text-lg">No active alerts currently require clinical intervention.</p>
+                        <h3 className="text-[11px] font-black text-muted opacity-80 uppercase tracking-[0.4em] mb-3">Clear Horizon</h3>
+                        <p className="text-muted font-medium max-w-sm mx-auto text-lg">No active alerts currently require clinical intervention.</p>
                         <Button variant="outline" className="mt-12 px-14 py-5 rounded-[1.5rem]" onClick={() => setFilter('all')}>View Archives</Button>
                     </div>
                 )}

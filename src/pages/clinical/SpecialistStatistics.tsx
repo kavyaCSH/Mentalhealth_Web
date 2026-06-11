@@ -66,14 +66,14 @@ const SpecialistStatistics = () => {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-100/30 flex items-center gap-6 group hover:border-indigo-100 transition-all"
+            className="bg-card p-8 rounded-[2rem] border border-border-card shadow-sm flex items-center gap-6 group hover:border-indigo-500/30 transition-all"
         >
             <div className={`w-14 h-14 ${bgClass} ${colorClass} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
                 {icon}
             </div>
             <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">{label}</p>
-                <h3 className="text-3xl font-black text-slate-900 tracking-tight">{value}</h3>
+                <p className="text-[10px] font-black text-muted uppercase tracking-widest leading-none mb-2">{label}</p>
+                <h3 className="text-3xl font-black text-main tracking-tight">{value}</h3>
             </div>
         </motion.div>
     );
@@ -83,10 +83,10 @@ const SpecialistStatistics = () => {
         return (
             <div className="space-y-3" key={label}>
                 <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
-                    <span className="text-xs font-black text-slate-900 italic">{count}</span>
+                    <span className="text-[10px] font-black text-muted uppercase tracking-widest">{label}</span>
+                    <span className="text-xs font-black text-main italic">{count}</span>
                 </div>
-                <div className="h-2.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100/50">
+                <div className="h-2.5 bg-page rounded-full overflow-hidden border border-border-card/50">
                     <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${percentage}%` }}
@@ -103,7 +103,7 @@ const SpecialistStatistics = () => {
         return (
             <div className="flex flex-col items-center justify-center py-40">
                 <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-6"></div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Compiling practice intelligence...</p>
+                <p className="text-sm font-bold text-muted uppercase tracking-widest">Compiling practice intelligence...</p>
             </div>
         );
     }
@@ -115,7 +115,7 @@ const SpecialistStatistics = () => {
                     {patientId && (
                         <button
                             onClick={() => navigate(-1)}
-                            className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors"
+                            className="flex items-center gap-2 text-[10px] font-black text-muted uppercase tracking-widest hover:text-indigo-600 transition-colors"
                         >
                             <ChevronLeft size={14} /> Back to Directory
                         </button>
@@ -127,10 +127,10 @@ const SpecialistStatistics = () => {
                                 {patientId ? 'Patient Progression' : 'Practice Insights'}
                             </span>
                         </div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                        <h1 className="text-4xl font-black text-main tracking-tight">
                             {patientId ? 'Patient Health Analytics' : 'Population Statistics'}
                         </h1>
-                        <p className="text-slate-500 font-medium">
+                        <p className="text-muted font-medium">
                             {patientId
                                 ? 'Monitoring clinical recovery and longitudinal wellness markers.'
                                 : 'Aggregate data analysis for the entire patient population.'}
@@ -139,7 +139,7 @@ const SpecialistStatistics = () => {
                 </div>
                 <button
                     onClick={fetchStats}
-                    className="flex items-center gap-3 px-6 py-4 bg-white border border-slate-200 hover:border-indigo-300 text-slate-700 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                    className="flex items-center gap-3 px-6 py-4 bg-card border border-border-card hover:border-indigo-500/30 text-main/80 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-sm active:scale-95"
                 >
                     <RefreshCw size={14} className={`${loading ? 'animate-spin' : ''} text-indigo-600`} />
                     Refresh Analytics
@@ -147,7 +147,7 @@ const SpecialistStatistics = () => {
             </header>
 
             {error && (
-                <div className="p-6 bg-rose-50 border border-rose-100 rounded-[2rem] text-rose-600 flex items-center gap-4">
+                <div className="p-6 bg-error/10 border border-error/20 rounded-[2rem] text-error flex items-center gap-4">
                     <AlertCircle size={20} />
                     <p className="text-sm font-black uppercase tracking-tight">{error}</p>
                 </div>
@@ -158,27 +158,27 @@ const SpecialistStatistics = () => {
                     /* --- PATIENT SPECIFIC VIEW --- */
                     <div className="lg:col-span-12 space-y-10">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {renderMetricCard('Mood Streak', `${patientStats.activity.currentStreak} Days`, <Flame size={28} />, 'text-orange-600', 'bg-orange-50')}
-                            {renderMetricCard('Clinical Logs', patientStats.activity.totalMoodLogs, <Clock size={28} />, 'text-indigo-600', 'bg-indigo-50')}
-                            {renderMetricCard('Completion', `${patientStats.assessments.completionRate}%`, <ClipboardCheck size={28} />, 'text-emerald-600', 'bg-emerald-50')}
+                            {renderMetricCard('Mood Streak', `${patientStats.activity.currentStreak} Days`, <Flame size={28} />, 'text-orange-500', 'bg-orange-500/10')}
+                            {renderMetricCard('Clinical Logs', patientStats.activity.totalMoodLogs, <Clock size={28} />, 'text-indigo-500', 'bg-indigo-500/10')}
+                            {renderMetricCard('Completion', `${patientStats.assessments.completionRate}%`, <ClipboardCheck size={28} />, 'text-emerald-500', 'bg-emerald-500/10')}
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             {/* Mood Distribution */}
-                            <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100/30 space-y-10">
+                            <section className="bg-card p-10 rounded-[2.5rem] border border-border-card shadow-sm space-y-10">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-1">
-                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Mood Balance</h2>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">30-Day Distribution Matrix</p>
+                                        <h2 className="text-2xl font-black text-main tracking-tight uppercase">Mood Balance</h2>
+                                        <p className="text-[10px] font-black text-muted uppercase tracking-widest italic">30-Day Distribution Matrix</p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => openHelp('about_mindbalance')}
-                                            className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all"
+                                            className="p-2 bg-page text-muted hover:text-indigo-600 rounded-xl transition-all"
                                         >
                                             <Info size={16} />
                                         </button>
-                                        <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl">
+                                        <div className="p-3 bg-rose-500/10 text-rose-500 rounded-2xl">
                                             <Heart size={20} />
                                         </div>
                                     </div>
@@ -192,37 +192,37 @@ const SpecialistStatistics = () => {
                             </section>
 
                             {/* Session Summary */}
-                            <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100/30 flex flex-col justify-between">
+                            <section className="bg-card p-10 rounded-[2.5rem] border border-border-card shadow-sm flex flex-col justify-between">
                                 <div className="flex items-center justify-between mb-8">
                                     <div className="space-y-1">
-                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Sessions</h2>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Consultation engagement</p>
+                                        <h2 className="text-2xl font-black text-main tracking-tight uppercase">Sessions</h2>
+                                        <p className="text-[10px] font-black text-muted uppercase tracking-widest italic">Consultation engagement</p>
                                     </div>
-                                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                                    <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-2xl">
                                         <Zap size={20} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-6 pt-10 border-t border-slate-50">
+                                <div className="grid grid-cols-3 gap-6 pt-10 border-t border-border-card">
                                     <div className="text-center group">
-                                        <span className="text-4xl font-black text-emerald-600 block mb-2 group-hover:scale-110 transition-transform">{patientStats.consultations.attended}</span>
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Attended</span>
+                                        <span className="text-4xl font-black text-emerald-500 block mb-2 group-hover:scale-110 transition-transform">{patientStats.consultations.attended}</span>
+                                        <span className="text-[10px] font-black text-muted uppercase tracking-widest">Attended</span>
                                     </div>
                                     <div className="text-center group">
-                                        <span className="text-4xl font-black text-indigo-600 block mb-2 group-hover:scale-110 transition-transform">{patientStats.consultations.upcoming}</span>
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Upcoming</span>
+                                        <span className="text-4xl font-black text-indigo-500 block mb-2 group-hover:scale-110 transition-transform">{patientStats.consultations.upcoming}</span>
+                                        <span className="text-[10px] font-black text-muted uppercase tracking-widest">Upcoming</span>
                                     </div>
                                     <div className="text-center group">
-                                        <span className="text-4xl font-black text-rose-600 block mb-2 group-hover:scale-110 transition-transform">{patientStats.consultations.cancelled}</span>
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cancelled</span>
+                                        <span className="text-4xl font-black text-error block mb-2 group-hover:scale-110 transition-transform">{patientStats.consultations.cancelled}</span>
+                                        <span className="text-[10px] font-black text-muted uppercase tracking-widest">Cancelled</span>
                                     </div>
                                 </div>
                                 <div className="mt-auto pt-10">
-                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                    <div className="p-4 bg-page rounded-2xl border border-border-card flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
-                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Compliance Score</span>
+                                            <span className="text-[10px] font-black text-muted uppercase tracking-widest">Compliance Score</span>
                                         </div>
-                                        <span className="text-sm font-black text-indigo-600 tracking-tight">V8.4 - OPTIMAL</span>
+                                        <span className="text-sm font-black text-indigo-500 tracking-tight">V8.4 - OPTIMAL</span>
                                     </div>
                                 </div>
                             </section>
@@ -232,16 +232,16 @@ const SpecialistStatistics = () => {
                     /* --- POPULATION VIEW --- */
                     <div className="lg:col-span-12 space-y-10">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {renderMetricCard('Clinical Population', stats.summary.totalPatients, <Users size={28} />, 'text-indigo-600', 'bg-indigo-50')}
-                            {renderMetricCard('Active Assessments', stats.summary.activeAssessments, <AlertCircle size={28} />, 'text-rose-600', 'bg-rose-50')}
+                            {renderMetricCard('Clinical Population', stats.summary.totalPatients, <Users size={28} />, 'text-indigo-500', 'bg-indigo-500/10')}
+                            {renderMetricCard('Active Assessments', stats.summary.activeAssessments, <AlertCircle size={28} />, 'text-error', 'bg-error/10')}
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Gender Distribution */}
-                            <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100/30 space-y-8">
+                            <section className="bg-card p-10 rounded-[2.5rem] border border-border-card shadow-sm space-y-8">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Gender</h2>
-                                    <PieChart size={18} className="text-slate-300" />
+                                    <h2 className="text-xl font-black text-main uppercase tracking-tight">Gender</h2>
+                                    <PieChart size={18} className="text-muted" />
                                 </div>
                                 <div className="space-y-6">
                                     {renderProgressBar('Male', stats.demographics?.gender?.male || 0, stats.summary?.totalPatients || 0, '#3B82F6')}
@@ -251,10 +251,10 @@ const SpecialistStatistics = () => {
                             </section>
 
                             {/* Age Demographics */}
-                            <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100/30 space-y-8">
+                            <section className="bg-card p-10 rounded-[2.5rem] border border-border-card shadow-sm space-y-8">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Age Groups</h2>
-                                    <UserCircle size={18} className="text-slate-300" />
+                                    <h2 className="text-xl font-black text-main uppercase tracking-tight">Age Groups</h2>
+                                    <UserCircle size={18} className="text-muted" />
                                 </div>
                                 <div className="space-y-6">
                                     {stats.demographics?.ageGroups && Object.entries(stats.demographics.ageGroups).map(([label, count]) =>
@@ -264,18 +264,18 @@ const SpecialistStatistics = () => {
                             </section>
 
                             {/* Enrollment Trend */}
-                            <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100/30 space-y-8 lg:row-span-1">
+                            <section className="bg-card p-10 rounded-[2.5rem] border border-border-card shadow-sm space-y-8 lg:row-span-1">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Enrollments</h2>
+                                    <h2 className="text-xl font-black text-main uppercase tracking-tight">Enrollments</h2>
                                     <TrendingUp size={18} className="text-emerald-500" />
                                 </div>
                                 <div className="space-y-5">
                                     {stats.engagement.enrollmentTrend.slice(-5).map((item, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all">
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.month}</span>
+                                        <div key={idx} className="flex items-center justify-between p-4 bg-page rounded-2xl border border-border-card group hover:border-indigo-500/30 transition-all">
+                                            <span className="text-[10px] font-black text-muted uppercase tracking-widest">{item.month}</span>
                                             <div className="flex items-center gap-4">
-                                                <div className="h-0.5 w-12 bg-slate-200 group-hover:bg-indigo-200 transition-all"></div>
-                                                <span className="text-sm font-black text-slate-900">+{item.count}</span>
+                                                <div className="h-0.5 w-12 bg-border-card group-hover:bg-indigo-500/30 transition-all"></div>
+                                                <span className="text-sm font-black text-main">+{item.count}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -284,16 +284,16 @@ const SpecialistStatistics = () => {
                         </div>
 
                         {/* Practice-wide Wellness Distribution */}
-                        <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100/30 space-y-10">
+                        <section className="bg-card p-10 rounded-[2.5rem] border border-border-card shadow-sm space-y-10">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
-                                    <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Population Mood Variance</h2>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Real-time practice-wide distribution</p>
+                                    <h2 className="text-2xl font-black text-main tracking-tight uppercase">Population Mood Variance</h2>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-widest italic">Real-time practice-wide distribution</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => openHelp('about_mindbalance')}
-                                        className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all"
+                                        className="p-2 bg-page text-muted hover:text-indigo-600 rounded-xl transition-all"
                                     >
                                         <Info size={16} />
                                     </button>
@@ -307,44 +307,44 @@ const SpecialistStatistics = () => {
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 text-center hover:border-indigo-100 hover:bg-white hover:shadow-xl hover:shadow-indigo-50/50 transition-all group"
+                                        className="p-6 bg-page rounded-[2rem] border border-border-card text-center hover:border-indigo-500/30 hover:bg-card hover:shadow-lg transition-all group"
                                     >
-                                        <span className="text-3xl font-black text-slate-900 block mb-2 group-hover:text-indigo-600 transition-colors tracking-tight italic underline decoration-indigo-200 underline-offset-4">{Number(count) || 0}</span>
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{mood}</span>
+                                        <span className="text-3xl font-black text-main block mb-2 group-hover:text-indigo-500 transition-colors tracking-tight italic underline decoration-indigo-500/20 underline-offset-4">{Number(count) || 0}</span>
+                                        <span className="text-[10px] font-black text-muted uppercase tracking-widest">{mood}</span>
                                     </motion.div>
                                 ))}
                             </div>
                         </section>
 
                         {/* Practice-wide Assessment Pulse */}
-                        <section className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-100/30 space-y-10">
+                        <section className="bg-card p-10 rounded-[2.5rem] border border-border-card shadow-sm space-y-10">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
-                                    <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Clinical Assessment Performance</h2>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Practice screening compliance and historical completion</p>
+                                    <h2 className="text-2xl font-black text-main tracking-tight uppercase">Clinical Assessment Performance</h2>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-widest italic">Practice screening compliance and historical completion</p>
                                 </div>
                                 <ClipboardCheck size={24} className="text-emerald-500" />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                <div className="card-premium p-8 bg-slate-50 border-slate-100/50 flex flex-col items-center">
-                                    <span className="text-5xl font-black text-slate-900 mb-2">{stats.assessments?.total || 0}</span>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Screenings</span>
+                                <div className="card-premium p-8 bg-page border-border-card flex flex-col items-center">
+                                    <span className="text-5xl font-black text-main mb-2">{stats.assessments?.total || 0}</span>
+                                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Total Screenings</span>
                                 </div>
-                                <div className="card-premium p-8 bg-slate-50 border-slate-100/50 flex flex-col items-center">
-                                    <span className="text-5xl font-black text-emerald-600 mb-2">{stats.assessments?.completed || 0}</span>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Validated Results</span>
+                                <div className="card-premium p-8 bg-page border-border-card flex flex-col items-center">
+                                    <span className="text-5xl font-black text-emerald-500 mb-2">{stats.assessments?.completed || 0}</span>
+                                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Validated Results</span>
                                 </div>
-                                <div className="card-premium p-8 bg-slate-50 border-slate-100/50 flex flex-col items-center">
-                                    <span className="text-5xl font-black text-rose-600 mb-2">{stats.assessments?.pending || 0}</span>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Awaiting Intake</span>
+                                <div className="card-premium p-8 bg-page border-border-card flex flex-col items-center">
+                                    <span className="text-5xl font-black text-error mb-2">{stats.assessments?.pending || 0}</span>
+                                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Awaiting Intake</span>
                                 </div>
                             </div>
                         </section>
                     </div>
                 ) : (
-                    <div className="lg:col-span-12 py-20 text-center bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
-                        <BarChart3 size={40} className="mx-auto text-slate-300 mb-4" />
-                        <h3 className="text-xl font-black text-slate-900 uppercase">Synchronizing clinical data...</h3>
+                    <div className="lg:col-span-12 py-20 text-center bg-page rounded-[3rem] border-2 border-dashed border-border-card">
+                        <BarChart3 size={40} className="mx-auto text-muted mb-4" />
+                        <h3 className="text-xl font-black text-main uppercase">Synchronizing clinical data...</h3>
                     </div>
                 )}
             </div>

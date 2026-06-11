@@ -164,8 +164,8 @@ const ClinicalAvailabilityPage = () => {
                         <ArrowLeft size={20} className="cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => navigate(-1)} />
                         <span className="text-xs font-black uppercase tracking-[0.2em]">Resources • Availability</span>
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight text-gradient-primary">Clinical Availability</h1>
-                    <p className="text-slate-500 font-semibold text-sm">Review your active work shifts and time-off schedule blocks.</p>
+                    <h1 className="text-4xl font-black text-main tracking-tight text-gradient-primary">Clinical Availability</h1>
+                    <p className="text-muted font-semibold text-sm">Review your active work shifts and time-off schedule blocks.</p>
                 </div>
                 <div className="flex gap-4">
                     <Button variant="primary" leftIcon={<Plus size={20} />} onClick={() => handleOpenModal()} className="rounded-2xl shadow-xl shadow-indigo-100 py-3.5">
@@ -179,8 +179,8 @@ const ClinicalAvailabilityPage = () => {
                     <div className="flex items-center gap-4">
                         <div className="w-1.5 h-8 bg-indigo-600 rounded-full" />
                         <div>
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Active Pipeline</h2>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                            <h2 className="text-2xl font-black text-main tracking-tight uppercase">Active Pipeline</h2>
+                            <p className="text-[10px] font-black text-muted uppercase tracking-widest mt-0.5">
                                 {availabilityBlocks.length} Configured Schedule Blocks
                             </p>
                         </div>
@@ -200,46 +200,46 @@ const ClinicalAvailabilityPage = () => {
                                     key={block.id || block.scheduleId || idx}
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="p-8 rounded-[2.5rem] border-2 border-slate-50 bg-white hover:border-indigo-100 hover:shadow-xl transition-all group relative overflow-hidden"
+                                    className="p-8 rounded-[2.5rem] border border-border-card bg-card hover:border-indigo-500/30 hover:shadow-lg transition-all group relative overflow-hidden"
                                 >
                                     <div className="flex items-start justify-between mb-6">
-                                        <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${isAvail ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
+                                        <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${isAvail ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-error/10 text-error border border-error/20'}`}>
                                             {isAvail ? 'Work Shift' : 'Time Off'}
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => handleOpenModal(block)} className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"><Edit3 size={16} /></button>
-                                            <button onClick={() => handleDeleteAvailability(block.id || block.scheduleId)} className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"><Trash size={16} /></button>
+                                            <button onClick={() => handleOpenModal(block)} className="p-2.5 text-muted hover:text-indigo-500 hover:bg-indigo-500/10 rounded-xl transition-all"><Edit3 size={16} /></button>
+                                            <button onClick={() => handleDeleteAvailability(block.id || block.scheduleId)} className="p-2.5 text-muted hover:text-error hover:bg-error/10 rounded-xl transition-all"><Trash size={16} /></button>
                                         </div>
                                     </div>
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors"><Clock size={18} /></div>
+                                            <div className="w-10 h-10 bg-page rounded-xl flex items-center justify-center text-muted group-hover:text-indigo-500 transition-colors"><Clock size={18} /></div>
                                             <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Time Slot</p>
-                                                <p className="text-base font-black text-slate-900">{block.startTime?.substring(0, 5)} - {block.endTime?.substring(0, 5)}</p>
+                                                <p className="text-[9px] font-black text-muted uppercase tracking-widest">Time Slot</p>
+                                                <p className="text-base font-black text-main">{block.startTime?.substring(0, 5)} - {block.endTime?.substring(0, 5)}</p>
                                             </div>
                                         </div>
                                         {isAvail && block.isRecurring ? (
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors"><CalendarIcon size={18} /></div>
+                                                <div className="w-10 h-10 bg-page rounded-xl flex items-center justify-center text-muted group-hover:text-indigo-500 transition-colors"><CalendarIcon size={18} /></div>
                                                 <div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Recurrence</p>
-                                                    <p className="text-sm font-bold text-slate-600">Every {days[block.dayOfWeek || 0]}</p>
+                                                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Recurrence</p>
+                                                    <p className="text-sm font-bold text-main/80">Every {days[block.dayOfWeek || 0]}</p>
                                                 </div>
                                             </div>
                                         ) : block.specificDate && (
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors"><CalendarRange size={18} /></div>
+                                                <div className="w-10 h-10 bg-page rounded-xl flex items-center justify-center text-muted group-hover:text-indigo-500 transition-colors"><CalendarRange size={18} /></div>
                                                 <div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Date</p>
-                                                    <p className="text-sm font-bold text-slate-600">{new Date(block.specificDate).toLocaleDateString()}</p>
+                                                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Date</p>
+                                                    <p className="text-sm font-bold text-main/80">{new Date(block.specificDate).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
                                         )}
                                         {isAvail && (
-                                            <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-50">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase">{block.slotDuration}m Slots</p>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase">{block.maxAppointments} Appts</p>
+                                            <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-border-card">
+                                                <p className="text-[10px] font-black text-muted uppercase">{block.slotDuration}m Slots</p>
+                                                <p className="text-[10px] font-black text-muted uppercase">{block.maxAppointments} Appts</p>
                                             </div>
                                         )}
                                     </div>
@@ -248,11 +248,11 @@ const ClinicalAvailabilityPage = () => {
                         })}
                     </div>
                 ) : (
-                    <div className="p-20 text-center bg-slate-50 rounded-[3rem] border border-dashed border-slate-100 flex flex-col items-center">
-                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-inner"><CalendarIcon size={32} className="text-slate-200" /></div>
-                        <h4 className="text-lg font-black text-slate-900 uppercase">No Blocks Found</h4>
-                        <p className="text-xs font-bold text-slate-400 mt-2 max-w-[250px]">Start by configuring your first work shift or time-off period.</p>
-                        <Button variant="outline" className="mt-8 rounded-xl px-10" onClick={() => handleOpenModal()}>Add Availability</Button>
+                    <div className="p-20 text-center bg-page rounded-[3rem] border border-dashed border-border-card flex flex-col items-center">
+                        <div className="w-20 h-20 bg-card rounded-full flex items-center justify-center mb-6 shadow-sm"><CalendarIcon size={32} className="text-muted/50" /></div>
+                        <h4 className="text-lg font-black text-main uppercase">No Blocks Found</h4>
+                        <p className="text-xs font-bold text-muted mt-2 max-w-[250px]">Start by configuring your first work shift or time-off period.</p>
+                        <Button variant="outline" className="mt-8 rounded-xl px-10 border-border-card text-main hover:bg-card" onClick={() => handleOpenModal()}>Add Availability</Button>
                     </div>
                 )}
             </section>
@@ -264,70 +264,70 @@ const ClinicalAvailabilityPage = () => {
                             initial={{ scale: 0.9, opacity: 0, y: 30 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                            className="bg-white rounded-[3rem] w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl relative"
+                            className="bg-card rounded-[3rem] w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-sm relative border border-border-card"
                         >
-                            <div className="sticky top-0 bg-white/80 backdrop-blur-md z-10 px-10 py-8 border-b border-slate-50 flex items-center justify-between">
+                            <div className="sticky top-0 bg-card/80 backdrop-blur-md z-10 px-10 py-8 border-b border-border-card flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center"><Settings size={24} /></div>
+                                    <div className="w-12 h-12 bg-indigo-500/10 text-indigo-500 rounded-2xl flex items-center justify-center"><Settings size={24} /></div>
                                     <div>
-                                        <h3 className="font-black text-slate-900 text-lg uppercase tracking-tight">{editingBlock ? 'Edit Block' : 'New Configuration'}</h3>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Define session generation rules</p>
+                                        <h3 className="font-black text-main text-lg uppercase tracking-tight">{editingBlock ? 'Edit Block' : 'New Configuration'}</h3>
+                                        <p className="text-[10px] font-black text-muted uppercase tracking-tighter">Define session generation rules</p>
                                     </div>
                                 </div>
-                                <button onClick={() => setIsModalOpen(false)} className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors"><X size={20} className="text-slate-400" /></button>
+                                <button onClick={() => setIsModalOpen(false)} className="p-3 bg-page hover:bg-page/80 rounded-xl transition-colors"><X size={20} className="text-muted" /></button>
                             </div>
 
                             <div className="p-10 space-y-8">
-                                <div className="grid grid-cols-2 gap-4 p-1.5 bg-slate-50 rounded-2xl">
-                                    <button onClick={() => setFormType('availability')} className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formType === 'availability' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}>Work Shift</button>
-                                    <button onClick={() => setFormType('unavailability')} className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formType === 'unavailability' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-400'}`}>Time Off</button>
+                                <div className="grid grid-cols-2 gap-4 p-1.5 bg-page rounded-2xl">
+                                    <button onClick={() => setFormType('availability')} className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formType === 'availability' ? 'bg-card text-indigo-500 shadow-sm' : 'text-muted'}`}>Work Shift</button>
+                                    <button onClick={() => setFormType('unavailability')} className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formType === 'unavailability' ? 'bg-card text-error shadow-sm' : 'text-muted'}`}>Time Off</button>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Time</label>
-                                        <div className="relative"><Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" /><input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full bg-slate-50 rounded-xl py-3 pl-11 pr-4 text-xs font-bold outline-none border-2 border-transparent focus:border-indigo-100" /></div>
+                                        <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Start Time</label>
+                                        <div className="relative"><Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" /><input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full bg-page text-main rounded-xl py-3 pl-11 pr-4 text-xs font-bold outline-none border-2 border-transparent focus:border-indigo-500/50" /></div>
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">End Time</label>
-                                        <div className="relative"><Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" /><input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full bg-slate-50 rounded-xl py-3 pl-11 pr-4 text-xs font-bold outline-none border-2 border-transparent focus:border-indigo-100" /></div>
+                                        <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">End Time</label>
+                                        <div className="relative"><Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" /><input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="w-full bg-page text-main rounded-xl py-3 pl-11 pr-4 text-xs font-bold outline-none border-2 border-transparent focus:border-indigo-500/50" /></div>
                                     </div>
                                 </div>
 
                                 {formType === 'availability' && (
                                     <>
-                                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
-                                            <div><h5 className="text-[10px] font-black text-slate-900 uppercase">Recurring weekly</h5><p className="text-[8px] font-bold text-slate-400 uppercase mt-0.5 tracking-tighter">Apply to work week</p></div>
-                                            <button onClick={() => setIsRecurring(!isRecurring)} className={`w-12 h-6 rounded-full relative transition-colors ${isRecurring ? 'bg-indigo-600' : 'bg-slate-200'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isRecurring ? 'left-7' : 'left-1'}`} /></button>
+                                        <div className="flex items-center justify-between p-6 bg-page rounded-[2rem] border border-border-card">
+                                            <div><h5 className="text-[10px] font-black text-main uppercase">Recurring weekly</h5><p className="text-[8px] font-bold text-muted uppercase mt-0.5 tracking-tighter">Apply to work week</p></div>
+                                            <button onClick={() => setIsRecurring(!isRecurring)} className={`w-12 h-6 rounded-full relative transition-colors ${isRecurring ? 'bg-indigo-500' : 'bg-muted/30'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isRecurring ? 'left-7' : 'left-1'}`} /></button>
                                         </div>
                                         {isRecurring ? (
                                             <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Days</label>
+                                                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Days</label>
                                                 <div className="flex flex-wrap gap-2">
                                                     {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                                                        <button key={i} onClick={() => setSelectedDays(prev => prev.includes(i) ? prev.filter(d => d !== i) : [...prev, i])} className={`w-10 h-10 rounded-xl text-xs font-black transition-all border-2 ${selectedDays.includes(i) ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-50 text-slate-400'}`}>{day}</button>
+                                                        <button key={i} onClick={() => setSelectedDays(prev => prev.includes(i) ? prev.filter(d => d !== i) : [...prev, i])} className={`w-10 h-10 rounded-xl text-xs font-black transition-all border-2 ${selectedDays.includes(i) ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-card border-border-card text-muted'}`}>{day}</button>
                                                     ))}
                                                 </div>
                                             </div>
                                         ) : (
                                             <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Date</label>
-                                                <input type="date" value={specificDate} onChange={e => setSpecificDate(e.target.value)} className="w-full bg-slate-50 rounded-xl py-3 px-4 text-xs font-bold outline-none" min={new Date().toISOString().split('T')[0]} />
+                                                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Date</label>
+                                                <input type="date" value={specificDate} onChange={e => setSpecificDate(e.target.value)} className="w-full bg-page text-main rounded-xl py-3 px-4 text-xs font-bold outline-none" min={new Date().toISOString().split('T')[0]} />
                                             </div>
                                         )}
                                         <div className="grid grid-cols-2 gap-6">
-                                            <div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Slot Duration</label><div className="flex bg-slate-50 rounded-xl px-4 py-3"><input type="number" value={slotDuration} onChange={e => setSlotDuration(e.target.value)} className="w-full bg-transparent text-xs font-bold outline-none" /><span className="text-[8px] font-black text-slate-400 uppercase">Min</span></div></div>
-                                            <div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Buffer Time</label><div className="flex bg-slate-50 rounded-xl px-4 py-3"><input type="number" value={bufferTime} onChange={e => setBufferTime(e.target.value)} className="w-full bg-transparent text-xs font-bold outline-none" /><span className="text-[8px] font-black text-slate-400 uppercase">Min</span></div></div>
+                                            <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Slot Duration</label><div className="flex bg-page rounded-xl px-4 py-3"><input type="number" value={slotDuration} onChange={e => setSlotDuration(e.target.value)} className="w-full bg-transparent text-main text-xs font-bold outline-none" /><span className="text-[8px] font-black text-muted uppercase">Min</span></div></div>
+                                            <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Buffer Time</label><div className="flex bg-page rounded-xl px-4 py-3"><input type="number" value={bufferTime} onChange={e => setBufferTime(e.target.value)} className="w-full bg-transparent text-main text-xs font-bold outline-none" /><span className="text-[8px] font-black text-muted uppercase">Min</span></div></div>
                                         </div>
-                                        <div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Max Appointments</label><div className="flex bg-slate-50 rounded-xl px-4 py-3"><input type="number" value={maxAppointments} onChange={e => setMaxAppointments(e.target.value)} className="w-full bg-transparent text-xs font-bold outline-none" /><span className="text-[8px] font-black text-slate-400 uppercase">Slots</span></div></div>
+                                        <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Max Appointments</label><div className="flex bg-page rounded-xl px-4 py-3"><input type="number" value={maxAppointments} onChange={e => setMaxAppointments(e.target.value)} className="w-full bg-transparent text-main text-xs font-bold outline-none" /><span className="text-[8px] font-black text-muted uppercase">Slots</span></div></div>
                                     </>
                                 )}
 
                                 {(!isRecurring || formType === 'unavailability') && (
-                                    <div className="space-y-3"><label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Notes</label><textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full bg-slate-50 rounded-xl py-4 px-6 text-xs font-bold outline-none resize-none" placeholder="Description..." /></div>
+                                    <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Notes</label><textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full bg-page text-main rounded-xl py-4 px-6 text-xs font-bold outline-none resize-none" placeholder="Description..." /></div>
                                 )}
 
-                                {availabilityError && <div className="p-4 bg-rose-50 text-rose-600 text-[10px] font-black uppercase rounded-2xl border border-rose-100 flex items-center gap-3"><AlertCircle size={14} />{availabilityError}</div>}
+                                {availabilityError && <div className="p-4 bg-error/10 text-error text-[10px] font-black uppercase rounded-2xl border border-error/20 flex items-center gap-3"><AlertCircle size={14} />{availabilityError}</div>}
 
                                 <div className="flex gap-4 pt-4">
                                     <Button variant="outline" className="flex-1 py-4" onClick={() => setIsModalOpen(false)}>Cancel</Button>

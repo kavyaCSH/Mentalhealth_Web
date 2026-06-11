@@ -233,7 +233,7 @@ const PatientDirectory = () => {
                                                             e.stopPropagation();
                                                             navigate(`/patients/${patient.userId || patient.id || patient._id}?hexId=${patient._id || patient.id}`);
                                                         }}
-                                                        className="p-2 bg-page text-muted hover:bg-main hover:text-white rounded-xl transition-all shadow-sm group/btn"
+                                                        className="p-2 bg-page text-muted hover:bg-indigo-500 hover:text-white rounded-xl transition-all shadow-sm group/btn"
                                                         title="Patient Profile"
                                                     >
                                                         <UserIcon size={16} />
@@ -406,8 +406,8 @@ const PatientDirectory = () => {
                                     >
                                         Finalize Registration
                                     </Button>
-                                    <p className="text-[9px] font-bold text-slate-400 text-center mt-4 px-8 leading-relaxed uppercase tracking-tight">
-                                        Compliance Check: Validating against multi-tenant identity registry...
+                                    <p className="text-[9px] font-bold text-muted text-center mt-4 px-8 leading-relaxed uppercase tracking-tight">
+                                        By provisioning this clinical identity, you confirm that you have obtained the necessary consent from the patient to process their health data.
                                     </p>
                                 </div>
                             </form>

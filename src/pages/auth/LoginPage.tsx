@@ -78,7 +78,7 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col lg:flex-row bg-white overflow-hidden font-sans">
+        <div className="min-h-screen flex flex-col lg:flex-row bg-page overflow-hidden font-sans">
             {/* Left Panel: Immersive Brand Anchor */}
             <motion.div
                 initial={{ opacity: 0, x: -50 }}
@@ -103,7 +103,7 @@ const LoginPage = () => {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="w-20 h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl flex items-center justify-center text-white"
+                        className="w-20 h-20 bg-page/10 backdrop-blur-xl border border-white/20 rounded-3xl flex items-center justify-center text-white"
                     >
                         <Heart size={40} className="drop-shadow-2xl" fill="rgba(255,255,255,0.4)" />
                     </motion.div>
@@ -130,7 +130,7 @@ const LoginPage = () => {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6 }}
-                        className="p-8 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] mt-12 shadow-2xl"
+                        className="p-8 bg-page/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] mt-12 shadow-2xl"
                     >
                         <div className="flex gap-4 items-start">
                             <div className="p-3 bg-indigo-500/20 text-indigo-200 rounded-xl"><Sparkles size={24} /></div>
@@ -161,9 +161,9 @@ const LoginPage = () => {
                             <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100/50">
                                 <Heart size={24} fill="currentColor" />
                             </div>
-                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter">MindBalance</h2>
+                            <h2 className="text-4xl font-black text-main tracking-tighter">MindBalance</h2>
                         </div>
-                        <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-sm">
+                        <p className="text-muted font-medium text-lg leading-relaxed max-w-sm">
                             Welcome back!! Please choose your role and sign in below.
                         </p>
                     </div>
@@ -185,8 +185,8 @@ const LoginPage = () => {
                     <form onSubmit={handleLogin} className="space-y-6">
                         {/* Segmented Identity Selection */}
                         <div className="space-y-2.5">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 italic">Who are you?</label>
-                            <div className="flex p-1 bg-slate-50 border border-slate-100 rounded-[2rem] gap-1">
+                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em] px-1 italic">Who are you?</label>
+                            <div className="flex p-1 bg-card border border-border-card rounded-[2rem] gap-1">
                                 {CATEGORIES.map((cat) => (
                                     <button
                                         key={cat.id}
@@ -196,8 +196,8 @@ const LoginPage = () => {
                                             setRole(cat.roles[0] as UserRole);
                                         }}
                                         className={`flex-1 flex flex-col items-center justify-center py-3 rounded-[1.5rem] transition-all duration-300 relative overflow-hidden ${activeCategory === cat.id
-                                                ? 'bg-white text-indigo-600 shadow-xl shadow-indigo-500/10 ring-1 ring-slate-100'
-                                                : 'text-slate-400 hover:text-slate-600'
+                                                ? 'bg-page text-indigo-600 shadow-xl shadow-indigo-500/10 ring-1 ring-border-card'
+                                                : 'text-muted opacity-80 hover:text-main'
                                             }`}
                                     >
                                         <cat.icon size={18} className="mb-1" />
@@ -229,7 +229,7 @@ const LoginPage = () => {
                                                 onClick={() => setRole(r.value as UserRole)}
                                                 className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl border-2 transition-all ${role === r.value
                                                         ? 'bg-indigo-600 border-indigo-600 text-white shadow-xl shadow-indigo-100'
-                                                        : 'bg-white border-slate-50 text-slate-400 font-bold hover:border-slate-200'
+                                                        : 'bg-page border-border-card text-muted opacity-80 font-bold hover:border-border-card'
                                                     }`}
                                             >
                                                 <r.icon size={14} />
@@ -255,7 +255,7 @@ const LoginPage = () => {
                                                 onClick={() => setRole(r.value as UserRole)}
                                                 className={`flex flex-col items-center justify-center gap-1.5 px-2 py-3.5 rounded-2xl border-2 transition-all ${role === r.value
                                                         ? 'bg-indigo-600 border-indigo-600 text-white shadow-xl shadow-indigo-100'
-                                                        : 'bg-white border-slate-50 text-slate-400 font-bold hover:border-slate-200'
+                                                        : 'bg-page border-border-card text-muted opacity-80 font-bold hover:border-border-card'
                                                     }`}
                                             >
                                                 <ShieldCheck size={14} />
@@ -291,7 +291,7 @@ const LoginPage = () => {
                                 <div className="flex justify-end pr-1">
                                     <Link
                                         to="/forgot-password"
-                                        className="text-[10px] font-black text-slate-300 uppercase tracking-widest hover:text-indigo-600 transition-colors"
+                                        className="text-[10px] font-black text-muted opacity-60 uppercase tracking-widest hover:text-indigo-600 transition-colors"
                                     >
                                         Forgot Password?
                                     </Link>
@@ -316,25 +316,25 @@ const LoginPage = () => {
                     <div className="space-y-6 pt-6">
                         <div className="relative flex items-center justify-center">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-slate-100"></div>
+                                <div className="w-full border-t border-border-card"></div>
                             </div>
-                            <span className="relative px-6 bg-white text-[9px] font-black text-slate-300 uppercase tracking-[0.5em]">Or sign in with</span>
+                            <span className="relative px-6 bg-page text-[9px] font-black text-muted opacity-60 uppercase tracking-[0.5em]">Or sign in with</span>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <motion.div whileHover={{ y: -2 }}>
-                                <Button variant="outline" className="w-full h-12 rounded-2xl border-slate-100 text-[9px] font-black uppercase tracking-widest" leftIcon={<Chrome size={16} />}>
+                                <Button variant="outline" className="w-full h-12 rounded-2xl border-border-card text-[9px] font-black uppercase tracking-widest" leftIcon={<Chrome size={16} />}>
                                     Google
                                 </Button>
                             </motion.div>
                             <motion.div whileHover={{ y: -2 }}>
-                                <Button variant="outline" className="w-full h-12 rounded-2xl border-slate-100 text-[9px] font-black uppercase tracking-widest" leftIcon={<Apple size={16} />}>
+                                <Button variant="outline" className="w-full h-12 rounded-2xl border-border-card text-[9px] font-black uppercase tracking-widest" leftIcon={<Apple size={16} />}>
                                     Apple ID
                                 </Button>
                             </motion.div>
                         </div>
 
-                        <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-loose">
+                        <p className="text-center text-[10px] font-bold text-muted opacity-80 uppercase tracking-widest leading-loose">
                             Don't have an account?{' '}
                             <Link to="/register" className="text-indigo-600 hover:text-indigo-700 hover:underline transition-colors ml-1 font-black">
                                 Join MindBalance

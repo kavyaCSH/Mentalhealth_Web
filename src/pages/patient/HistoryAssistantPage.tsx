@@ -333,20 +333,20 @@ const HistoryAssistantPage = () => {
     };
 
     const renderHeader = (title: string, subtitle: string, showBack = false) => (
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-slate-100 pb-10">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-border-card pb-10">
             <div className="space-y-4">
                 <nav className="flex items-center gap-3">
                     {showBack && (
                         <button onClick={() => { setViewState('list'); setExtractedData(null); }} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                            <ArrowLeft size={20} className="text-slate-600" />
+                            <ArrowLeft size={20} className="text-muted" />
                         </button>
                     )}
                     <span className="text-[10px] font-black text-indigo-700 uppercase tracking-[0.2em] px-3 py-1 bg-indigo-50 rounded-full">Historical Archive</span>
-                    <ChevronRight size={14} className="text-slate-400" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{viewState === 'list' ? 'Clinical Center' : 'Extraction Hub'}</span>
+                    <ChevronRight size={14} className="text-muted opacity-80" />
+                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">{viewState === 'list' ? 'Clinical Center' : 'Extraction Hub'}</span>
                 </nav>
-                <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-[0.9] mb-2">{title}</h1>
-                <p className="text-slate-600 font-bold uppercase text-[11px] tracking-widest">{subtitle}</p>
+                <h1 className="text-5xl font-black text-main tracking-tighter leading-[0.9] mb-2">{title}</h1>
+                <p className="text-muted font-bold uppercase text-[11px] tracking-widest">{subtitle}</p>
             </div>
 
             {((isProfessional && (viewState === 'list' || viewState === 'assistant')) || 
@@ -354,11 +354,11 @@ const HistoryAssistantPage = () => {
                 <div className="flex flex-wrap gap-4">
                     <button 
                         onClick={handleAddManual}
-                        className="h-16 px-10 bg-white text-slate-700 border border-slate-200 rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-sm flex items-center gap-4 hover:bg-slate-50 transition-all active:scale-95"
+                        className="h-16 px-10 bg-card text-main opacity-90 border border-border-card rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-sm flex items-center gap-4 hover:bg-page transition-all active:scale-95"
                     >
                         <Plus size={20} /> Add Manual
                     </button>
-                    <button onClick={() => setViewState('assistant')} className={`h-16 px-10 rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center gap-4 transition-all active:scale-95 ${viewState === 'assistant' ? 'bg-slate-900 text-white shadow-slate-200' : 'bg-indigo-600 text-white shadow-indigo-100 hover:scale-105'}`}>
+                    <button onClick={() => setViewState('assistant')} className={`h-16 px-10 rounded-[2rem] font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center gap-4 transition-all active:scale-95 ${viewState === 'assistant' ? 'bg-indigo-600 text-white shadow-indigo-500/30' : 'bg-card text-main border border-border-card hover:bg-page hover:scale-105'}`}>
                         <Mic size={20} /> {viewState === 'assistant' ? 'AI Recording Active' : 'Record New History'}
                     </button>
                 </div>
@@ -372,11 +372,11 @@ const HistoryAssistantPage = () => {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {loadingHistory ? (
-                    Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-64 bg-slate-50 animate-pulse rounded-[2.5rem]" />)
+                    Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-64 bg-page animate-pulse rounded-[2.5rem]" />)
                 ) : historyList.length === 0 ? (
-                    <div className="col-span-full py-32 flex flex-col items-center gap-6 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200">
+                    <div className="col-span-full py-32 flex flex-col items-center gap-6 bg-page/50 rounded-[3rem] border-2 border-dashed border-border-card">
                         <History size={60} className="text-slate-200" />
-                        <p className="text-slate-400 font-black uppercase tracking-[0.2em]">No clinical records discovered yet.</p>
+                        <p className="text-muted opacity-80 font-black uppercase tracking-[0.2em]">No clinical records discovered yet.</p>
                         <Button variant="primary" size="lg" className="rounded-full px-12" onClick={() => setViewState('assistant')}>Record health narrative</Button>
                     </div>
                 ) : (
@@ -385,19 +385,19 @@ const HistoryAssistantPage = () => {
                             key={record._id || record.id}
                             whileHover={{ y: -8 }}
                             onClick={() => { setSelectedRecord(record); setViewState('detail'); }}
-                            className="p-8 bg-white border border-slate-100 rounded-[3rem] shadow-sm hover:shadow-2xl hover:shadow-indigo-50 hover:border-indigo-100 transition-all cursor-pointer group"
+                            className="p-8 bg-card border border-border-card rounded-[3rem] shadow-sm hover:shadow-2xl hover:shadow-indigo-50 hover:border-indigo-100 transition-all cursor-pointer group"
                         >
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                    <div className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted opacity-80 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                         <Calendar size={18} />
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-400 tracking-widest">{record.createdAt ? new Date(record.createdAt).toLocaleDateString() : 'Snapshot'}</span>
+                                    <span className="text-[10px] font-bold text-muted opacity-80 tracking-widest">{record.createdAt ? new Date(record.createdAt).toLocaleDateString() : 'Snapshot'}</span>
                                 </div>
-                                <div className="px-3 py-1 bg-slate-100 text-slate-600 text-[8px] font-black tracking-widest rounded-full">Archive Record</div>
+                                <div className="px-3 py-1 bg-slate-100 text-muted text-[8px] font-black tracking-widest rounded-full">Archive Record</div>
                             </div>
 
-                            <h3 className="text-xl font-bold text-slate-900 mb-6 line-clamp-3 leading-tight tracking-tight group-hover:text-black">
+                            <h3 className="text-xl font-bold text-main mb-6 line-clamp-3 leading-tight tracking-tight group-hover:text-black">
                                 {record.ai_notes || "Clinical Synthesis Snapshot"}
                             </h3>
 
@@ -407,7 +407,7 @@ const HistoryAssistantPage = () => {
                                 {record.psychiatric_history && <span className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-indigo-100">Psychiatry</span>}
                                 {record.medical_history && <span className="px-3 py-1.5 bg-rose-50 text-rose-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-rose-100">Medical</span>}
                                 {record.family_history && <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-emerald-100">Family</span>}
-                                {record.trauma_history && <span className="px-3 py-1.5 bg-slate-50 text-slate-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-slate-100">Trauma</span>}
+                                {record.trauma_history && <span className="px-3 py-1.5 bg-page text-main opacity-90 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-slate-100">Trauma</span>}
                             </div>
                         </motion.div>
                     ))
@@ -426,7 +426,7 @@ const HistoryAssistantPage = () => {
                 {!extractedData ? (
                     <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} className="grid lg:grid-cols-12 gap-12">
                         <div className="lg:col-span-8 space-y-8">
-                            <div className="card-premium p-12 bg-white min-h-[500px] flex flex-col rounded-[3rem] shadow-xl border border-slate-100 relative">
+                            <div className="card-premium p-12 bg-card min-h-[500px] flex flex-col rounded-[3rem] shadow-xl border border-border-card relative">
                                 <div className="absolute top-8 right-8 flex gap-4">
                                     {narrative && !isRecording && (
                                         <button
@@ -439,16 +439,16 @@ const HistoryAssistantPage = () => {
                                     )}
                                     <button
                                         onClick={toggleRecording}
-                                        className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all shadow-lg ${isRecording
-                                                ? 'bg-red-500 text-white animate-pulse'
-                                                : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+                                        className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all shadow-lg border border-transparent ${isRecording
+                                                ? 'bg-red-500 text-white animate-pulse shadow-red-500/30'
+                                                : 'bg-card border-border-card text-indigo-500 hover:bg-page'
                                             }`}
                                     >
                                         {isRecording ? <MicOff size={24} /> : <Mic size={24} />}
                                     </button>
                                 </div>
                                 <textarea
-                                    className="flex-1 w-full p-8 text-xl font-medium text-slate-700 bg-slate-50/50 rounded-[2.5rem] focus:outline-none focus:border-indigo-200 resize-none leading-relaxed"
+                                    className="flex-1 w-full p-8 text-xl font-medium text-main opacity-90 bg-page/50 rounded-[2.5rem] focus:outline-none focus:border-indigo-200 resize-none leading-relaxed"
                                     placeholder="Share your medical history narrative here..."
                                     value={narrative}
                                     onChange={(e) => setNarrative(e.target.value)}
@@ -507,18 +507,18 @@ const HistoryAssistantPage = () => {
                                      <div className="flex flex-wrap gap-2 mb-6">
                                          {extractedData?.risk_flags?.length ? extractedData.risk_flags.map((f: string, i: number) => (
                                              <span key={i} className="px-3 py-1.5 bg-rose-600/20 border border-rose-500/30 text-rose-200 text-[8px] font-black rounded-xl uppercase tracking-tight">{f}</span>
-                                         )) : <span className="text-[9px] font-bold text-slate-500">Normal profile</span>}
+                                         )) : <span className="text-[9px] font-bold text-muted">Normal profile</span>}
                                      </div>
 
                                      <div className="grid grid-cols-2 gap-4">
                                          {extractedData?.treatment_resistance_risk && (
-                                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                            <div className="p-4 bg-card/5 rounded-2xl border border-white/5">
                                                 <p className="text-[7px] font-black text-indigo-400 uppercase mb-1">TRD</p>
                                                 <p className="text-[9px] font-black uppercase">{extractedData.treatment_resistance_risk}</p>
                                             </div>
                                          )}
                                           {extractedData?.genetic_risk_summary && (
-                                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                            <div className="p-4 bg-card/5 rounded-2xl border border-white/5">
                                                 <p className="text-[7px] font-black text-emerald-400 uppercase mb-1">Genetic</p>
                                                 <p className="text-[9px] font-black uppercase line-clamp-1">{extractedData.genetic_risk_summary}</p>
                                             </div>
@@ -530,21 +530,21 @@ const HistoryAssistantPage = () => {
                         
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {[
-                                { label: 'Psychiatric', value: extractedData.psychiatric_history, icon: <Brain size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
-                                { label: 'Medical', value: extractedData.medical_history, icon: <HeartPulse size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
-                                { label: 'Substance Use', value: extractedData.substance_use, icon: <RotateCcw size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
-                                { label: 'Family Status', value: extractedData.family_history, icon: <Users size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
-                                { label: 'Developmental', value: extractedData.developmental_history, icon: <Activity size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
-                                { label: 'Social Context', value: extractedData.social_history, icon: <Users size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' },
-                                { label: 'Trauma Archive', value: extractedData.trauma_history, icon: <Shield size={20} />, color: 'text-slate-600', bg: 'bg-slate-50' }
+                                { label: 'Psychiatric', value: extractedData.psychiatric_history, icon: <Brain size={20} />, color: 'text-muted', bg: 'bg-page' },
+                                { label: 'Medical', value: extractedData.medical_history, icon: <HeartPulse size={20} />, color: 'text-muted', bg: 'bg-page' },
+                                { label: 'Substance Use', value: extractedData.substance_use, icon: <RotateCcw size={20} />, color: 'text-muted', bg: 'bg-page' },
+                                { label: 'Family Status', value: extractedData.family_history, icon: <Users size={20} />, color: 'text-muted', bg: 'bg-page' },
+                                { label: 'Developmental', value: extractedData.developmental_history, icon: <Activity size={20} />, color: 'text-muted', bg: 'bg-page' },
+                                { label: 'Social Context', value: extractedData.social_history, icon: <Users size={20} />, color: 'text-muted', bg: 'bg-page' },
+                                { label: 'Trauma Archive', value: extractedData.trauma_history, icon: <Shield size={20} />, color: 'text-muted', bg: 'bg-page' }
                             ].map((item, idx) => {
                                 const formattedValue = formatInsightValue(item.value);
                                 if (!formattedValue || formattedValue === 'Not specified') return null;
                                 return (
-                                    <div key={idx} className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm">
+                                    <div key={idx} className="p-8 bg-card border border-border-card rounded-[2.5rem] shadow-sm">
                                         <div className={`w-14 h-14 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center mb-6`}>{item.icon}</div>
-                                        <p className="text-[10px] font-bold text-slate-400 tracking-widest mb-3">{item.label}</p>
-                                        <p className="text-sm font-bold text-slate-800 leading-relaxed">{formattedValue}</p>
+                                        <p className="text-[10px] font-bold text-muted opacity-80 tracking-widest mb-3">{item.label}</p>
+                                        <p className="text-sm font-bold text-main leading-relaxed">{formattedValue}</p>
                                     </div>
                                 );
                             })}
@@ -594,7 +594,7 @@ const HistoryAssistantPage = () => {
             <div className="space-y-12">
                 {renderHeader("Record Detailed Analysis", "Complete clinical synthesis record.", true)}
 
-                <div className="card-premium p-12 bg-white rounded-[4rem] border border-slate-100 shadow-2xl relative overflow-hidden">
+                <div className="card-premium p-12 bg-card rounded-[4rem] border border-border-card shadow-2xl relative overflow-hidden">
                     {/* Status accent bar */}
                     <div className="absolute top-0 left-0 w-full h-2" style={{ backgroundColor: record.color_code || '#6366f1' }} />
                     
@@ -605,8 +605,8 @@ const HistoryAssistantPage = () => {
                             </div>
                             <div>
                                 <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-1">Authenticated Synthesis</p>
-                                <h3 className="text-3xl font-black text-slate-900 tracking-tight uppercase leading-none">Clinical Master Record</h3>
-                                <p className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-widest">{record.createdAt ? new Date(record.createdAt).toLocaleString() : 'Historical Archive'}</p>
+                                <h3 className="text-3xl font-black text-main tracking-tight uppercase leading-none">Clinical Master Record</h3>
+                                <p className="text-xs font-bold text-muted opacity-80 mt-2 uppercase tracking-widest">{record.createdAt ? new Date(record.createdAt).toLocaleString() : 'Historical Archive'}</p>
                             </div>
                         </div>
                         
@@ -631,7 +631,7 @@ const HistoryAssistantPage = () => {
                     <div className="grid lg:grid-cols-12 gap-12">
                         <div className={record.risk_flags?.length > 0 ? "lg:col-span-8 space-y-12" : "lg:col-span-12 space-y-12"}>
                             <section>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
                                     <Sparkles size={16} className="text-indigo-400" /> AI Clinical Conclusion
                                 </p>
                                 <div className="p-10 bg-indigo-50/50 rounded-[4rem] border border-indigo-100/50 shadow-inner">
@@ -642,7 +642,7 @@ const HistoryAssistantPage = () => {
                             </section>
 
                             <section>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
                                     <Shield size={16} className="text-emerald-400" /> Clinical Domain Synthesis
                                 </p>
                                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -653,7 +653,7 @@ const HistoryAssistantPage = () => {
                                         'Substance': <RotateCcw size={24} className="text-orange-600" />,
                                         'Social': <Users size={24} className="text-sky-600" />,
                                         'Developmental': <Activity size={24} className="text-amber-600" />,
-                                        'Trauma': <Shield size={24} className="text-slate-600" />
+                                        'Trauma': <Shield size={24} className="text-muted" />
                                     }).map(([domain, icon]) => {
                                         const domainLower = domain.toLowerCase();
                                         const dataKey = domainLower === 'substance' ? 'substance_use' :
@@ -666,14 +666,14 @@ const HistoryAssistantPage = () => {
                                         if (!domainData || !formattedValue || formattedValue === 'Not specified') return null;
                                         
                                         return (
-                                            <div key={domain} className="p-10 bg-white border border-slate-100 rounded-[3rem] shadow-sm hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-50/20 transition-all flex flex-col group">
+                                            <div key={domain} className="p-10 bg-card border border-border-card rounded-[3rem] shadow-sm hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-50/20 transition-all flex flex-col group">
                                                 <div className="flex items-center gap-4 mb-6">
-                                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
+                                                    <div className="w-12 h-12 rounded-2xl bg-page flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
                                                         {icon}
                                                     </div>
-                                                    <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-indigo-600">{domain} Path</h5>
+                                                    <h5 className="text-[10px] font-black uppercase tracking-widest text-muted opacity-80 group-hover:text-indigo-600">{domain} Path</h5>
                                                 </div>
-                                                <p className="text-xs font-black text-slate-700 leading-relaxed uppercase">{formattedValue}</p>
+                                                <p className="text-xs font-black text-main opacity-90 leading-relaxed uppercase">{formattedValue}</p>
                                             </div>
                                         );
                                     })}
@@ -687,8 +687,8 @@ const HistoryAssistantPage = () => {
                                      <h4 className="text-2xl font-black mb-8 flex items-center gap-4"><ShieldAlert size={32} /> Risk Flags</h4>
                                      <ul className="space-y-6">
                                          {record.risk_flags.map((flag: string, i: number) => (
-                                             <li key={i} className="flex items-center gap-4 p-4 bg-white/10 rounded-[1.5rem] border border-white/5">
-                                                 <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                             <li key={i} className="flex items-center gap-4 p-4 bg-card/10 rounded-[1.5rem] border border-white/5">
+                                                 <div className="w-2 h-2 rounded-full bg-card animate-pulse" />
                                                  <span className="text-[11px] font-black uppercase tracking-widest leading-none">{flag}</span>
                                              </li>
                                          ))}
@@ -707,8 +707,8 @@ const HistoryAssistantPage = () => {
             const value = manualResponses[q.key];
 
             return (
-                <div key={q.key} className="p-10 bg-white border border-slate-100 rounded-[3rem] shadow-sm space-y-6">
-                    <p className="text-lg font-black text-slate-700 block tracking-tight uppercase">
+                <div key={q.key} className="p-10 bg-card border border-border-card rounded-[3rem] shadow-sm space-y-6">
+                    <p className="text-lg font-black text-main opacity-90 block tracking-tight uppercase">
                         {q.patient_label || q.professional_label || q.label}
                     </p>
 
@@ -721,7 +721,7 @@ const HistoryAssistantPage = () => {
                                     className={`px-8 py-3 rounded-full font-bold uppercase text-[10px] tracking-widest border transition-all ${
                                         manualResponses[q.key] === val
                                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
-                                        : 'bg-slate-50 text-slate-500 border-slate-100'
+                                        : 'bg-page text-muted border-border-card'
                                     }`}
                                 >
                                     {val ? 'Yes' : 'No'}
@@ -735,7 +735,7 @@ const HistoryAssistantPage = () => {
                             type={q.type}
                             value={value || ''}
                             onChange={(e) => setManualResponses(prev => ({ ...prev, [q.key]: e.target.value }))}
-                            className="w-full h-16 px-8 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-indigo-600 transition-all font-bold outline-none"
+                            className="w-full h-16 px-8 bg-page border border-border-card rounded-2xl focus:bg-card focus:border-indigo-600 transition-all font-bold outline-none"
                             placeholder={q.placeholder || "Provide details..."}
                         />
                     )}
@@ -744,7 +744,7 @@ const HistoryAssistantPage = () => {
                         <textarea
                             value={value || ''}
                             onChange={(e) => setManualResponses(prev => ({ ...prev, [q.key]: e.target.value }))}
-                            className="w-full h-32 p-8 bg-slate-50 border border-slate-100 rounded-3xl focus:bg-white focus:border-indigo-600 transition-all font-bold outline-none resize-none"
+                            className="w-full h-32 p-8 bg-page border border-border-card rounded-3xl focus:bg-card focus:border-indigo-600 transition-all font-bold outline-none resize-none"
                             placeholder={q.placeholder || "Provide details..."}
                         />
                     )}
@@ -754,12 +754,12 @@ const HistoryAssistantPage = () => {
                             <select
                                 value={value || ''}
                                 onChange={(e) => setManualResponses(prev => ({ ...prev, [q.key]: e.target.value }))}
-                                className="w-full h-16 px-8 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-indigo-600 transition-all font-bold appearance-none cursor-pointer outline-none"
+                                className="w-full h-16 px-8 bg-page border border-border-card rounded-2xl focus:bg-card focus:border-indigo-600 transition-all font-bold appearance-none cursor-pointer outline-none"
                             >
                                 <option value="">Select Option</option>
                                 {q.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
                             </select>
-                            <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 rotate-90 text-slate-400 pointer-events-none" size={16} />
+                            <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 rotate-90 text-muted opacity-80 pointer-events-none" size={16} />
                         </div>
                     )}
 
@@ -778,7 +778,7 @@ const HistoryAssistantPage = () => {
                                     className={`px-6 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest border transition-all ${
                                         Array.isArray(value) && value.includes(opt)
                                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
-                                        : 'bg-white text-slate-900 border-slate-100 hover:border-indigo-200'
+                                        : 'bg-card text-main border-border-card hover:border-indigo-200'
                                     }`}
                                 >
                                     {opt}
@@ -798,7 +798,7 @@ const HistoryAssistantPage = () => {
 
                                 return (
                                    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} key={f.key} className="space-y-4">
-                                       <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{f.label}</p>
+                                       <p className="text-[10px] font-black text-main uppercase tracking-widest">{f.label}</p>
                                        {f.type === 'boolean' && (
                                            <div className="flex gap-4">
                                                {[true, false].map((val) => (
@@ -811,7 +811,7 @@ const HistoryAssistantPage = () => {
                                                        className={`px-8 py-3 rounded-full font-bold uppercase text-[10px] tracking-widest border transition-all ${
                                                            manualResponses[q.key]?.[f.key] === val
                                                            ? 'bg-indigo-600 text-white shadow-md'
-                                                           : 'bg-slate-50 text-slate-400'
+                                                           : 'bg-page text-muted opacity-80'
                                                        }`}
                                                    >
                                                        {val ? 'Yes' : 'No'}
@@ -827,7 +827,7 @@ const HistoryAssistantPage = () => {
                                                    ...prev, 
                                                    [q.key]: { ...(prev[q.key] || {}), [f.key]: e.target.value } 
                                                }))}
-                                               className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white font-bold transition-all outline-none"
+                                               className="w-full h-14 px-6 bg-page border border-border-card rounded-xl focus:bg-card font-bold transition-all outline-none"
                                                placeholder="Enter details..."
                                            />
                                        )}
@@ -839,12 +839,12 @@ const HistoryAssistantPage = () => {
                                                         ...prev, 
                                                         [q.key]: { ...(prev[q.key] || {}), [f.key]: e.target.value } 
                                                     }))}
-                                                    className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white font-bold outline-none appearance-none"
+                                                    className="w-full h-14 px-6 bg-page border border-border-card rounded-xl focus:bg-card font-bold outline-none appearance-none"
                                                 >
                                                     <option value="">Select Option</option>
                                                     {f.options?.map((o: string) => <option key={o} value={o}>{o}</option>)}
                                                 </select>
-                                                <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-slate-400 pointer-events-none" size={14} />
+                                                <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-muted opacity-80 pointer-events-none" size={14} />
                                             </div>
                                        )}
                                    </motion.div>
@@ -857,7 +857,7 @@ const HistoryAssistantPage = () => {
                         <div className="space-y-6">
                             <div className="space-y-4">
                                 {(Array.isArray(value) ? value : []).map((item: any, idx: number) => (
-                                    <div key={idx} className="p-6 bg-slate-50 rounded-3xl space-y-4 relative group">
+                                    <div key={idx} className="p-6 bg-page rounded-3xl space-y-4 relative group">
                                         <button 
                                             onClick={() => {
                                                 const next = value.filter((_: any, i: number) => i !== idx);
@@ -870,7 +870,7 @@ const HistoryAssistantPage = () => {
                                         <div className="grid md:grid-cols-2 gap-4">
                                             {q.item_structure?.map((field: any) => (
                                                 <div key={field.key}>
-                                                    <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">{field.label}</p>
+                                                    <p className="text-[10px] font-black text-main uppercase tracking-widest mb-1">{field.label}</p>
                                                     <input
                                                         type="text"
                                                         value={item[field.key] || ''}
@@ -879,7 +879,7 @@ const HistoryAssistantPage = () => {
                                                             next[idx] = { ...next[idx], [field.key]: e.target.value };
                                                             setManualResponses(prev => ({ ...prev, [q.key]: next }));
                                                         }}
-                                                        className="w-full h-10 px-4 bg-white border border-slate-100 rounded-lg focus:border-indigo-600 transition-all text-xs font-bold"
+                                                        className="w-full h-10 px-4 bg-card border border-border-card rounded-lg focus:border-indigo-600 transition-all text-xs font-bold"
                                                     />
                                                 </div>
                                             ))}
@@ -910,14 +910,14 @@ const HistoryAssistantPage = () => {
                 {fetchingQuestions ? (
                     <div className="flex flex-col items-center justify-center py-32 gap-6">
                         <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-                        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Accessing Question Library...</p>
+                        <p className="text-muted opacity-80 font-bold uppercase tracking-widest text-xs">Accessing Question Library...</p>
                     </div>
                 ) : (
                     <div className="max-w-4xl mx-auto space-y-16">
                         {questions.map((section: any, sIdx: number) => (
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} key={sIdx} className="space-y-8">
                                 <div className="flex items-center gap-4 border-l-4 border-indigo-600 pl-6 py-2">
-                                    <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{section.title}</h3>
+                                    <h3 className="text-2xl font-black text-main uppercase tracking-tight">{section.title}</h3>
                                 </div>
                                 <div className="grid gap-6">
                                     {section.questions.map((q: any) => renderQuestion(q))}
@@ -925,7 +925,7 @@ const HistoryAssistantPage = () => {
                             </motion.div>
                         ))}
                         
-                        <div className="pt-12 border-t border-slate-100 flex justify-end gap-6">
+                        <div className="pt-12 border-t border-border-card flex justify-end gap-6">
                             <Button variant="white" size="lg" className="rounded-full px-12 h-16" onClick={() => setViewState('list')}>Cancel</Button>
                             <Button variant="primary" size="lg" className="rounded-full px-16 h-16 bg-emerald-600 border-none shadow-xl shadow-emerald-100" onClick={handleManualSave} isLoading={saving}>Finalize Manual Entry</Button>
                         </div>

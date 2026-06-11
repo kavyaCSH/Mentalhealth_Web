@@ -17,7 +17,7 @@ import InputField from '../../components/ui/InputField';
 import AppRatingModal from '../../components/shared/AppRatingModal';
 
 
-const MenuItem = ({ icon: IconComp, label, value, onClick, color = "text-indigo-600", bg = "bg-indigo-50" }: any) => (
+const MenuItem = ({ icon: IconComp, label, value, onClick, color = "text-indigo-500", bg = "bg-indigo-500/10" }: any) => (
     <button 
         onClick={onClick}
         className="w-full flex items-center justify-between p-6 hover:bg-page/50 transition-all group"
@@ -195,8 +195,8 @@ const ProfilePage = () => {
                         icon={ShieldCheck} 
                         label="Security & Password" 
                         value="Change login credentials" 
-                        color="text-emerald-600" 
-                        bg="bg-emerald-50"
+                        color="text-emerald-500" 
+                        bg="bg-emerald-500/10"
                         onClick={() => setShowPasswordModal(true)}
                     />
                     <MenuItem 
@@ -204,7 +204,7 @@ const ProfilePage = () => {
                         label="Notifications" 
                         value="Push, SMS, Email" 
                         color="text-amber-500" 
-                        bg="bg-amber-50"
+                        bg="bg-amber-500/10"
                         onClick={() => navigate('/profile/notifications')}
                     />
                     <MenuItem 
@@ -212,7 +212,7 @@ const ProfilePage = () => {
                         label="Precision Location Basis" 
                         value={user?.coordinates ? `${user.coordinates.lat.toFixed(4)}, ${user.coordinates.lng.toFixed(4)}` : "Not Synchronized"} 
                         color="text-blue-500" 
-                        bg="bg-blue-50"
+                        bg="bg-blue-500/10"
                         onClick={() => navigate('/profile/edit')}
                     />
                 </Section>
@@ -229,7 +229,7 @@ const ProfilePage = () => {
                         label="Contact Support" 
                         value="24/7 Clinical Desk" 
                         color="text-orange-500" 
-                        bg="bg-orange-50"
+                        bg="bg-orange-500/10"
                         onClick={() => navigate('/help/support')}
                     />
                     <MenuItem 
@@ -237,21 +237,21 @@ const ProfilePage = () => {
                         label={latestRating ? "Update My Rating" : "Rate the App"} 
                         value={latestRating ? `${latestRating.rating} Stars Recited` : "Share your experience"} 
                         color="text-amber-500" 
-                        bg="bg-amber-50"
+                        bg="bg-amber-500/10"
                         onClick={() => setShowRatingModal(true)}
                     />
                     <MenuItem 
                         icon={ShieldCheck} 
                         label="Privacy Policy" 
-                        color="text-slate-600" 
-                        bg="bg-slate-50"
+                        color="text-slate-500" 
+                        bg="bg-slate-500/10"
                         onClick={() => navigate('/help/article/privacy_policy')}
                     />
                     <MenuItem 
                         icon={FileText} 
                         label="Terms of Service" 
-                        color="text-slate-600" 
-                        bg="bg-slate-50"
+                        color="text-slate-500" 
+                        bg="bg-slate-500/10"
                         onClick={() => navigate('/help/article/terms_of_service')}
                     />
                 </Section>
@@ -265,7 +265,7 @@ const ProfilePage = () => {
                             <p className="font-black text-main text-sm">MindBalance Web Platform</p>
                             <p className="text-[11px] text-muted font-bold uppercase tracking-widest mt-1">Stable Release v{webVersion}</p>
                         </div>
-                        <div className="w-12 h-12 rounded-[1.25rem] bg-page flex items-center justify-center text-muted group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all group-hover:scale-110">
+                        <div className="w-12 h-12 rounded-[1.25rem] bg-page flex items-center justify-center text-muted group-hover:text-indigo-500 group-hover:bg-indigo-500/10 transition-all group-hover:scale-110">
                             <Info size={22} />
                         </div>
                     </button>

@@ -84,7 +84,7 @@ export default function AssessmentCenter() {
     const selOpt = q ? answers[q.questionId as number] : undefined;
     const isLast = idx === questions.length - 1;
     const answered = Object.keys(answers).length;
-    const progress = questions.length ? ((idx + 1) / questions.length) * 100 : 0;
+    const progress = questions.length ? (answered / questions.length) * 100 : 0;
     const allDone = answered >= questions.length;
 
     // Auto-advance to success after submit
@@ -159,20 +159,20 @@ export default function AssessmentCenter() {
 
     // ══ LANDING (Dashboard Style) ════════════════════════════════════════
     if (view === 'landing') return (
-        <div className="min-h-full bg-slate-50/50 flex flex-col items-center py-12 px-6">
+        <div className="min-h-full bg-page/50 flex flex-col items-center py-12 px-6">
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-6xl space-y-10">
 
                 {/* Header / Hero */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white rounded-[32px] p-8 lg:p-12 border border-slate-100 shadow-sm">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-card rounded-[32px] p-8 lg:p-12 border border-border-card shadow-sm">
                     <div className="flex-1 space-y-6">
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full text-indigo-600 text-xs font-black uppercase tracking-widest">
                             <Sparkles size={14} /> Mental Wellness Hub
                         </div>
-                        <h1 className="text-4xl lg:text-5xl font-black text-slate-900 leading-[1.1] tracking-tight">
+                        <h1 className="text-4xl lg:text-5xl font-black text-main leading-[1.1] tracking-tight">
                             How are you feeling <br /><span className="text-indigo-600">today?</span>
                         </h1>
-                        <p className="text-slate-500 font-medium text-lg max-w-xl leading-relaxed">
+                        <p className="text-muted font-medium text-lg max-w-xl leading-relaxed">
                             Take a clinically-backed self-assessment to track your mental well-being across 15+ categories. Secure, private, and insightful.
                         </p>
                         <div className="flex flex-wrap gap-4 pt-2">
@@ -181,7 +181,7 @@ export default function AssessmentCenter() {
                                 {loading ? <Activity size={20} className="animate-spin" /> : <><Brain size={20} /> Start New Assessment</>}
                             </button>
                             <button onClick={fetchHistory}
-                                className="px-8 py-4 bg-white border-2 border-slate-100 text-slate-600 font-black rounded-2xl hover:bg-slate-50 transition-all flex items-center gap-3">
+                                className="px-8 py-4 bg-card border-2 border-border-card text-main opacity-80 font-black rounded-2xl hover:bg-page transition-all flex items-center gap-3">
                                 <Clock size={20} /> View History
                             </button>
                         </div>
@@ -194,7 +194,7 @@ export default function AssessmentCenter() {
                                 <Brain size={180} />
                             </div>
                             <div className="relative z-10 space-y-6">
-                                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                                <div className="w-12 h-12 bg-card/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
                                     <Shield size={24} />
                                 </div>
                                 <div>
@@ -214,13 +214,13 @@ export default function AssessmentCenter() {
                         { icon: <Activity />, title: '15+ Categories', desc: 'DSM-5 informed', color: 'bg-emerald-50 text-emerald-600' },
                         { icon: <Sparkles />, title: 'Instant Score', desc: 'Real-time analysis', color: 'bg-purple-50 text-purple-600' },
                     ].map((item, i) => (
-                        <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-start gap-4 hover:translate-y-[-4px] transition-transform">
+                        <div key={i} className="bg-card p-6 rounded-3xl border border-border-card shadow-sm flex items-start gap-4 hover:translate-y-[-4px] transition-transform">
                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${item.color}`}>
                                 {item.icon}
                             </div>
                             <div>
-                                <h3 className="font-black text-slate-900">{item.title}</h3>
-                                <p className="text-xs font-bold text-slate-400 mt-0.5 uppercase tracking-wide">{item.desc}</p>
+                                <h3 className="font-black text-main">{item.title}</h3>
+                                <p className="text-xs font-bold text-muted mt-0.5 uppercase tracking-wide">{item.desc}</p>
                             </div>
                         </div>
                     ))}
@@ -237,16 +237,16 @@ export default function AssessmentCenter() {
 
     // ══ HISTORY (Dashboard Grid) ══════════════════════════════════════════
     if (view === 'history') return (
-        <div className="min-h-full bg-slate-50/50 flex flex-col items-center py-12 px-6">
+        <div className="min-h-full bg-page/50 flex flex-col items-center py-12 px-6">
             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-6xl space-y-10">
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-1">
-                        <button onClick={reset} className="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest mb-2">
+                        <button onClick={reset} className="flex items-center gap-2 text-xs font-black text-muted hover:text-indigo-600 transition-colors uppercase tracking-widest mb-2">
                             <ChevronLeft size={14} /> Back to Dashboard
                         </button>
-                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Your Assessment Journey</h2>
-                        <p className="text-slate-500 font-medium">Review your historical mental wellness progress and insights.</p>
+                        <h2 className="text-3xl font-black text-main tracking-tight">Your Assessment Journey</h2>
+                        <p className="text-muted font-medium">Review your historical mental wellness progress and insights.</p>
                     </div>
                     <button onClick={start} className="px-8 py-4 bg-slate-900 text-white font-black rounded-2xl shadow-xl hover:bg-slate-800 transition-all flex items-center gap-3">
                         <Brain size={20} /> New Assessment
@@ -254,12 +254,12 @@ export default function AssessmentCenter() {
                 </div>
 
                 {!history.length ? (
-                    <div className="bg-white rounded-[32px] p-24 text-center border border-slate-100 shadow-sm">
-                        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                    <div className="bg-card rounded-[32px] p-24 text-center border border-border-card shadow-sm">
+                        <div className="w-20 h-20 bg-page rounded-3xl flex items-center justify-center mx-auto mb-6">
                             <ClipboardList size={40} className="text-slate-200" />
                         </div>
-                        <h3 className="text-xl font-black text-slate-900 mb-2">No Records Yet</h3>
-                        <p className="text-slate-500 font-medium max-w-sm mx-auto mb-8">Start your first assessment to begin tracking your mental wellness journey.</p>
+                        <h3 className="text-xl font-black text-main mb-2">No Records Yet</h3>
+                        <p className="text-muted font-medium max-w-sm mx-auto mb-8">Start your first assessment to begin tracking your mental wellness journey.</p>
                         <button onClick={start} className="text-indigo-600 font-black text-sm uppercase tracking-[0.2em] hover:opacity-70 transition-opacity">Get Started Now</button>
                     </div>
                 ) : (
@@ -269,7 +269,7 @@ export default function AssessmentCenter() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.05 }}
-                                className="bg-white border border-slate-100 rounded-[28px] p-8 text-left hover:shadow-2xl hover:translate-y-[-8px] transition-all group relative overflow-hidden">
+                                className="bg-card border border-border-card rounded-[28px] p-8 text-left hover:shadow-2xl hover:translate-y-[-8px] transition-all group relative overflow-hidden">
 
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                     <Activity size={80} />
@@ -280,26 +280,26 @@ export default function AssessmentCenter() {
                                         <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-lg">
                                             {item.wellnessAspect || 'Wellness'}
                                         </span>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.date ? new Date(item.date).toLocaleDateString() : 'Recent'}</span>
+                                        <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{item.date ? new Date(item.date).toLocaleDateString() : 'Recent'}</span>
                                     </div>
 
                                     <div>
-                                        <h3 className="text-xl font-black text-slate-900 leading-tight">Mental Health <br />Self-Check</h3>
+                                        <h3 className="text-xl font-black text-main leading-tight">Mental Health <br />Self-Check</h3>
                                     </div>
 
                                     <div className="pt-4 border-t border-slate-50 grid grid-cols-2 gap-4">
                                         <div>
-                                            <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Score</div>
-                                            <div className="text-lg font-black text-indigo-600">{item.totalScore} <span className="text-xs text-slate-400 font-bold">pts</span></div>
+                                            <div className="text-[10px] font-black text-muted opacity-60 uppercase tracking-widest mb-1">Score</div>
+                                            <div className="text-lg font-black text-indigo-600">{item.totalScore} <span className="text-xs text-muted font-bold">pts</span></div>
                                         </div>
                                         <div>
-                                            <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Progress</div>
+                                            <div className="text-[10px] font-black text-muted opacity-60 uppercase tracking-widest mb-1">Progress</div>
                                             <div className="text-lg font-black text-emerald-500">{item.percentage}%</div>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center justify-between pt-2">
-                                        <span className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                        <span className="text-xs font-black text-main uppercase tracking-widest flex items-center gap-2">
                                             View Report <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                         </span>
                                     </div>
@@ -314,10 +314,10 @@ export default function AssessmentCenter() {
 
     // ══ QUIZ (Two-Panel Layout) ══════════════════════════════════════════
     if (view === 'quiz' && q) return (
-        <div className="flex h-full bg-slate-50/50 overflow-hidden">
+        <div className="flex h-full bg-page/50 overflow-hidden">
 
             {/* ── Left Sidebar: Question Navigation ── */}
-            <div className="hidden lg:flex w-72 bg-white border-r border-slate-100 flex-col shrink-0">
+            <div className="hidden lg:flex w-72 bg-card border-r border-border-card flex-col shrink-0">
                 <div className="p-8 border-b border-slate-50">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg"
@@ -325,12 +325,12 @@ export default function AssessmentCenter() {
                             <Ico name={cat.icon} size={20} color="white" />
                         </div>
                         <div>
-                            <h2 className="font-black text-slate-900 text-sm leading-tight">{cat.label}</h2>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Assessment</p>
+                            <h2 className="font-black text-main text-sm leading-tight">{cat.label}</h2>
+                            <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-0.5">Assessment</p>
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-slate-400">
+                        <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-muted">
                             <span>Progress</span>
                             <span style={{ color: cat.color }}>{Math.round(progress)}%</span>
                         </div>
@@ -344,7 +344,7 @@ export default function AssessmentCenter() {
 
                 <div className="flex-1 overflow-auto p-6 space-y-8">
                     <div>
-                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Questions</h3>
+                        <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-4">Questions</h3>
                         <div className="grid grid-cols-4 gap-2">
                             {questions.map((_, i) => {
                                 const isCurrent = i === idx;
@@ -370,7 +370,7 @@ export default function AssessmentCenter() {
                 </div>
 
                 <div className="p-6 border-t border-slate-50">
-                    <button onClick={reset} className="w-full py-3 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-slate-600 transition-colors flex items-center justify-center gap-2">
+                    <button onClick={reset} className="w-full py-3 text-muted font-bold text-xs uppercase tracking-widest hover:text-main opacity-80 transition-colors flex items-center justify-center gap-2">
                         <ChevronLeft size={14} /> Abandon Session
                     </button>
                 </div>
@@ -380,10 +380,10 @@ export default function AssessmentCenter() {
             <div className="flex-1 flex flex-col min-w-0">
 
                 {/* Mobile Header (Hidden on LG) */}
-                <div className="lg:hidden bg-white border-b border-slate-100 p-4 shrink-0">
+                <div className="lg:hidden bg-card border-b border-border-card p-4 shrink-0">
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Question {idx + 1} / {questions.length}</span>
-                        <span className="px-2 py-1 bg-slate-50 rounded-lg text-[10px] font-black text-slate-500 uppercase">{cat.label}</span>
+                        <span className="text-xs font-black text-muted uppercase tracking-widest">Question {idx + 1} / {questions.length}</span>
+                        <span className="px-2 py-1 bg-page rounded-lg text-[10px] font-black text-muted uppercase">{cat.label}</span>
                     </div>
                     <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <motion.div className="h-full" style={{ backgroundColor: cat.color }} animate={{ width: `${progress}%` }} />
@@ -406,7 +406,7 @@ export default function AssessmentCenter() {
                                             <div className="w-8 h-1 bg-indigo-600 rounded-full" />
                                             Active Inquiry
                                         </div>
-                                        <h2 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight">
+                                        <h2 className="text-3xl lg:text-4xl font-black text-main leading-tight">
                                             {q.text}
                                         </h2>
                                     </div>
@@ -420,11 +420,10 @@ export default function AssessmentCenter() {
                                                 <motion.button key={optId} onClick={() => pick(optId)}
                                                     whileHover={{ scale: 1.01 }}
                                                     whileTap={{ scale: 0.98 }}
-                                                    className={`group relative p-6 rounded-[24px] border-2 text-left transition-all ${isSelected ? 'shadow-xl' : 'hover:border-slate-200 hover:bg-white'
+                                                    className={`group relative p-6 rounded-[24px] border-2 text-left transition-all ${isSelected ? 'shadow-xl bg-card' : 'hover:border-border-card hover:bg-page'
                                                         }`}
                                                     style={{
-                                                        backgroundColor: isSelected ? 'white' : 'transparent',
-                                                        borderColor: isSelected ? cat.color : '#f1f5f9',
+                                                        borderColor: isSelected ? cat.color : 'var(--border-card, #f1f5f9)',
                                                     }}>
                                                     <div className="flex items-center gap-4">
                                                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${isSelected ? '' : 'group-hover:border-slate-300'
@@ -433,18 +432,12 @@ export default function AssessmentCenter() {
                                                                 borderColor: isSelected ? cat.color : '#e2e8f0',
                                                                 backgroundColor: isSelected ? cat.color : 'transparent'
                                                             }}>
-                                                            {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                                                            {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-card" />}
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className={`font-black tracking-tight transition-colors ${isSelected ? 'text-slate-900' : 'text-slate-500'
+                                                            <p className={`font-black tracking-tight transition-colors ${isSelected ? 'text-main' : 'text-muted'
                                                                 }`}>{opt.text}</p>
                                                         </div>
-                                                        {opt.score !== undefined && (
-                                                            <div className={`text-[10px] font-black px-2 py-1 rounded-lg transition-colors ${isSelected ? 'bg-slate-50 text-slate-400' : 'bg-white text-slate-300'
-                                                                }`}>
-                                                                +{opt.score}
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </motion.button>
                                             );
@@ -453,16 +446,16 @@ export default function AssessmentCenter() {
 
                                     {/* Notes - Only on last question or long form? Let's keep it consistent. */}
                                     {isLast && (
-                                        <div className="bg-white rounded-3xl border border-slate-100 p-8 space-y-4 shadow-sm">
+                                        <div className="bg-card rounded-3xl border border-border-card p-8 space-y-4 shadow-sm">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                                                <div className="w-8 h-8 rounded-lg bg-page flex items-center justify-center text-muted">
                                                     <ClipboardList size={18} />
                                                 </div>
-                                                <h3 className="font-black text-slate-900 text-sm tracking-tight">Personal Context (Optional)</h3>
+                                                <h3 className="font-black text-main text-sm tracking-tight">Personal Context (Optional)</h3>
                                             </div>
                                             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4}
                                                 placeholder="Write any specific observations or feelings you'd like to include..."
-                                                className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-4 transition-all"
+                                                className="w-full bg-page/50 border border-border-card rounded-2xl px-6 py-4 text-sm font-medium text-main opacity-90 placeholder:text-muted opacity-60 focus:outline-none focus:ring-4 transition-all"
                                                 style={{ '--tw-ring-color': hex2rgba(cat.color, 0.1) } as any} />
                                         </div>
                                     )}
@@ -473,16 +466,16 @@ export default function AssessmentCenter() {
                 </div>
 
                 {/* Footer Controls */}
-                <div className="bg-white border-t border-slate-100 p-6 lg:px-12 shrink-0">
+                <div className="bg-card border-t border-border-card p-6 lg:px-12 shrink-0">
                     <div className="max-w-4xl mx-auto flex items-center justify-between gap-6">
                         <div className="hidden lg:block">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Step {idx + 1} of {questions.length}</p>
+                            <p className="text-xs font-bold text-muted uppercase tracking-[0.2em]">Step {idx + 1} of {questions.length}</p>
                         </div>
 
                         <div className="flex items-center gap-4 w-full lg:w-auto">
                             {idx > 0 && (
                                 <button onClick={() => setIdx(i => i - 1)}
-                                    className="px-8 py-4 text-slate-500 font-black hover:text-indigo-600 transition-colors">
+                                    className="px-8 py-4 text-muted font-black hover:text-indigo-600 transition-colors">
                                     Previous
                                 </button>
                             )}
@@ -515,18 +508,18 @@ export default function AssessmentCenter() {
     const isDetail = view === 'detail';
 
     return (
-        <div className="min-h-full bg-white flex flex-col">
+        <div className="min-h-full bg-card flex flex-col">
 
             {/* Top Navigation Bar */}
-            <div className="bg-white border-b border-slate-100 px-8 py-6 shrink-0 z-20">
+            <div className="bg-card border-b border-border-card px-8 py-6 shrink-0 z-20">
                 <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
                     <div className="flex items-center gap-5">
                         <button onClick={isDetail ? fetchHistory : reset}
-                            className="w-12 h-12 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 transition-colors">
+                            className="w-12 h-12 bg-page hover:bg-slate-100 rounded-2xl flex items-center justify-center text-muted transition-colors">
                             <ChevronLeft size={24} />
                         </button>
                         <div>
-                            <h1 className="text-xl lg:text-3xl font-black text-slate-900 leading-tight">
+                            <h1 className="text-xl lg:text-3xl font-black text-main leading-tight">
                                 {isDetail ? 'Assessment Insights' : 'Great work, your report is ready!'}
                             </h1>
                         </div>
@@ -545,11 +538,11 @@ export default function AssessmentCenter() {
             <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
 
                 {/* ── Left Panel: Summary Score ── */}
-                <div className="lg:w-[400px] border-r border-slate-100 p-8 lg:p-12 overflow-auto shrink-0 bg-slate-50/30">
+                <div className="lg:w-[400px] border-r border-border-card p-8 lg:p-12 overflow-auto shrink-0 bg-page/30">
                     <div className="space-y-10 max-w-sm mx-auto lg:mx-0">
 
                         {/* Summary Card */}
-                        <div className="bg-white rounded-[32px] p-8 lg:p-10 shadow-2xl shadow-indigo-100/50 border border-slate-50 relative overflow-hidden group">
+                        <div className="bg-card rounded-[32px] p-8 lg:p-10 shadow-2xl shadow-indigo-100/50 border border-slate-50 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-5 translate-x-2 -translate-y-2 group-hover:scale-110 transition-transform">
                                 <Brain size={120} />
                             </div>
@@ -560,11 +553,11 @@ export default function AssessmentCenter() {
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Wellness Points</div>
-                                    <div className="text-6xl font-black text-slate-900 tracking-tight">
+                                    <div className="text-[11px] font-black text-muted uppercase tracking-[0.2em] mb-2">Total Wellness Points</div>
+                                    <div className="text-6xl font-black text-main tracking-tight">
                                         {result?.totalScore ?? result?.score ?? '-'}
                                     </div>
-                                    <div className="text-sm font-bold text-slate-400 mt-2 uppercase">out of {result?.maxPossibleScore ?? result?.maxScore ?? '100'}</div>
+                                    <div className="text-sm font-bold text-muted mt-2 uppercase">out of {result?.maxPossibleScore ?? result?.maxScore ?? '100'}</div>
                                 </div>
                                 <div className="pt-6 border-t border-slate-50">
                                     <div className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full text-xs font-black uppercase tracking-widest">
@@ -580,8 +573,8 @@ export default function AssessmentCenter() {
                                 { label: 'Status', val: result?.status ?? 'Checked', color: 'text-blue-600' },
                                 { label: 'Category', val: result?.wellnessAspect ?? 'General', color: 'text-indigo-600' },
                             ].map(s => (
-                                <div key={s.label} className="bg-white p-5 rounded-3xl border border-slate-50 shadow-sm">
-                                    <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1.5">{s.label}</div>
+                                <div key={s.label} className="bg-card p-5 rounded-3xl border border-slate-50 shadow-sm">
+                                    <div className="text-[9px] font-black text-muted opacity-60 uppercase tracking-widest mb-1.5">{s.label}</div>
                                     <div className={`text-sm font-black ${s.color} truncate`}>{s.val}</div>
                                 </div>
                             ))}
@@ -589,7 +582,7 @@ export default function AssessmentCenter() {
 
                         {!isDetail && (
                             <div className="p-1 text-center">
-                                <p className="text-xs font-medium text-slate-400 max-w-[240px] mx-auto">
+                                <p className="text-xs font-medium text-muted max-w-[240px] mx-auto">
                                     Tracking your wellness regularly helps identify patterns and improve resilience.
                                 </p>
                             </div>
@@ -598,12 +591,12 @@ export default function AssessmentCenter() {
                 </div>
 
                 {/* ── Right Panel: Full Breakdown ── */}
-                <div className="flex-1 bg-white overflow-auto p-8 lg:p-12">
+                <div className="flex-1 bg-card overflow-auto p-8 lg:p-12">
                     <div className="max-w-4xl mx-auto space-y-12">
 
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Full Response Breakdown</h2>
-                            <span className="px-4 py-2 bg-slate-50 rounded-xl text-xs font-black text-slate-400 uppercase tracking-widest">
+                        <div className="flex items-center justify-between border-b border-border-card pb-6">
+                            <h2 className="text-2xl font-black text-main tracking-tight">Full Response Breakdown</h2>
+                            <span className="px-4 py-2 bg-page rounded-xl text-xs font-black text-muted uppercase tracking-widest">
                                 {result?.responses?.length || 0} Responses
                             </span>
                         </div>
@@ -621,21 +614,21 @@ export default function AssessmentCenter() {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.03 }}
-                                        className="bg-slate-50/50 p-6 rounded-3xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-white hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-50/30 transition-all group"
+                                        className="bg-page/50 p-6 rounded-3xl border border-border-card flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-card hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-50/30 transition-all group"
                                     >
                                         <div className="flex items-start gap-5 flex-1 max-w-2xl">
-                                            <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:border-indigo-200 transition-colors">
-                                                <span className="text-[11px] font-black text-slate-400 group-hover:text-indigo-500 transition-colors">
+                                            <div className="w-10 h-10 bg-card border border-slate-200 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:border-indigo-200 transition-colors">
+                                                <span className="text-[11px] font-black text-muted group-hover:text-indigo-500 transition-colors">
                                                     {String(i + 1).padStart(2, '0')}
                                                 </span>
                                             </div>
                                             <div className="space-y-3">
-                                                <h3 className="text-sm font-bold text-slate-900 leading-snug group-hover:text-indigo-900 transition-colors">
+                                                <h3 className="text-sm font-bold text-main leading-snug group-hover:text-indigo-900 transition-colors">
                                                     {r.questionText || `Clinical Inquiry ${r.questionId}`}
                                                 </h3>
-                                                <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-white border border-slate-100 rounded-lg shadow-sm">
+                                                <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-card border border-border-card rounded-lg shadow-sm">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-indigo-400 transition-colors" />
-                                                    <span className="text-xs font-black text-slate-600 uppercase tracking-tight">
+                                                    <span className="text-xs font-black text-main opacity-80 uppercase tracking-tight">
                                                         {displayAnswer}
                                                     </span>
                                                 </div>
@@ -643,34 +636,34 @@ export default function AssessmentCenter() {
                                         </div>
                                         <div className="shrink-0 flex items-center gap-4 pl-14 md:pl-0">
                                             <div className="h-8 w-[1px] bg-slate-100 hidden md:block" />
-                                            <div className={`px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[64px] border transition-all ${score > 0 ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100 opacity-60'
+                                            <div className={`px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[64px] border transition-all ${score > 0 ? 'bg-indigo-50 border-indigo-100' : 'bg-page border-border-card opacity-60'
                                                 }`}>
-                                                <span className={`text-sm font-black leading-none ${score > 0 ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                <span className={`text-sm font-black leading-none ${score > 0 ? 'text-indigo-600' : 'text-muted'}`}>
                                                     {score > 0 ? `+${score}` : score}
                                                 </span>
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">pts</span>
+                                                <span className="text-[8px] font-black text-muted uppercase tracking-widest mt-0.5">pts</span>
                                             </div>
                                         </div>
                                     </motion.div>
                                 );
                             }) : (
-                                <div className="text-center py-20 bg-slate-50/50 rounded-[32px] border border-dashed border-slate-200">
+                                <div className="text-center py-20 bg-page/50 rounded-[32px] border border-dashed border-slate-200">
                                     <ClipboardList size={40} className="mx-auto text-slate-200 mb-4" />
-                                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No detailed breakdown available</p>
+                                    <p className="text-muted font-bold uppercase tracking-widest text-xs">No detailed breakdown available</p>
                                 </div>
                             )}
                         </div>
 
                         {/* Recommendation section if available */}
                         {(result?.recommendation || result?.notes) && (
-                            <div className="pt-12 border-t border-slate-100">
-                                <h3 className="text-xl font-black text-slate-900 tracking-tight mb-6">Recommendations & Notes</h3>
+                            <div className="pt-12 border-t border-border-card">
+                                <h3 className="text-xl font-black text-main tracking-tight mb-6">Recommendations & Notes</h3>
                                 <div className="bg-indigo-600 rounded-[32px] p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-8 opacity-10">
                                         <Activity size={100} />
                                     </div>
                                     <div className="relative z-10 space-y-4">
-                                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                                        <div className="w-10 h-10 bg-card/20 rounded-xl flex items-center justify-center backdrop-blur-md">
                                             <Sparkles size={20} />
                                         </div>
                                         <p className="text-lg font-medium leading-relaxed italic opacity-90">

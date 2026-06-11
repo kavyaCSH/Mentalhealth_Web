@@ -226,7 +226,7 @@ const PatientHealthRecords = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Accessing Health Vault...</p>
+                <p className="text-sm font-bold text-muted uppercase tracking-widest">Accessing Health Vault...</p>
             </div>
         );
     }
@@ -237,8 +237,8 @@ const PatientHealthRecords = () => {
                 <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-6">
                     <Activity size={32} />
                 </div>
-                <h2 className="text-xl font-black text-slate-900 mb-2">Sync Interrupted</h2>
-                <p className="text-slate-500 font-medium mb-8 leading-relaxed">{error}</p>
+                <h2 className="text-xl font-black text-main mb-2">Sync Interrupted</h2>
+                <p className="text-muted font-medium mb-8 leading-relaxed">{error}</p>
                 <button
                     onClick={() => { setError(null); fetchRecords(); }}
                     className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-100"
@@ -252,11 +252,11 @@ const PatientHealthRecords = () => {
     return (
         <div className="p-8 max-w-7xl animate-fade-in pb-16">
             <header className="mb-10">
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                <h1 className="text-4xl font-black text-main tracking-tight flex items-center gap-3">
                     <Activity className="text-indigo-600" size={32} />
                     Health overview
                 </h1>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 ml-11">Comprehensive Clinical Profile Journey</p>
+                <p className="text-[10px] font-black text-muted uppercase tracking-widest mt-2 ml-11">Comprehensive Clinical Profile Journey</p>
             </header>
 
 
@@ -268,20 +268,20 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/chief-complaint`)}
-                    className="card-premium p-5 border-slate-100 hover:border-rose-200 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-rose-200 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
                             <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl group-hover:scale-110 transition-transform">
                                 <Stethoscope size={20} />
                             </div>
-                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Chief Complaint History</h2>
+                            <h2 className="text-sm font-black text-main tracking-tight">Chief Complaint History</h2>
                         </div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
+                        <span className="text-[10px] font-black text-muted opacity-70 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Primary Symptom</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Primary Symptom</p>
+                        <p className="text-sm font-semibold text-main opacity-80 leading-relaxed italic">
                             {latestComplaint ? `"${latestComplaint.narrative}"` : '"No chief complaint recorded yet."'}
                         </p>
                     </div>
@@ -293,20 +293,20 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/hpi`)}
-                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
                             <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
                                 <HistoryIcon size={20} />
                             </div>
-                            <h2 className="text-sm font-black text-slate-900 tracking-tight">HPI history</h2>
+                            <h2 className="text-sm font-black text-main tracking-tight">HPI history</h2>
                         </div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
+                        <span className="text-[10px] font-black text-muted opacity-70 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Clinical Narrative</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Clinical Narrative</p>
+                        <p className="text-sm font-semibold text-main opacity-80 leading-relaxed italic">
                             {latestHPI ? `"${latestHPI.narrative}"` : '"No HPI history recorded yet."'}
                         </p>
                     </div>
@@ -317,20 +317,20 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.18 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/mse`)}
-                    className="card-premium p-5 border-slate-100 hover:border-violet-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-violet-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
                             <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl group-hover:scale-110 transition-transform">
                                 <Brain size={20} />
                             </div>
-                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Mental Status</h2>
+                            <h2 className="text-sm font-black text-main tracking-tight">Mental Status</h2>
                         </div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
+                        <span className="text-[10px] font-black text-muted opacity-70 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Examination Activity</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Examination Activity</p>
+                        <p className="text-sm font-semibold text-main opacity-80 leading-relaxed italic">
                             {latestMSE
                                 ? `Last assessed on ${formatDate(latestMSE.createdAt) || 'recent date'}`
                                 : '"No mental status exam conducted."'}
@@ -344,20 +344,20 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/ros`)}
-                    className="card-premium p-5 border-slate-100 hover:border-sky-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-sky-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
                             <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl group-hover:scale-110 transition-transform">
                                 <Stethoscope size={20} />
                             </div>
-                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Review of Systems</h2>
+                            <h2 className="text-sm font-black text-main tracking-tight">Review of Systems</h2>
                         </div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
+                        <span className="text-[10px] font-black text-muted opacity-70 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Systems Scan</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Systems Scan</p>
+                        <p className="text-sm font-semibold text-main opacity-80 leading-relaxed italic">
                             {latestROS
                                 ? `Last reviewed on ${formatDate(latestROS.createdAt) || 'recent date'}`
                                 : '"No systematic review conducted."'}
@@ -370,20 +370,20 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/symptoms?tab=history`)}
-                    className="card-premium p-5 border-slate-100 hover:border-amber-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-amber-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
                             <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:scale-110 transition-transform">
                                 <Activity size={20} />
                             </div>
-                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Symptom history</h2>
+                            <h2 className="text-sm font-black text-main tracking-tight">Symptom history</h2>
                         </div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
+                        <span className="text-[10px] font-black text-muted opacity-70 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Longitudinal Trends</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Longitudinal Trends</p>
+                        <p className="text-sm font-semibold text-main opacity-80 leading-relaxed italic">
                             {latestSymptom
                                 ? `Last logged on ${formatDate(latestSymptom.createdAt) || 'recent date'}`
                                 : 'Review your psychological and physical trends over time.'}
@@ -397,20 +397,20 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.55 }}
                     onClick={() => navigate(`/history/professional`)}
-                    className="card-premium p-5 border-slate-100 hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
                             <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
                                 <Shield size={20} />
                             </div>
-                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Professional Reports</h2>
+                            <h2 className="text-sm font-black text-main tracking-tight">Professional Reports</h2>
                         </div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Clinical Archive</span>
+                        <span className="text-[10px] font-black text-muted opacity-70 uppercase tracking-widest">Clinical Archive</span>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Verified Evaluations</p>
-                        <p className="text-sm font-semibold text-slate-700 leading-relaxed italic">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Verified Evaluations</p>
+                        <p className="text-sm font-semibold text-main opacity-80 leading-relaxed italic">
                             {latestProfAssessment
                                 ? `Last verified report on ${formatDate(latestProfAssessment.date || latestProfAssessment.createdAt) || 'recent date'}`
                                 : '"Awaiting clinical evaluation synthesis."'}
@@ -426,25 +426,25 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45 }}
                     onClick={() => navigate(`/treatment`)}
-                    className="card-premium p-5 border-slate-100 hover:border-emerald-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-emerald-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
                             <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:scale-110 transition-transform">
                                 <ClipboardCheck size={20} />
                             </div>
-                            <h2 className="text-sm font-black text-slate-900 tracking-tight">Treatment Plan</h2>
+                            <h2 className="text-sm font-black text-main tracking-tight">Treatment Plan</h2>
                         </div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Archive</span>
+                        <span className="text-[10px] font-black text-muted opacity-70 uppercase tracking-widest">Archive</span>
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Protocol Status</p>
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Protocol Status</p>
                         {treatmentProgress ? (
                             <div className="space-y-3">
-                                <p className="text-sm font-bold text-slate-700 truncate">{treatmentProgress.diagnosis}</p>
+                                <p className="text-sm font-bold text-main opacity-80 truncate">{treatmentProgress.diagnosis}</p>
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                                        <span className="text-slate-400">Progress</span>
+                                        <span className="text-muted">Progress</span>
                                         <span className="text-emerald-600">{treatmentProgress.overall_progress}%</span>
                                     </div>
                                     <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden">
@@ -456,7 +456,7 @@ const PatientHealthRecords = () => {
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-sm font-semibold text-slate-500 italic uppercase">No active treatment protocol...</p>
+                            <p className="text-sm font-semibold text-muted italic uppercase">No active treatment protocol...</p>
                         )}
                     </div>
                 </motion.div>

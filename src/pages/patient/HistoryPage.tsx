@@ -32,14 +32,14 @@ import type { AssessmentResult, AssessmentMaster } from '../../types/assessment.
 const getSeverityStyle = (severity?: string, interpretation?: string) => {
     const key = String(severity || interpretation || '').toLowerCase();
     if (key.includes('severe') || key.includes('high') || key.includes('extreme'))
-        return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', fill: 'bg-red-500', icon: AlertTriangle };
+        return { color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/20', fill: 'bg-red-500', icon: AlertTriangle };
     if (key.includes('moderate') || key.includes('medium'))
-        return { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', fill: 'bg-orange-500', icon: TrendingUp };
+        return { color: 'text-orange-500', bg: 'bg-orange-500/10', border: 'border-orange-500/20', fill: 'bg-orange-500', icon: TrendingUp };
     if (key.includes('mild') || key.includes('low'))
-        return { color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', fill: 'bg-amber-500', icon: Shield };
+        return { color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20', fill: 'bg-amber-500', icon: Shield };
     if (key.includes('minimal') || key.includes('none') || key.includes('normal'))
-        return { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', fill: 'bg-emerald-500', icon: CheckCircle2 };
-    return { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', fill: 'bg-emerald-500', icon: CheckCircle2 };
+        return { color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', fill: 'bg-emerald-500', icon: CheckCircle2 };
+    return { color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', fill: 'bg-emerald-500', icon: CheckCircle2 };
 };
 
 const HistoryPage = () => {
@@ -199,7 +199,7 @@ const HistoryPage = () => {
                                     navigate(-1);
                                 }
                             }}
-                            className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
+                            className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
                         >
                             <ChevronLeft size={14} /> Back to Patient Record
                         </button>
@@ -208,15 +208,15 @@ const HistoryPage = () => {
                         <CalendarDays size={18} />
                         <span className="text-xs font-black uppercase tracking-widest">{patientId ? 'Patient Results Vault' : 'Clinical Data Repository'}</span>
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                    <h1 className="text-4xl font-black text-main tracking-tight">
                         {activeCategory === 'all' ? 'Assessment' : masters.find(m => m.slug === activeCategory)?.name || 'Assessment'} {patientId ? 'Records' : 'History'}
                     </h1>
                     <div className="flex items-center gap-4 mt-1">
-                        <p className="text-slate-500 font-medium">
+                        <p className="text-muted font-medium">
                             {patientId ? 'Review longitudinal clinical results for this patient.' : 'Manage and export your longitudinal clinical results.'}
                         </p>
                         {history.length > 0 && (
-                            <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-widest">
+                            <span className="px-3 py-1 bg-page text-muted rounded-full text-[10px] font-black uppercase tracking-widest">
                                 {history.length} Attempt{history.length !== 1 ? 's' : ''}
                             </span>
                         )}
@@ -226,7 +226,7 @@ const HistoryPage = () => {
                     <Button
                         variant="primary"
                         leftIcon={<Brain size={18} />}
-                        className="rounded-2xl border-none text-white bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-200 font-extrabold uppercase text-[10px] tracking-widest"
+                        className="rounded-2xl border-none text-white bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 font-extrabold uppercase text-[10px] tracking-widest"
                         onClick={() => navigate('/assessments')}
                     >
                         Start New Assessment
@@ -234,7 +234,7 @@ const HistoryPage = () => {
                     <Button
                         variant="outline"
                         leftIcon={<Plus size={18} />}
-                        className="rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50 font-extrabold uppercase text-[10px] tracking-widest"
+                        className="rounded-2xl border-border-card text-muted hover:bg-page font-extrabold uppercase text-[10px] tracking-widest"
                         onClick={() => navigate('/history/assistant?mode=manual')}
                     >
                         Add Manual History
@@ -246,13 +246,13 @@ const HistoryPage = () => {
             <div className="space-y-4">
                 <div className="flex flex-col lg:flex-row gap-4">
                     <div className="flex-1 relative group">
-                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted opacity-80 group-focus-within:text-indigo-600 transition-colors" />
                         <input
                             type="text"
                             placeholder="Identify specific records or interpretations..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="input-base pl-12 shadow-sm border-slate-100 hover:border-slate-200"
+                            className="input-base pl-12 shadow-sm border-border-card hover:border-border-card"
                         />
                     </div>
                     <div className="flex gap-3">
@@ -261,7 +261,7 @@ const HistoryPage = () => {
                             className={`px-6 py-4 rounded-2xl flex items-center gap-2 font-bold text-sm transition-all border
                                 ${showFilters
                                     ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-100'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'}
+                                    : 'bg-card text-muted border-border-card hover:border-indigo-300'}
                             `}
                         >
                             <Settings2 size={18} />
@@ -281,7 +281,7 @@ const HistoryPage = () => {
                             <div className="p-8 glass-card space-y-8 mt-2">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                             <Brain size={12} /> Mental Health Category
                                         </label>
                                         <div className="flex flex-wrap gap-2">
@@ -290,7 +290,7 @@ const HistoryPage = () => {
                                                 className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all
                                                     ${activeCategory === 'all'
                                                         ? 'bg-indigo-600 text-white border-indigo-600'
-                                                        : 'bg-white text-slate-500 border-slate-100 hover:border-indigo-200'}
+                                                        : 'bg-card text-muted border-border-card hover:border-indigo-200'}
                                                 `}
                                             >
                                                 All
@@ -302,7 +302,7 @@ const HistoryPage = () => {
                                                     className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all
                                                         ${activeCategory === (m.slug || m.id || '')
                                                             ? 'bg-indigo-600 text-white border-indigo-600'
-                                                            : 'bg-white text-slate-500 border-slate-100 hover:border-indigo-200'}
+                                                            : 'bg-card text-muted border-border-card hover:border-indigo-200'}
                                                     `}
                                                 >
                                                     {m.name}
@@ -312,13 +312,13 @@ const HistoryPage = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                             <CheckCircle2 size={12} /> Assessment Status
                                         </label>
                                         <select
                                             value={statusFilter}
                                             onChange={(e) => setStatusFilter(e.target.value)}
-                                            className="w-full bg-slate-50 border-none rounded-2xl py-3 px-4 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full bg-page border-none rounded-2xl py-3 px-4 text-sm font-bold text-main opacity-90 outline-none focus:ring-2 focus:ring-indigo-500"
                                         >
                                             <option value="all">Any Status</option>
                                             <option value="completed">Completed Only</option>
@@ -327,7 +327,7 @@ const HistoryPage = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                             <Calendar size={12} /> Temporal Range
                                         </label>
                                         <div className="grid grid-cols-2 gap-3">
@@ -335,19 +335,19 @@ const HistoryPage = () => {
                                                 type="date"
                                                 value={startDate}
                                                 onChange={(e) => setStartDate(e.target.value)}
-                                                className="bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none"
+                                                className="bg-page border-none rounded-2xl py-3 px-4 text-xs font-bold text-main opacity-90 outline-none"
                                             />
                                             <input
                                                 type="date"
                                                 value={endDate}
                                                 onChange={(e) => setEndDate(e.target.value)}
-                                                className="bg-slate-50 border-none rounded-2xl py-3 px-4 text-xs font-bold text-slate-700 outline-none"
+                                                className="bg-page border-none rounded-2xl py-3 px-4 text-xs font-bold text-main opacity-90 outline-none"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                                <div className="flex items-center justify-between pt-6 border-t border-border-card">
                                     <div className="flex gap-2">
                                         {(activeCategory !== 'all' || statusFilter !== 'all' || startDate || endDate || searchQuery) && (
                                             <button
@@ -358,7 +358,7 @@ const HistoryPage = () => {
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                                    <p className="text-[10px] text-muted opacity-80 font-black uppercase tracking-widest">
                                         Showing {filteredHistory.length} Identities
                                     </p>
                                 </div>
@@ -373,7 +373,7 @@ const HistoryPage = () => {
                 {isLoading && page === 1 ? (
                     <div className="py-20 text-center">
                         <Activity className="animate-spin mx-auto text-indigo-400 mb-4" size={32} />
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Synchronizing Clinical Data...</p>
+                        <p className="text-sm font-bold text-muted opacity-80 uppercase tracking-widest">Synchronizing Clinical Data...</p>
                     </div>
                 ) : filteredHistory.length > 0 ? (
                     <>
@@ -400,18 +400,18 @@ const HistoryPage = () => {
                                                 navigate(path);
                                             }
                                         }}
-                                        className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-50/50 hover:border-indigo-100 transition-all group cursor-pointer overflow-hidden relative"
+                                        className="bg-card p-6 rounded-[2.5rem] border border-border-card shadow-sm hover:shadow-xl hover:shadow-indigo-50/50 hover:border-indigo-100 transition-all group cursor-pointer overflow-hidden relative"
                                     >
                                         {/* Row 1: Attempt & Date & Status */}
                                         <div className="flex items-center justify-between mb-6">
                                             <div className="flex items-center gap-3">
-                                                <div className="px-3 py-1 bg-white border border-slate-100 rounded-lg shadow-sm">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">Record #{item.assessmentId || item._id?.slice(-6) || index + 1}</span>
+                                                <div className="px-3 py-1 bg-card border border-border-card rounded-lg shadow-sm">
+                                                    <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-tight">Record #{item.assessmentId || item._id?.slice(-6) || index + 1}</span>
                                                 </div>
                                                 <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${item.isSelf ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
                                                     {item.isSelf ? 'Self-Check' : 'Professional'}
                                                 </div>
-                                                <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                <span className="flex items-center gap-1.5 text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                                                     <Calendar size={12} />
                                                     {new Date(item.date || item.createdAt || '').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                 </span>
@@ -427,7 +427,7 @@ const HistoryPage = () => {
                                                     {getIcon(item.slug || item.type)}
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-xl font-black text-slate-900 group-hover:text-indigo-700 transition-colors">
+                                                    <h3 className="text-xl font-black text-main group-hover:text-indigo-700 transition-colors">
                                                         {displayLabel}
                                                     </h3>
                                                     <div className={`mt-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border inline-flex items-center gap-2 ${style.bg} ${style.color} ${style.border}`}>
@@ -438,25 +438,25 @@ const HistoryPage = () => {
                                             </div>
 
                                             {/* Score Grid aligned with mobile app */}
-                                            <div className="flex items-center gap-8 bg-slate-50/50 p-4 rounded-3xl border border-slate-50">
-                                                <div className="text-center px-4 border-r border-slate-100">
-                                                    <p className="text-2xl font-black text-slate-900 leading-none">
+                                            <div className="flex items-center gap-8 bg-page/50 p-4 rounded-3xl border border-border-card">
+                                                <div className="text-center px-4 border-r border-border-card">
+                                                    <p className="text-2xl font-black text-main leading-none">
                                                         {typeof (item.totalScore ?? item.score) === 'number' ? Math.round(Number(item.totalScore ?? item.score) * 100) / 100 : '--'}
-                                                        <span className="text-xs text-slate-400 ml-1 font-medium">
+                                                        <span className="text-xs text-muted opacity-80 ml-1 font-medium">
                                                             {item.maxPossibleScore ? `/ ${item.maxPossibleScore}` : ''}
                                                         </span>
                                                     </p>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5">
+                                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mt-1.5">
                                                         Raw Score
                                                     </p>
                                                 </div>
 
                                                 {item.percentage !== undefined && (
-                                                    <div className="text-center px-4 border-r border-slate-100">
-                                                        <p className="text-2xl font-black text-slate-900 leading-none">
+                                                    <div className="text-center px-4 border-r border-border-card">
+                                                        <p className="text-2xl font-black text-main leading-none">
                                                             {typeof item.percentage === 'number' ? Math.round(item.percentage * 100) / 100 : item.percentage}%
                                                         </p>
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5">
+                                                        <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mt-1.5">
                                                             Percentage
                                                         </p>
                                                     </div>
@@ -467,13 +467,13 @@ const HistoryPage = () => {
                                                         <p className="text-2xl font-black text-indigo-600 leading-none">
                                                             {typeof item.tScore === 'number' ? Math.round(item.tScore * 100) / 100 : item.tScore}
                                                         </p>
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5">
+                                                        <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mt-1.5">
                                                             T-Score
                                                         </p>
                                                     </div>
                                                 )}
 
-                                                <div className="w-10 h-10 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                                <div className="w-10 h-10 rounded-2xl bg-card border border-border-card flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
                                                     <ChevronRight size={20} />
                                                 </div>
                                             </div>
@@ -482,7 +482,7 @@ const HistoryPage = () => {
                                         {/* Progress Bar & Note */}
                                         <div className="mt-6 flex flex-col gap-4">
                                             {item.percentage !== undefined && (
-                                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className="w-full h-1.5 bg-page rounded-full overflow-hidden">
                                                     <motion.div
                                                         initial={{ width: 0 }}
                                                         animate={{ width: `${Math.min(item.percentage, 100)}%` }}
@@ -492,9 +492,9 @@ const HistoryPage = () => {
                                             )}
 
                                             {item.notes && (
-                                                <div className="flex items-start gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                                                    <Activity size={12} className="text-slate-400 mt-0.5 shrink-0" />
-                                                    <p className="text-[11px] font-bold text-slate-500 line-clamp-1 italic">
+                                                <div className="flex items-start gap-2 bg-page p-3 rounded-2xl border border-border-card">
+                                                    <Activity size={12} className="text-muted opacity-80 mt-0.5 shrink-0" />
+                                                    <p className="text-[11px] font-bold text-muted line-clamp-1 italic">
                                                         Clinical Note: {item.notes}
                                                     </p>
                                                 </div>
@@ -506,13 +506,13 @@ const HistoryPage = () => {
                         </AnimatePresence>
 
                         {hasMore && (
-                            <div className="pt-10 text-center border-t border-slate-50 mt-10">
+                            <div className="pt-10 text-center border-t border-border-card mt-10">
                                 <Button
                                     variant="ghost"
                                     onClick={loadMore}
                                     isLoading={isLoading && page > 1}
                                     rightIcon={<ChevronDown size={18} />}
-                                    className="px-10 py-4 rounded-2xl text-slate-400 hover:text-indigo-600"
+                                    className="px-10 py-4 rounded-2xl text-muted opacity-80 hover:text-indigo-600"
                                 >
                                     Deep Load Clinical Vault
                                 </Button>
@@ -521,13 +521,13 @@ const HistoryPage = () => {
                     </>
                 ) : (
                     <div className="text-center py-32 glass-card">
-                        <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
+                        <div className="w-24 h-24 bg-page rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
                             {fetchError ? <AlertTriangle size={40} className="text-red-400" /> : <BarChart3 size={40} className="text-slate-200" />}
                         </div>
-                        <h3 className="text-2xl font-black text-slate-900 mb-3">
+                        <h3 className="text-2xl font-black text-main mb-3">
                             {fetchError ? 'Sync Failure' : 'Void of Clinical Data'}
                         </h3>
-                        <p className="text-slate-500 font-medium max-w-sm mx-auto">
+                        <p className="text-muted font-medium max-w-sm mx-auto">
                             {fetchError || 'No records were found matching these specific filters.'}
                         </p>
                         <Button

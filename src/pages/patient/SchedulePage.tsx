@@ -141,6 +141,33 @@ const SchedulePage = () => {
         }
     };
 
+    const processAndSortSlots = (slots: string[], dateStr: string) => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const isToday = dateStr === todayStr;
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const parseTime = (timeStr: string) => {
+            const match = timeStr.trim().toLowerCase().match(/^(\d+)[.:](\d+)\s*(am|pm)?$/);
+            if (match) {
+                let h = parseInt(match[1]);
+                const m = parseInt(match[2]);
+                const ampm = match[3];
+                if (ampm === 'pm' && h < 12) h += 12;
+                if (ampm === 'am' && h === 12) h = 0;
+                return h * 60 + m;
+            }
+            return 0;
+        };
+
+        return slots
+            .filter(slot => {
+                if (!isToday) return true;
+                return parseTime(slot) > currentMinutes;
+            })
+            .sort((a, b) => parseTime(a) - parseTime(b));
+    };
+
     const fetchAvailableSlotsBySpecialist = async (specialistId: string, date: string) => {
         try {
             setIsAvailabilityLoading(true);
@@ -151,7 +178,7 @@ const SchedulePage = () => {
                     .filter((s: any) => typeof s === 'string' ? true : s.available !== false)
                     .map((s: any) => typeof s === 'string' ? s : s.startTime || s.time)
                 : [];
-            setAvailableSlots(slotTimes.filter(Boolean) as string[]);
+            setAvailableSlots(processAndSortSlots(slotTimes.filter(Boolean) as string[], date));
         } catch (err) {
             console.error('Error fetching slots:', err);
             setAvailableSlots([]);
@@ -170,7 +197,7 @@ const SchedulePage = () => {
                     .filter((s: any) => typeof s === 'string' ? true : s.available !== false)
                     .map((s: any) => typeof s === 'string' ? s : s.startTime || s.time)
                 : [];
-            setAvailableSlots(slotTimes.filter(Boolean) as string[]);
+            setAvailableSlots(processAndSortSlots(slotTimes.filter(Boolean) as string[], date));
         } catch (err) {
             console.error('Error fetching pooled slots:', err);
             setAvailableSlots([]);
@@ -375,9 +402,22 @@ const SchedulePage = () => {
         setBookingError('');
         try {
             const [y, m, d] = (bookingDate || new Date().toISOString().split('T')[0]).split('-').map(Number);
-            const [h, min] = (bookingTime || '10:00').split(':').map(Number);
             
-            if (isNaN(y) || isNaN(h)) {
+            let h = 10, min = 0;
+            const timeMatch = (bookingTime || '10:00').trim().toLowerCase().match(/^(\d+)(?:[.:](\d+))?\s*(am|pm)?$/);
+            if (timeMatch) {
+                h = parseInt(timeMatch[1], 10);
+                min = parseInt(timeMatch[2] || '0', 10);
+                const ampm = timeMatch[3];
+                if (ampm === 'pm' && h < 12) h += 12;
+                if (ampm === 'am' && h === 12) h = 0;
+            } else {
+                const parts = (bookingTime || '10:00').split(':').map(p => parseInt(p, 10));
+                h = parts[0];
+                min = parts[1] || 0;
+            }
+            
+            if (isNaN(y) || isNaN(h) || isNaN(min)) {
                 throw new Error('Invalid date or time selected.');
             }
 
@@ -460,12 +500,12 @@ const SchedulePage = () => {
     const dayAppointments = appointments.filter((e) => isSameDate(new Date(e.scheduled_at || ''), selectedDate));
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-20">
+        <div className="min-h-screen bg-page pb-20">
             <div className="max-w-7xl p-8 space-y-8 animate-fade-in">
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h3 className="text-5xl font-black text-slate-900 tracking-tight leading-tight">Appointments</h3>
-                        <p className="text-slate-500 font-semibold mt-2 flex items-center gap-2">
+                        <h3 className="text-5xl font-black text-main tracking-tight leading-tight">Appointments</h3>
+                        <p className="text-muted font-semibold mt-2 flex items-center gap-2">
                             <CalendarIcon size={18} className="text-indigo-500" />
                             Your clinical schedule
                         </p>
@@ -485,7 +525,7 @@ const SchedulePage = () => {
                             <CalendarIcon size={120} />
                         </div>
                         <div className="relative z-10 space-y-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                            <div className="w-14 h-14 bg-card/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
                                 <CalendarIcon size={28} />
                             </div>
                             <div>
@@ -497,16 +537,16 @@ const SchedulePage = () => {
                         </div>
                     </div>
 
-                    <div className="md:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div className="md:col-span-2 bg-card rounded-[2.5rem] p-8 shadow-sm border border-border-card flex items-center justify-between">
                         <div className="space-y-1">
-                            <h3 className="text-lg font-black text-slate-900">Today's Focus</h3>
-                            <p className="text-slate-500 text-sm font-medium">You have {appointments.filter(a => isSameDate(new Date(a.scheduled_at || ''), new Date())).length} sessions today</p>
+                            <h3 className="text-lg font-black text-main">Today's Focus</h3>
+                            <p className="text-muted text-sm font-medium">You have {appointments.filter(a => isSameDate(new Date(a.scheduled_at || ''), new Date())).length} sessions today</p>
                         </div>
                         <div className="flex -space-x-3">
                             {[1, 2, 3].map(i => (
                                 <img key={i} src={`https://i.pravatar.cc/100?u=${i}`} className="w-12 h-12 rounded-full border-4 border-white shadow-sm" alt="patient" />
                             ))}
-                            <div className="w-12 h-12 rounded-full border-4 border-white bg-slate-50 flex items-center justify-center text-xs font-black text-slate-400">
+                            <div className="w-12 h-12 rounded-full border-4 border-white bg-page flex items-center justify-center text-xs font-black text-muted opacity-80">
                                 +{Math.max(0, appointments.length - 3)}
                             </div>
                         </div>
@@ -516,16 +556,16 @@ const SchedulePage = () => {
                 <div className="grid lg:grid-cols-12 gap-10">
                     {/* Left: Premium Calendar */}
                     <div className="lg:col-span-4 space-y-8">
-                        <section className="bg-white rounded-[3rem] p-8 shadow-sm border border-slate-100">
+                        <section className="bg-card rounded-[3rem] p-8 shadow-sm border border-border-card">
                             <div className="flex items-center justify-between mb-8 px-2">
-                                <h2 className="text-xl font-black text-slate-900">
+                                <h2 className="text-xl font-black text-main">
                                     {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                                 </h2>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))} className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-500 transition-all">
+                                    <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))} className="p-3 bg-page hover:bg-slate-100 rounded-2xl text-muted transition-all">
                                         <ChevronLeft size={20} />
                                     </button>
-                                    <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-500 transition-all">
+                                    <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="p-3 bg-page hover:bg-slate-100 rounded-2xl text-muted transition-all">
                                         <ChevronRight size={20} />
                                     </button>
                                 </div>
@@ -533,7 +573,7 @@ const SchedulePage = () => {
 
                             <div className="grid grid-cols-7 gap-1 mb-4 text-center">
                                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                                    <div key={day} className="text-[11px] font-black text-slate-400 py-2">
+                                    <div key={day} className="text-[11px] font-black text-muted opacity-80 py-2">
                                         {day}
                                     </div>
                                 ))}
@@ -551,7 +591,7 @@ const SchedulePage = () => {
                                             onClick={() => setSelectedDate(item.date)}
                                             className={`aspect-square rounded-2xl flex flex-col items-center justify-center text-sm font-black transition-all relative
                                                 ${isSelected ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-200 scale-110 z-10' :
-                                                    !item.isCurrentMonth ? 'text-slate-200' : 'text-slate-700 hover:bg-indigo-50'}
+                                                    !item.isCurrentMonth ? 'text-slate-200' : 'text-main opacity-90 hover:bg-indigo-50'}
                                                 ${isToday && !isSelected ? 'border-2 border-indigo-100' : ''}
                                             `}
                                         >
@@ -569,10 +609,10 @@ const SchedulePage = () => {
                     {/* Right: Appointment List with Mobile-Aligned Cards */}
                     <div className="lg:col-span-8 space-y-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                            <h2 className="text-2xl font-black text-main tracking-tight">
                                 {selectedDate.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric' })}
                             </h2>
-                            <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
+                            <span className="text-[10px] font-black text-muted opacity-80 bg-slate-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
                                 {dayAppointments.length} Items
                             </span>
                         </div>
@@ -580,7 +620,7 @@ const SchedulePage = () => {
                         {isLoading ? (
                             <div className="h-96 flex flex-col items-center justify-center opacity-40">
                                 <Activity className="animate-spin text-indigo-600 mb-6" size={48} />
-                                <p className="font-black text-slate-400 uppercase tracking-[0.2em] text-[10px]">Syncing Schedule</p>
+                                <p className="font-black text-muted opacity-80 uppercase tracking-[0.2em] text-[10px]">Syncing Schedule</p>
                             </div>
                         ) : dayAppointments.length > 0 ? (
                             <div className="space-y-6">
@@ -616,7 +656,7 @@ const SchedulePage = () => {
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: idx * 0.1 }}
-                                            className="bg-white rounded-[3.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-50 transition-all group"
+                                            className="bg-card rounded-[3.5rem] overflow-hidden border border-border-card shadow-sm hover:shadow-2xl hover:shadow-indigo-50 transition-all group"
                                         >
                                             <div className="flex flex-col md:flex-row">
                                                 <div className={`w-2 md:w-3 ${color} shrink-0`} />
@@ -628,7 +668,7 @@ const SchedulePage = () => {
                                                             </div>
                                                             <div>
                                                                 <div className="flex items-center gap-3">
-                                                                    <p className="text-2xl font-black text-slate-900 leading-none">
+                                                                    <p className="text-2xl font-black text-main leading-none">
                                                                         {dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                                     </p>
                                                                     {isActive && (
@@ -637,7 +677,7 @@ const SchedulePage = () => {
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                <p className="text-[11px] font-black text-slate-400 tracking-[0.2em] uppercase mt-2">
+                                                                <p className="text-[11px] font-black text-muted opacity-80 tracking-[0.2em] uppercase mt-2">
                                                                     {isVirtual ? 'Virtual' : 'Clinical'} Consult • ID #{appt.id || appt.consult_id}
                                                                 </p>
                                                             </div>
@@ -648,16 +688,18 @@ const SchedulePage = () => {
                                                     </div>
 
                                                     <div className="space-y-4">
-                                                        <p className="text-slate-700 font-bold text-lg">{appt.reason || 'Mental Health Consultation'}</p>
+                                                        <p className="text-main opacity-90 font-bold text-lg">{appt.reason || 'Mental Health Consultation'}</p>
                                                         <div className="flex flex-wrap gap-4">
                                                             {appt.participants?.map((p, pi) => (
-                                                                <div key={pi} className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                                                                <div key={pi} className="flex items-center gap-3 bg-page px-4 py-2 rounded-xl border border-border-card">
                                                                     <img
                                                                         src={`https://i.pravatar.cc/100?u=${p.ref_number || pi}`}
                                                                         alt="avatar"
                                                                         className="w-7 h-7 rounded-full border-2 border-white shadow-sm"
                                                                     />
-                                                                    <span className="text-sm font-bold text-slate-700">{p.name || p.participant_type?.name}</span>
+                                                                    <span className="text-sm font-bold text-main opacity-90">
+                                                                        {(p.participant_info?.name as string) || p.name || p.participant_type?.name || 'Participant'}
+                                                                    </span>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -670,12 +712,12 @@ const SchedulePage = () => {
                                                                     <Video size={16} /> Join Now
                                                                 </button>
                                                             )}
-                                                            <button
+                                                            {/* <button
                                                                 onClick={() => handleAction('billing', appt)}
-                                                                className="px-5 py-3 bg-slate-50 text-slate-600 rounded-xl font-black text-xs border border-slate-100 hover:bg-white transition-all"
+                                                                className="px-5 py-3 bg-page text-muted rounded-xl font-black text-xs border border-border-card hover:bg-card transition-all"
                                                             >
                                                                 Billing
-                                                            </button>
+                                                            </button> */}
                                                             <button
                                                                 onClick={() => handleRescheduleClick(appt)}
                                                                 className="px-5 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-xs border border-indigo-100 hover:bg-indigo-100 transition-all font-sans"
@@ -699,12 +741,12 @@ const SchedulePage = () => {
                                 })}
                             </div>
                         ) : (
-                            <div className="bg-white rounded-[3.5rem] p-16 text-center border-2 border-dashed border-slate-100">
-                                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 text-slate-300">
+                            <div className="bg-card rounded-[3.5rem] p-16 text-center border-2 border-dashed border-border-card">
+                                <div className="w-24 h-24 bg-page rounded-full flex items-center justify-center mx-auto mb-8 text-slate-300">
                                     <CalendarIcon size={48} strokeWidth={1.5} />
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-900 mb-3">Quiet Day Ahead</h3>
-                                <p className="text-slate-400 font-medium max-w-sm mx-auto leading-relaxed">
+                                <h3 className="text-2xl font-black text-main mb-3">Quiet Day Ahead</h3>
+                                <p className="text-muted opacity-80 font-medium max-w-sm mx-auto leading-relaxed">
                                     No appointments scheduled for this date. Use the booking tool to create a new session.
                                 </p>
                             </div>
@@ -722,19 +764,19 @@ const SchedulePage = () => {
                             initial={{ opacity: 0, y: 100, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 100, scale: 0.9 }}
-                            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl z-[70] overflow-hidden flex flex-col max-h-[90vh]"
+                            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl bg-card rounded-[2.5rem] shadow-2xl z-[70] overflow-hidden flex flex-col max-h-[90vh]"
                         >
                             {bookingSuccess ? (
                                 <div className="p-16 text-center space-y-8">
                                     <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600 shadow-2xl shadow-emerald-100">
                                         <CheckCircle2 size={56} />
                                     </div>
-                                    <h2 className="text-4xl font-black text-slate-900 mt-6 tracking-tight">Booked! 🎉</h2>
-                                    <p className="text-slate-500 font-bold text-lg">Your clinical session is synchronized.</p>
+                                    <h2 className="text-4xl font-black text-main mt-6 tracking-tight">Booked! 🎉</h2>
+                                    <p className="text-muted font-bold text-lg">Your clinical session is synchronized.</p>
                                 </div>
                             ) : (
                                 <>
-                                    <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                                    <div className="p-6 border-b border-border-card flex items-center justify-between bg-card shrink-0">
                                         <div className="flex items-center gap-4">
                                             {selectionStep !== 'type' && !reschedulingAppt && (
                                                 <button
@@ -743,13 +785,13 @@ const SchedulePage = () => {
                                                         else if (selectionStep === 'time') setSelectionStep('date');
                                                         else if (selectionStep === 'date') setSelectionStep(selectedSpecialist && searchParams.get('professionalId') ? 'date' : 'type');
                                                     }}
-                                                    className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-all"
+                                                    className="p-2 text-muted opacity-80 hover:bg-page rounded-xl transition-all"
                                                 >
                                                     <ChevronLeft size={20} />
                                                 </button>
                                             )}
                                             <div>
-                                                <h2 className="text-xl font-black text-slate-800 tracking-tight">
+                                                <h2 className="text-xl font-black text-main tracking-tight">
                                                     {selectionStep === 'type' ? 'Select Type' :
                                                         selectionStep === 'date' ? 'Select Date' :
                                                             selectionStep === 'time' ? 'Select Slot' : 'Confirm Details'}
@@ -764,7 +806,7 @@ const SchedulePage = () => {
                                                 )}
                                             </div>
                                         </div>
-                                        <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-xl transition-all">
+                                        <button onClick={() => setIsModalOpen(false)} className="p-2 text-muted opacity-80 hover:bg-page hover:text-muted rounded-xl transition-all">
                                             <X size={20} />
                                         </button>
                                     </div>
@@ -782,14 +824,14 @@ const SchedulePage = () => {
                                                     <button
                                                         key={role.id}
                                                         onClick={() => { setSelectedRole(role.id); setSelectionStep('date'); }}
-                                                        className="flex items-center gap-6 p-6 rounded-[2rem] border-2 border-slate-50 bg-white hover:border-indigo-100 transition-all shadow-sm group text-left"
+                                                        className="flex items-center gap-6 p-6 rounded-[2rem] border-2 border-slate-50 bg-card hover:border-indigo-100 transition-all shadow-sm group text-left"
                                                     >
                                                         <div className={`w-14 h-14 rounded-2xl ${role.bg} flex items-center justify-center ${role.text} border ${role.border} group-hover:scale-110 transition-transform`}>
                                                             <role.icon size={28} />
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className="font-black text-slate-900 text-lg">{role.label}</p>
-                                                            <p className="text-xs font-bold text-slate-400 mt-1">{role.desc}</p>
+                                                            <p className="font-black text-main text-lg">{role.label}</p>
+                                                            <p className="text-xs font-bold text-muted opacity-80 mt-1">{role.desc}</p>
                                                         </div>
                                                         <ChevronRight size={20} className="text-slate-300 group-hover:translate-x-1 transition-all" />
                                                     </button>
@@ -799,8 +841,8 @@ const SchedulePage = () => {
 
                                         {selectionStep === 'date' && (
                                             <div className="space-y-8 animate-fade-in">
-                                                <div className="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100">
-                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4 px-1">
+                                                <div className="bg-page p-6 rounded-[2.5rem] border border-border-card">
+                                                    <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest block mb-4 px-1">
                                                         {reschedulingAppt ? 'Pick a New Date' : 'Consultation Date'}
                                                     </label>
                                                     <input
@@ -812,7 +854,7 @@ const SchedulePage = () => {
                                                             setSelectedSpecialist(null);
                                                             setBookingTime('');
                                                         }}
-                                                        className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-6 text-sm font-black outline-none focus:border-indigo-500"
+                                                        className="w-full bg-card border border-border-card rounded-2xl py-4 px-6 text-sm font-black outline-none focus:border-indigo-500"
                                                         min={new Date().toISOString().split('T')[0]}
                                                     />
                                                 </div>
@@ -828,7 +870,7 @@ const SchedulePage = () => {
                                         {selectionStep === 'time' && (
                                             <div className="space-y-8 animate-fade-in">
                                                 <div className="space-y-4">
-                                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                                                    <h3 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">
                                                         {isAvailabilityLoading && availableSlots.length === 0 ? `Syncing Slots...` : `Available slots on ${new Date(bookingDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`}
                                                     </h3>
                                                     {isAvailabilityLoading && availableSlots.length === 0 ? (
@@ -845,7 +887,7 @@ const SchedulePage = () => {
                                                                         setHasSelectedTime(true);
                                                                         setSelectedSpecialist(null);
                                                                     }}
-                                                                    className={`py-4 rounded-2xl text-xs font-black transition-all border ${bookingTime === time ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-white border-slate-100 text-slate-600 hover:border-indigo-200'}`}
+                                                                    className={`py-4 rounded-2xl text-xs font-black transition-all border ${bookingTime === time ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-card border-border-card text-muted hover:border-indigo-200'}`}
                                                                 >
                                                                     {time}
                                                                 </button>
@@ -859,8 +901,8 @@ const SchedulePage = () => {
                                                 </div>
 
                                                 {hasSelectedTime && (
-                                                    <div className="space-y-4 pt-6 border-t border-slate-100">
-                                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                                                    <div className="space-y-4 pt-6 border-t border-border-card">
+                                                        <h3 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">
                                                             Select Provider for {bookingTime}
                                                         </h3>
                                                         {isAvailabilityLoading ? (
@@ -876,14 +918,14 @@ const SchedulePage = () => {
                                                                         <button
                                                                             key={idx}
                                                                             onClick={() => { setSelectedSpecialist(s); setSelectionStep('details'); }}
-                                                                            className={`w-full flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all shadow-sm group ${isSelected ? 'border-indigo-600 bg-indigo-50' : 'border-slate-50 bg-white hover:border-indigo-100'}`}
+                                                                            className={`w-full flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all shadow-sm group ${isSelected ? 'border-indigo-600 bg-indigo-50' : 'border-slate-50 bg-card hover:border-indigo-100'}`}
                                                                         >
                                                                             <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 font-black text-xs border border-indigo-200 group-hover:scale-110 transition-transform uppercase">
                                                                                 {name.substring(0, 1)}
                                                                             </div>
                                                                             <div className="text-left flex-1">
-                                                                                <p className="font-black text-slate-900">{name}</p>
-                                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.specialization || s.role || 'Clinical Expert'}</p>
+                                                                                <p className="font-black text-main">{name}</p>
+                                                                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">{s.specialization || s.role || 'Clinical Expert'}</p>
                                                                             </div>
                                                                             {isSelected && <CheckCircle2 size={24} className="text-indigo-600" />}
                                                                         </button>
@@ -905,7 +947,7 @@ const SchedulePage = () => {
                                             <div className="space-y-8 animate-fade-in">
                                                 <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
                                                     <div className="relative z-10 flex items-center gap-6">
-                                                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                                                        <div className="w-16 h-16 bg-card/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
                                                             <Activity size={32} />
                                                         </div>
                                                         <div>
@@ -924,13 +966,13 @@ const SchedulePage = () => {
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Reason for Visit</label>
+                                                    <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Reason for Visit</label>
                                                     <textarea
                                                         rows={4}
                                                         placeholder="Briefly describe what you'd like to discuss..."
                                                         value={bookingReason}
                                                         onChange={e => setBookingReason(e.target.value)}
-                                                        className="w-full bg-slate-50 border border-slate-100 rounded-[2rem] p-6 text-sm font-semibold focus:outline-none focus:bg-white focus:border-indigo-200 transition-all shadow-inner resize-none"
+                                                        className="w-full bg-page border border-border-card rounded-[2rem] p-6 text-sm font-semibold focus:outline-none focus:bg-card focus:border-indigo-200 transition-all shadow-inner resize-none"
                                                     />
                                                 </div>
 
@@ -944,7 +986,7 @@ const SchedulePage = () => {
                                                 <button
                                                     onClick={handleBookAppointment}
                                                     disabled={isBooking}
-                                                    className="w-full bg-slate-900 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 hover:bg-indigo-600 active:scale-95 transition-all flex items-center justify-center gap-3"
+                                                    className="w-full bg-indigo-600 text-white py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
                                                 >
                                                     {isBooking ? <Activity className="animate-spin" size={20} /> : (reschedulingAppt ? 'Update Session' : 'Confirm Appointment')}
                                                 </button>

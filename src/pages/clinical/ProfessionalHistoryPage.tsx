@@ -24,7 +24,7 @@ const getSeverityStyle = (severity?: string, interpretation?: string) => {
     if (key.includes('severe') || key.includes('high') || key.includes('extreme'))
         return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', fill: 'bg-red-500', icon: AlertCircle };
     if (key.includes('moderate') || key.includes('medium'))
-        return { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', fill: 'bg-orange-500', icon: TrendingUp };
+        return { color: 'text-main opacity-90', bg: 'bg-orange-50', border: 'border-orange-100', fill: 'bg-orange-500', icon: TrendingUp };
     if (key.includes('mild') || key.includes('low'))
         return { color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', fill: 'bg-amber-500', icon: Shield };
     return { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', fill: 'bg-emerald-500', icon: CheckCircle2 };
@@ -141,23 +141,23 @@ const ProfessionalHistoryPage = () => {
                     {isPatient ? (
                         <button
                             onClick={() => navigate('/records')}
-                            className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
+                            className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
                         >
                             <ChevronLeft size={14} /> Back to Health Overview
                         </button>
                     ) : (
                         <button
                             onClick={() => navigate(patientId ? `/patients/${patientId}/clinical-hub` : '/')}
-                            className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
+                            className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-2"
                         >
                             <ChevronLeft size={14} /> {patientId ? 'Back to Patient Hub' : 'Back to Dashboard'}
                         </button>
                     )}
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-4">
+                    <h1 className="text-4xl font-black text-main tracking-tight flex items-center gap-4">
                         <Shield className="text-indigo-600" size={32} />
                         {isPatient ? 'Your Professional Reports' : (patientInfo ? `${patientInfo.name}'s History` : 'Clinical Archive')}
                     </h1>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">
+                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mt-2">
                         {isPatient ? 'Authorized Clinician Evaluations & Diagnostic Outcomes' : `Longitudinal Clinical Synthesis & Verified Outcomes for ${patientInfo?.name || 'Authorized Recipient'}`}
                     </p>
                 </div>
@@ -167,13 +167,13 @@ const ProfessionalHistoryPage = () => {
                         variant="ghost"
                         onClick={loadHistory}
                         disabled={isLoading}
-                        className="rounded-2xl text-slate-400 hover:text-indigo-600"
+                        className="rounded-2xl text-muted opacity-80 hover:text-indigo-600"
                     >
                         <Activity className={isLoading ? 'animate-spin' : ''} size={18} />
                     </Button>
                     <Button
                         variant="outline"
-                        className="rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50"
+                        className="rounded-2xl border-border-card text-muted hover:bg-page"
                         onClick={() => {}} // TODO: Export
                     >
                         <Download size={18} />
@@ -186,7 +186,7 @@ const ProfessionalHistoryPage = () => {
                 {isLoading ? (
                     <div className="py-20 text-center">
                         <Activity className="animate-spin mx-auto text-indigo-400 mb-4" size={32} />
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Synchronizing Archive...</p>
+                        <p className="text-sm font-bold text-muted opacity-80 uppercase tracking-widest">Synchronizing Archive...</p>
                     </div>
                 ) : filteredHistory.length > 0 ? (
                     filteredHistory.map((item, index) => {
@@ -199,16 +199,16 @@ const ProfessionalHistoryPage = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.04 }}
                                 onClick={() => navigate(`/history/${item.id}${patientId ? `?patientId=${patientId}` : ''}`)}
-                                className="bg-white rounded-2xl border border-slate-100 shadow-sm transition-all overflow-hidden group mb-2.5 cursor-pointer hover:shadow-lg hover:border-indigo-200 active:scale-[0.98]"
+                                className="bg-card rounded-2xl border border-border-card shadow-sm transition-all overflow-hidden group mb-2.5 cursor-pointer hover:shadow-lg hover:border-indigo-200 active:scale-[0.98]"
                             >
                                 {/* Card Header - Navigation Style */}
-                                <div className="p-3.5 border-b border-slate-50 flex items-center justify-between group-hover:bg-slate-50/30 transition-colors">
+                                <div className="p-3.5 border-b border-border-card flex items-center justify-between group-hover:bg-page/30 transition-colors">
                                     <div className="flex items-center gap-3">
                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${style.bg} ${style.color} group-hover:scale-110 transition-transform shadow-sm`}>
                                             <Brain size={16} />
                                         </div>
                                         <div className="space-y-0 text-left">
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">{item.date}</p>
+                                            <p className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest leading-none">{item.date}</p>
                                             <div className="flex items-center gap-1 mt-0.5">
                                                 <span className={`px-1 py-0.5 rounded-[4px] text-[6px] font-black uppercase tracking-widest ${item.isProfessional ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
                                                     {item.isProfessional ? 'Clinical' : 'Self'}
@@ -221,11 +221,11 @@ const ProfessionalHistoryPage = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2.5">
-                                        <div className="hidden sm:block text-right mr-2 border-r border-slate-100 pr-2">
-                                            <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest italic opacity-60">ID</p>
-                                            <p className="text-[9px] font-bold text-slate-900 tracking-tight leading-none">#{item.id?.slice(-4).toUpperCase()}</p>
+                                        <div className="hidden sm:block text-right mr-2 border-r border-border-card pr-2">
+                                            <p className="text-[7px] font-black text-muted opacity-80 uppercase tracking-widest italic opacity-60">ID</p>
+                                            <p className="text-[9px] font-bold text-main tracking-tight leading-none">#{item.id?.slice(-4).toUpperCase()}</p>
                                         </div>
-                                        <div className="p-1 px-1.5 bg-slate-50 rounded-md group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                        <div className="p-1 px-1.5 bg-page rounded-md group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                             <ChevronRight size={14} />
                                         </div>
                                     </div>
@@ -233,11 +233,11 @@ const ProfessionalHistoryPage = () => {
 
                                 {/* Card Body - Synthesis Preview */}
                                 <div className="p-4 pb-3 space-y-2">
-                                    <h3 className="text-base font-black text-slate-900 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">
+                                    <h3 className="text-base font-black text-main tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">
                                         {item.category || 'General Assessment'}
                                     </h3>
                                     <div className="space-y-1.5 text-left">
-                                        <p className="text-[11px] text-slate-600 font-medium leading-relaxed italic line-clamp-1 opacity-80">
+                                        <p className="text-[11px] text-muted font-medium leading-relaxed italic line-clamp-1 opacity-80">
                                             {item.interpretation || 'No additional synthesis recorded.'}
                                         </p>
                                         {item.notes && (
@@ -254,16 +254,16 @@ const ProfessionalHistoryPage = () => {
                         );
                     })
                 ) : (
-                    <div className="py-32 text-center bg-white rounded-[3rem] border border-dashed border-slate-200">
+                    <div className="py-32 text-center bg-card rounded-[3rem] border border-dashed border-border-card">
                         {fetchError ? (
-                            <AlertCircle className="mx-auto text-rose-500 mb-4" size={48} />
+                            <AlertCircle className="mx-auto text-muted mb-4" size={48} />
                         ) : (
-                            <Shield className="mx-auto text-slate-300 mb-4" size={48} />
+                            <Shield className="mx-auto text-muted opacity-80 mb-4" size={48} />
                         )}
-                        <h3 className="text-xl font-black text-slate-900 uppercase">
+                        <h3 className="text-xl font-black text-main uppercase">
                             {fetchError ? 'Sync Failure' : 'No Assessment Records'}
                         </h3>
-                        <p className="text-slate-400 font-medium mt-2">
+                        <p className="text-muted opacity-80 font-medium mt-2">
                             {fetchError || 'There are no professional assessments recorded for this profile yet.'}
                         </p>
                         {fetchError && (

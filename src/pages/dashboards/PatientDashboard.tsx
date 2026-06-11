@@ -153,18 +153,18 @@ const PatientDashboard = () => {
     return (
         <div className="p-8 space-y-12 animate-fade-in max-w-7xl mx-auto pb-24">
             {/* Header Mirroring Mobile AppHeader home variant */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-slate-50">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-border-card">
                 <div className="space-y-2">
-                    <div className="flex items-center gap-3 text-indigo-600 mb-1">
+                    <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400 mb-1">
                         <Clock size={16} />
                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">{dateString} • {timeString}</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <h1 className="text-5xl font-black tracking-tighter text-slate-900 line-clamp-1">
-                            Hello, <span className="text-indigo-600">{user?.firstName || 'Patient'}</span>
+                        <h1 className="text-5xl font-black tracking-tighter text-main line-clamp-1">
+                            Hello, <span className="text-indigo-600 dark:text-indigo-400">{user?.firstName || 'Patient'}</span>
                         </h1>
                     </div>
-                    <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest mt-1">
+                    <p className="text-muted font-black uppercase text-[10px] tracking-widest mt-1">
                         How is your mental well-being today?
                     </p>
                 </div>
@@ -212,7 +212,7 @@ const PatientDashboard = () => {
                     <div className="flex items-center justify-between px-2">
                         <div className="flex items-center gap-4">
                             <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Upcoming Consultations</h2>
+                            <h2 className="text-2xl font-black text-main tracking-tight">Upcoming Consultations</h2>
                         </div>
                         <button
                             onClick={() => navigate('/schedule')}
@@ -234,7 +234,7 @@ const PatientDashboard = () => {
                                 <motion.div
                                     key={appt.id || appt._id || idx}
                                     whileHover={{ y: -5 }}
-                                    className="bg-white border border-slate-100 rounded-[2.5rem] hover:border-indigo-100 hover:shadow-2xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden"
+                                    className="bg-card border border-border-card rounded-[2.5rem] hover:border-indigo-500/30 hover:shadow-2xl transition-all group relative overflow-hidden"
                                 >
                                     <div className="p-8">
                                         <div className="flex items-start justify-between mb-8">
@@ -244,7 +244,7 @@ const PatientDashboard = () => {
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-3">
-                                                        <h4 className="text-xl font-black text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
+                                                        <h4 className="text-xl font-black text-main line-clamp-1 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
                                                             {appt.reason || 'Symptom Review'}
                                                         </h4>
                                                         {appt.active && (
@@ -252,10 +252,10 @@ const PatientDashboard = () => {
                                                         )}
                                                     </div>
                                                     <div className="flex items-center gap-3 mt-1.5">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                        <span className="text-[10px] font-black text-muted uppercase tracking-widest">
                                                             {isVirtual ? 'Virtual Consultation' : 'In-Person Visit'}
                                                         </span>
-                                                        <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                                                        <span className="w-1 h-1 bg-border-card rounded-full" />
                                                         <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">
                                                             ID #{appt.consult_id || (appt.id || appt._id || '').toString().substring(0, 8)}
                                                         </span>
@@ -267,15 +267,15 @@ const PatientDashboard = () => {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center pt-8 border-t border-slate-50">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center pt-8 border-t border-border-card">
                                             <div className="space-y-4">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                                                    <div className="w-10 h-10 bg-page rounded-xl flex items-center justify-center text-muted">
                                                         <Calendar size={18} />
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Scheduled For</span>
-                                                        <span className="text-sm font-black text-slate-700">
+                                                        <span className="text-[9px] font-black text-muted uppercase tracking-widest">Scheduled For</span>
+                                                        <span className="text-sm font-black text-main opacity-80">
                                                             {!isNaN(dt.getTime())
                                                                 ? dt.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
                                                                 : 'TBD'}
@@ -283,12 +283,12 @@ const PatientDashboard = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                                                    <div className="w-10 h-10 bg-page rounded-xl flex items-center justify-center text-muted">
                                                         <Clock size={18} />
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Time Slot</span>
-                                                        <span className="text-sm font-black text-slate-700">
+                                                        <span className="text-[9px] font-black text-muted uppercase tracking-widest">Time Slot</span>
+                                                        <span className="text-sm font-black text-main opacity-80">
                                                             {!isNaN(dt.getTime())
                                                                 ? dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                                                 : 'TBD'}
@@ -297,9 +297,9 @@ const PatientDashboard = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="bg-slate-50/50 p-4 rounded-3xl space-y-3">
+                                            <div className="bg-page p-4 rounded-3xl space-y-3">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-500 shadow-sm overflow-hidden">
+                                                    <div className="w-10 h-10 bg-card rounded-xl flex items-center justify-center text-indigo-500 shadow-sm overflow-hidden border border-border-card">
                                                         {(specialist?.participant_info as any)?.profile_pic ? (
                                                             <img src={(specialist?.participant_info as any)?.profile_pic} alt="" className="w-full h-full object-cover" />
                                                         ) : (
@@ -307,15 +307,15 @@ const PatientDashboard = () => {
                                                         )}
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Specialist</span>
-                                                        <span className="text-xs font-black text-slate-900 leading-tight">
+                                                        <span className="text-[9px] font-black text-muted uppercase tracking-widest">Specialist</span>
+                                                        <span className="text-xs font-black text-main leading-tight">
                                                             {specialist?.name || (specialist as any)?.firstName ? `${(specialist as any)?.firstName || ''} ${(specialist as any)?.lastName || ''}`.trim() : 'Assigning Specialist...'}
                                                             {specialist?.name && !((specialist as any)?.firstName) && specialist.name}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 {(specialist?.participant_info as any)?.email && (
-                                                    <div className="flex items-center gap-2 text-slate-400 px-1">
+                                                    <div className="flex items-center gap-2 text-muted px-1">
                                                         <Mail size={12} />
                                                         <span className="text-[10px] font-bold truncate max-w-[150px]">{(specialist?.participant_info as any)?.email}</span>
                                                     </div>
@@ -336,7 +336,7 @@ const PatientDashboard = () => {
                                             {['scheduled', 'payment pending', 'new'].includes(statusInfo.label.toLowerCase()) && (
                                                 <button
                                                     onClick={() => handleCancel(appt.id || appt._id || '')}
-                                                    className="flex-1 h-12 border border-slate-100 hover:border-red-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                                    className="flex-1 h-12 border border-border-card hover:border-red-500/50 hover:bg-red-500/10 text-muted hover:text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                                                 >
                                                     <XCircle size={16} />
                                                     Cancel
@@ -345,7 +345,7 @@ const PatientDashboard = () => {
                                             {['scheduled', 'payment pending', 'new'].includes(statusInfo.label.toLowerCase()) && (
                                                 <button
                                                     onClick={() => handleReschedule(appt.id || appt._id || '')}
-                                                    className="flex-1 h-12 border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                                    className="flex-1 h-12 border border-border-card hover:border-indigo-500/50 hover:bg-indigo-500/10 text-muted hover:text-indigo-500 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                                                 >
                                                     <RefreshCcw size={16} />
                                                     Reschedule
@@ -353,7 +353,7 @@ const PatientDashboard = () => {
                                             )}
                                             <button
                                                 onClick={() => navigate(`/teleconsult/${appt.id || appt._id}`)}
-                                                className="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                                                className="w-12 h-12 bg-page border border-border-card text-muted rounded-2xl flex items-center justify-center hover:bg-indigo-600 hover:border-indigo-600 hover:text-white transition-all shadow-sm"
                                             >
                                                 <ArrowUpRight size={20} />
                                             </button>
@@ -374,12 +374,12 @@ const PatientDashboard = () => {
                         whileHover={{ y: -8, scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={action.onPress}
-                        className={`p-8 rounded-[2.5rem] border ${action.border} ${action.bg} flex flex-col items-center justify-center text-center gap-6 transition-all shadow-lg shadow-slate-100/50 hover:shadow-2xl hover:shadow-slate-200/50 group`}
+                        className="p-8 rounded-[2.5rem] border border-border-card bg-card flex flex-col items-center justify-center text-center gap-6 transition-all shadow-lg hover:shadow-2xl hover:border-indigo-500/30 group"
                     >
-                        <div className={`w-16 h-16 rounded-2xl ${action.bg} flex items-center justify-center ${action.color} group-hover:scale-110 transition-transform shadow-inner`}>
+                        <div className={`w-16 h-16 rounded-2xl bg-page border border-border-card flex items-center justify-center ${action.color} group-hover:scale-110 transition-transform shadow-inner`}>
                             {action.icon}
                         </div>
-                        <span className="text-sm font-black text-slate-900 uppercase tracking-widest">{action.label}</span>
+                        <span className="text-sm font-black text-main uppercase tracking-widest">{action.label}</span>
                     </motion.button>
                 ))}
             </div>

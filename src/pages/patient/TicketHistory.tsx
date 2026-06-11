@@ -33,15 +33,15 @@ const TicketHistory = () => {
     const getStatusStyles = (status: TicketStatus) => {
         switch (status) {
             case 'open':
-                return { bg: 'bg-indigo-50 text-indigo-600', icon: Clock, label: 'Open' };
+                return { bg: 'bg-indigo-500/10 text-indigo-500', icon: Clock, label: 'Open' };
             case 'in_progress':
-                return { bg: 'bg-blue-50 text-blue-600', icon: Loader2, label: 'In Progress' };
+                return { bg: 'bg-blue-500/10 text-blue-500', icon: Loader2, label: 'In Progress' };
             case 'resolved':
-                return { bg: 'bg-emerald-50 text-emerald-600', icon: CheckCircle2, label: 'Resolved' };
+                return { bg: 'bg-emerald-500/10 text-emerald-500', icon: CheckCircle2, label: 'Resolved' };
             case 'closed':
-                return { bg: 'bg-slate-50 text-slate-500', icon: AlertCircle, label: 'Closed' };
+                return { bg: 'bg-page text-muted', icon: AlertCircle, label: 'Closed' };
             default:
-                return { bg: 'bg-slate-50 text-slate-500', icon: Clock, label: status };
+                return { bg: 'bg-page text-muted', icon: Clock, label: status };
         }
     };
 
@@ -56,19 +56,19 @@ const TicketHistory = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F9FBFA] pb-24">
+        <div className="min-h-screen bg-page pb-24">
             {/* Header */}
-            <div className="bg-white border-b border-slate-100 sticky top-0 z-30">
+            <div className="bg-card border-b border-border-card sticky top-0 z-30">
                 <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
                     <button 
                         onClick={() => navigate('/help')}
-                        className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                        className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted hover:text-indigo-600 hover:bg-indigo-50 transition-all"
                     >
                         <ChevronLeft size={24} />
                     </button>
                     <div className="flex flex-col items-center">
-                        <h1 className="text-lg font-black text-slate-900 leading-none">Support History</h1>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Track your request</p>
+                        <h1 className="text-lg font-black text-main leading-none">Support History</h1>
+                        <p className="text-[10px] font-bold text-muted opacity-80 uppercase tracking-widest mt-1">Track your request</p>
                     </div>
                     <div className="w-10" />
                 </div>
@@ -77,12 +77,12 @@ const TicketHistory = () => {
             <main className="max-w-3xl mx-auto px-6 mt-12">
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="p-3 bg-card rounded-2xl border border-border-card shadow-sm">
                             <History size={20} className="text-indigo-600" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Recent Tickets</h2>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">Clinical Response Tracking</p>
+                            <h2 className="text-xl font-black text-main tracking-tight">Recent Tickets</h2>
+                            <p className="text-xs font-bold text-muted opacity-80 uppercase tracking-widest mt-0.5">Clinical Response Tracking</p>
                         </div>
                     </div>
                     {tickets.length > 0 && (
@@ -95,16 +95,16 @@ const TicketHistory = () => {
                 {loading ? (
                     <div className="space-y-6">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="h-32 bg-white rounded-[2.5rem] animate-pulse border border-slate-100 shadow-sm"></div>
+                            <div key={i} className="h-32 bg-card rounded-[2.5rem] animate-pulse border border-border-card shadow-sm"></div>
                         ))}
                     </div>
                 ) : error ? (
-                    <div className="bg-white rounded-[2.5rem] p-12 text-center border border-red-50 shadow-xl shadow-red-500/5 flex flex-col items-center">
+                    <div className="bg-card rounded-[2.5rem] p-12 text-center border border-red-50 shadow-xl shadow-red-500/5 flex flex-col items-center">
                         <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mb-6">
                             <AlertTriangle size={36} className="text-red-500" />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-900 mb-2">Error Retrieval</h3>
-                        <p className="text-slate-500 font-medium max-w-xs">{error}</p>
+                        <h3 className="text-2xl font-black text-main mb-2">Error Retrieval</h3>
+                        <p className="text-muted font-medium max-w-xs">{error}</p>
                         <button 
                             onClick={() => window.location.reload()}
                             className="mt-8 bg-slate-900 text-white px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-indigo-600 transition-colors"
@@ -113,12 +113,12 @@ const TicketHistory = () => {
                         </button>
                     </div>
                 ) : tickets.length === 0 ? (
-                    <div className="bg-white rounded-[2.5rem] p-16 text-center border border-slate-100 shadow-sm flex flex-col items-center">
+                    <div className="bg-card rounded-[2.5rem] p-16 text-center border border-border-card shadow-sm flex flex-col items-center">
                         <div className="w-24 h-24 bg-indigo-50 rounded-[2.5rem] flex items-center justify-center mb-8">
                             <HelpCircle size={48} className="text-indigo-600" />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-900 mb-2">No Active Tickets</h3>
-                        <p className="text-slate-500 font-medium max-w-sm mb-10 leading-relaxed">
+                        <h3 className="text-2xl font-black text-main mb-2">No Active Tickets</h3>
+                        <p className="text-muted font-medium max-w-sm mb-10 leading-relaxed">
                             You haven't submitted any clinical or technical support requests yet.
                         </p>
                         <button 
@@ -137,41 +137,41 @@ const TicketHistory = () => {
                             return (
                                 <button
                                     key={ticket._id}
-                                    className="group w-full bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all text-left flex items-start gap-5 relative overflow-hidden"
+                                    className="group w-full bg-card p-6 rounded-[2rem] border border-border-card shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all text-left flex items-start gap-5 relative overflow-hidden"
                                 >
                                     {/* Status Indicator Bar */}
                                     <div className={`absolute left-0 top-0 bottom-0 w-2 ${status.bg.split(' ')[0]}`}></div>
                                     
-                                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-all">
+                                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-page flex items-center justify-center text-muted opacity-80 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-all">
                                         <CategoryIcon size={22} />
                                     </div>
                                     
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between gap-4 mb-1.5">
-                                            <h4 className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors truncate tracking-tight">{ticket.subject}</h4>
+                                            <h4 className="text-sm font-black text-main group-hover:text-indigo-600 transition-colors truncate tracking-tight">{ticket.subject}</h4>
                                             <span className={`shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${status.bg}`}>
                                                 <status.icon size={10} className={ticket.status === 'in_progress' ? 'animate-spin' : ''} />
                                                 {status.label}
                                             </span>
                                         </div>
-                                        <p className="text-xs font-medium text-slate-400 line-clamp-1 mb-3">
+                                        <p className="text-xs font-medium text-muted opacity-80 line-clamp-1 mb-3">
                                             {ticket.message}
                                         </p>
                                         <div className="flex items-center gap-3">
-                                            <div className="flex items-center gap-1.5 text-slate-300">
+                                            <div className="flex items-center gap-1.5 text-muted opacity-60">
                                                 <Clock size={12} />
                                                 <span className="text-[10px] font-bold uppercase tracking-widest">
                                                     {new Date(ticket.createdAt).toLocaleDateString()}
                                                 </span>
                                             </div>
-                                            <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                            <span className="w-1 h-1 rounded-full bg-border-card"></span>
+                                            <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                                                 ID: #{ticket._id.slice(-6).toUpperCase()}
                                             </span>
                                         </div>
                                     </div>
                                     
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 group-hover:text-indigo-500 transition-all">
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-muted opacity-60 group-hover:text-indigo-500 transition-all">
                                         <ChevronRight size={18} />
                                     </div>
                                 </button>

@@ -28,21 +28,21 @@ const Pagination: React.FC<PaginationProps> = ({
     };
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 border-t border-slate-100 bg-white gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 border-t border-border-card bg-card gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-6">
-                <p className="text-xs font-bold text-slate-500 whitespace-nowrap">
-                    Showing <span className="text-slate-900">{startItem}</span> to{' '}
-                    <span className="text-slate-900">{endItem}</span> of{' '}
-                    <span className="text-slate-900">{totalItems}</span> entries
+                <p className="text-xs font-bold text-muted whitespace-nowrap">
+                    Showing <span className="text-main">{startItem}</span> to{' '}
+                    <span className="text-main">{endItem}</span> of{' '}
+                    <span className="text-main">{totalItems}</span> entries
                 </p>
 
                 {onItemsPerPageChange && totalItems > 0 && (
                     <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Per Page:</span>
+                        <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em] ml-2">Per Page:</span>
                         <select
                             value={itemsPerPage}
                             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                            className="bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-2 text-[10px] font-black text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer hover:bg-slate-50"
+                            className="bg-page/50 border border-border-card rounded-xl px-4 py-2 text-[10px] font-black text-main outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer hover:bg-page"
                         >
                             {Array.from(new Set([
                                 5, 10,
@@ -80,24 +80,24 @@ const Pagination: React.FC<PaginationProps> = ({
                     containerClassName="flex items-center gap-1 text-xs font-bold"
                     
                     // Page links
-                    pageClassName="rounded-lg hover:bg-slate-50 transition-colors"
-                    pageLinkClassName="w-8 h-8 flex items-center justify-center text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg"
+                    pageClassName="rounded-lg hover:bg-page transition-colors"
+                    pageLinkClassName="w-8 h-8 flex items-center justify-center text-muted outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg"
                     
                     // Active page styling
-                    activeClassName="bg-indigo-50"
-                    activeLinkClassName="text-indigo-600 cursor-default"
+                    activeClassName="bg-indigo-500/10"
+                    activeLinkClassName="text-indigo-500 cursor-default"
                     
                     // Previous/Next buttons
                     previousClassName="mr-2"
                     nextClassName="ml-2"
-                    previousLinkClassName="px-3 py-1.5 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-slate-50 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 transition-colors uppercase tracking-widest text-[10px] font-black"
-                    nextLinkClassName="px-3 py-1.5 flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-slate-50 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 transition-colors uppercase tracking-widest text-[10px] font-black"
+                    previousLinkClassName="px-3 py-1.5 flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-page rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 transition-colors uppercase tracking-widest text-[10px] font-black"
+                    nextLinkClassName="px-3 py-1.5 flex items-center justify-center text-muted hover:text-indigo-500 hover:bg-page rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 transition-colors uppercase tracking-widest text-[10px] font-black"
                     
                     // Disabled states
                     disabledClassName="opacity-50 pointer-events-none"
                     
                     // Break styling
-                    breakClassName="flex items-center justify-center text-slate-400 w-8"
+                    breakClassName="flex items-center justify-center text-muted w-8"
                 />
             )}
         </div>
