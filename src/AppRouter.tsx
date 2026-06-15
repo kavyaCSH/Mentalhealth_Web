@@ -22,6 +22,7 @@ import PatientHealthRecords from './pages/patient/PatientHealthRecords';
 import PatientTreatmentView from './pages/patient/PatientTreatmentView';
 import HelpCenter from './pages/patient/HelpCenter';
 import HelpArticle from './pages/patient/HelpArticle';
+import TermsOfServicePage from './pages/patient/TermsOfServicePage';
 import EditProfilePage from './pages/shared/EditProfilePage';
 import NotificationSettingsPage from './pages/shared/NotificationSettingsPage';
 import PatientDirectory from './pages/clinical/PatientDirectory';
@@ -171,6 +172,7 @@ const AppRouter = () => {
 
                                 {/* Shared Help Center Routes */}
                                 <Route path="help" element={<HelpCenter />} />
+                                <Route path="help/article/terms_of_service" element={<TermsOfServicePage />} />
                                 <Route path="help/article/:slug" element={<HelpArticle />} />
                                 <Route path="help/support" element={<SupportTicket />} />
                                 <Route path="help/tickets" element={<TicketHistory />} />

@@ -34,6 +34,7 @@ const PatientDashboard = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const { timeString, dateString } = useRealTimeClock();
     const [appointments, setAppointments] = useState<Consultation[]>([]);
+    const [upcomingAppointments, setUpcomingAppointments] = useState<Consultation[]>([]);
     const [showHistoryOptions, setShowHistoryOptions] = useState(false);
 
     const fetchData = async () => {
@@ -43,6 +44,24 @@ const PatientDashboard = () => {
             // Support multiple API response formats (standard array, nested consults, or mobile-style history)
             const consults = data?.history?.consultations || data?.consults || (Array.isArray(data) ? data : []);
             setAppointments(consults);
+
+            // Filter: only show future consultations that are not completed or cancelled
+            const now = new Date();
+            const terminalStatuses = ['completed', 'cancelled', 'canceled'];
+            const upcoming = consults.filter((c: Consultation) => {
+                const dt = new Date(c.scheduled_at);
+                if (isNaN(dt.getTime())) return false; // skip invalid dates
+                const rawStatus = (typeof c.consult_current_status === 'string'
+                    ? c.consult_current_status
+                    : (c.consult_current_status as any)?.name ||
+                      (c.consult_current_status as any)?.slug ||
+                      c.consult_status ||
+                      c.status ||
+                      '').toLowerCase();
+                if (terminalStatuses.includes(rawStatus)) return false;
+                return dt > now;
+            });
+            setUpcomingAppointments(upcoming);
         } catch (err) {
             console.error('Failed to fetch dashboard data', err);
         }
@@ -206,24 +225,24 @@ const PatientDashboard = () => {
                 </div>
             </motion.div>
 
-            {/* Upcoming Consultations Section */}
-            {appointments.length > 0 && (
-                <section className="space-y-8">
-                    <div className="flex items-center justify-between px-2">
-                        <div className="flex items-center gap-4">
-                            <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
-                            <h2 className="text-2xl font-black text-main tracking-tight">Upcoming Consultations</h2>
-                        </div>
-                        <button
-                            onClick={() => navigate('/schedule')}
-                            className="text-indigo-600 font-black uppercase text-[10px] tracking-widest hover:text-indigo-700 transition-colors"
-                        >
-                            My Schedule
-                        </button>
+            {/* Upcoming Consultations Section — always visible */}
+            <section className="space-y-8">
+                <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-4">
+                        <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
+                        <h2 className="text-2xl font-black text-main tracking-tight">Upcoming Consultations</h2>
                     </div>
+                    <button
+                        onClick={() => navigate('/schedule')}
+                        className="text-indigo-600 font-black uppercase text-[10px] tracking-widest hover:text-indigo-700 transition-colors"
+                    >
+                        My Schedule
+                    </button>
+                </div>
 
+                {upcomingAppointments.length > 0 ? (
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                        {appointments.slice(0, 2).map((appt, idx) => {
+                        {upcomingAppointments.slice(0, 2).map((appt, idx) => {
                             if (!appt) return null;
                             const dt = new Date(appt.scheduled_at);
                             const isVirtual = appt.consult_type === 'virtual';
@@ -363,8 +382,40 @@ const PatientDashboard = () => {
                             );
                         })}
                     </div>
-                </section>
-            )}
+                ) : (
+                    /* Empty State — no upcoming consultations */
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative overflow-hidden bg-card border border-border-card rounded-[2.5rem] p-12 flex flex-col items-center justify-center text-center gap-6"
+                    >
+                        {/* Decorative background blobs */}
+                        <div className="absolute -top-8 -right-8 w-48 h-48 bg-indigo-100/40 dark:bg-indigo-900/20 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute -bottom-8 -left-8 w-48 h-48 bg-purple-100/30 dark:bg-purple-900/10 rounded-full blur-3xl pointer-events-none" />
+
+                        <div className="relative z-10 w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-[1.75rem] flex items-center justify-center shadow-inner">
+                            <Calendar size={36} className="text-indigo-400" />
+                        </div>
+
+                        <div className="relative z-10 space-y-2">
+                            <h3 className="text-xl font-black text-main tracking-tight">No Upcoming Consultations</h3>
+                            <p className="text-sm text-muted font-medium max-w-xs leading-relaxed">
+                                You have no sessions scheduled ahead. Book a session with a specialist to get started.
+                            </p>
+                        </div>
+
+                        <motion.button
+                            whileHover={{ scale: 1.04 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => navigate('/schedule?action=book')}
+                            className="relative z-10 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-indigo-100"
+                        >
+                            <Plus size={16} />
+                            Book a Session
+                        </motion.button>
+                    </motion.div>
+                )}
+            </section>
 
             {/* Quick Action Grid mirrored from mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
