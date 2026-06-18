@@ -30,6 +30,7 @@ const Health = () => {
     const [latestROS, setLatestROS] = useState<any>(null);
     const [treatmentProgress, setTreatmentProgress] = useState<TreatmentProgress | null>(null);
     const [resolvedPatientId, setResolvedPatientId] = useState<string | number | null>(null);
+    const [patientName, setPatientName] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -59,6 +60,8 @@ const Health = () => {
                         hexId = userProfile._id || userProfile.id || hexId;
                         numericId = userProfile.userId;
                         setResolvedPatientId(numericId || hexId);
+                        const name = [userProfile.firstName, userProfile.lastName].filter(Boolean).join(' ');
+                        if (name) setPatientName(name);
                         console.log(`[Health] Resolved IDs - Hex: ${hexId}, Numeric: ${numericId}`);
                     }
                 } catch (profileError) {
@@ -266,6 +269,39 @@ const Health = () => {
                         <p className="text-sm font-semibold text-main/80 leading-relaxed">
                             {latestHistory ? `Last intake documented on ${new Date(latestHistory.createdAt).toLocaleDateString()}` : 'No comprehensive history intake performed.'}
                         </p>
+                    </div>
+                </motion.div>
+
+                {/* AI Clinical Diagnosis Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.32 }}
+                    onClick={() => navigate(`/patients/${resolvedPatientId || userId}/ai-diagnosis`)}
+                    className="bg-card p-5 border border-border-card rounded-3xl hover:border-violet-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] shadow-sm relative overflow-hidden"
+                >
+                    <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
+                        <Brain size={100} className="text-violet-900" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-4 relative z-10">
+                        <div className="p-2.5 bg-violet-500/10 text-violet-500 rounded-xl group-hover:scale-110 transition-transform">
+                            <Brain size={20} />
+                        </div>
+                        <h2 className="text-sm font-black text-main tracking-tight flex items-center gap-2">
+                            AI Diagnosis
+                            <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest bg-violet-100 text-violet-600 rounded border border-violet-200">
+                                Beta
+                            </span>
+                        </h2>
+                    </div>
+                    <div className="flex-1 relative z-10">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Decision Support</p>
+                        <p className="text-sm font-semibold text-main/80 leading-relaxed">
+                            Generate structured DSM/ICD assessments from clinical narratives.
+                        </p>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-border-card relative z-10">
+                        <span className="text-[10px] font-black text-violet-500 uppercase tracking-widest">Open Assistant</span>
                     </div>
                 </motion.div>
 

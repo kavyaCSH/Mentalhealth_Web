@@ -141,12 +141,10 @@ const SchedulePage = () => {
         }
     };
 
-    const processAndSortSlots = (slots: string[], dateStr: string) => {
-        const todayStr = new Date().toISOString().split('T')[0];
-        const isToday = dateStr === todayStr;
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
+    const processAndSortSlots = (slots: string[], _dateStr: string) => {
+        // Do NOT filter by client-side time.
+        // The live API (IST server) already returns only future available slots.
+        // Client-side time filtering breaks when server timezone ≠ browser timezone.
         const parseTime = (timeStr: string) => {
             const match = timeStr.trim().toLowerCase().match(/^(\d+)[.:](\d+)\s*(am|pm)?$/);
             if (match) {
@@ -161,10 +159,7 @@ const SchedulePage = () => {
         };
 
         return slots
-            .filter(slot => {
-                if (!isToday) return true;
-                return parseTime(slot) > currentMinutes;
-            })
+            .filter(slot => !!slot)
             .sort((a, b) => parseTime(a) - parseTime(b));
     };
 

@@ -29,6 +29,7 @@ import type { AssessmentResult } from '../../types/assessment.types';
 import type { Patient, ClinicalNote } from '../../types/user.types';
 import type { PatientStats } from '../../types/stats.types';
 import MindBalanceHelpModal from '../../components/clinical/MindBalanceHelpModal';
+import AIDiagnosisPanel from '../../components/clinical/AIDiagnosisPanel';
 
 const PatientRecord = () => {
     const { patientId: id } = useParams<{ patientId: string }>();
@@ -342,6 +343,14 @@ const PatientRecord = () => {
                                 </Button>
                             </div>
                         </div>
+                    )}
+
+                    {/* AI Diagnosis Panel */}
+                    {!isFocused && (
+                        <AIDiagnosisPanel
+                            patientId={Number(patient.userId ?? id)}
+                            patientName={`${patient.firstName} ${patient.lastName || ''}`.trim()}
+                        />
                     )}
 
                     {/* Mind Balance Section (Mood Distribution) */}

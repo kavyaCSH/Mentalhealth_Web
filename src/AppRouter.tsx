@@ -28,6 +28,8 @@ import NotificationSettingsPage from './pages/shared/NotificationSettingsPage';
 import PatientDirectory from './pages/clinical/PatientDirectory';
 import PatientRecord from './pages/clinical/PatientRecord';
 import Health from './pages/clinical/Health';
+import AIDiagnosisPage from './pages/clinical/AIDiagnosisPage';
+import AIDiagnosisResultPage from './pages/clinical/AIDiagnosisResultPage';
 import ChiefComplaint from './pages/clinical/chief-complaint/ChiefComplaint';
 import AddChiefComplaint from './pages/clinical/chief-complaint/AddChiefComplaint';
 import EditChiefComplaint from './pages/clinical/chief-complaint/EditChiefComplaint';
@@ -187,6 +189,8 @@ const AppRouter = () => {
                                 <Route path="assessments/:categoryId" element={<QuestionnairePage />} />
                                 <Route path="patients/:patientId" element={<PatientRecord />} />
                                 <Route path="patients/:patientId/health" element={<Health />} />
+                                <Route path="patients/:patientId/ai-diagnosis" element={<AIDiagnosisPage />} />
+                                <Route path="patients/:patientId/ai-diagnosis/result" element={<AIDiagnosisResultPage />} />
                                 <Route path="patients/:patientId/chief-complaint" element={<ChiefComplaint />} />
                                 <Route path="patients/:patientId/chief-complaint/new" element={<AddChiefComplaint />} />
                                 <Route path="patients/:patientId/chief-complaint/:ccId" element={<ChiefComplaintDetail />} />

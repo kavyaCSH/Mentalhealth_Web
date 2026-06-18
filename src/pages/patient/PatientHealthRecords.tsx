@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Stethoscope, History as HistoryIcon, Activity, Brain, ClipboardCheck } from 'lucide-react';
+import { Stethoscope, History as HistoryIcon, Activity, Brain, ClipboardCheck, Sparkles } from 'lucide-react';
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
@@ -12,6 +12,7 @@ import { TreatmentService } from '../../api/services/treatment.service';
 import { SymptomService } from '../../api/services/symptom.service';
 import { UserService } from '../../api/services/user.service';
 import { AssessmentService } from '../../api/services/assessment.service';
+import { DiagnosisService } from '../../api/services/diagnosis.service';
 import { Shield } from 'lucide-react';
 import type { TreatmentProgress } from '../../types/treatment.types';
 import type { ChiefComplaintResponse } from '../../api/services/chiefComplaint.service';
@@ -46,6 +47,7 @@ const PatientHealthRecords = () => {
     const [latestSymptom, setLatestSymptom] = useState<SymptomRecord | null>(null);
     const [latestProfAssessment, setLatestProfAssessment] = useState<any | null>(null);
     const [treatmentProgress, setTreatmentProgress] = useState<TreatmentProgress | null>(null);
+    const [latestDiagnosis, setLatestDiagnosis] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [resolvedIds, setResolvedIds] = useState({ hex: user?._id || user?.id || '', numeric: user?.userId || '' });
@@ -174,6 +176,23 @@ const PatientHealthRecords = () => {
             });
 
             fetchTreatment();
+
+            // Fetch AI Diagnosis History (uses numeric ID)
+            const fetchDiagnosisHistory = async () => {
+                try {
+                    const numId = Number(resolvedNumericId || resolvedHexId);
+                    if (!numId || isNaN(numId)) return;
+                    const data = await DiagnosisService.getAIDiagnosisHistory(numId);
+                    const records = Array.isArray(data) ? data : (data?.data || []);
+                    if (records.length > 0) {
+                        console.log('[PatientHealthRecords] AI Diagnosis history popped in.');
+                        setLatestDiagnosis(records[0]);
+                    }
+                } catch {
+                    console.warn('[PatientHealthRecords] AI Diagnosis history fetch failed or none yet.');
+                }
+            };
+            fetchDiagnosisHistory();
 
         } catch (error: unknown) {
             console.error('[PatientHealthRecords] Critical hydration loop failure:', error);
@@ -418,6 +437,62 @@ const PatientHealthRecords = () => {
                     </div>
                 </motion.div>
 
+
+                {/* AI Diagnosis History Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    onClick={() => {
+                        const numId = resolvedIds.numeric || user?.userId;
+                        const hexId = resolvedIds.hex || user?._id || user?.id;
+                        navigate(`/patients/${numId || hexId}/ai-diagnosis`);
+                    }}
+                    className="card-premium p-5 border-border-card hover:border-violet-200 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] relative overflow-hidden"
+                >
+                    <div className="absolute top-0 right-0 p-6 opacity-[0.04] group-hover:opacity-[0.07] transition-opacity">
+                        <Brain size={90} className="text-violet-700" />
+                    </div>
+                    <div className="flex items-center justify-between mb-4 relative z-10">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl group-hover:scale-110 transition-transform">
+                                <Sparkles size={20} />
+                            </div>
+                            <h2 className="text-sm font-black text-main tracking-tight flex items-center gap-2">
+                                AI Diagnosis
+                                <span className="px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest bg-violet-100 text-violet-600 rounded border border-violet-200">Beta</span>
+                            </h2>
+                        </div>
+                        <span className="text-[10px] font-black text-muted opacity-70 uppercase tracking-widest">Archive</span>
+                    </div>
+                    <div className="flex-1 relative z-10">
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">AI Clinical Assessments</p>
+                        {latestDiagnosis ? (
+                            <div className="space-y-1">
+                                <p className="text-sm font-semibold text-main opacity-80 leading-relaxed truncate">
+                                    {latestDiagnosis?.data?.diagnosis?.primary?.condition
+                                        || latestDiagnosis?.diagnosis?.primary?.condition
+                                        || latestDiagnosis?.primaryDiagnosis
+                                        || 'Diagnosis recorded'}
+                                </p>
+                                <p className="text-[10px] font-bold text-violet-500">
+                                    Last assessed on {formatDate(
+                                        latestDiagnosis?.created_at
+                                        || latestDiagnosis?.data?.generated_at
+                                        || latestDiagnosis?.generated_at
+                                    ) || 'recent date'}
+                                </p>
+                            </div>
+                        ) : (
+                            <p className="text-sm font-semibold text-main opacity-80 leading-relaxed italic">
+                                No AI diagnosis records yet.
+                            </p>
+                        )}
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-border-card relative z-10">
+                        <span className="text-[10px] font-black text-violet-500 uppercase tracking-widest">View Diagnosis History</span>
+                    </div>
+                </motion.div>
 
 
                 {/* Treatment Journey Card */}
