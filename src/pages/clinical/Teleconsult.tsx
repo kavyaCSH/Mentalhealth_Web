@@ -30,6 +30,7 @@ import { ConsultAssessments } from '../../components/clinical/ConsultAssessments
 import { ConsultQuestionnaire } from '../../components/clinical/ConsultQuestionnaire';
 import { ConsultMSE } from '../../components/clinical/ConsultMSE';
 import { ConsultClinicalIntake } from '../../components/clinical/ConsultClinicalIntake';
+import { ConsultAIDiagnosis, PatientTeleconsultDiagnosisPanel } from '../../components/clinical/TeleconsultAIDiagnosis';
 
 const Teleconsult = () => {
     const { id } = useParams<{ id: string }>();
@@ -47,7 +48,7 @@ const Teleconsult = () => {
     const [isValidating, setIsValidating] = useState(true);
     const [isIframeLoading, setIsIframeLoading] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [activeTool, setActiveTool] = useState<'notes' | 'symptoms' | 'assessments' | 'treatment' | 'past_history' | 'patient_record' | 'mse' | 'clinical_intake' | null>(null);
+    const [activeTool, setActiveTool] = useState<'notes' | 'symptoms' | 'assessments' | 'treatment' | 'past_history' | 'patient_record' | 'mse' | 'clinical_intake' | 'ai_diagnosis' | null>(null);
     const [notes, setNotes] = useState('');
     const [isSavingNotes, setIsSavingNotes] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -254,7 +255,8 @@ const Teleconsult = () => {
                                                             activeTool === 'assessments' ? 'Assessments' :
                                                                 activeTool === 'treatment' ? 'Treatment' :
                                                                     activeTool === 'past_history' ? 'History' :
-                                                                        activeTool === 'patient_record' ? 'Record' : 'Clinical Hub'}
+                                                                        activeTool === 'patient_record' ? 'Record' :
+                                                                            activeTool === 'ai_diagnosis' ? 'AI Diagnosis' : 'Clinical Hub'}
                                                 </h2>
                                                 <p className="text-[8px] text-slate-400 font-bold uppercase tracking-[0.1em] mt-0.5">Focus Workspace</p>
                                             </div>
@@ -277,7 +279,8 @@ const Teleconsult = () => {
                                                 { id: 'assessments', icon: Brain, label: 'DSM-5 Assess', color: 'text-indigo-600' },
                                                 { id: 'treatment', icon: ClipboardCheck, label: 'Treatment Plan', color: 'text-teal-600' },
                                                 { id: 'past_history', icon: History, label: 'Past History', color: 'text-purple-500' },
-                                                { id: 'notes', icon: MessageSquare, label: 'Session Notes', color: 'text-slate-800' }
+                                                { id: 'notes', icon: MessageSquare, label: 'Session Notes', color: 'text-slate-800' },
+                                                { id: 'ai_diagnosis', icon: Brain, label: 'AI Diagnosis', color: 'text-violet-600' }
                                             ].map((tool) => (
                                                 <button
                                                     key={tool.id}
@@ -382,6 +385,10 @@ const Teleconsult = () => {
                                                     consultId={liveAppointment?.consult_id || id}
                                                 />
                                             )}
+
+                                            {activeTool === 'ai_diagnosis' && patientId && (
+                                                <ConsultAIDiagnosis patientId={patientId} />
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -389,6 +396,11 @@ const Teleconsult = () => {
                         </>
                     )}
                 </AnimatePresence>
+
+                {/* Patient-side AI Diagnosis History floating panel */}
+                {!isProfessional && patientId && (
+                    <PatientTeleconsultDiagnosisPanel patientId={Number(patientId)} />
+                )}
             </main>
         </div>
     );

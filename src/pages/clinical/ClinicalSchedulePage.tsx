@@ -38,6 +38,22 @@ const ClinicalSchedulePage = () => {
     const [appointments, setAppointments] = useState<Consultation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    // The API returns slots as plain time strings (e.g. "12.00 pm") OR as objects.
+    // This helper normalises both shapes into { startTime, endTime, available }.
+    const normalizeSlots = (raw: any[]): { startTime: string; endTime: string; available: boolean }[] => {
+        if (!Array.isArray(raw)) return [];
+        return raw.map((s: any) => {
+            if (typeof s === 'string') {
+                return { startTime: s, endTime: '', available: true };
+            }
+            return {
+                startTime: s.startTime || s.start_time || s.time || '',
+                endTime: s.endTime || s.end_time || '',
+                available: s.available !== false,
+            };
+        });
+    };
+
     // Booking Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [bookingStep, setBookingStep] = useState<'patient' | 'details'>('patient');
@@ -102,8 +118,8 @@ const ClinicalSchedulePage = () => {
                     specialist_id: user.userId || user.id,
                     date: selectedDate.toISOString().split('T')[0],
                 });
-                const slotsData = (res as any).data?.slots || (res as any).slots || [];
-                setMainAvailableSlots(Array.isArray(slotsData) ? slotsData : []);
+                const raw: any[] = (res as any).data?.slots || (res as any).slots || [];
+                setMainAvailableSlots(normalizeSlots(raw));
             } catch (err) {
                 console.error('Failed to fetch main view slots', err);
                 setMainAvailableSlots([]);
@@ -185,8 +201,8 @@ const ClinicalSchedulePage = () => {
                         specialist_id: user.userId || user.id,
                         date: bookingDate,
                     });
-                    const slotsData = (res as any).data?.slots || (res as any).slots || [];
-                    setAvailableSlots(Array.isArray(slotsData) ? slotsData : []);
+                    const raw: any[] = (res as any).data?.slots || (res as any).slots || [];
+                    setAvailableSlots(normalizeSlots(raw));
                 } catch (err) {
                     console.error('Failed to fetch slots', err);
                     setAvailableSlots([]);
@@ -207,8 +223,8 @@ const ClinicalSchedulePage = () => {
                         specialist_id: user.userId || user.id,
                         date: rescheduleDate,
                     });
-                    const slotsData = (res as any).data?.slots || (res as any).slots || [];
-                    setRescheduleAvailableSlots(Array.isArray(slotsData) ? slotsData : []);
+                    const raw: any[] = (res as any).data?.slots || (res as any).slots || [];
+                    setRescheduleAvailableSlots(normalizeSlots(raw));
                 } catch (err) {
                     console.error('Failed to fetch slots', err);
                     setRescheduleAvailableSlots([]);
@@ -248,6 +264,29 @@ const ClinicalSchedulePage = () => {
         }
     }, [user, navigate]);
 
+    /**
+     * Parses slot time strings from the API into { h, min }.
+     * The API returns times like "12.00 pm" (dot-separator, AM/PM)
+     * as well as 24-hr strings like "09:30".
+     */
+    const parseSlotTime = (timeStr: string): { h: number; min: number } | null => {
+        if (!timeStr) return null;
+        // 24-hr format: "09:30"
+        const colonMatch = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+        if (colonMatch) return { h: parseInt(colonMatch[1]), min: parseInt(colonMatch[2]) };
+        // 12-hr format with dot or colon: "12.00 pm", "1.30 pm"
+        const ampmMatch = timeStr.match(/^(\d{1,2})[.:]?(\d{2})\s*(am|pm)$/i);
+        if (ampmMatch) {
+            let h = parseInt(ampmMatch[1]);
+            const min = parseInt(ampmMatch[2]);
+            const period = ampmMatch[3].toLowerCase();
+            if (period === 'pm' && h < 12) h += 12;
+            if (period === 'am' && h === 12) h = 0;
+            return { h, min };
+        }
+        return null;
+    };
+
     const handleBookAppointment = useCallback(async () => {
         if (!selectedPatient || !bookingReason.trim()) {
             setBookingError('Please select a patient and provide a reason');
@@ -261,8 +300,13 @@ const ClinicalSchedulePage = () => {
         setIsBooking(true);
         try {
             const [y, m, d] = bookingDate.split('-').map(Number);
-            const [h, min] = bookingTime.split(':').map(Number);
-            const scheduledAt = new Date(y, m - 1, d, h, min).toISOString();
+            const parsed = parseSlotTime(bookingTime);
+            if (!parsed) {
+                setBookingError('Invalid time slot selected. Please select again.');
+                setIsBooking(false);
+                return;
+            }
+            const scheduledAt = new Date(y, m - 1, d, parsed.h, parsed.min).toISOString();
 
             const submissionData = {
                 scheduled_at: scheduledAt,
@@ -310,8 +354,13 @@ const ClinicalSchedulePage = () => {
         setIsRescheduling(true);
         try {
             const [y, m, d] = rescheduleDate.split('-').map(Number);
-            const [h, min] = rescheduleTime.split(':').map(Number);
-            const newScheduledAt = new Date(y, m - 1, d, h, min).toISOString();
+            const parsed = parseSlotTime(rescheduleTime);
+            if (!parsed) {
+                setRescheduleError('Invalid time slot. Please select again.');
+                setIsRescheduling(false);
+                return;
+            }
+            const newScheduledAt = new Date(y, m - 1, d, parsed.h, parsed.min).toISOString();
             const apptId = rescheduleData.id || rescheduleData.consult_id || (rescheduleData as any)._id;
 
             const res = await TeleConsultService.rescheduleConsultation(String(apptId), newScheduledAt);
@@ -599,14 +648,22 @@ const ClinicalSchedulePage = () => {
                                                 if (slot.available !== false) {
                                                     setBookingDate(selectedDate.toISOString().split('T')[0]);
                                                     setBookingTime(slot.startTime);
-                                                    setIsModalOpen(true);
+                                                    // Stay on 'patient' step; once patient is picked,
+                                                    // the details step will re-fetch slots and the
+                                                    // pre-selected time will auto-highlight.
                                                     setBookingStep('patient');
+                                                    setIsModalOpen(true);
                                                 }
                                             }}
                                         >
                                             <div className="flex flex-col gap-1">
-                                                <span className={`text-sm font-black ${slot.available !== false ? 'text-main group-hover:text-indigo-500' : 'text-muted'}`}>{slot.startTime}</span>
-                                                <span className="text-[9px] font-black uppercase text-muted tracking-tighter">
+                                                <span className={`text-sm font-black ${slot.available !== false ? 'text-main group-hover:text-indigo-500' : 'text-muted'}`}>
+                                                    {slot.startTime || '—'}
+                                                </span>
+                                                {slot.endTime && (
+                                                    <span className="text-[9px] font-bold text-muted">{slot.endTime}</span>
+                                                )}
+                                                <span className={`text-[9px] font-black uppercase tracking-tighter ${slot.available !== false ? 'text-emerald-500' : 'text-rose-400'}`}>
                                                     {slot.available !== false ? 'Available' : 'Booked'}
                                                 </span>
                                             </div>
@@ -826,8 +883,9 @@ const ClinicalSchedulePage = () => {
                                                                             }`}
                                                                     >
                                                                         {isSelected && <div className="absolute inset-0 bg-white/20" />}
-                                                                        <span className={`relative z-10 ${isSelected ? 'font-black' : ''}`}>
-                                                                            {slot.startTime} {slot.endTime ? `\n- ${slot.endTime}` : ''}
+                                                                        <span className={`relative z-10 flex flex-col items-center gap-0.5 ${isSelected ? 'font-black' : ''}`}>
+                                                                            <span>{slot.startTime || '—'}</span>
+                                                                            {slot.endTime && <span className="text-[9px] opacity-70">{slot.endTime}</span>}
                                                                         </span>
                                                                     </button>
                                                                 );
