@@ -12,6 +12,7 @@ import {
     CheckCircle2,
     Activity,
     AlertCircle,
+    Clock,
     Search,
     Brain,
     UserPlus,
@@ -51,6 +52,9 @@ const SchedulePage = () => {
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
     const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
     const [hasSelectedTime, setHasSelectedTime] = useState(false);
+
+    // Join error notification state
+    const [joinError, setJoinError] = useState<string | null>(null);
 
     // Reschedule State
     const [reschedulingAppt, setReschedulingAppt] = useState<Consultation | null>(null);
@@ -365,21 +369,22 @@ const SchedulePage = () => {
                 );
                 const token = subscriber?.token || appt.subscriber_token || appt.token;
 
-                if (token) {
-                    // Direct Join: Navigate immediately. WebView handles session state.
-                    navigate(`/teleconsult/${apptId}`, {
-                        state: {
-                            appointment: appt,
-                            token
-                        }
-                    });
+                // Always navigate to the teleconsult page.
+                // The Teleconsult component has its own full token resolution that
+                // fetches fresh data from the API — so pass whatever token we have
+                // (even null) and let the page handle it.
+                navigate(`/teleconsult/${apptId}`, {
+                    state: {
+                        appointment: appt,
+                        ...(token ? { token } : {})
+                    }
+                });
 
-                    // Background validation (optional) to log status without blocking the user
-                    TeleConsultService.tokenValidate(token, 'subscriber').catch(err => 
+                // Background validation (optional) to log status without blocking the user
+                if (token) {
+                    TeleConsultService.tokenValidate(token, 'subscriber').catch(err =>
                         console.warn('[Schedule] Background token validation failed:', err)
                     );
-                } else {
-                    alert('Join link not ready. Please wait for the specialist to start the session.');
                 }
             }
         } catch (err) {
@@ -419,28 +424,34 @@ const SchedulePage = () => {
             const dt = new Date(y, m - 1, d, h, min);
             const scheduledAt = dt.toISOString();
 
-            const profId = ((selectedSpecialist as User).userId || (selectedSpecialist as User & { _id?: string })._id || selectedSpecialist.id || '').toString();
-            const patId = (user?.userId || user?._id || user?.id || '').toString();
+            const profIdRaw = ((selectedSpecialist as User).userId || (selectedSpecialist as User & { _id?: string })._id || selectedSpecialist.id || '').toString();
+            const patIdRaw  = (user?.userId || user?._id || user?.id || '').toString();
 
-            if (!profId || !patId) {
+            if (!profIdRaw || !patIdRaw) {
                 throw new Error('Missing identity data. Please refresh and try again.');
             }
 
+            // Use numeric ID if it's a pure number, otherwise keep as string
+            // (Backend accepts both; NaN from Number("uuid") would cause 500)
+            const toRef = (raw: string) => /^\d+$/.test(raw) ? Number(raw) : raw;
+            const profRef = toRef(profIdRaw);
+            const patRef  = toRef(patIdRaw);
+
+            console.log(`[SchedulePage] profIdRaw="${profIdRaw}" profRef=${profRef}`);
+            console.log(`[SchedulePage] patIdRaw="${patIdRaw}"  patRef=${patRef}`);
+
+            if (typeof profRef === 'number' && isNaN(profRef)) throw new Error(`Invalid specialist ID: "${profIdRaw}"`);
+            if (typeof patRef  === 'number' && isNaN(patRef))  throw new Error(`Invalid patient ID: "${patIdRaw}"`);
+
+            // Backend expects ref_number as a number (integer), not string
+            // participant_info is NOT sent — the test-book.cjs that works doesn't include it
             const submissionData = {
                 scheduled_at: scheduledAt,
                 reason: bookingReason.trim(),
                 consult_type: 'virtual',
                 participants: [
-                    { 
-                        participant_type: { code: 'professional' }, 
-                        ref_number: profId,
-                        participant_info: { name: `${selectedSpecialist.firstName || ''} ${selectedSpecialist.lastName || ''}`.trim() || 'Professional' }
-                    },
-                    { 
-                        participant_type: { code: 'patient' }, 
-                        ref_number: patId,
-                        participant_info: { name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Patient' }
-                    }
+                    { participant_type: { code: 'professional' }, ref_number: profRef },
+                    { participant_type: { code: 'patient' },      ref_number: patRef  }
                 ],
                 additional_info: { notes: bookingReason.trim(), referred_by: 'Self' }
             };
@@ -448,7 +459,7 @@ const SchedulePage = () => {
             const rawTargetId = reschedulingAppt?.id || reschedulingAppt?.consult_id || reschedulingAppt?._id;
             const targetId = rawTargetId ? String(rawTargetId) : '';
             
-            console.log(`[SchedulePage] ${reschedulingAppt ? 'Rescheduling' : 'Booking'} session...`);
+            console.log(`[SchedulePage] ${reschedulingAppt ? 'Rescheduling' : 'Booking'} — Payload:`, JSON.stringify(submissionData, null, 2));
 
             const res: any = reschedulingAppt
                 ? await TeleConsultService.rescheduleConsultation(targetId, scheduledAt)
@@ -496,6 +507,44 @@ const SchedulePage = () => {
 
     return (
         <div className="min-h-screen bg-page pb-20">
+            {/* Join Error Toast */}
+            <AnimatePresence>
+                {joinError && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -80, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -80, scale: 0.95 }}
+                        transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+                        className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-full max-w-md"
+                    >
+                        <div className="mx-4 bg-white border-2 border-amber-200 rounded-2xl shadow-2xl shadow-amber-100/60 overflow-hidden">
+                            <div className="flex items-start gap-4 p-5">
+                                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center shrink-0 border border-amber-200">
+                                    <Clock size={20} className="text-amber-500" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-black text-slate-900 leading-tight">Session Not Ready Yet</p>
+                                    <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">{joinError}</p>
+                                </div>
+                                <button
+                                    onClick={() => setJoinError(null)}
+                                    className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all shrink-0"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                            {/* Auto-dismiss progress bar */}
+                            <motion.div
+                                initial={{ scaleX: 1 }}
+                                animate={{ scaleX: 0 }}
+                                transition={{ duration: 5, ease: 'linear' }}
+                                style={{ transformOrigin: 'left' }}
+                                className="h-1 bg-amber-400"
+                            />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             <div className="max-w-7xl p-8 space-y-8 animate-fade-in">
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>

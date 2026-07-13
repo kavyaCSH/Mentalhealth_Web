@@ -30,7 +30,7 @@ import { ConsultAssessments } from '../../components/clinical/ConsultAssessments
 import { ConsultQuestionnaire } from '../../components/clinical/ConsultQuestionnaire';
 import { ConsultMSE } from '../../components/clinical/ConsultMSE';
 import { ConsultClinicalIntake } from '../../components/clinical/ConsultClinicalIntake';
-import { ConsultAIDiagnosis, PatientTeleconsultDiagnosisPanel } from '../../components/clinical/TeleconsultAIDiagnosis';
+import { ConsultAIDiagnosis } from '../../components/clinical/TeleconsultAIDiagnosis';
 
 const Teleconsult = () => {
     const { id } = useParams<{ id: string }>();
@@ -53,6 +53,7 @@ const Teleconsult = () => {
     const [isSavingNotes, setIsSavingNotes] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
+    const [isCallEnded, setIsCallEnded] = useState(false);
 
     const isProfessional = user?.role ? user.role !== 'patient' : false;
 
@@ -112,12 +113,19 @@ const Teleconsult = () => {
     useEffect(() => {
         const handleIframeMessage = (event: MessageEvent) => {
             if (event.data === 'call-ended' || event.data?.type === 'call-ended') {
-                handleEndSession(true);
+                setIsCallEnded(true);
+                // Navigate away immediately so the menu icon never shows over the thank-you screen;
+                // update consultation status silently in the background
+                navigate(isProfessional ? '/clinical-schedule' : '/schedule');
+                if (id && isProfessional) {
+                    TeleConsultService.updateConsultationStatus(id, 'completed', notes)
+                        .catch(err => console.error('Exit update failed:', err));
+                }
             }
         };
         window.addEventListener('message', handleIframeMessage);
         return () => window.removeEventListener('message', handleIframeMessage);
-    }, []);
+    }, [id, isProfessional, navigate, notes]);
 
 
 
@@ -196,7 +204,7 @@ const Teleconsult = () => {
                     hideMenu={true}
                 />
 
-                {isProfessional && !isSidebarOpen && (
+                {isProfessional && !isSidebarOpen && !isCallEnded && (
                     <div className="fixed top-8 left-8 z-[200]">
                         <button
                             onClick={() => {
@@ -210,14 +218,7 @@ const Teleconsult = () => {
                     </div>
                 )}
 
-                {!isIframeLoading && (
-                    <div className="absolute top-6 right-6 pointer-events-none z-10">
-                        <div className="bg-slate-900/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 flex items-center gap-3">
-                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                            <span className="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]">Session Recording Active</span>
-                        </div>
-                    </div>
-                )}
+
 
                 <AnimatePresence>
                     {isProfessional && isSidebarOpen && (
@@ -397,10 +398,7 @@ const Teleconsult = () => {
                     )}
                 </AnimatePresence>
 
-                {/* Patient-side AI Diagnosis History floating panel */}
-                {!isProfessional && patientId && (
-                    <PatientTeleconsultDiagnosisPanel patientId={Number(patientId)} />
-                )}
+
             </main>
         </div>
     );
