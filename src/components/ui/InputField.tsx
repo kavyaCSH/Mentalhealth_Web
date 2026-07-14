@@ -49,11 +49,11 @@ const InputField: React.FC<InputFieldProps> = ({
                     {...props}
                     type={inputType}
                     className={`
-                        w-full bg-[var(--input-bg)] border-2 border-transparent rounded-2xl py-3 transition-all duration-200 text-sm font-medium outline-none text-main
+                        w-full bg-[var(--input-bg)] border-2 border-border-card rounded-2xl py-3 transition-all duration-200 text-sm font-medium outline-none text-main
                         focus:border-indigo-500 focus:bg-[var(--card-bg)]
                         ${leftIcon ? 'pl-12' : 'px-5'}
                         ${(rightIcon || isPassword) ? 'pr-12' : 'px-5'}
-                        ${error ? 'border-red-200 bg-red-50 focus:border-red-500' : ''}
+                        ${error ? 'border-error/30 bg-error/10 focus:border-error' : ''}
                         ${className}
                     `}
                 />
@@ -64,7 +64,7 @@ const InputField: React.FC<InputFieldProps> = ({
                             <button
                                 type="button"
                                 onClick={togglePasswordVisibility}
-                                className="text-muted hover:text-indigo-500 transition-colors focus:outline-none p-1 rounded-lg hover:bg-slate-100/50"
+                                className="text-muted hover:text-indigo-500 transition-colors focus:outline-none p-1 rounded-lg hover:bg-page/50"
                                 tabIndex={-1}
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -81,7 +81,7 @@ const InputField: React.FC<InputFieldProps> = ({
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="text-[10px] font-bold text-red-500 px-1"
+                        className="text-[10px] font-bold text-error px-1"
                     >
                         {error}
                     </motion.p>

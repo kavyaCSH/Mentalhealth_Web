@@ -43,12 +43,12 @@ const MessagesPortal = () => {
                 <div className="space-y-2">
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> Back to Dashboard
                     </button>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Clinical Messages</h1>
-                    <p className="text-slate-500 font-medium">Secure HIPAA-compliant communication with patients and staff.</p>
+                    <h1 className="text-4xl font-black text-main tracking-tight">Clinical Messages</h1>
+                    <p className="text-muted font-medium">Secure HIPAA-compliant communication with patients and staff.</p>
                 </div>
                 <Button variant="primary" size="lg" leftIcon={<MessageSquare size={18} />}>
                     Compose Message
@@ -57,16 +57,16 @@ const MessagesPortal = () => {
 
             <div className="grid gap-8 lg:grid-cols-3 h-[600px]">
                 {/* Conversation List */}
-                <div className="card-premium bg-white flex flex-col overflow-hidden">
-                    <div className="p-6 border-b border-slate-50 space-y-4">
+                <div className="card-premium bg-card flex flex-col overflow-hidden">
+                    <div className="p-6 border-b border-border-card space-y-4">
                         <div className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted opacity-80" />
                             <input
                                 type="text"
                                 placeholder="Search conversations..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-slate-50 border-0 rounded-xl py-2.5 pl-10 pr-4 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all"
+                                className="w-full bg-page border-0 rounded-xl py-2.5 pl-10 pr-4 text-xs font-medium focus:ring-2 focus:ring-indigo-500 transition-all"
                             />
                         </div>
                     </div>
@@ -77,40 +77,40 @@ const MessagesPortal = () => {
                             </div>
                         ) : filteredConversations.length > 0 ? (
                             filteredConversations.map((c, i) => (
-                                <div key={c.id || i} className={`p-4 rounded-2xl cursor-pointer transition-all ${i === 0 ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-slate-50 border border-transparent'}`}>
+                                <div key={c.id || i} className={`p-4 rounded-2xl cursor-pointer transition-all ${i === 0 ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-page border border-transparent'}`}>
                                     <div className="flex gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-slate-200 shrink-0 flex items-center justify-center font-bold text-slate-500">
+                                        <div className="w-10 h-10 rounded-xl bg-border-card shrink-0 flex items-center justify-center font-bold text-muted">
                                             {c.participant?.firstName?.charAt(0) || 'U'}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-start">
-                                                <p className="text-sm font-bold text-slate-900 truncate">
+                                                <p className="text-sm font-bold text-main truncate">
                                                     {c.participant?.firstName} {c.participant?.lastName}
                                                 </p>
-                                                <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                                <span className="text-[10px] text-muted opacity-80 font-medium flex items-center gap-1">
                                                     <Clock size={10} /> 12m
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-slate-500 truncate mt-1">{c.lastMessage || 'Click to view conversation'}</p>
+                                            <p className="text-xs text-muted truncate mt-1">{c.lastMessage || 'Click to view conversation'}</p>
                                         </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
                             <div className="text-center py-10">
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No conversations</p>
+                                <p className="text-xs font-bold text-muted opacity-80 uppercase tracking-widest">No conversations</p>
                             </div>
                         )}
                     </div>
                 </div>
 
                 {/* Message View (Empty/Placeholder) */}
-                <div className="lg:col-span-2 card-premium bg-slate-50/30 flex flex-col items-center justify-center text-center p-12 border-dashed border-2">
-                    <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-slate-100 shadow-sm border border-slate-50 mb-6">
+                <div className="lg:col-span-2 card-premium bg-page/30 flex flex-col items-center justify-center text-center p-12 border-dashed border-2">
+                    <div className="w-20 h-20 bg-card rounded-3xl flex items-center justify-center text-slate-100 shadow-sm border border-border-card mb-6">
                         <Inbox size={40} />
                     </div>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Secure Messaging Portal</h3>
-                    <p className="text-sm text-slate-500 max-w-sm mt-2">Select a conversation from the sidebar to view encrypted message history and respond securely.</p>
+                    <h3 className="text-xl font-black text-main tracking-tight">Secure Messaging Portal</h3>
+                    <p className="text-sm text-muted max-w-sm mt-2">Select a conversation from the sidebar to view encrypted message history and respond securely.</p>
                 </div>
             </div>
         </div>

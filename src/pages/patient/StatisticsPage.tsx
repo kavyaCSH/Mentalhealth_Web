@@ -86,33 +86,33 @@ const StatisticsPage = () => {
         ];
 
     const activityMetrics = [
-        { label: 'Active Streak', value: `${data?.activity?.currentStreak || 0} Days`, icon: Flame, color: 'text-orange-600', bg: 'bg-orange-50', trend: 'Consistency active' },
-        { label: 'Mood Logs', value: data?.activity?.totalMoodLogs || 0, icon: Clock, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: 'Total recordings' },
+        { label: 'Active Streak', value: `${data?.activity?.currentStreak || 0} Days`, icon: Flame, color: 'text-warning', bg: 'bg-warning/10', trend: 'Consistency active' },
+        { label: 'Mood Logs', value: data?.activity?.totalMoodLogs || 0, icon: Clock, color: 'text-success', bg: 'bg-success/10', trend: 'Total recordings' },
     ];
 
     const sessionSummary = [
-        { label: 'Attended', value: data?.consultations?.attended || 0, color: 'text-emerald-600' },
-        { label: 'Upcoming', value: data?.consultations?.upcoming || 0, color: 'text-indigo-600' },
-        { label: 'Cancelled', value: data?.consultations?.cancelled || 0, color: 'text-rose-600' },
+        { label: 'Attended', value: data?.consultations?.attended || 0, color: 'text-success' },
+        { label: 'Upcoming', value: data?.consultations?.upcoming || 0, color: 'text-indigo-500' },
+        { label: 'Cancelled', value: data?.consultations?.cancelled || 0, color: 'text-error' },
     ];
 
     return (
         <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in pb-20">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
-                    <div className="flex items-center gap-3 text-indigo-600 mb-1">
+                    <div className="flex items-center gap-3 text-indigo-500 mb-1">
                         <BarChart3 size={18} />
                         <span className="text-xs font-black uppercase tracking-widest">Wellness Analytics</span>
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Clinical Performance</h1>
-                    <p className="text-slate-500 font-medium">Monitoring your wellness journey across sessions and assessments.</p>
+                    <h1 className="text-4xl font-black text-main tracking-tight">Clinical Performance</h1>
+                    <p className="text-muted font-medium">Monitoring your wellness journey across sessions and assessments.</p>
                 </div>
                 <button
                     onClick={fetchStats}
                     disabled={loading}
-                    className="flex items-center gap-3 px-6 py-4 bg-white border border-slate-200 hover:border-indigo-300 text-slate-700 rounded-3xl font-black text-xs uppercase tracking-widest transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                    className="flex items-center gap-3 px-6 py-4 bg-card border border-border-card hover:border-indigo-300 text-main rounded-3xl font-black text-xs uppercase tracking-widest transition-all shadow-sm active:scale-95 disabled:opacity-50"
                 >
-                    <RefreshCw size={16} className={`${loading ? 'animate-spin' : ''} text-indigo-600`} />
+                    <RefreshCw size={16} className={`${loading ? 'animate-spin' : ''} text-indigo-500`} />
                     Synchronize Analytics
                 </button>
             </header>
@@ -120,13 +120,13 @@ const StatisticsPage = () => {
             {loading && !data ? (
                 <div className="flex flex-col items-center justify-center py-40">
                     <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-6"></div>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Analyzing Wellness Matrix...</p>
+                    <p className="text-sm font-bold text-muted opacity-80 uppercase tracking-widest">Analyzing Wellness Matrix...</p>
                 </div>
             ) : (
                 <>
                     {error && (
-                        <div className="mb-8 p-6 bg-rose-50 border border-rose-100 rounded-3xl flex items-center gap-4 text-rose-600 animate-in fade-in slide-in-from-top-2">
-                            <div className="p-2 bg-rose-100 rounded-xl">
+                        <div className="mb-8 p-6 bg-error/10 border border-error/20 rounded-3xl flex items-center gap-4 text-error animate-in fade-in slide-in-from-top-2">
+                            <div className="p-2 bg-error/20 rounded-xl">
                                 <Activity size={20} />
                             </div>
                             <div>
@@ -139,7 +139,7 @@ const StatisticsPage = () => {
                     <div className="grid gap-10 lg:grid-cols-12">
                     {/* Main Stats Grid */}
                     <div className="lg:col-span-8 space-y-10">
-                        <section className="card-premium p-10 bg-white border-slate-100 flex flex-col md:flex-row items-center gap-12 shadow-2xl shadow-indigo-50/50">
+                        <section className="card-premium p-10 bg-card border-border-card flex flex-col md:flex-row items-center gap-12 shadow-2xl shadow-indigo-50/50">
                             <div className="flex-shrink-0">
                                 <CircularProgress 
                                     size={180}
@@ -156,22 +156,22 @@ const StatisticsPage = () => {
                                 <div>
                                     <div className="flex items-center gap-2 mb-2">
                                         <Sparkles size={16} className="text-orange-400" />
-                                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Health Engagement</h2>
+                                        <h2 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.3em]">Health Engagement</h2>
                                     </div>
-                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Assessment Success</h3>
+                                    <h3 className="text-3xl font-black text-main tracking-tight">Assessment Success</h3>
                                 </div>
-                                <div className="grid grid-cols-2 gap-8 pt-6 border-t border-slate-50">
+                                <div className="grid grid-cols-2 gap-8 pt-6 border-t border-border-card">
                                     <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Completed</span>
-                                        <p className="text-xl font-black text-slate-900 italic tracking-tight">{completedAssessments}</p>
+                                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Completed</span>
+                                        <p className="text-xl font-black text-main italic tracking-tight">{completedAssessments}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Pending</span>
-                                        <p className="text-xl font-black text-indigo-600 italic tracking-tight">{pendingTasks}</p>
+                                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Pending</span>
+                                        <p className="text-xl font-black text-indigo-500 italic tracking-tight">{pendingTasks}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Streak</span>
-                                        <p className="text-xl font-black text-emerald-600 italic tracking-tight">{data?.activity?.currentStreak || 0}d</p>
+                                        <span className="text-[10px] font-black text-success uppercase tracking-widest">Streak</span>
+                                        <p className="text-xl font-black text-success italic tracking-tight">{data?.activity?.currentStreak || 0}d</p>
                                     </div>
                                     <div className="space-y-1">
                                         <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Logs</span>
@@ -188,20 +188,20 @@ const StatisticsPage = () => {
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: i * 0.1 }}
-                                    className="card-premium p-8 group hover:border-indigo-100 transition-all cursor-default bg-white border-slate-100 shadow-xl shadow-slate-100/30"
+                                    className="card-premium p-8 group hover:border-indigo-100 transition-all cursor-default bg-card border-border-card shadow-xl shadow-slate-100/30"
                                 >
                                     <div className="flex items-center justify-between mb-6">
                                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform shadow-sm`}>
                                             <stat.icon size={28} />
                                         </div>
-                                        <ArrowUpRight className="text-slate-200 group-hover:text-indigo-400 transition-colors" size={20} />
+                                        <ArrowUpRight className="text-muted opacity-40 group-hover:text-indigo-400 transition-colors" size={20} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-                                        <h3 className="text-4xl font-black text-slate-900 mt-2">{stat.value}</h3>
-                                        <div className="flex items-center gap-2 mt-3 p-2 bg-slate-50 rounded-xl inline-flex border border-slate-100">
-                                            <TrendingUp size={12} className="text-emerald-500" />
-                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{stat.trend}</span>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">{stat.label}</p>
+                                        <h3 className="text-4xl font-black text-main mt-2">{stat.value}</h3>
+                                        <div className="flex items-center gap-2 mt-3 p-2 bg-page rounded-xl inline-flex border border-border-card">
+                                            <TrendingUp size={12} className="text-success" />
+                                            <span className="text-[10px] font-bold text-muted uppercase tracking-wider">{stat.trend}</span>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -209,31 +209,31 @@ const StatisticsPage = () => {
                         </section>
 
                         {/* Session Summary Card */}
-                        <section className="card-premium p-10 bg-white border-slate-100 shadow-xl shadow-indigo-50/30">
+                        <section className="card-premium p-10 bg-card border-border-card shadow-xl shadow-indigo-50/30">
                             <div className="flex items-center justify-between mb-10">
                                 <div>
-                                    <h2 className="text-2xl font-black text-slate-900 mb-1 uppercase tracking-tight">Session Summary</h2>
-                                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest italic">Clinical consultation engagement</p>
+                                    <h2 className="text-2xl font-black text-main mb-1 uppercase tracking-tight">Session Summary</h2>
+                                    <p className="text-muted opacity-80 text-[10px] font-black uppercase tracking-widest italic">Clinical consultation engagement</p>
                                 </div>
-                                <Zap className="text-indigo-600" size={24} />
+                                <Zap className="text-indigo-500" size={24} />
                             </div>
                             <div className="grid grid-cols-3 gap-6">
                                 {sessionSummary.map((item, i) => (
-                                    <div key={i} className="text-center p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+                                    <div key={i} className="text-center p-6 bg-page rounded-[2rem] border border-border-card">
                                         <span className={`text-4xl font-black ${item.color} block mb-2`}>{item.value}</span>
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
+                                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">{item.label}</span>
                                     </div>
                                 ))}
                             </div>
                         </section>
 
-                        <section className="card-premium p-10 space-y-10 bg-white border-slate-100">
+                        <section className="card-premium p-10 space-y-10 bg-card border-border-card">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h2 className="text-2xl font-black text-slate-900 mb-1">Wellness Index</h2>
-                                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest italic">Aggregate Progress Trajectory</p>
+                                    <h2 className="text-2xl font-black text-main mb-1">Wellness Index</h2>
+                                    <p className="text-muted opacity-80 text-[10px] font-black uppercase tracking-widest italic">Aggregate Progress Trajectory</p>
                                 </div>
-                                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                                <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-2xl">
                                     <Activity size={24} />
                                 </div>
                             </div>
@@ -244,13 +244,13 @@ const StatisticsPage = () => {
                     {/* Sidebar: Breakdowns */}
                     <div className="lg:col-span-4 space-y-8">
                         {/* Mood Balance Card */}
-                        <section className="card-premium p-8 space-y-8 bg-white border-slate-100 shadow-2xl shadow-indigo-50/20">
+                        <section className="card-premium p-8 space-y-8 bg-card border-border-card shadow-2xl shadow-indigo-50/20">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Mood Balance</h2>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">30-Day Distribution</p>
+                                    <h2 className="text-xl font-black text-main uppercase tracking-tight">Mood Balance</h2>
+                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mt-1">30-Day Distribution</p>
                                 </div>
-                                <ChevronDown size={20} className="text-slate-300" />
+                                <ChevronDown size={20} className="text-muted opacity-40" />
                             </div>
 
                             <div className="space-y-10">
@@ -265,14 +265,14 @@ const StatisticsPage = () => {
                                             <div key={i} className="space-y-4">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`p-2 rounded-lg bg-indigo-50 text-indigo-600`}>
+                                                        <div className={`p-2 rounded-lg bg-indigo-500/10 text-indigo-500`}>
                                                             <Heart size={16} />
                                                         </div>
-                                                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{mood}</span>
+                                                        <span className="text-[10px] font-black text-main uppercase tracking-widest">{mood}</span>
                                                     </div>
-                                                    <span className="text-xs font-black text-indigo-600 italic">{count} logs</span>
+                                                    <span className="text-xs font-black text-indigo-500 italic">{count} logs</span>
                                                 </div>
-                                                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className="h-3 bg-page rounded-full overflow-hidden">
                                                     <motion.div
                                                         initial={{ width: 0 }}
                                                         animate={{ width: `${percentage}%` }}
@@ -284,29 +284,29 @@ const StatisticsPage = () => {
                                         );
                                     })
                                 ) : (
-                                    <div className="py-12 flex flex-col items-center justify-center gap-3 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
-                                        <div className="p-3 bg-white rounded-xl shadow-sm">
-                                            <Activity className="text-slate-300" size={20} />
+                                    <div className="py-12 flex flex-col items-center justify-center gap-3 bg-card/50 rounded-3xl border border-dashed border-border-card">
+                                        <div className="p-3 bg-card rounded-xl shadow-sm">
+                                            <Activity className="text-muted opacity-40" size={20} />
                                         </div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Awaiting Mood Logs</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Awaiting Mood Logs</p>
                                     </div>
                                 )}
                             </div>
                         </section>
 
-                        <section className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-indigo-200">
+                        <section className="bg-gradient-to-br from-indigo-900 to-indigo-950 rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-indigo-200">
                             <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-indigo-500 rounded-full blur-[80px] opacity-20"></div>
                             <div className="relative z-10 space-y-8">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-xl shadow-black/10">
+                                    <div className="w-14 h-14 bg-card/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-xl shadow-black/10">
                                         <Sparkles size={28} className="text-orange-300" />
                                     </div>
                                     <h3 className="font-black text-xl tracking-tight">Clinical Insights</h3>
                                 </div>
-                                <p className="text-slate-400 text-sm leading-relaxed font-bold italic">
+                                <p className="text-muted opacity-80 text-sm leading-relaxed font-bold italic">
                                     "Your wellness trajectory shows a <span className="text-indigo-400 font-black">positive variance</span> of 14% this week. Maintaining consistency in mood logging is critical for deep phenotyping."
                                 </p>
-                                <button className="w-full py-5 bg-white text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-50 transition-all active:scale-95 shadow-xl">
+                                <button className="w-full py-5 bg-card text-main rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-500/10 transition-all active:scale-95 shadow-xl">
                                     Unlock Protocols
                                 </button>
                             </div>

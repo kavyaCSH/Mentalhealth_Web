@@ -138,16 +138,16 @@ const ROSList = () => {
             <header className="flex items-center gap-6">
                 <button
                     onClick={navigateBack}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    className="p-3 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                    <h1 className="text-4xl font-black text-main tracking-tight">
                         Review of Systems
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Identity:</span>
+                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Patient Identity:</span>
                         <span className="text-xs font-bold text-indigo-600">
                             {patient ? `${patient.firstName} ${patient.lastName || ''}` : `Patient #${userId}`}
                         </span>
@@ -159,7 +159,7 @@ const ROSList = () => {
                         onClick={toggleFilters}
                         className={`p-3 rounded-2xl border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest ${isFilterExpanded || Object.keys(filters).length > 0
                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200'
-                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                            : 'bg-card text-muted border-border-card hover:bg-page'
                             }`}
                     >
                         <Filter size={18} />
@@ -184,12 +184,12 @@ const ROSList = () => {
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="card-premium p-8 bg-white/70 backdrop-blur-xl border-indigo-100/50 shadow-2xl shadow-indigo-100/20 space-y-8"
+                    className="card-premium p-8 bg-card/70 backdrop-blur-xl border-indigo-100/50 shadow-2xl shadow-indigo-100/20 space-y-8"
                 >
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {/* Red Flag Search */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                 <Search size={14} /> Organic Red Flags
                             </label>
                             <div className="relative">
@@ -198,14 +198,14 @@ const ROSList = () => {
                                     placeholder="Search red flags (e.g. Thyroid)"
                                     value={tempFilters.red_flag || ''}
                                     onChange={(e) => setTempFilters({ ...tempFilters, red_flag: e.target.value })}
-                                    className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                                    className="w-full bg-card/50 border border-border-card rounded-xl py-3 px-4 text-sm font-bold text-main focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                                 />
                             </div>
                         </div>
 
                         {/* Substance Probability */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                 <AlertCircle size={14} /> Substance Probability
                             </label>
                             <div className="flex flex-wrap gap-2">
@@ -218,7 +218,7 @@ const ROSList = () => {
                                         })}
                                         className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${tempFilters.substance_induced_probability === level
                                             ? 'bg-indigo-600 text-white border-indigo-600'
-                                            : 'bg-slate-50 text-slate-500 border-slate-100 hover:border-indigo-200'
+                                            : 'bg-page text-muted border-border-card hover:border-indigo-200'
                                             }`}
                                     >
                                         {level}
@@ -229,7 +229,7 @@ const ROSList = () => {
 
                         {/* Date Range */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                 <Calendar size={14} /> Clinical Period
                             </label>
                             <div className="flex items-center gap-2">
@@ -237,30 +237,30 @@ const ROSList = () => {
                                     type="date"
                                     value={tempFilters.startDate || ''}
                                     onChange={(e) => setTempFilters({ ...tempFilters, startDate: e.target.value })}
-                                    className="flex-1 bg-slate-50/50 border border-slate-100 rounded-xl py-2 px-3 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                                    className="flex-1 bg-card/50 border border-border-card rounded-xl py-2 px-3 text-[10px] font-bold text-main focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                                 />
-                                <span className="text-[10px] font-black text-slate-300">TO</span>
+                                <span className="text-[10px] font-black text-muted opacity-40">TO</span>
                                 <input
                                     type="date"
                                     value={tempFilters.endDate || ''}
                                     onChange={(e) => setTempFilters({ ...tempFilters, endDate: e.target.value })}
-                                    className="flex-1 bg-slate-50/50 border border-slate-100 rounded-xl py-2 px-3 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                                    className="flex-1 bg-card/50 border border-border-card rounded-xl py-2 px-3 text-[10px] font-bold text-main focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                    <div className="flex items-center justify-between pt-6 border-t border-border-card">
                         <button
                             onClick={resetFilters}
-                            className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-rose-500 transition-colors"
+                            className="flex items-center gap-2 text-[10px] font-black text-muted opacity-80 uppercase tracking-widest hover:text-rose-500 transition-colors"
                         >
                             <RotateCcw size={14} /> Reset
                         </button>
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={toggleFilters}
-                                className="px-6 py-2.5 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 rounded-xl transition-all"
+                                className="px-6 py-2.5 text-[10px] font-black text-muted uppercase tracking-widest hover:bg-page rounded-xl transition-all"
                             >
                                 Cancel
                             </button>
@@ -287,7 +287,7 @@ const ROSList = () => {
                                 transition={{ delay: idx * 0.05 }}
                                 key={rosId}
                                 onClick={() => navigate(`/patients/${userId}/ros/${rosId}`)}
-                                className="card-premium p-8 bg-white border-slate-100 hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
+                                className="card-premium p-8 bg-card border-border-card hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -306,7 +306,7 @@ const ROSList = () => {
                                                 <Edit3 size={16} />
                                             </button>
                                         )}
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+                                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-2">
                                             {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
                                                 month: 'short',
                                                 day: 'numeric',
@@ -317,7 +317,7 @@ const ROSList = () => {
                                 </div>
                                 <div className="pt-2 flex-1">
                                     {(item as any).ai_notes ? (
-                                        <p className="text-slate-700 font-bold leading-relaxed line-clamp-4">
+                                        <p className="text-main font-bold leading-relaxed line-clamp-4">
                                             {(item as any).ai_notes}
                                         </p>
                                     ) : (
@@ -325,13 +325,13 @@ const ROSList = () => {
                                             {Object.keys(item).filter(k => !['id', '_id', 'patient_id', 'consult_id', 'createdAt', 'updatedAt', '__v', 'ai_notes'].includes(k) && typeof (item as any)[k] === 'object').slice(0, 3).map(section => (
                                                 <div key={section} className="flex items-center gap-2">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                                                    <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{section}</span>
+                                                    <span className="text-xs font-bold text-muted uppercase tracking-tight">{section}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
                                 </div>
-                                <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                                <div className="pt-4 border-t border-border-card flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         {item.organic_red_flags && item.organic_red_flags.length > 0 && (
                                             <span className="px-2 py-1 bg-rose-50 text-rose-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-rose-100">
@@ -344,16 +344,16 @@ const ROSList = () => {
                                             </span>
                                         )}
                                     </div>
-                                    <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                    <ChevronLeft size={14} className="rotate-180 text-muted opacity-40 group-hover:text-indigo-500 transition-colors" />
                                 </div>
                             </motion.div>
                         )
                     })
                 ) : (
-                    <div className="col-span-full card-premium p-20 text-center border-dashed border-slate-200 bg-slate-50/50">
-                        <Stethoscope size={48} className="mx-auto text-slate-300 mb-6 opacity-50" />
-                        <h3 className="text-xl font-black text-slate-900 mb-2">No Records Found</h3>
-                        <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto italic mb-8">
+                    <div className="col-span-full card-premium p-20 text-center border-dashed border-border-card bg-card/50">
+                        <Stethoscope size={48} className="mx-auto text-muted opacity-40 mb-6 opacity-50" />
+                        <h3 className="text-xl font-black text-main mb-2">No Records Found</h3>
+                        <p className="text-sm font-bold text-muted opacity-80 max-w-xs mx-auto italic mb-8">
                             There are no previous Review of Systems recorded for this patient identity.
                         </p>
                     </div>

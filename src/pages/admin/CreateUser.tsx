@@ -81,11 +81,11 @@ const CreateUser = () => {
                 <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-emerald-100 glow-emerald">
                     <CheckCircle2 size={48} />
                 </div>
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-4">Account Created</h1>
-                <p className="text-slate-500 font-medium">The new {formData.role} account has been successfully provisioned. They can now log in using the credentials provided.</p>
+                <h1 className="text-4xl font-black text-main tracking-tight mb-4">Account Created</h1>
+                <p className="text-muted font-medium">The new {formData.role} account has been successfully provisioned. They can now log in using the credentials provided.</p>
                 <div className="pt-8">
                     <Activity className="animate-spin text-indigo-500 mx-auto" size={24} />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-4">Redirecting to User Directory...</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted opacity-80 mt-4">Redirecting to User Directory...</p>
                 </div>
             </div>
         );
@@ -93,20 +93,20 @@ const CreateUser = () => {
 
     return (
         <div className="p-8 max-w-4xl  space-y-8 animate-fade-in pb-20">
-            <header className="flex items-center gap-6 pb-6 border-b border-slate-100">
-                <button onClick={() => navigate(-1)} className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors">
+            <header className="flex items-center gap-6 pb-6 border-b border-border-card">
+                <button onClick={() => navigate(-1)} className="p-2.5 bg-page hover:bg-page rounded-xl text-muted transition-colors">
                     <ChevronLeft size={20} />
                 </button>
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Provision New User</h1>
-                    <p className="text-slate-500 font-medium mt-2">Create a new account with specific role-based access.</p>
+                    <h1 className="text-4xl font-black text-main tracking-tight">Provision New User</h1>
+                    <p className="text-muted font-medium mt-2">Create a new account with specific role-based access.</p>
                 </div>
             </header>
 
             <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Role Selection */}
                 <div className="card-premium p-8">
-                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <h2 className="text-sm font-black text-main uppercase tracking-widest mb-6 flex items-center gap-2">
                         <Shield className="text-indigo-600" size={18} /> Account Role
                     </h2>
 
@@ -119,15 +119,15 @@ const CreateUser = () => {
                                 className={`p-4 text-left border-2 rounded-2xl transition-all duration-200 flex items-start gap-4 
                                     ${formData.role === role.id
                                         ? 'border-indigo-600 bg-indigo-50/50 shadow-md shadow-indigo-100'
-                                        : 'border-slate-100 bg-white hover:border-indigo-200 hover:bg-slate-50/50 hover:shadow-sm'
+                                        : 'border-border-card bg-card hover:border-indigo-200 hover:bg-card/50 hover:shadow-sm'
                                     }`}
                             >
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${formData.role === role.id ? 'bg-indigo-600 text-white shadow-inner shadow-indigo-800/50' : 'bg-slate-100 text-slate-400'}`}>
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${formData.role === role.id ? 'bg-indigo-600 text-white shadow-inner shadow-indigo-800/50' : 'bg-page text-muted opacity-80'}`}>
                                     {role.icon}
                                 </div>
                                 <div>
-                                    <p className={`font-bold ${formData.role === role.id ? 'text-indigo-900' : 'text-slate-700'}`}>{role.label}</p>
-                                    <p className={`text-[10px] font-black uppercase tracking-widest mt-1 ${formData.role === role.id ? 'text-indigo-500' : 'text-slate-400'}`}>
+                                    <p className={`font-bold ${formData.role === role.id ? 'text-indigo-900' : 'text-main'}`}>{role.label}</p>
+                                    <p className={`text-[10px] font-black uppercase tracking-widest mt-1 ${formData.role === role.id ? 'text-indigo-500' : 'text-muted opacity-80'}`}>
                                         {role.desc}
                                     </p>
                                 </div>
@@ -138,7 +138,7 @@ const CreateUser = () => {
 
                 {/* Personal Information */}
                 <div className="card-premium p-8">
-                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <h2 className="text-sm font-black text-main uppercase tracking-widest mb-6 flex items-center gap-2">
                         <UserIcon className="text-indigo-600" size={18} /> Personal Information
                     </h2>
 
@@ -184,7 +184,7 @@ const CreateUser = () => {
 
                 {/* Security */}
                 <div className="card-premium p-8">
-                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <h2 className="text-sm font-black text-main uppercase tracking-widest mb-6 flex items-center gap-2">
                         <Lock className="text-indigo-600" size={18} /> Security Credentials
                     </h2>
 

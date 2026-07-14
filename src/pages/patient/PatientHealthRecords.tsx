@@ -253,7 +253,7 @@ const PatientHealthRecords = () => {
     if (error) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center max-w-md mx-auto">
-                <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-error/10 text-error rounded-full flex items-center justify-center mb-6">
                     <Activity size={32} />
                 </div>
                 <h2 className="text-xl font-black text-main mb-2">Sync Interrupted</h2>
@@ -287,11 +287,11 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/chief-complaint`)}
-                    className="card-premium p-5 border-border-card hover:border-rose-200 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-error/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 bg-error/10 text-error rounded-xl group-hover:scale-110 transition-transform">
                                 <Stethoscope size={20} />
                             </div>
                             <h2 className="text-sm font-black text-main tracking-tight">Chief Complaint History</h2>
@@ -312,11 +312,11 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/hpi`)}
-                    className="card-premium p-5 border-border-card hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-indigo-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 bg-indigo-500/10 text-indigo-500 rounded-xl group-hover:scale-110 transition-transform">
                                 <HistoryIcon size={20} />
                             </div>
                             <h2 className="text-sm font-black text-main tracking-tight">HPI history</h2>
@@ -336,11 +336,11 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.18 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/mse`)}
-                    className="card-premium p-5 border-border-card hover:border-violet-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-violet-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 bg-violet-500/10 text-violet-500 rounded-xl group-hover:scale-110 transition-transform">
                                 <Brain size={20} />
                             </div>
                             <h2 className="text-sm font-black text-main tracking-tight">Mental Status</h2>
@@ -363,11 +363,11 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/ros`)}
-                    className="card-premium p-5 border-border-card hover:border-sky-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-sky-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 bg-sky-500/10 text-sky-500 rounded-xl group-hover:scale-110 transition-transform">
                                 <Stethoscope size={20} />
                             </div>
                             <h2 className="text-sm font-black text-main tracking-tight">Review of Systems</h2>
@@ -389,11 +389,11 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                     onClick={() => navigate(`/patients/${resolvedUserId}/symptoms?tab=history`)}
-                    className="card-premium p-5 border-border-card hover:border-amber-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-warning/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 bg-warning/10 text-warning rounded-xl group-hover:scale-110 transition-transform">
                                 <Activity size={20} />
                             </div>
                             <h2 className="text-sm font-black text-main tracking-tight">Symptom history</h2>
@@ -416,11 +416,11 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.55 }}
                     onClick={() => navigate(`/history/professional`)}
-                    className="card-premium p-5 border-border-card hover:border-indigo-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-indigo-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 bg-indigo-500/10 text-indigo-500 rounded-xl group-hover:scale-110 transition-transform">
                                 <Shield size={20} />
                             </div>
                             <h2 className="text-sm font-black text-main tracking-tight">Professional Reports</h2>
@@ -448,14 +448,14 @@ const PatientHealthRecords = () => {
                         const hexId = resolvedIds.hex || user?._id || user?.id;
                         navigate(`/patients/${numId || hexId}/ai-diagnosis`);
                     }}
-                    className="card-premium p-5 border-border-card hover:border-violet-200 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] relative overflow-hidden"
+                    className="card-premium p-5 border-border-card hover:border-violet-500/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] relative overflow-hidden"
                 >
                     <div className="absolute top-0 right-0 p-6 opacity-[0.04] group-hover:opacity-[0.07] transition-opacity">
                         <Brain size={90} className="text-violet-700" />
                     </div>
                     <div className="flex items-center justify-between mb-4 relative z-10">
                         <div className="flex items-center gap-4">
-                            <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 bg-violet-500/10 text-violet-500 rounded-xl group-hover:scale-110 transition-transform">
                                 <Sparkles size={20} />
                             </div>
                             <h2 className="text-sm font-black text-main tracking-tight flex items-center gap-2">
@@ -501,11 +501,11 @@ const PatientHealthRecords = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.45 }}
                     onClick={() => navigate(`/treatment`)}
-                    className="card-premium p-5 border-border-card hover:border-emerald-100 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
+                    className="card-premium p-5 border-border-card hover:border-success/30 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98]"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 bg-success/10 text-success rounded-xl group-hover:scale-110 transition-transform">
                                 <ClipboardCheck size={20} />
                             </div>
                             <h2 className="text-sm font-black text-main tracking-tight">Treatment Plan</h2>
@@ -522,9 +522,9 @@ const PatientHealthRecords = () => {
                                         <span className="text-muted">Progress</span>
                                         <span className="text-emerald-600">{treatmentProgress.overall_progress}%</span>
                                     </div>
-                                    <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden">
+                                    <div className="w-full h-1.5 bg-card rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
+                                            className="h-full bg-success/100 rounded-full transition-all duration-1000"
                                             style={{ width: `${treatmentProgress.overall_progress}%` }}
                                         />
                                     </div>

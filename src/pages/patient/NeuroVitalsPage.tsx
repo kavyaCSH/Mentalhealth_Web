@@ -264,7 +264,7 @@ const NeuroVitalsPage = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     className="relative z-10 flex flex-col items-center max-w-2xl text-center space-y-12"
                 >
-                    <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/10 mb-4 animate-pulse">
+                    <div className="flex items-center gap-3 bg-card/5 px-4 py-2 rounded-full border border-white/10 mb-4 animate-pulse">
                         <Brain className="text-[#00f2fe]" size={24} />
                         <span className="text-xs font-black tracking-[0.4em] text-[#00f2fe] uppercase">NeuroVitals™ Deep Phenotyping</span>
                     </div>
@@ -273,7 +273,7 @@ const NeuroVitalsPage = () => {
                         AI CLINICAL <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00f2fe] to-[#4facfe]">BIOMARKER SCAN</span>
                     </h1>
 
-                    <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-lg">
+                    <p className="text-muted opacity-80 font-medium text-lg leading-relaxed max-w-lg">
                         Initialize v4.0 Diagnostic Engine for real-time longitudinal analysis of neurological stability and physiological trends.
                     </p>
 
@@ -292,12 +292,12 @@ const NeuroVitalsPage = () => {
                             <ShieldCheck size={20} />
                             <span className="text-[10px] uppercase font-black tracking-widest">Secure Link</span>
                         </div>
-                        <div className="w-px h-8 bg-white/10" />
+                        <div className="w-px h-8 bg-card/10" />
                         <div className="flex flex-col items-center gap-2">
                             <Activity size={20} />
                             <span className="text-[10px] uppercase font-black tracking-widest">Live Bio-Feed</span>
                         </div>
-                        <div className="w-px h-8 bg-white/10" />
+                        <div className="w-px h-8 bg-card/10" />
                         <div className="flex flex-col items-center gap-2">
                             <Brain size={20} />
                             <span className="text-[10px] uppercase font-black tracking-widest">AI Extraction</span>
@@ -314,7 +314,7 @@ const NeuroVitalsPage = () => {
                 <div className="flex items-center gap-6">
                     <button
                         onClick={() => navigate('/')}
-                        className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all"
+                        className="p-3 bg-card/5 border border-white/10 rounded-2xl hover:bg-card/10 transition-all"
                     >
                         <ChevronLeft size={20} />
                     </button>
@@ -325,7 +325,7 @@ const NeuroVitalsPage = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className={`flex items-center gap-3 px-4 py-2 rounded-xl border ${isScanning ? 'border-cyan-500/50 bg-cyan-500/10' : 'border-white/10 bg-white/5'}`}>
+                    <div className={`flex items-center gap-3 px-4 py-2 rounded-xl border ${isScanning ? 'border-cyan-500/50 bg-cyan-500/10' : 'border-white/10 bg-card/5'}`}>
                         <div className={`w-2 h-2 rounded-full ${isScanning ? 'bg-cyan-400 animate-pulse' : (analysisResult ? 'bg-emerald-400' : 'bg-rose-400')}`} />
                         <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400">
                             {isAnalyzing ? 'Processing Engine...' : (isScanning ? `ACQUIRING: ${countdown}s` : (analysisResult ? 'SCAN COMPLETE' : 'INITIALIZING SCAN'))}
@@ -388,13 +388,13 @@ const NeuroVitalsPage = () => {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.1 }}
-                                className="bg-white/5 border border-white/10 p-5 rounded-[2rem] hover:bg-white/10 transition-all flex flex-col gap-3 group"
+                                className="bg-card/5 border border-white/10 p-5 rounded-[2rem] hover:bg-card/10 transition-all flex flex-col gap-3 group"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="p-2.5 rounded-xl transition-colors" style={{ backgroundColor: `${v.color}20`, color: v.color }}>
                                         {v.icon}
                                     </div>
-                                    <div className="w-8 h-4 bg-white/5 rounded-full overflow-hidden">
+                                    <div className="w-8 h-4 bg-card/5 rounded-full overflow-hidden">
                                         <div
                                             className="h-full rounded-full transition-all duration-1000"
                                             style={{ backgroundColor: v.color, width: analysisResult ? '70%' : '0%' }}
@@ -438,7 +438,7 @@ const NeuroVitalsPage = () => {
                                             </span>
                                             <span className="text-sm font-black text-white/40 mb-3 tracking-widest">/ 10</span>
                                         </div>
-                                        <p className="text-xl font-bold text-slate-400">
+                                        <p className="text-xl font-bold text-muted opacity-80">
                                             Clinical State: <span className={analysisResult.MentalHealthRiskClass === 'Low' ? 'text-emerald-400' : 'text-rose-400'}>{analysisResult.MentalHealthRiskClass.toUpperCase()} RISK</span>
                                         </p>
                                     </div>
@@ -449,7 +449,7 @@ const NeuroVitalsPage = () => {
                                                 <span>Dominant Condition</span>
                                                 <span className="text-cyan-400">{analysisResult.DominantCondition.toUpperCase()}</span>
                                             </div>
-                                            <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="w-full h-2 bg-card/5 rounded-full overflow-hidden">
                                                 <div
                                                     className="h-full bg-cyan-400 rounded-full transition-all duration-1000"
                                                     style={{ width: `${(analysisResult.ConfidenceScore || 0) * 100}%` }}
@@ -461,7 +461,7 @@ const NeuroVitalsPage = () => {
                                                 <span>Emotional Stability</span>
                                                 <span className="text-emerald-400">{Math.round(analysisResult.Mood.EmotionalStability * 100)}%</span>
                                             </div>
-                                            <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="w-full h-2 bg-card/5 rounded-full overflow-hidden">
                                                 <div
                                                     className="h-full bg-emerald-400 rounded-full transition-all duration-1000"
                                                     style={{ width: `${analysisResult.Mood.EmotionalStability * 100}%` }}
@@ -473,7 +473,7 @@ const NeuroVitalsPage = () => {
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-8">
-                                <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/10">
+                                <div className="bg-card/5 p-8 rounded-[2.5rem] border border-white/10">
                                     <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-8">Longitudinal Trends</h4>
                                     <div className="space-y-6">
                                         {vitals.filter(v => v.trend).map((v, i) => (
@@ -494,15 +494,15 @@ const NeuroVitalsPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/10 relative overflow-hidden flex flex-col justify-center items-center gap-6">
+                                <div className="bg-card/5 p-8 rounded-[2.5rem] border border-white/10 relative overflow-hidden flex flex-col justify-center items-center gap-6">
                                     <h4 className="absolute top-8 left-8 text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Psychological Compass</h4>
                                     <div className="w-48 h-48 relative border border-white/10 rounded-full bg-black/20">
-                                        <div className="absolute top-1/2 left-0 right-0 h-px bg-white/10" />
-                                        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/10" />
-                                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Arousal</span>
-                                        <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Calm</span>
-                                        <span className="absolute top-1/2 -left-12 -translate-y-1/2 text-[10px] font-black text-slate-500 uppercase tracking-widest -rotate-90 origin-center">Negative</span>
-                                        <span className="absolute top-1/2 -right-12 -translate-y-1/2 text-[10px] font-black text-slate-500 uppercase tracking-widest rotate-90 origin-center">Positive</span>
+                                        <div className="absolute top-1/2 left-0 right-0 h-px bg-card/10" />
+                                        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-card/10" />
+                                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-muted uppercase tracking-widest">Arousal</span>
+                                        <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-muted uppercase tracking-widest">Calm</span>
+                                        <span className="absolute top-1/2 -left-12 -translate-y-1/2 text-[10px] font-black text-muted uppercase tracking-widest -rotate-90 origin-center">Negative</span>
+                                        <span className="absolute top-1/2 -right-12 -translate-y-1/2 text-[10px] font-black text-muted uppercase tracking-widest rotate-90 origin-center">Positive</span>
                                         <motion.div
                                             animate={{ 
                                                 scale: [1, 1.3, 1],
@@ -531,7 +531,7 @@ const NeuroVitalsPage = () => {
                                                 <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Stability</span>
                                                 <span className="text-xs font-black text-emerald-400">{Math.round(analysisResult.Mood.EmotionalStability * 100)}%</span>
                                             </div>
-                                            <div className="w-px h-6 bg-white/10" />
+                                            <div className="w-px h-6 bg-card/10" />
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Readiness</span>
                                                 <span className="text-xs font-black text-cyan-400">{Math.round(analysisResult.Mood.CognitiveReadiness * 100)}%</span>
@@ -543,7 +543,7 @@ const NeuroVitalsPage = () => {
 
                             <div className="grid md:grid-cols-2 gap-8 pb-12">
                                 {clinicalSuites.map((suite, idx) => (
-                                    <div key={idx} className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 flex flex-col gap-6">
+                                    <div key={idx} className="bg-card/5 border border-white/10 rounded-[2.5rem] p-8 flex flex-col gap-6">
                                         <div className="flex items-center gap-4 text-[#00f2fe] border-b border-white/5 pb-4">
                                             <div className="w-10 h-10 rounded-xl bg-cyan-400/10 flex items-center justify-center">
                                                 {suite.icon}
@@ -574,11 +574,11 @@ const NeuroVitalsPage = () => {
                             </div>
                         </motion.div>
                     ) : (
-                        <div className="h-full flex items-center justify-center p-20 border border-dashed border-white/10 rounded-[3rem] bg-white/[0.02]">
+                        <div className="h-full flex items-center justify-center p-20 border border-dashed border-white/10 rounded-[3rem] bg-card/[0.02]">
                             <div className="text-center space-y-4 max-w-sm">
                                 <Activity size={32} className="text-white/20 mx-auto mb-6" />
                                 <h3 className="text-sm font-black text-white/40 uppercase tracking-widest">Awaiting Acquisition</h3>
-                                <p className="text-xs text-slate-500 font-medium">Requires a 20-second stable video acquisition.</p>
+                                <p className="text-xs text-muted font-medium">Requires a 20-second stable video acquisition.</p>
                             </div>
                         </div>
                     )}

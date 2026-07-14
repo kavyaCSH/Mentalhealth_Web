@@ -88,11 +88,19 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                                 <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-1.5">{user?.role}</span>
                             </div>
                             <Link to="/profile" className="w-10 h-10 sm:w-11 sm:h-11 bg-indigo-100 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-200/50 transition-all hover:scale-105 active:scale-95 overflow-hidden border-2 border-white">
-                                <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`}
-                                    alt="profile"
-                                    className="w-full h-full object-cover"
-                                />
+                                {user?.profileImage ? (
+                                    <img
+                                        src={`${user.profileImage}${user.profileImage?.includes('?') ? '&' : '?'}t=${new Date().getTime()}`}
+                                        alt="profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <img
+                                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`}
+                                        alt="profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                )}
                             </Link>
                         </div>
                     </div>

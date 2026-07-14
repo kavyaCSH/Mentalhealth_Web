@@ -87,21 +87,21 @@ const SpecialistsPage = () => {
                         <ShieldCheck size={20} />
                         <span className="text-xs font-black uppercase tracking-widest">Verified Clinical Directory</span>
                     </div>
-                    <h1 className="text-5xl font-black text-slate-900 tracking-tight leading-none">
+                    <h1 className="text-5xl font-black text-main tracking-tight leading-none">
                         Clinical <span className="text-indigo-600">Specialists</span>
                     </h1>
-                    <p className="text-slate-500 font-medium text-lg max-w-2xl">
+                    <p className="text-muted font-medium text-lg max-w-2xl">
                         Connect with licensed mental health professionals tailored to your therapeutic requirements.
                     </p>
                 </div>
 
-                <div className="bg-white p-2 rounded-[2rem] shadow-xl shadow-slate-100/50 border border-slate-50 flex items-center gap-2 group">
-                    <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-[1.5rem] border border-slate-100 transition-all group-focus-within:border-indigo-200 group-focus-within:bg-white min-w-[300px]">
-                        <Search size={18} className="text-slate-400" />
+                <div className="bg-card p-2 rounded-[2rem] shadow-sm border border-border-card flex items-center gap-2 group">
+                    <div className="flex items-center gap-3 px-4 py-3 bg-page rounded-[1.5rem] border border-border-card transition-all group-focus-within:border-indigo-500/30 group-focus-within:bg-card min-w-[300px]">
+                        <Search size={18} className="text-muted opacity-40" />
                         <input
                             type="text"
                             placeholder="Search by name, expertise..."
-                            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700 w-full placeholder:text-slate-400"
+                            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-main w-full placeholder:text-muted placeholder:opacity-40"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -117,8 +117,8 @@ const SpecialistsPage = () => {
                         onClick={() => setActiveRole(role.value)}
                         className={`px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all
                             ${activeRole === role.value
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
-                                : 'bg-white border border-slate-100 text-slate-500 hover:border-indigo-200 hover:text-indigo-600 shadow-sm'}`}
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 scale-105'
+                                : 'bg-card border border-border-card text-muted hover:border-indigo-500/30 hover:text-indigo-500 shadow-sm'}`}
                     >
                         {role.label}
                     </button>
@@ -128,7 +128,7 @@ const SpecialistsPage = () => {
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-40">
                     <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-6 shadow-xl"></div>
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Syncing Directory Matrix...</p>
+                    <p className="text-xs font-black text-muted opacity-40 uppercase tracking-[0.3em] animate-pulse">Syncing Directory Matrix...</p>
                 </div>
             ) : filteredSpecialists.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -141,7 +141,7 @@ const SpecialistsPage = () => {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                                className="group glass-card p-8 hover:border-indigo-200 transition-all cursor-default relative overflow-hidden"
+                                className="group bg-card border border-border-card rounded-[2.5rem] p-8 hover:border-indigo-500/30 transition-all cursor-default relative overflow-hidden"
                             >
                                 {/* Subtle Background Pattern */}
                                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50/30 rounded-full blur-3xl group-hover:bg-indigo-100/50 transition-colors duration-700"></div>
@@ -157,42 +157,42 @@ const SpecialistsPage = () => {
                                                 />
                                             </div>
                                             <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-6 h-6 rounded-full border-4 border-white flex items-center justify-center shadow-lg">
-                                                <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                                <div className="w-1.5 h-1.5 bg-card rounded-full"></div>
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
-                                            <div className="flex items-center gap-1 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
-                                                <Star size={12} className="text-amber-500 fill-amber-500" />
-                                                <span className="text-[10px] font-black text-amber-700">4.9</span>
+                                            <div className="flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-full border border-warning/20">
+                                                <Star size={12} className="text-warning fill-warning" />
+                                                <span className="text-[10px] font-black text-warning">4.9</span>
                                             </div>
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            <div className="text-[10px] font-bold text-muted opacity-50 uppercase tracking-widest">
                                                 250+ Sessions
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2 mb-8 flex-1">
-                                        <h3 className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                        <h3 className="text-2xl font-black text-main group-hover:text-indigo-600 transition-colors">
                                             {specialist.firstName} {specialist.lastName || specialist.name}
                                         </h3>
                                         <p className="text-xs font-black text-indigo-500 uppercase tracking-[0.15em] flex items-center gap-2">
                                             {specialist.role || 'Clinical Professional'}
-                                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                            <span className="w-1 h-1 bg-border-card rounded-full"></span>
                                             {specialist.specialization || 'Clinical Psychology'}
                                         </p>
-                                        <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2 mt-4">
+                                        <p className="text-sm text-muted font-medium leading-relaxed line-clamp-2 mt-4">
                                             Specializing in neural resilience and behavioral cognitive therapy with over 8 years of clinical residency.
                                         </p>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3 mb-8">
-                                        <div className="bg-slate-50/80 p-3 rounded-2xl border border-slate-100 flex items-center gap-3">
+                                        <div className="bg-page/80 p-3 rounded-2xl border border-border-card flex items-center gap-3">
                                             <Video size={16} className="text-indigo-400" />
-                                            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Virtual</span>
+                                            <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Virtual</span>
                                         </div>
-                                        <div className="bg-slate-50/80 p-3 rounded-2xl border border-slate-100 flex items-center gap-3">
-                                            <MapPin size={16} className="text-slate-400" />
-                                            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Clinic</span>
+                                        <div className="bg-page/80 p-3 rounded-2xl border border-border-card flex items-center gap-3">
+                                            <MapPin size={16} className="text-muted opacity-50" />
+                                            <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Clinic</span>
                                         </div>
                                     </div>
 
@@ -216,12 +216,12 @@ const SpecialistsPage = () => {
                     </AnimatePresence>
                 </div>
             ) : (
-                <section className="py-40 flex flex-col items-center justify-center glass-card border-dashed">
-                    <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 mb-8 border border-slate-100 shadow-inner">
+                <section className="py-40 flex flex-col items-center justify-center bg-card rounded-[3rem] border border-dashed border-border-card">
+                    <div className="w-24 h-24 bg-page rounded-[2.5rem] flex items-center justify-center text-muted opacity-40 mb-8 border border-border-card shadow-inner">
                         <Users size={48} />
                     </div>
-                    <h3 className="text-2xl font-black text-slate-900 mb-2">No Matching Specialists</h3>
-                    <p className="text-slate-500 font-medium max-w-sm text-center">
+                    <h3 className="text-2xl font-black text-main mb-2">No Matching Specialists</h3>
+                    <p className="text-muted font-medium max-w-sm text-center">
                         Try adjusting your search criteria or role filters to find clinical practitioners in your region.
                     </p>
                     <button
@@ -239,7 +239,7 @@ const SpecialistsPage = () => {
                 <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-10">
                     <div className="space-y-6">
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/10 backdrop-blur-2xl rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                            <div className="w-14 h-14 bg-card/10 backdrop-blur-2xl rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
                                 <Sparkles size={28} className="text-orange-300" />
                             </div>
                             <h2 className="text-3xl font-black leading-tight">Can't decide on a <br />clinical path?</h2>
@@ -249,10 +249,10 @@ const SpecialistsPage = () => {
                         </p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-4 shrink-0">
-                        <button className="px-10 py-5 bg-white text-indigo-900 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-indigo-50 transition-all shadow-xl active:scale-95">
+                        <button className="px-10 py-5 bg-card text-indigo-900 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-indigo-50 transition-all shadow-xl active:scale-95">
                             Take Matching Quiz
                         </button>
-                        <button className="px-10 py-5 bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-white/20 transition-all shadow-xl active:scale-95">
+                        <button className="px-10 py-5 bg-card/10 backdrop-blur-xl border border-white/20 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-card/20 transition-all shadow-xl active:scale-95">
                             Speak to Support
                         </button>
                     </div>

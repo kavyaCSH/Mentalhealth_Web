@@ -5,42 +5,42 @@ export const getStatusColor = (status: StatusType | string | null | undefined) =
     switch (s) {
         case 'scheduled':
             return {
-                bg: 'bg-blue-50',
+                bg: 'bg-blue-500/10',
                 text: 'text-blue-600',
-                border: 'border-blue-200',
-                dot: 'bg-blue-500',
+                border: 'border-blue-500/20',
+                dot: 'bg-blue-500/100',
                 hex: '#3b82f6' // Blue
             };
         case 'in_progress':
             return {
-                bg: 'bg-amber-50',
+                bg: 'bg-amber-500/10',
                 text: 'text-amber-600',
-                border: 'border-amber-200',
-                dot: 'bg-amber-500',
+                border: 'border-amber-500/20',
+                dot: 'bg-amber-500/100',
                 hex: '#f59e0b' // Amber
             };
         case 'completed':
             return {
-                bg: 'bg-green-50',
+                bg: 'bg-green-500/10',
                 text: 'text-green-600',
-                border: 'border-green-200',
-                dot: 'bg-green-500',
+                border: 'border-green-500/20',
+                dot: 'bg-green-500/100',
                 hex: '#10b981' // Green
             };
         case 'cancelled':
             return {
-                bg: 'bg-red-50',
+                bg: 'bg-red-500/10',
                 text: 'text-red-600',
-                border: 'border-red-200',
-                dot: 'bg-red-500',
+                border: 'border-red-500/20',
+                dot: 'bg-red-500/100',
                 hex: '#ef4444' // Red
             };
         default:
             return {
-                bg: 'bg-slate-50',
-                text: 'text-slate-600',
-                border: 'border-slate-200',
-                dot: 'bg-slate-500',
+                bg: 'bg-slate-500/10',
+                text: 'text-slate-500',
+                border: 'border-slate-500/20',
+                dot: 'bg-slate-500/100',
                 hex: '#64748b' // Slate
             };
     }

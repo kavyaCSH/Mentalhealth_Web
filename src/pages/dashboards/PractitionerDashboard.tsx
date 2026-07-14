@@ -391,7 +391,7 @@ const PractitionerDashboard = () => {
                                     navigate('/patients');
                                 }
                             }}
-                            className="min-w-[300px] max-w-[300px] p-6 card-premium bg-card border-border-card hover:border-indigo-100 transition-all cursor-pointer shadow-sm flex flex-col gap-4"
+                            className="min-w-[300px] max-w-[300px] p-6 card-premium bg-card border-border-card hover:border-indigo-500/30 transition-all cursor-pointer shadow-sm flex flex-col gap-4"
                         >
                             <div className="flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3">
@@ -503,7 +503,7 @@ const PractitionerDashboard = () => {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: i * 0.05 }}
-                                            className="card-premium bg-card p-5 border-border-card hover:border-indigo-200 transition-all cursor-pointer group"
+                                            className="card-premium bg-card p-5 border-border-card hover:border-indigo-500/30 transition-all cursor-pointer group"
                                             onClick={() => setExpandedSession(isExpanded ? null : String(session.id || session._id))}
                                         >
                                             <div className="flex items-center justify-between">

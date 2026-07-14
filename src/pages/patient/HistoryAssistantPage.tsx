@@ -337,7 +337,7 @@ const HistoryAssistantPage = () => {
             <div className="space-y-4">
                 <nav className="flex items-center gap-3">
                     {showBack && (
-                        <button onClick={() => { setViewState('list'); setExtractedData(null); }} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                        <button onClick={() => { setViewState('list'); setExtractedData(null); }} className="p-2 hover:bg-page rounded-full transition-colors">
                             <ArrowLeft size={20} className="text-muted" />
                         </button>
                     )}
@@ -375,7 +375,7 @@ const HistoryAssistantPage = () => {
                     Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-64 bg-page animate-pulse rounded-[2.5rem]" />)
                 ) : historyList.length === 0 ? (
                     <div className="col-span-full py-32 flex flex-col items-center gap-6 bg-page/50 rounded-[3rem] border-2 border-dashed border-border-card">
-                        <History size={60} className="text-slate-200" />
+                        <History size={60} className="text-muted opacity-40" />
                         <p className="text-muted opacity-80 font-black uppercase tracking-[0.2em]">No clinical records discovered yet.</p>
                         <Button variant="primary" size="lg" className="rounded-full px-12" onClick={() => setViewState('assistant')}>Record health narrative</Button>
                     </div>
@@ -394,7 +394,7 @@ const HistoryAssistantPage = () => {
                                     </div>
                                     <span className="text-[10px] font-bold text-muted opacity-80 tracking-widest">{record.createdAt ? new Date(record.createdAt).toLocaleDateString() : 'Snapshot'}</span>
                                 </div>
-                                <div className="px-3 py-1 bg-slate-100 text-muted text-[8px] font-black tracking-widest rounded-full">Archive Record</div>
+                                <div className="px-3 py-1 bg-page text-muted text-[8px] font-black tracking-widest rounded-full">Archive Record</div>
                             </div>
 
                             <h3 className="text-xl font-bold text-main mb-6 line-clamp-3 leading-tight tracking-tight group-hover:text-black">
@@ -403,11 +403,11 @@ const HistoryAssistantPage = () => {
 
 
 
-                            <div className="flex flex-wrap gap-2 mt-auto pt-6 border-t border-slate-50">
+                            <div className="flex flex-wrap gap-2 mt-auto pt-6 border-t border-border-card">
                                 {record.psychiatric_history && <span className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-indigo-100">Psychiatry</span>}
                                 {record.medical_history && <span className="px-3 py-1.5 bg-rose-50 text-rose-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-rose-100">Medical</span>}
                                 {record.family_history && <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-emerald-100">Family</span>}
-                                {record.trauma_history && <span className="px-3 py-1.5 bg-page text-main opacity-90 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-slate-100">Trauma</span>}
+                                {record.trauma_history && <span className="px-3 py-1.5 bg-page text-main opacity-90 text-[8px] font-bold tracking-widest rounded-lg transition-colors group-hover:bg-page">Trauma</span>}
                             </div>
                         </motion.div>
                     ))
@@ -788,7 +788,7 @@ const HistoryAssistantPage = () => {
                     )}
 
                     {q.type === 'boolean_group' && (
-                        <div className="space-y-8 pt-6 border-t border-slate-50">
+                        <div className="space-y-8 pt-6 border-t border-border-card">
                             {q.fields?.map((f: any, fIdx: number) => {
                                 const primaryFieldKey = q.fields[0].key;
                                 const primaryValue = manualResponses[q.key]?.[primaryFieldKey];

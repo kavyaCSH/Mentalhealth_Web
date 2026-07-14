@@ -517,18 +517,18 @@ const SchedulePage = () => {
                         transition={{ type: 'spring', damping: 20, stiffness: 260 }}
                         className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-full max-w-md"
                     >
-                        <div className="mx-4 bg-white border-2 border-amber-200 rounded-2xl shadow-2xl shadow-amber-100/60 overflow-hidden">
+                        <div className="mx-4 bg-card border-2 border-warning/20 rounded-2xl shadow-2xl shadow-warning/20 overflow-hidden">
                             <div className="flex items-start gap-4 p-5">
-                                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center shrink-0 border border-amber-200">
-                                    <Clock size={20} className="text-amber-500" />
+                                <div className="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center shrink-0 border border-warning/20">
+                                    <Clock size={20} className="text-warning" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-black text-slate-900 leading-tight">Session Not Ready Yet</p>
-                                    <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">{joinError}</p>
+                                    <p className="text-sm font-black text-main leading-tight">Session Not Ready Yet</p>
+                                    <p className="text-xs text-muted font-medium mt-1 leading-relaxed">{joinError}</p>
                                 </div>
                                 <button
                                     onClick={() => setJoinError(null)}
-                                    className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all shrink-0"
+                                    className="w-7 h-7 rounded-lg bg-page hover:bg-border-card flex items-center justify-center text-muted hover:text-main transition-all shrink-0"
                                 >
                                     <X size={14} />
                                 </button>
@@ -539,7 +539,7 @@ const SchedulePage = () => {
                                 animate={{ scaleX: 0 }}
                                 transition={{ duration: 5, ease: 'linear' }}
                                 style={{ transformOrigin: 'left' }}
-                                className="h-1 bg-amber-400"
+                                className="h-1 bg-warning"
                             />
                         </div>
                     </motion.div>
@@ -606,10 +606,10 @@ const SchedulePage = () => {
                                     {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                                 </h2>
                                 <div className="flex gap-2">
-                                    <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))} className="p-3 bg-page hover:bg-slate-100 rounded-2xl text-muted transition-all">
+                                    <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))} className="p-3 bg-page hover:bg-border-card rounded-2xl text-muted transition-all">
                                         <ChevronLeft size={20} />
                                     </button>
-                                    <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="p-3 bg-page hover:bg-slate-100 rounded-2xl text-muted transition-all">
+                                    <button onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))} className="p-3 bg-page hover:bg-border-card rounded-2xl text-muted transition-all">
                                         <ChevronRight size={20} />
                                     </button>
                                 </div>
@@ -634,9 +634,9 @@ const SchedulePage = () => {
                                             key={i}
                                             onClick={() => setSelectedDate(item.date)}
                                             className={`aspect-square rounded-2xl flex flex-col items-center justify-center text-sm font-black transition-all relative
-                                                ${isSelected ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-200 scale-110 z-10' :
-                                                    !item.isCurrentMonth ? 'text-slate-200' : 'text-main opacity-90 hover:bg-indigo-50'}
-                                                ${isToday && !isSelected ? 'border-2 border-indigo-100' : ''}
+                                                ${isSelected ? 'bg-indigo-600 text-white shadow-2xl shadow-indigo-500/20 scale-110 z-10' :
+                                                    !item.isCurrentMonth ? 'text-muted opacity-40' : 'text-main opacity-90 hover:bg-indigo-500/10'}
+                                                ${isToday && !isSelected ? 'border-2 border-indigo-500/20' : ''}
                                             `}
                                         >
                                             {item.date.getDate()}
@@ -656,7 +656,7 @@ const SchedulePage = () => {
                             <h2 className="text-2xl font-black text-main tracking-tight">
                                 {selectedDate.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric' })}
                             </h2>
-                            <span className="text-[10px] font-black text-muted opacity-80 bg-slate-100 px-3 py-1.5 rounded-full uppercase tracking-widest">
+                            <span className="text-[10px] font-black text-muted opacity-80 bg-border-card px-3 py-1.5 rounded-full uppercase tracking-widest">
                                 {dayAppointments.length} Items
                             </span>
                         </div>
@@ -750,7 +750,7 @@ const SchedulePage = () => {
                                                     </div>
 
                                                     {(isScheduled || isInProgress || isActive) && (
-                                                        <div className="flex flex-wrap gap-3 mt-5 pt-5 border-t border-slate-50">
+                                                        <div className="flex flex-wrap gap-3 mt-5 pt-5 border-t border-border-card">
                                                             {isVirtual && (isScheduled || isInProgress || isActive) && (
                                                                 <button onClick={() => handleAction('join', appt)} className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-black text-xs shadow-xl shadow-indigo-200 hover:scale-[1.01] transition-all flex items-center justify-center gap-2">
                                                                     <Video size={16} /> Join Now
@@ -762,16 +762,11 @@ const SchedulePage = () => {
                                                             >
                                                                 Billing
                                                             </button> */}
-                                                            <button
-                                                                onClick={() => handleRescheduleClick(appt)}
-                                                                className="px-5 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-xs border border-indigo-100 hover:bg-indigo-100 transition-all font-sans"
-                                                            >
-                                                                Reschedule
-                                                            </button>
+
                                                             {isCancelable && (
                                                                 <button
                                                                     onClick={() => handleAction('cancel', appt)}
-                                                                    className="px-5 py-3 bg-rose-50 text-rose-600 rounded-xl font-black text-xs border border-rose-100 hover:bg-rose-100 transition-all"
+                                                                    className="px-5 py-3 bg-error/10 text-error rounded-xl font-black text-xs border border-error/20 hover:bg-error/20 transition-all"
                                                                 >
                                                                     Cancel
                                                                 </button>
@@ -786,7 +781,7 @@ const SchedulePage = () => {
                             </div>
                         ) : (
                             <div className="bg-card rounded-[3.5rem] p-16 text-center border-2 border-dashed border-border-card">
-                                <div className="w-24 h-24 bg-page rounded-full flex items-center justify-center mx-auto mb-8 text-slate-300">
+                                <div className="w-24 h-24 bg-page rounded-full flex items-center justify-center mx-auto mb-8 text-muted opacity-40">
                                     <CalendarIcon size={48} strokeWidth={1.5} />
                                 </div>
                                 <h3 className="text-2xl font-black text-main mb-3">Quiet Day Ahead</h3>
@@ -842,10 +837,10 @@ const SchedulePage = () => {
                                                 </h2>
                                                 {!reschedulingAppt && (
                                                     <div className="flex gap-1.5 mt-1">
-                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'type' ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
-                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'date' ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
-                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'time' ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
-                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'details' ? 'w-6 bg-indigo-600' : 'w-2 bg-slate-200'}`} />
+                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'type' ? 'w-6 bg-indigo-600' : 'w-2 bg-border-card'}`} />
+                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'date' ? 'w-6 bg-indigo-600' : 'w-2 bg-border-card'}`} />
+                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'time' ? 'w-6 bg-indigo-600' : 'w-2 bg-border-card'}`} />
+                                                        <div className={`h-1 rounded-full transition-all duration-300 ${selectionStep === 'details' ? 'w-6 bg-indigo-600' : 'w-2 bg-border-card'}`} />
                                                     </div>
                                                 )}
                                             </div>
@@ -859,16 +854,16 @@ const SchedulePage = () => {
                                         {selectionStep === 'type' && (
                                             <div className="grid grid-cols-1 gap-4 animate-fade-in">
                                                 {[
-                                                    { id: 'psychiatrist', label: 'Psychiatrist', desc: 'Medical assessment & psychiatric care', icon: Stethoscope, bg: 'bg-indigo-50', text: 'text-indigo-500', border: 'border-indigo-100' },
-                                                    { id: 'psychologist', label: 'Psychologist', desc: 'Therapy, counseling & behavioral health', icon: Brain, bg: 'bg-emerald-50', text: 'text-emerald-500', border: 'border-emerald-100' },
-                                                    { id: 'nurse', label: 'Nurse', desc: 'Clinical support & medication management', icon: UserPlus, bg: 'bg-blue-50', text: 'text-blue-500', border: 'border-blue-100' },
-                                                    { id: 'social_worker', label: 'Social Worker', desc: 'Community support & advocacy', icon: Users, bg: 'bg-amber-50', text: 'text-amber-500', border: 'border-amber-100' },
-                                                    { id: 'counselor', label: 'Counselor', desc: 'Guidance & emotional support', icon: MessageCircle, bg: 'bg-rose-50', text: 'text-rose-500', border: 'border-rose-100' },
+                                                    { id: 'psychiatrist', label: 'Psychiatrist', desc: 'Medical assessment & psychiatric care', icon: Stethoscope, bg: 'bg-indigo-500/10', text: 'text-indigo-500', border: 'border-indigo-500/20' },
+                                                    { id: 'psychologist', label: 'Psychologist', desc: 'Therapy, counseling & behavioral health', icon: Brain, bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' },
+                                                    { id: 'nurse', label: 'Nurse', desc: 'Clinical support & medication management', icon: UserPlus, bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20' },
+                                                    { id: 'social_worker', label: 'Social Worker', desc: 'Community support & advocacy', icon: Users, bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/20' },
+                                                    { id: 'counselor', label: 'Counselor', desc: 'Guidance & emotional support', icon: MessageCircle, bg: 'bg-error/10', text: 'text-error', border: 'border-error/20' },
                                                 ].map((role) => (
                                                     <button
                                                         key={role.id}
                                                         onClick={() => { setSelectedRole(role.id); setSelectionStep('date'); }}
-                                                        className="flex items-center gap-6 p-6 rounded-[2rem] border-2 border-slate-50 bg-card hover:border-indigo-100 transition-all shadow-sm group text-left"
+                                                        className="flex items-center gap-6 p-6 rounded-[2rem] border-2 border-border-card bg-card hover:border-indigo-500/20 transition-all shadow-sm group text-left"
                                                     >
                                                         <div className={`w-14 h-14 rounded-2xl ${role.bg} flex items-center justify-center ${role.text} border ${role.border} group-hover:scale-110 transition-transform`}>
                                                             <role.icon size={28} />
@@ -877,7 +872,7 @@ const SchedulePage = () => {
                                                             <p className="font-black text-main text-lg">{role.label}</p>
                                                             <p className="text-xs font-bold text-muted opacity-80 mt-1">{role.desc}</p>
                                                         </div>
-                                                        <ChevronRight size={20} className="text-slate-300 group-hover:translate-x-1 transition-all" />
+                                                        <ChevronRight size={20} className="text-muted opacity-40 group-hover:translate-x-1 transition-all" />
                                                     </button>
                                                 ))}
                                             </div>
@@ -936,8 +931,8 @@ const SchedulePage = () => {
                                                                     {time}
                                                                 </button>
                                                             )) : (
-                                                                <div className="col-span-4 p-8 text-center bg-rose-50 rounded-2xl border border-rose-100">
-                                                                    <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest">No slots available for this date</p>
+                                                                <div className="col-span-4 p-8 text-center bg-error/10 rounded-2xl border border-error/20">
+                                                                    <p className="text-[10px] font-black text-error uppercase tracking-widest">No slots available for this date</p>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -962,9 +957,9 @@ const SchedulePage = () => {
                                                                         <button
                                                                             key={idx}
                                                                             onClick={() => { setSelectedSpecialist(s); setSelectionStep('details'); }}
-                                                                            className={`w-full flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all shadow-sm group ${isSelected ? 'border-indigo-600 bg-indigo-50' : 'border-slate-50 bg-card hover:border-indigo-100'}`}
+                                                                            className={`w-full flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all shadow-sm group ${isSelected ? 'border-indigo-600 bg-indigo-500/10' : 'border-border-card bg-card hover:border-indigo-500/20'}`}
                                                                         >
-                                                                            <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 font-black text-xs border border-indigo-200 group-hover:scale-110 transition-transform uppercase">
+                                                                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-black text-xs border border-indigo-500/20 group-hover:scale-110 transition-transform uppercase">
                                                                                 {name.substring(0, 1)}
                                                                             </div>
                                                                             <div className="text-left flex-1">
@@ -1021,7 +1016,7 @@ const SchedulePage = () => {
                                                 </div>
 
                                                 {bookingError && (
-                                                    <div className="p-4 bg-rose-50 rounded-2xl flex items-center gap-3 text-rose-600 text-[10px] font-black uppercase tracking-widest border border-rose-100 shadow-sm">
+                                                    <div className="p-4 bg-error/10 rounded-2xl flex items-center gap-3 text-error text-[10px] font-black uppercase tracking-widest border border-error/20 shadow-sm">
                                                         <AlertCircle size={16} />
                                                         {bookingError}
                                                     </div>

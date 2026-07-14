@@ -154,7 +154,7 @@ const Health = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Hydrating Clinical History...</p>
+                <p className="text-sm font-bold text-muted uppercase tracking-widest">Hydrating Clinical History...</p>
             </div>
         );
     }
@@ -375,7 +375,7 @@ const Health = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                     onClick={() => navigate(`/neuro-vitals`)}
-                    className="card-premium p-5 border-slate-100 bg-slate-900 border-none hover:shadow-2xl hover:shadow-cyan-100/50 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] relative overflow-hidden"
+                    className="card-premium p-5 border-border-card bg-slate-900 border-none hover:shadow-2xl hover:shadow-cyan-100/50 transition-all group h-full flex flex-col cursor-pointer active:scale-[0.98] relative overflow-hidden"
                 >
                     <div className="absolute top-0 right-0 p-8 opacity-10">
                         <Activity size={80} className="text-cyan-400" />
@@ -388,7 +388,7 @@ const Health = () => {
                     </div>
                     <div className="flex-1 relative z-10">
                         <p className="text-[10px] font-black text-cyan-400/60 uppercase tracking-widest mb-2">Deep Phenotyping</p>
-                        <p className="text-sm font-semibold text-slate-300 leading-relaxed italic">
+                        <p className="text-sm font-semibold text-muted opacity-40 leading-relaxed italic">
                             "Extract medical-grade biomarkers via AI video plethysmography..."
                         </p>
                     </div>

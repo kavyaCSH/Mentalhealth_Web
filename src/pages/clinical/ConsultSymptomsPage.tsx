@@ -15,7 +15,7 @@ const ConsultSymptomsPage = () => {
                 <header className="mb-12 flex items-start gap-6">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-3 bg-white rounded-2xl shadow-sm border border-border-card text-muted hover:text-indigo-600 transition-all hover:scale-110"
+                        className="p-3 bg-card rounded-2xl shadow-sm border border-border-card text-muted hover:text-indigo-600 transition-all hover:scale-110"
                     >
                         <ChevronLeft size={24} />
                     </button>

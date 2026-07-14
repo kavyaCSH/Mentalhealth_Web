@@ -44,8 +44,8 @@ const NumericPicker = ({ value, onValueChange, accentColor }: { value: number; o
 
                         {/* Unselected Layer */}
                         {!isSelected && (
-                            <div className="absolute inset-0 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center hover:bg-slate-100">
-                                <span className="text-[11px] font-black text-slate-400">{i}</span>
+                            <div className="absolute inset-0 bg-page border border-border-card rounded-lg flex items-center justify-center hover:bg-page">
+                                <span className="text-[11px] font-black text-muted opacity-80">{i}</span>
                             </div>
                         )}
 
@@ -118,17 +118,17 @@ export const ConsultSymptoms: React.FC<ConsultSymptomsProps> = ({ patientId, con
     return (
         <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
             <div className="mb-8">
-                <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="flex bg-page p-1.5 rounded-2xl border border-border-card shadow-sm">
                     <button
                         onClick={() => setActiveTab('new')}
-                        className={`flex-1 py-3 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-white text-indigo-600 shadow-lg shadow-slate-200/50' : 'text-slate-400 hover:text-slate-600'
+                        className={`flex-1 py-3 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-card text-indigo-600 shadow-lg shadow-slate-200/50' : 'text-muted opacity-80 hover:text-muted'
                             }`}
                     >
                         Record
                     </button>
                     <button
                         onClick={() => setActiveTab('history')}
-                        className={`flex-1 py-3 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-white text-indigo-600 shadow-lg shadow-slate-200/50' : 'text-slate-400 hover:text-slate-600'
+                        className={`flex-1 py-3 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-card text-indigo-600 shadow-lg shadow-slate-200/50' : 'text-muted opacity-80 hover:text-muted'
                             }`}
                     >
                         History
@@ -140,11 +140,11 @@ export const ConsultSymptoms: React.FC<ConsultSymptomsProps> = ({ patientId, con
                 <div className="space-y-6 pb-20 animate-fade-in">
                     <div className="space-y-3">
                         {symptomsData.map((s) => (
-                            <div key={s.key} className="bg-white p-4 rounded-xl border-2 border-slate-200 hover:border-slate-300 transition-all group shadow-sm">
+                            <div key={s.key} className="bg-card p-4 rounded-xl border-2 border-border-card hover:border-border-card transition-all group shadow-sm">
                                 <div className="flex items-center justify-between mb-2 px-1">
                                     <div className="flex items-center gap-2">
                                         <s.icon size={14} style={{ color: s.color }} />
-                                        <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">{s.label}</span>
+                                        <span className="text-[10px] font-black text-main uppercase tracking-widest">{s.label}</span>
                                     </div>
                                     <span className="text-[14px] font-black text-indigo-600 tabular-nums">{scores[s.key] || 0}</span>
                                 </div>
@@ -154,22 +154,22 @@ export const ConsultSymptoms: React.FC<ConsultSymptomsProps> = ({ patientId, con
                                     accentColor={s.color}
                                 />
                                 <div className="flex justify-between mt-2 px-1">
-                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{s.low}</span>
-                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{s.high}</span>
+                                    <span className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest">{s.low}</span>
+                                    <span className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest">{s.high}</span>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="bg-white p-4 rounded-xl border border-slate-100 mt-6 shadow-sm">
-                        <label className="flex items-center gap-2 text-[8px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                    <div className="bg-card p-4 rounded-xl border border-border-card mt-6 shadow-sm">
+                        <label className="flex items-center gap-2 text-[8px] font-black text-muted opacity-80 uppercase tracking-widest mb-3">
                             <Edit3 size={10} /> Clinical Meta Notes
                         </label>
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="Describe patient's physiological state..."
-                            className="w-full h-20 bg-slate-50 border border-slate-100 rounded-lg p-3 text-[11px] text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all resize-none shadow-inner"
+                            className="w-full h-20 bg-page border border-border-card rounded-lg p-3 text-[11px] text-main font-medium focus:outline-none focus:ring-2 focus:ring-slate-100 transition-all resize-none shadow-inner"
                         />
                     </div>
 
@@ -190,14 +190,14 @@ export const ConsultSymptoms: React.FC<ConsultSymptomsProps> = ({ patientId, con
                         </div>
                     ) : history.length === 0 ? (
                         <div className="text-center py-16 border-2 border-dashed border-white/5 rounded-3xl">
-                            <History size={32} className="mx-auto text-slate-700 mb-4" />
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">No symptom history found.</p>
+                            <History size={32} className="mx-auto text-main mb-4" />
+                            <p className="text-[10px] font-black text-muted uppercase tracking-widest">No symptom history found.</p>
                         </div>
                     ) : (
                         history.map((record, i) => (
-                            <div key={record.symptomId || record.id || i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg transition-all group">
+                            <div key={record.symptomId || record.id || i} className="bg-card p-6 rounded-2xl border border-border-card shadow-sm hover:shadow-lg transition-all group">
                                 <div className="flex justify-between items-center mb-6">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                                    <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest bg-page px-3 py-1.5 rounded-xl border border-border-card">
                                         {new Date(record.createdAt || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                     </span>
                                     <div
@@ -213,15 +213,15 @@ export const ConsultSymptoms: React.FC<ConsultSymptomsProps> = ({ patientId, con
                                             <div key={key} className="flex flex-col gap-1.5">
                                                 <div className="flex items-center gap-1.5">
                                                     <Icon size={10} style={{ color: symptom?.color || '#cbd5e1' }} />
-                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest break-all">{symptom?.label || key}</span>
+                                                    <span className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest break-all">{symptom?.label || key}</span>
                                                 </div>
-                                                <span className="text-sm font-black text-slate-800 tabular-nums">{score as number}/10</span>
+                                                <span className="text-sm font-black text-main tabular-nums">{score as number}/10</span>
                                             </div>
                                         );
                                     })}
                                 </div>
                                 {record.notes && (
-                                    <p className="text-[10px] text-slate-600 font-bold italic leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <p className="text-[10px] text-muted font-bold italic leading-relaxed bg-page p-3 rounded-lg border border-border-card">
                                         "{record.notes}"
                                     </p>
                                 )}

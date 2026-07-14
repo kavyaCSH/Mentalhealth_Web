@@ -29,10 +29,10 @@ const Button: React.FC<ButtonProps> = ({
     const variants = {
         primary: "bg-indigo-600 text-white shadow-lg shadow-indigo-200/50 hover:bg-indigo-700",
         secondary: "bg-indigo-50 text-indigo-700 hover:bg-indigo-100",
-        outline: "bg-transparent border-2 border-slate-200 text-slate-600 hover:border-indigo-600 hover:text-indigo-700",
-        ghost: "bg-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-900",
+        outline: "bg-transparent border-2 border-border-card text-muted hover:border-indigo-600 hover:text-indigo-700",
+        ghost: "bg-transparent text-muted hover:bg-page hover:text-main",
         danger: "bg-red-50 text-red-600 hover:bg-red-100",
-        white: "bg-white text-slate-900 shadow-xl shadow-black/5 hover:bg-slate-50",
+        white: "bg-card text-main shadow-xl shadow-black/5 hover:bg-page",
     };
 
     const sizes = {

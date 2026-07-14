@@ -132,7 +132,7 @@ const EditHPI = () => {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
                 <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-                <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Retrieving Clinical Record...</p>
+                <p className="text-muted opacity-80 font-black uppercase tracking-widest text-[10px]">Retrieving Clinical Record...</p>
             </div>
         );
     }
@@ -142,22 +142,22 @@ const EditHPI = () => {
             <header className="flex items-center gap-6">
                 <button
                     onClick={() => isPatient ? navigate('/records') : navigate(-1)}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    className="p-3 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                    <h1 className="text-4xl font-black text-main tracking-tight">
                         Edit HPI Record
                     </h1>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Refine history of present illness</p>
+                    <p className="text-xs font-bold text-muted opacity-80 uppercase tracking-widest mt-1">Refine history of present illness</p>
                 </div>
             </header>
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="card-premium p-10 bg-white border-slate-100 space-y-8"
+                className="card-premium p-10 bg-card border-border-card space-y-8"
             >
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -165,8 +165,8 @@ const EditHPI = () => {
                             <HistoryIcon size={24} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-900">Update Narrative</h2>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Adjust clinical context</p>
+                            <h2 className="text-xl font-black text-main">Update Narrative</h2>
+                            <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Adjust clinical context</p>
                         </div>
                     </div>
 
@@ -190,7 +190,7 @@ const EditHPI = () => {
                         value={narrative}
                         onChange={(e) => setNarrative(e.target.value)}
                         placeholder="Refine the clinical narrative..."
-                        className="w-full min-h-[300px] p-8 bg-slate-50/50 border-2 border-slate-100 rounded-[2.5rem] text-lg font-semibold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all resize-none leading-relaxed"
+                        className="w-full min-h-[300px] p-8 bg-card/50 border-2 border-border-card rounded-[2.5rem] text-lg font-semibold text-main placeholder:text-muted opacity-40 focus:outline-none focus:border-indigo-500 focus:bg-card transition-all resize-none leading-relaxed"
                     />
                     {isRecording && (
                         <div className="absolute bottom-6 right-6 flex items-center gap-2 text-rose-500 font-bold text-[10px] uppercase tracking-widest">
@@ -211,7 +211,7 @@ const EditHPI = () => {
                     <Button
                         variant="outline"
                         size="lg"
-                        className="px-10 rounded-2xl border-slate-200 text-slate-500 font-black uppercase tracking-widest text-xs"
+                        className="px-10 rounded-2xl border-border-card text-muted font-black uppercase tracking-widest text-xs"
                         onClick={() => {
                             setNarrative('');
                             if (isRecording) {

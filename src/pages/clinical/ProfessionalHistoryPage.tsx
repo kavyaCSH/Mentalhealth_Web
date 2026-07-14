@@ -22,12 +22,12 @@ import Button from '../../components/ui/Button';
 const getSeverityStyle = (severity?: string, interpretation?: string) => {
     const key = String(severity || interpretation || '').toLowerCase();
     if (key.includes('severe') || key.includes('high') || key.includes('extreme'))
-        return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', fill: 'bg-red-500', icon: AlertCircle };
+        return { color: 'text-error', bg: 'bg-error/10', border: 'border-error/20', fill: 'bg-error', icon: AlertCircle };
     if (key.includes('moderate') || key.includes('medium'))
-        return { color: 'text-main opacity-90', bg: 'bg-orange-50', border: 'border-orange-100', fill: 'bg-orange-500', icon: TrendingUp };
+        return { color: 'text-warning', bg: 'bg-warning/10', border: 'border-warning/20', fill: 'bg-warning', icon: TrendingUp };
     if (key.includes('mild') || key.includes('low'))
-        return { color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', fill: 'bg-amber-500', icon: Shield };
-    return { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', fill: 'bg-emerald-500', icon: CheckCircle2 };
+        return { color: 'text-warning opacity-80', bg: 'bg-warning/10', border: 'border-warning/20', fill: 'bg-warning', icon: Shield };
+    return { color: 'text-success', bg: 'bg-success/10', border: 'border-success/20', fill: 'bg-success', icon: CheckCircle2 };
 };
 
 const ProfessionalHistoryPage = () => {
@@ -210,7 +210,7 @@ const ProfessionalHistoryPage = () => {
                                         <div className="space-y-0 text-left">
                                             <p className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest leading-none">{item.date}</p>
                                             <div className="flex items-center gap-1 mt-0.5">
-                                                <span className={`px-1 py-0.5 rounded-[4px] text-[6px] font-black uppercase tracking-widest ${item.isProfessional ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white'}`}>
+                                                <span className={`px-1 py-0.5 rounded-[4px] text-[6px] font-black uppercase tracking-widest ${item.isProfessional ? 'bg-indigo-600 text-white' : 'bg-warning text-white'}`}>
                                                     {item.isProfessional ? 'Clinical' : 'Self'}
                                                 </span>
                                                 <span className={`px-1 py-0.5 rounded-full text-[6px] font-black uppercase tracking-widest border flex items-center gap-1 ${style.bg} ${style.color} ${style.border}`}>
@@ -241,9 +241,9 @@ const ProfessionalHistoryPage = () => {
                                             {item.interpretation || 'No additional synthesis recorded.'}
                                         </p>
                                         {item.notes && (
-                                            <div className="p-2.5 bg-amber-50/40 rounded-xl border border-amber-100/50 group-hover:bg-amber-50 transition-colors">
-                                                <p className="text-[10px] font-semibold text-amber-900 leading-tight line-clamp-2">
-                                                    <span className="font-black text-amber-600 uppercase text-[8px] mr-1">Clinician Note:</span>
+                                            <div className="p-2.5 bg-warning/10 rounded-xl border border-warning/20 group-hover:bg-warning/20 transition-colors">
+                                                <p className="text-[10px] font-semibold text-warning leading-tight line-clamp-2">
+                                                    <span className="font-black text-warning uppercase text-[8px] mr-1">Clinician Note:</span>
                                                     "{item.notes}"
                                                 </p>
                                             </div>
@@ -269,7 +269,7 @@ const ProfessionalHistoryPage = () => {
                         {fetchError && (
                             <Button
                                 variant="outline"
-                                className="mt-8 rounded-2xl border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                                className="mt-8 rounded-2xl border-indigo-500/30 text-indigo-500 hover:bg-indigo-500/10"
                                 onClick={loadHistory}
                             >
                                 Retry Sync

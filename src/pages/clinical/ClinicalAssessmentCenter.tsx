@@ -48,14 +48,14 @@ const slugStyleMap: Record<string, { icon: string; color: string; description: s
 const defaultStyle = { icon: 'Brain', color: 'indigo', description: 'Select a standardized clinical tool to evaluate patient mental health markers.' };
 
 const colorMap: Record<string, { bg: string; text: string; border: string; badgeBg: string }> = {
-    indigo:  { bg: 'bg-indigo-50',  text: 'text-indigo-600',  border: 'border-indigo-200',  badgeBg: 'bg-indigo-100' },
-    emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', badgeBg: 'bg-emerald-100' },
-    pink:    { bg: 'bg-pink-50',    text: 'text-pink-600',    border: 'border-pink-200',    badgeBg: 'bg-pink-100' },
-    orange:  { bg: 'bg-orange-50',  text: 'text-orange-600',  border: 'border-orange-200',  badgeBg: 'bg-orange-100' },
-    red:     { bg: 'bg-red-50',     text: 'text-red-600',     border: 'border-red-200',     badgeBg: 'bg-red-100' },
-    purple:  { bg: 'bg-purple-50',  text: 'text-purple-600',  border: 'border-purple-200',  badgeBg: 'bg-purple-100' },
-    teal:    { bg: 'bg-teal-50',    text: 'text-teal-600',    border: 'border-teal-200',    badgeBg: 'bg-teal-100' },
-    slate:   { bg: 'bg-slate-100',  text: 'text-slate-600',   border: 'border-slate-200',   badgeBg: 'bg-slate-200' },
+    indigo:  { bg: 'bg-indigo-500/10',  text: 'text-indigo-500',  border: 'border-indigo-500/20',  badgeBg: 'bg-indigo-500/20' },
+    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20', badgeBg: 'bg-emerald-500/20' },
+    pink:    { bg: 'bg-pink-500/10',    text: 'text-pink-500',    border: 'border-pink-500/20',    badgeBg: 'bg-pink-500/20' },
+    orange:  { bg: 'bg-orange-500/10',  text: 'text-orange-500',  border: 'border-orange-500/20',  badgeBg: 'bg-orange-500/20' },
+    red:     { bg: 'bg-red-500/10',     text: 'text-red-500',     border: 'border-red-500/20',     badgeBg: 'bg-red-500/20' },
+    purple:  { bg: 'bg-purple-500/10',  text: 'text-purple-500',  border: 'border-purple-500/20',  badgeBg: 'bg-purple-500/20' },
+    teal:    { bg: 'bg-teal-500/10',    text: 'text-teal-500',    border: 'border-teal-500/20',    badgeBg: 'bg-teal-500/20' },
+    slate:   { bg: 'bg-card0/10',   text: 'text-muted',   border: 'border-border-card0/20',   badgeBg: 'bg-card0/20' },
 };
 
 const getIcon = (iconName: string, cls: string) => {
@@ -227,7 +227,7 @@ const ClinicalAssessmentCenter = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Loading Clinical Assessments...</p>
+                <p className="text-sm font-bold text-muted uppercase tracking-widest">Loading Clinical Assessments...</p>
             </div>
         );
     }
@@ -246,22 +246,22 @@ const ClinicalAssessmentCenter = () => {
                             <CheckCircle2 size={40} />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Evaluation Complete</h1>
-                            <p className="text-slate-500 font-medium mt-1">Assessment recorded successfully in the patient's clinical vault.</p>
+                            <h1 className="text-3xl font-black text-main tracking-tight">Evaluation Complete</h1>
+                            <p className="text-muted font-medium mt-1">Assessment recorded successfully in the patient's clinical vault.</p>
                         </div>
                     </header>
 
-                    <div className="card-premium p-8 space-y-8 border-indigo-100 shadow-xl shadow-indigo-50/50">
-                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
-                            <div className="text-center px-6 border-r border-slate-100 flex-1">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Score</p>
-                                <p className="text-4xl font-black text-slate-900 leading-none">
+                    <div className="card-premium p-8 space-y-8 border-indigo-500/20 shadow-xl shadow-indigo-50/50">
+                        <div className="flex items-center justify-between p-6 bg-card rounded-[2rem] border border-border-card">
+                            <div className="text-center px-6 border-r border-border-card flex-1">
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1">Total Score</p>
+                                <p className="text-4xl font-black text-main leading-none">
                                     {submittedResult.totalScore}
-                                    <span className="text-xs text-slate-400 ml-1 font-medium">/ {submittedResult.maxPossibleScore || '--'}</span>
+                                    <span className="text-xs text-muted opacity-80 ml-1 font-medium">/ {submittedResult.maxPossibleScore || '--'}</span>
                                 </p>
                             </div>
                             <div className="text-center px-6 flex-1">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Interpretation</p>
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1">Interpretation</p>
                                 <div className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest border inline-block ${colors.bg} ${colors.text} ${colors.border}`}>
                                     {submittedResult.interpretation || submittedResult.severity || 'Completed'}
                                 </div>
@@ -293,7 +293,7 @@ const ClinicalAssessmentCenter = () => {
                             </Button>
                             <button 
                                 onClick={() => navigate(`/history/professional?patientId=${targetPatientId}&category=${submittedResult.category}`)}
-                                className="w-full py-4 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors flex items-center justify-center gap-2"
+                                className="w-full py-4 text-[11px] font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors flex items-center justify-center gap-2"
                             >
                                 <TrendingUp size={14} /> View Longitudinal History <ChevronRight size={14} />
                             </button>
@@ -315,7 +315,7 @@ const ClinicalAssessmentCenter = () => {
                     {/* Header */}
                     <header className="space-y-4">
                         <button onClick={() => { setSelectedTopic(null); setAnswers({}); }}
-                            className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">
+                            className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors">
                             <ChevronLeft size={14} /> Back to Categories
                         </button>
                         <div className="flex items-center gap-4">
@@ -323,10 +323,10 @@ const ClinicalAssessmentCenter = () => {
                                 {getIcon(topicStyle.icon, colors.text)}
                             </div>
                             <div>
-                                <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                <h1 className="text-3xl font-black text-main tracking-tight">
                                     {selectedTopic.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                                 </h1>
-                                <p className="text-slate-500 font-medium mt-1">{topicStyle.description}</p>
+                                <p className="text-muted font-medium mt-1">{topicStyle.description}</p>
                             </div>
                         </div>
                     </header>
@@ -340,8 +340,8 @@ const ClinicalAssessmentCenter = () => {
                     {/* Questions */}
                     {qs.length === 0 ? (
                         <div className="glass-card p-12 text-center">
-                            <AlertCircle size={40} className="text-slate-300 mx-auto mb-4" />
-                            <p className="font-black text-slate-600">No questions found in this category.</p>
+                            <AlertCircle size={40} className="text-muted opacity-40 mx-auto mb-4" />
+                            <p className="font-black text-muted">No questions found in this category.</p>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -353,7 +353,7 @@ const ClinicalAssessmentCenter = () => {
                                         className="card-premium p-8">
                                         <div className="flex items-start gap-4 mb-6">
                                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-black ${colors.bg} ${colors.text}`}>{idx + 1}</div>
-                                            <h3 className="text-lg font-bold text-slate-900 leading-relaxed">{q.text}</h3>
+                                            <h3 className="text-lg font-bold text-main leading-relaxed">{q.text}</h3>
                                         </div>
                                         <div className="grid gap-3 pl-13">
                                             {(q.options || []).map((opt: any, oi: number) => {
@@ -363,13 +363,13 @@ const ClinicalAssessmentCenter = () => {
                                                     <button key={optId || oi} onClick={() => setAnswers(prev => ({ ...prev, [qId]: optId }))}
                                                         className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-200 ${isSelected
                                                             ? `${colors.bg} ${colors.border} ${colors.text} shadow-sm scale-[1.01]`
-                                                            : 'border-slate-100 bg-white text-slate-600 hover:border-slate-200 hover:bg-slate-50'}`}>
-                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? colors.border : 'border-slate-300'}`}>
+                                                            : 'border-border-card bg-card text-muted hover:border-border-card hover:bg-card'}`}>
+                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? colors.border : 'border-border-card'}`}>
                                                             {isSelected && <div className={`w-2.5 h-2.5 rounded-full ${colors.text.replace('text-', 'bg-')}`} />}
                                                         </div>
                                                         <span className="font-medium flex-1">{opt.text}</span>
                                                         {opt.score !== undefined && (
-                                                            <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${isSelected ? colors.badgeBg : 'bg-slate-100 text-slate-500'}`}>
+                                                            <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${isSelected ? colors.badgeBg : 'bg-page text-muted'}`}>
                                                                 {opt.score} pts
                                                             </span>
                                                         )}
@@ -384,13 +384,13 @@ const ClinicalAssessmentCenter = () => {
 
                             {/* Notes */}
                             <div className="card-premium p-8">
-                                <h3 className="text-base font-black text-slate-900 mb-4 flex items-center gap-2">
+                                <h3 className="text-base font-black text-main mb-4 flex items-center gap-2">
                                     <ClipboardCheck size={18} className="text-indigo-500" /> Additional Notes (Optional)
                                 </h3>
                                 <textarea
                                     value={notes} onChange={e => setNotes(e.target.value)} rows={4}
                                     placeholder="Add clinical observations, medication context, or supplementary notes..."
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                                    className="w-full bg-card border border-border-card rounded-xl p-4 text-sm font-medium text-main focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                                 />
                             </div>
                         </div>
@@ -398,8 +398,8 @@ const ClinicalAssessmentCenter = () => {
 
                     {/* Sticky submit footer */}
                     {qs.length > 0 && (
-                        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 px-8 py-4 flex items-center justify-between z-20">
-                            <div className="text-sm font-bold text-slate-500">
+                        <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border-card px-8 py-4 flex items-center justify-between z-20">
+                            <div className="text-sm font-bold text-muted">
                                 {qs.filter((q: any) => answers[(q as any).questionId || (q as any)._id || (q as any).id] !== undefined).length} / {qs.length} answered
                             </div>
                             <Button variant="primary" disabled={!isAllAnswered || isSubmitting} isLoading={isSubmitting}
@@ -417,22 +417,22 @@ const ClinicalAssessmentCenter = () => {
         return (
             <div className="p-8 max-w-7xl space-y-10 animate-fade-in pb-20">
                 <header className="space-y-4">
-                    <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">
+                    <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors">
                         <ChevronLeft size={14} /> Back
                     </button>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Clinical Assessment Center</h1>
-                            <p className="text-slate-500 font-medium mt-1">DSM-5 Classification — Select a category to evaluate</p>
+                            <h1 className="text-4xl font-black text-main tracking-tight">Clinical Assessment Center</h1>
+                            <p className="text-muted font-medium mt-1">DSM-5 Classification — Select a category to evaluate</p>
                         </div>
                         {targetPatientId && (
-                            <div className="flex items-center gap-3 px-5 py-3 bg-indigo-50 rounded-2xl border border-indigo-100">
-                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm">
+                            <div className="flex items-center gap-3 px-5 py-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                                <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center text-indigo-600 shadow-sm">
                                     <User size={20} />
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Evaluating</p>
-                                    <p className="text-sm font-bold text-indigo-900">{targetPatientName || `Patient #${targetPatientId}`}</p>
+                                    <p className="text-sm font-bold text-main">{targetPatientName || `Patient #${targetPatientId}`}</p>
                                     {patientInfo && <p className="text-[10px] text-indigo-400 font-medium">{patientInfo.age}y · {patientInfo.gender}</p>}
                                 </div>
                             </div>
@@ -441,10 +441,10 @@ const ClinicalAssessmentCenter = () => {
                 </header>
 
                 {topicCards.length === 0 ? (
-                    <div className="text-center py-24 card-premium bg-slate-50/50 border-dashed border-2">
-                        <AlertCircle size={48} className="mx-auto mb-4 text-slate-200" />
-                        <p className="font-black text-slate-900 mb-1 uppercase tracking-widest text-sm">No Assessment Categories Found</p>
-                        <p className="text-slate-400 font-medium text-sm">The backend may not support DSM-5 professional topics yet.</p>
+                    <div className="text-center py-24 card-premium bg-card/50 border-dashed border-2">
+                        <AlertCircle size={48} className="mx-auto mb-4 text-muted opacity-40" />
+                        <p className="font-black text-main mb-1 uppercase tracking-widest text-sm">No Assessment Categories Found</p>
+                        <p className="text-muted opacity-80 font-medium text-sm">The backend may not support DSM-5 professional topics yet.</p>
                     </div>
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -469,13 +469,13 @@ const ClinicalAssessmentCenter = () => {
                                             </span>
                                         ) : null}
                                     </div>
-                                    <h3 className="text-xl font-black text-slate-900 mb-2">{topic.title}</h3>
-                                    <p className="text-sm text-slate-500 font-medium leading-relaxed flex-1 mb-6">{topic.description}</p>
+                                    <h3 className="text-xl font-black text-main mb-2">{topic.title}</h3>
+                                    <p className="text-sm text-muted font-medium leading-relaxed flex-1 mb-6">{topic.description}</p>
                                     <div className={`flex items-center gap-2 text-sm font-black ${colors.text} group-hover:gap-4 transition-all`}>
                                         Start Evaluation <ChevronRight size={16} />
                                     </div>
                                     {total > 0 && (
-                                        <div className="mt-4 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="mt-4 h-1.5 bg-page rounded-full overflow-hidden">
                                             <div className={`h-full ${colors.text.replace('text-', 'bg-')} rounded-full transition-all`} style={{ width: `${(answered / total) * 100}%` }} />
                                         </div>
                                     )}
@@ -492,25 +492,25 @@ const ClinicalAssessmentCenter = () => {
     return (
         <div className="p-8 max-w-7xl space-y-10 animate-fade-in pb-20">
             <header className="space-y-4">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">
+                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors">
                     <ChevronLeft size={14} /> Back
                 </button>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Clinical Assessment Center</h1>
-                        <p className="text-slate-500 font-medium mt-1">Select a standardized clinical tool to evaluate patient mental health markers.</p>
+                        <h1 className="text-4xl font-black text-main tracking-tight">Clinical Assessment Center</h1>
+                        <p className="text-muted font-medium mt-1">Select a standardized clinical tool to evaluate patient mental health markers.</p>
                     </div>
                 </div>
             </header>
 
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between glass-card p-4">
                 <div className="relative w-full md:w-96">
-                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted opacity-80" />
                     <input type="text" placeholder="Search clinical tools..." value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
+                        className="w-full bg-card border border-border-card rounded-xl py-3 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" />
                 </div>
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <div className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                     {filteredAssessments.length} TOOL{filteredAssessments.length !== 1 ? 'S' : ''} READY
                 </div>
             </div>
@@ -527,19 +527,19 @@ const ClinicalAssessmentCenter = () => {
                                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${colors.bg} ${colors.text} group-hover:scale-110 transition-transform duration-500`}>
                                             {getIcon(item.icon, colors.text)}
                                         </div>
-                                        <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <div className="flex items-center gap-1.5 text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                                             <Clock size={12} /> {item.duration}
                                         </div>
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-black text-slate-900 mb-2 truncate">{item.title}</h3>
-                                        <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">{item.description}</p>
+                                        <h3 className="text-xl font-black text-main mb-2 truncate">{item.title}</h3>
+                                        <p className="text-sm text-muted font-medium leading-relaxed line-clamp-2">{item.description}</p>
                                     </div>
                                 </div>
-                                <div className="flex gap-3 pt-8 mt-8 border-t border-slate-50">
+                                <div className="flex gap-3 pt-8 mt-8 border-t border-border-card">
                                     {targetPatientId && (
                                         <Button variant="outline"
-                                            className="flex-1 rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50 py-3 text-[11px] font-black uppercase tracking-widest"
+                                            className="flex-1 rounded-2xl border-border-card text-muted hover:bg-card py-3 text-[11px] font-black uppercase tracking-widest"
                                             onClick={() => handleViewHistory(item.slug || '')} leftIcon={<Clock size={16} />}>
                                             History
                                         </Button>
@@ -554,10 +554,10 @@ const ClinicalAssessmentCenter = () => {
                         );
                     })
                 ) : (
-                    <div className="col-span-full py-24 text-center card-premium bg-slate-50/50 border-dashed border-2">
-                        <AlertCircle size={48} className="mx-auto mb-4 text-slate-200" />
-                        <p className="font-black text-slate-900 mb-1 uppercase tracking-widest text-sm">No Assessment Tools Found</p>
-                        <p className="text-slate-400 font-medium text-sm">Try adjusting your search query.</p>
+                    <div className="col-span-full py-24 text-center card-premium bg-card/50 border-dashed border-2">
+                        <AlertCircle size={48} className="mx-auto mb-4 text-muted opacity-40" />
+                        <p className="font-black text-main mb-1 uppercase tracking-widest text-sm">No Assessment Tools Found</p>
+                        <p className="text-muted opacity-80 font-medium text-sm">Try adjusting your search query.</p>
                     </div>
                 )}
             </div>

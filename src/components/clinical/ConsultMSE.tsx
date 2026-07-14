@@ -138,7 +138,7 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
                             const isSel = q.type === 'select' ? val === opt : (Array.isArray(val) && val.includes(opt));
                             return (
                                 <button key={opt} onClick={() => q.type === 'select' ? handleValueChange(section, q.key, opt) : handleMultiselectToggle(section, q.key, opt)}
-                                    className={`p-3 rounded-xl border text-left transition-all ${isSel ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'}`}>
+                                    className={`p-3 rounded-xl border text-left transition-all ${isSel ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-page border-border-card text-muted hover:bg-page'}`}>
                                     <span className="text-[10px] font-bold uppercase tracking-tight">{opt}</span>
                                 </button>
                             );
@@ -150,14 +150,14 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
                     <div className="flex gap-2 mt-2">
                         {[true, false].map(v => (
                             <button key={v ? 'y' : 'n'} onClick={() => handleValueChange(section, q.key, v)}
-                                className={`flex-1 p-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${val === v ? (v ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-800 border-slate-800 text-white') : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                className={`flex-1 p-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${val === v ? (v ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-800 border-slate-800 text-white') : 'bg-page border-border-card text-muted opacity-80'}`}>
                                 {v ? 'Normal' : 'Atypical'}
                             </button>
                         ))}
                     </div>
                 );
             case 'text':
-                return <textarea value={val || ''} onChange={e => handleValueChange(section, q.key, e.target.value)} className="w-full h-24 bg-slate-50 border-2 border-slate-100 rounded-xl p-4 text-[10px] font-bold mt-2 outline-none focus:bg-white transition-all resize-none" />;
+                return <textarea value={val || ''} onChange={e => handleValueChange(section, q.key, e.target.value)} className="w-full h-24 bg-page border-2 border-border-card rounded-xl p-4 text-[10px] font-bold mt-2 outline-none focus:bg-card transition-all resize-none" />;
             default: return null;
         }
     };
@@ -168,13 +168,13 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
         <div className="space-y-4 pt-2">
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-16">
-                    <Activity className="animate-spin text-slate-400 mb-4" size={24} />
-                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Synchronizing Archives...</p>
+                    <Activity className="animate-spin text-muted opacity-80 mb-4" size={24} />
+                    <p className="text-[10px] font-black text-muted opacity-40 uppercase tracking-widest">Synchronizing Archives...</p>
                 </div>
             ) : history.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl bg-white">
-                    <Brain size={28} className="mx-auto text-slate-200 mb-4" />
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">No mental status logs detected</p>
+                <div className="text-center py-12 border-2 border-dashed border-border-card rounded-2xl bg-card">
+                    <Brain size={28} className="mx-auto text-muted opacity-40 mb-4" />
+                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">No mental status logs detected</p>
                     <Button
                         variant="primary"
                         size="sm"
@@ -190,18 +190,18 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
                         <button
                             key={index}
                             onClick={() => setSelectedRecord(record)}
-                            className="w-full text-left bg-white p-4 rounded-xl border-2 border-slate-200 hover:border-violet-600 transition-all group"
+                            className="w-full text-left bg-card p-4 rounded-xl border-2 border-border-card hover:border-violet-600 transition-all group"
                         >
                             <div className="flex items-center justify-between mb-3">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                     <Clock size={10} />
                                     {new Date(record.createdAt).toLocaleDateString()}
                                 </span>
-                                <div className="p-1 rounded bg-slate-50 text-slate-300 group-hover:text-violet-600 transition-colors">
+                                <div className="p-1 rounded bg-page text-muted opacity-40 group-hover:text-violet-600 transition-colors">
                                     <ChevronRight size={14} />
                                 </div>
                             </div>
-                            <p className="text-[11px] font-bold text-slate-600 leading-relaxed line-clamp-2">
+                            <p className="text-[11px] font-bold text-muted leading-relaxed line-clamp-2">
                                 {record.narrative ? `"${record.narrative}"` : 'Mental status documentation available.'}
                             </p>
                         </button>
@@ -214,26 +214,26 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
     const renderNew = () => (
         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500 pb-20 pt-1">
              <div className="flex items-center justify-between mb-4">
-                 <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Mental State Exam</h3>
+                 <h3 className="text-[10px] font-black text-main uppercase tracking-widest">Mental State Exam</h3>
              </div>
 
 
                 <div className="space-y-4">
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         {sections.map((s, idx) => (
-                             <button key={s.section} onClick={() => setCurrentStep(idx)} className={`px-4 py-3 rounded-xl border-2 whitespace-nowrap text-[9px] font-black uppercase tracking-widest transition-all ${idx === currentStep ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-100'}`}>{s.title}</button>
+                             <button key={s.section} onClick={() => setCurrentStep(idx)} className={`px-4 py-3 rounded-xl border-2 whitespace-nowrap text-[9px] font-black uppercase tracking-widest transition-all ${idx === currentStep ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-card border-border-card text-muted opacity-80 hover:border-indigo-100'}`}>{s.title}</button>
                         ))}
                     </div>
 
                     {currentSection && (
-                        <div className="card-premium p-6 bg-white border-slate-100 space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                             <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <div className="card-premium p-6 bg-card border-border-card space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                             <h4 className="text-[11px] font-black text-main uppercase tracking-widest flex items-center gap-2">
                                 <div className="w-1 h-5 bg-indigo-600 rounded-full" /> {currentSection.title}
                              </h4>
                              <div className="space-y-8">
                                 {currentSection.questions.map((q: any) => (
                                     <div key={q.key} className="space-y-1">
-                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight ml-1">{q.label}</label>
+                                        <label className="text-[10px] font-bold text-muted uppercase tracking-tight ml-1">{q.label}</label>
                                         {renderQuestion(currentSection.section, q)}
                                     </div>
                                 ))}
@@ -259,25 +259,25 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
         <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 pt-2">
             <button
                 onClick={() => setSelectedRecord(null)}
-                className="flex items-center gap-1.5 text-slate-400 font-black text-[9px] uppercase tracking-widest mb-2 hover:text-indigo-600 transition-colors"
+                className="flex items-center gap-1.5 text-muted opacity-80 font-black text-[9px] uppercase tracking-widest mb-2 hover:text-indigo-600 transition-colors"
             >
                 <ChevronLeft size={14} />
                 Back to clinical Archive
             </button>
 
-            <div className="bg-white border-2 border-slate-200 rounded-2xl p-6">
+            <div className="bg-card border-2 border-border-card rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+                    <div className="w-8 h-8 rounded-lg bg-page border border-border-card flex items-center justify-center text-muted opacity-80">
                         <FileText size={16} />
                     </div>
                     <div>
-                        <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Clinical Synthesis</h3>
-                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                        <h3 className="text-[10px] font-black text-main uppercase tracking-widest">Clinical Synthesis</h3>
+                        <p className="text-[8px] font-bold text-muted opacity-80 uppercase tracking-widest">
                             {new Date(selectedRecord.createdAt).toLocaleDateString()}
                         </p>
                     </div>
                 </div>
-                <p className="text-[11px] font-bold text-slate-600 leading-relaxed italic">
+                <p className="text-[11px] font-bold text-muted leading-relaxed italic">
                     "{selectedRecord.narrative || 'Mental status documentation summary'}"
                 </p>
             </div>
@@ -285,19 +285,19 @@ export const ConsultMSE: React.FC<ConsultMSEProps> = ({
     );
 
     return (
-        <div className="flex flex-col h-full bg-white px-2">
+        <div className="flex flex-col h-full bg-card px-2">
             {!selectedRecord && (
                 <div className="flex items-center justify-between mb-6">
-                    <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                    <div className="flex bg-page p-1 rounded-lg border border-border-card">
                         <button
                             onClick={() => { setActiveTab('history'); setSelectedRecord(null); }}
-                            className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-white text-violet-600 shadow-sm border border-slate-200' : 'text-slate-400'}`}
+                            className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-card text-violet-600 shadow-sm border border-border-card' : 'text-muted opacity-80'}`}
                         >
                             History
                         </button>
                         <button
                             onClick={() => { setActiveTab('new'); setSelectedRecord(null); }}
-                            className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-white text-violet-600 shadow-sm border border-slate-200' : 'text-slate-400'}`}
+                            className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-card text-violet-600 shadow-sm border border-border-card' : 'text-muted opacity-80'}`}
                         >
                             New Exam
                         </button>

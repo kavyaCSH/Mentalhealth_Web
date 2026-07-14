@@ -186,7 +186,7 @@ const ScheduleControlPage = () => {
                 <div className="space-y-2">
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> Back to Command
                     </button>
@@ -195,7 +195,7 @@ const ScheduleControlPage = () => {
                             <CalendarIcon size={30} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Schedule Control</h1>
+                            <h1 className="text-4xl font-black text-main tracking-tight">Schedule Control</h1>
                             <p className="text-muted font-medium italic">Advanced Clinical Overrides & Bandwidth Management.</p>
                         </div>
                     </div>
@@ -217,7 +217,7 @@ const ScheduleControlPage = () => {
                                 setModalMode('create');
                                 setIsModalOpen(true);
                             }}
-                            className="rounded-2xl shadow-xl shadow-indigo-100"
+                            className="rounded-2xl shadow-xl shadow-sm"
                         >
                             Force Shift
                         </Button>
@@ -228,16 +228,16 @@ const ScheduleControlPage = () => {
             <div className="grid lg:grid-cols-12 gap-10">
                 {/* Specialist Listing */}
                 <div className="lg:col-span-4 space-y-6">
-                    <div className="card-premium p-6 border-slate-100/50">
-                        <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <div className="card-premium p-6 border-border-card/50">
+                        <h3 className="text-[11px] font-black text-muted opacity-80 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <Search size={14} /> Specialist Directory
                         </h3>
                         <div className="relative mb-6">
-                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted opacity-80" />
                             <input
                                 type="text"
                                 placeholder="Search by name or role..."
-                                className="w-full bg-slate-50 border-none rounded-2xl py-3 pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 transition-all"
+                                className="w-full bg-page border-none rounded-2xl py-3 pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 transition-all"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -252,17 +252,17 @@ const ScheduleControlPage = () => {
                                     onClick={() => setSelectedSpecialist(s)}
                                     className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all border-2 text-left ${
                                         selectedSpecialist?.userId === s.userId 
-                                            ? 'border-indigo-600 bg-indigo-50/50' 
-                                            : 'border-transparent hover:bg-slate-50'
+                                            ? 'border-indigo-600 bg-indigo-500/10' 
+                                            : 'border-transparent hover:bg-page'
                                     }`}
                                 >
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black ${
-                                        selectedSpecialist?.userId === s.userId ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'
+                                        selectedSpecialist?.userId === s.userId ? 'bg-indigo-600 text-white' : 'bg-page text-muted opacity-80'
                                     }`}>
                                         {s.firstName[0]}{s.lastName[0]}
                                     </div>
                                     <div className="flex-1">
-                                        <p className="font-bold text-slate-900">{s.firstName} {s.lastName}</p>
+                                        <p className="font-bold text-main">{s.firstName} {s.lastName}</p>
                                         <div className="flex items-center gap-2">
                                             <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">{s.role}</span>
                                             {s.nextAvailableSlot && (
@@ -285,20 +285,20 @@ const ScheduleControlPage = () => {
                                 <div className="flex items-center gap-4">
                                     <div className="w-1.5 h-8 bg-indigo-600 rounded-full" />
                                     <div>
-                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                                        <h2 className="text-2xl font-black text-main tracking-tight">
                                             {selectedSpecialist.firstName}'s Clinical Timeline
                                         </h2>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mt-0.5">
                                             Viewing availability and bandwidth for {selectedDate.toDateString()}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-                                    <button onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() - 1)))} className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all"><ChevronLeft size={16} /></button>
-                                    <span className="px-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                <div className="flex items-center gap-2 bg-page p-1.5 rounded-2xl border border-border-card">
+                                    <button onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() - 1)))} className="p-2 hover:bg-card hover:shadow-sm rounded-xl transition-all"><ChevronLeft size={16} /></button>
+                                    <span className="px-4 text-[10px] font-black uppercase tracking-widest text-muted opacity-80">
                                         {viewDate.toLocaleString('default', { month: 'long' })} {viewDate.getFullYear()}
                                     </span>
-                                    <button onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() + 1)))} className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all"><ChevronRight size={16} /></button>
+                                    <button onClick={() => setViewDate(new Date(viewDate.setMonth(viewDate.getMonth() + 1)))} className="p-2 hover:bg-card hover:shadow-sm rounded-xl transition-all"><ChevronRight size={16} /></button>
                                 </div>
                             </div>
 
@@ -311,7 +311,7 @@ const ScheduleControlPage = () => {
                                         className={`flex-shrink-0 min-w-[100px] p-6 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 transition-all border-2 snap-center ${
                                             d.toDateString() === selectedDate.toDateString()
                                             ? 'bg-indigo-600 border-indigo-700 text-white shadow-xl glow-primary scale-105 z-10'
-                                            : 'bg-white border-slate-100 text-slate-400 font-bold hover:border-indigo-200 hover:scale-102'
+                                            : 'bg-card border-border-card text-muted opacity-80 font-bold hover:border-indigo-200 hover:scale-105'
                                         }`}
                                     >
                                         <span className="text-[10px] uppercase font-black tracking-widest opacity-60">
@@ -325,7 +325,7 @@ const ScheduleControlPage = () => {
                             <div className="grid lg:grid-cols-2 gap-10">
                                 {/* Daily Timeline */}
                                 <div className="space-y-6">
-                                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">Focus Day View</h3>
+                                    <h3 className="text-xs font-black text-muted opacity-80 uppercase tracking-widest px-2">Focus Day View</h3>
                                     {isLoadingSlots ? (
                                         <div className="py-20 text-center opacity-30"><RefreshCw className="animate-spin mx-auto" size={32} /></div>
                                     ) : mainAvailableSlots.length > 0 ? (
@@ -336,17 +336,17 @@ const ScheduleControlPage = () => {
                                                     onClick={() => !slot.available && handleEditClick(slot)}
                                                     className={`p-6 rounded-3xl border-2 flex items-center justify-between transition-all group ${
                                                         !slot.available 
-                                                            ? 'bg-indigo-50/50 border-indigo-100 cursor-pointer hover:border-indigo-300' 
-                                                            : 'bg-white border-slate-100 border-dashed opacity-50'
+                                                            ? 'bg-indigo-500/10 border-indigo-500/20 cursor-pointer hover:border-indigo-500/40' 
+                                                            : 'bg-card border-border-card border-dashed opacity-50'
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-4">
-                                                        <div className={`p-3 rounded-2xl ${!slot.available ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-300'}`}>
+                                                        <div className={`p-3 rounded-2xl ${!slot.available ? 'bg-indigo-100 text-indigo-600' : 'bg-page text-muted opacity-40'}`}>
                                                             <Clock size={18} />
                                                         </div>
                                                         <div>
-                                                            <p className="font-bold text-slate-900">{slot.startTime} - {slot.endTime}</p>
-                                                            <p className={`text-[9px] font-black uppercase tracking-widest ${!slot.available ? 'text-indigo-500' : 'text-slate-400'}`}>
+                                                            <p className="font-bold text-main">{slot.startTime} - {slot.endTime}</p>
+                                                            <p className={`text-[9px] font-black uppercase tracking-widest ${!slot.available ? 'text-indigo-500' : 'text-muted opacity-80'}`}>
                                                                 {slot.available ? 'Open Availability' : slot.reason || 'Blocked / Overridden'}
                                                             </p>
                                                         </div>
@@ -365,7 +365,7 @@ const ScheduleControlPage = () => {
                                                                     setModalMode('create');
                                                                     setIsModalOpen(true);
                                                                 }}
-                                                                className="text-[10px] font-black text-indigo-600 uppercase hover:bg-indigo-50 px-3 py-2 rounded-xl"
+                                                                className="text-[10px] font-black text-indigo-600 uppercase hover:bg-indigo-500/10 px-3 py-2 rounded-xl"
                                                             >
                                                                 Override
                                                             </button>
@@ -377,8 +377,8 @@ const ScheduleControlPage = () => {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="p-10 text-center bg-slate-50 rounded-[2rem] border border-slate-100">
-                                            <p className="text-xs font-bold text-slate-400 italic">No slot configurations found for this date.</p>
+                                        <div className="p-10 text-center bg-page rounded-[2rem] border border-border-card">
+                                            <p className="text-xs font-bold text-muted opacity-80 italic">No slot configurations found for this date.</p>
                                         </div>
                                     )}
                                 </div>
@@ -386,7 +386,7 @@ const ScheduleControlPage = () => {
                                 {/* Active Rules Context */}
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between px-2">
-                                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Overrides</h3>
+                                        <h3 className="text-xs font-black text-muted opacity-80 uppercase tracking-widest">Active Overrides</h3>
                                         {overrides.length > 0 && <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-2 py-1 rounded-lg">{overrides.length} Total</span>}
                                     </div>
                                     
@@ -395,15 +395,15 @@ const ScheduleControlPage = () => {
                                             <div className="py-20 text-center opacity-30"><RefreshCw className="animate-spin mx-auto" size={32} /></div>
                                         ) : overrides.length > 0 ? (
                                             overrides.map(ov => (
-                                                <div key={ov.id} className="card-premium p-5 border-slate-100 flex items-center justify-between group hover:border-indigo-200 transition-all">
+                                                <div key={ov.id} className="card-premium p-5 border-border-card flex items-center justify-between group hover:border-indigo-200 transition-all">
                                                     <div className="space-y-1">
-                                                        <p className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                                                        <p className="text-xs font-bold text-main flex items-center gap-2">
                                                             {ov.dayOfWeek !== null && ov.dayOfWeek !== undefined 
                                                                 ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][ov.dayOfWeek]
                                                                 : ov.date 
                                                                     ? new Date(ov.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
                                                                     : 'Manual Slot'}
-                                                            <span className="text-[8px] px-1.5 py-0.5 bg-slate-100 text-slate-400 rounded">
+                                                            <span className="text-[8px] px-1.5 py-0.5 bg-page text-muted opacity-80 rounded">
                                                                 {ov.startTime} - {ov.endTime}
                                                             </span>
                                                         </p>
@@ -414,13 +414,13 @@ const ScheduleControlPage = () => {
                                                     <div className="flex items-center gap-1">
                                                         <button 
                                                             onClick={() => handleEditClick(ov)}
-                                                            className="p-2 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all"
+                                                            className="p-2 text-muted opacity-40 hover:text-indigo-500 hover:bg-indigo-500/10 rounded-lg transition-all"
                                                         >
                                                             <Edit2 size={14} />
                                                         </button>
                                                         <button 
                                                             onClick={() => handleDeleteOverride(ov.id!)}
-                                                            className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                            className="p-2 text-muted opacity-40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
                                                         >
                                                             <Trash2 size={14} />
                                                         </button>
@@ -428,8 +428,8 @@ const ScheduleControlPage = () => {
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="p-10 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-100">
-                                                <p className="text-[10px] font-bold text-slate-400 italic">No manual rules set.</p>
+                                            <div className="p-10 text-center bg-card/50 rounded-3xl border border-dashed border-border-card">
+                                                <p className="text-[10px] font-bold text-muted opacity-80 italic">No manual rules set.</p>
                                             </div>
                                         )}
                                     </div>
@@ -437,7 +437,7 @@ const ScheduleControlPage = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center p-20 opacity-20 text-slate-400 text-center space-y-6">
+                        <div className="h-full flex flex-col items-center justify-center p-20 opacity-20 text-muted opacity-80 text-center space-y-6">
                             <UserCheck size={80} />
                             <div>
                                 <h3 className="text-2xl font-black uppercase tracking-widest">Awaiting Selection</h3>
@@ -451,38 +451,38 @@ const ScheduleControlPage = () => {
             {/* Shift Modal */}
             <AnimatePresence>
                 {isModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
                         <motion.div 
                             initial={{ scale: 0.9, opacity: 0 }} 
                             animate={{ scale: 1, opacity: 1 }} 
                             exit={{ scale: 0.9, opacity: 0 }} 
-                            className="bg-white rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative border border-slate-100"
+                            className="bg-card rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative border border-border-card"
                         >
                             <button 
                                 onClick={() => setIsModalOpen(false)} 
-                                className="absolute top-8 right-8 p-3 text-slate-300 hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
+                                className="absolute top-8 right-8 p-3 text-muted opacity-40 hover:text-main hover:bg-page rounded-2xl transition-all"
                             >
                                 <X size={20} />
                             </button>
 
                             <div className="space-y-8">
                                 <div>
-                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Force Shift Override</h3>
-                                    <p className="text-slate-400 font-medium">Manually override availability for {selectedSpecialist?.firstName}.</p>
+                                    <h3 className="text-3xl font-black text-main tracking-tight">Force Shift Override</h3>
+                                    <p className="text-muted opacity-80 font-medium">Manually override availability for {selectedSpecialist?.firstName}.</p>
                                 </div>
 
                                 <div className="space-y-6">
                                     <div className="space-y-4">
-                                        <div className="flex p-1 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div className="flex p-1 bg-page rounded-2xl border border-border-card">
                                             <button 
                                                 onClick={() => setFormData({ ...formData, dayOfWeek: null })}
-                                                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.dayOfWeek === null ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.dayOfWeek === null ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted opacity-80 hover:text-muted'}`}
                                             >
                                                 Specific Date
                                             </button>
                                             <button 
                                                 onClick={() => setFormData({ ...formData, dayOfWeek: 1 })}
-                                                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.dayOfWeek !== null ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${formData.dayOfWeek !== null ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted opacity-80 hover:text-muted'}`}
                                             >
                                                 Recurring Day
                                             </button>
@@ -490,7 +490,7 @@ const ScheduleControlPage = () => {
 
                                         {formData.dayOfWeek === null ? (
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Effective Date</label>
+                                                <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Effective Date</label>
                                                 <InputField 
                                                     type="date" 
                                                     value={formData.date} 
@@ -500,11 +500,11 @@ const ScheduleControlPage = () => {
                                             </div>
                                         ) : (
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Select Day</label>
+                                                <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Select Day</label>
                                                 <select 
                                                     value={formData.dayOfWeek}
                                                     onChange={e => setFormData({ ...formData, dayOfWeek: parseInt(e.target.value) })}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                                                    className="w-full bg-page border border-border-card rounded-2xl py-3 px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
                                                 >
                                                     {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, idx) => (
                                                         <option key={idx} value={idx}>{day}</option>
@@ -515,7 +515,7 @@ const ScheduleControlPage = () => {
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Start Time</label>
+                                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Start Time</label>
                                             <InputField 
                                                 type="time" 
                                                 value={formData.startTime} 
@@ -524,7 +524,7 @@ const ScheduleControlPage = () => {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">End Time</label>
+                                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">End Time</label>
                                             <InputField 
                                                 type="time" 
                                                 value={formData.endTime} 
@@ -534,7 +534,7 @@ const ScheduleControlPage = () => {
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Admin Reason</label>
+                                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Admin Reason</label>
                                         <InputField 
                                             placeholder="e.g., Emergency Triage Duty" 
                                             value={formData.reason} 
@@ -543,17 +543,17 @@ const ScheduleControlPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 flex items-start gap-4">
-                                    <div className="p-2 bg-amber-50 text-amber-500 rounded-xl"><AlertTriangle size={20} /></div>
-                                    <p className="text-xs font-semibold text-slate-500 leading-relaxed">
-                                        <span className="font-black text-slate-900 block mb-1">Impact Warning</span>
+                                <div className="p-6 bg-page rounded-[2rem] border border-border-card flex items-start gap-4">
+                                    <div className="p-2 bg-warning/10 text-warning rounded-xl"><AlertTriangle size={20} /></div>
+                                    <p className="text-xs font-semibold text-muted leading-relaxed">
+                                        <span className="font-black text-main block mb-1">Impact Warning</span>
                                         Overrides set here will supersede the specialist's standard weekly rules. This action will be captured in the global audit trail.
                                     </p>
                                 </div>
 
                                 <Button 
                                     variant="primary" 
-                                    className="w-full h-14 rounded-2xl shadow-xl shadow-indigo-100 font-black uppercase tracking-widest"
+                                    className="w-full h-14 rounded-2xl shadow-xl shadow-sm font-black uppercase tracking-widest"
                                     onClick={handleSubmit}
                                     isLoading={isSubmitting}
                                 >

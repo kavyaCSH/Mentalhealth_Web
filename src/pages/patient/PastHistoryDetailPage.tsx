@@ -78,7 +78,7 @@ const PastHistoryDetailPage = () => {
                     <div className="w-20 h-20 border-4 border-indigo-100 rounded-full" />
                     <div className="w-20 h-20 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin absolute top-0" />
                 </div>
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">Deciphering Neural Record...</p>
+                <p className="text-[11px] font-black text-muted opacity-80 uppercase tracking-[0.4em]">Deciphering Neural Record...</p>
             </div>
         );
     }
@@ -89,8 +89,8 @@ const PastHistoryDetailPage = () => {
                 <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-inner">
                     <AlertCircle size={40} />
                 </div>
-                <h2 className="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">Sync Interrupted</h2>
-                <p className="text-slate-500 font-bold uppercase text-[11px] tracking-widest mb-10">{error || 'Unable to retrieve clinical data.'}</p>
+                <h2 className="text-3xl font-black text-main mb-2 uppercase tracking-tight">Sync Interrupted</h2>
+                <p className="text-muted font-bold uppercase text-[11px] tracking-widest mb-10">{error || 'Unable to retrieve clinical data.'}</p>
                 <button
                     onClick={() => navigate(-1)}
                     className="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-indigo-100 hover:scale-105 transition-all"
@@ -116,11 +116,11 @@ const PastHistoryDetailPage = () => {
     return (
         <div className="max-w-7xl mx-auto p-8 md:p-12 space-y-12 animate-fade-in pb-32">
             {/* Header */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-slate-100 pb-12">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-border-card pb-12">
                 <div className="space-y-6">
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-indigo-600 transition-colors"
+                        className="flex items-center gap-2 text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em] hover:text-indigo-600 transition-colors"
                     >
                         <ChevronLeft size={16} /> Back to Archive
                     </button>
@@ -129,28 +129,28 @@ const PastHistoryDetailPage = () => {
                             <Shield className="text-indigo-600" size={24} />
                             <span className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.3em] px-3 py-1 bg-indigo-50 rounded-full border border-indigo-100">Verified Clinical Data</span>
                         </div>
-                        <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-[0.9] mb-4">Health Snapshot</h1>
-                        <div className="flex items-center gap-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                            <Calendar size={14} className="text-slate-300" />
+                        <h1 className="text-5xl font-black text-main tracking-tighter leading-[0.9] mb-4">Health Snapshot</h1>
+                        <div className="flex items-center gap-4 text-muted opacity-80 font-bold uppercase text-[10px] tracking-widest">
+                            <Calendar size={14} className="text-muted opacity-40" />
                             Synchronized on {new Date(history.createdAt || '').toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} at {new Date(history.createdAt || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                     </div>
                 </div>
 
                 <div className="hidden lg:flex flex-col items-end gap-2">
-                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Record Instance ID</p>
-                    <code className="px-4 py-2 bg-slate-50 text-[10px] font-black text-slate-500 rounded-xl border border-slate-100">{String(id || '').toUpperCase()}</code>
+                    <p className="text-[10px] font-black text-muted opacity-40 uppercase tracking-widest">Record Instance ID</p>
+                    <code className="px-4 py-2 bg-page text-[10px] font-black text-muted rounded-xl border border-border-card">{String(id || '').toUpperCase()}</code>
                 </div>
             </header>
 
             {/* Narrative Summary */}
             {history.narrative && (
                 <section className="space-y-6">
-                    <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-3 ml-2">
+                    <h3 className="text-[11px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-3 ml-2">
                         <MessageSquare size={14} /> Intake Narrative
                     </h3>
-                    <div className="card-premium p-10 bg-slate-50/50 border-slate-100 shadow-inner group">
-                        <p className="text-xl font-medium text-slate-600 leading-relaxed italic relative">
+                    <div className="card-premium p-10 bg-card/50 border-border-card shadow-inner group">
+                        <p className="text-xl font-medium text-muted leading-relaxed italic relative">
                             <span className="text-5xl font-black text-indigo-100 absolute -top-4 -left-6 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">"</span>
                             {String(history.narrative)}
                         </p>
@@ -164,13 +164,13 @@ const PastHistoryDetailPage = () => {
                     <motion.div
                         key={idx}
                         whileHover={{ y: -8, scale: 1.02 }}
-                        className={`card-premium p-8 bg-white border ${cat.border} shadow-xl shadow-slate-100/50 flex flex-col h-full`}
+                        className={`card-premium p-8 bg-card border ${cat.border} shadow-xl shadow-slate-100/50 flex flex-col h-full`}
                     >
                         <div className={`w-14 h-14 rounded-2xl ${cat.bg} ${cat.color} flex items-center justify-center mb-6 shadow-sm`}>
                             {cat.icon}
                         </div>
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{cat.label}</h4>
-                        <p className="text-sm font-black text-slate-800 leading-relaxed uppercase tracking-tight flex-1">
+                        <h4 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em] mb-4">{cat.label}</h4>
+                        <p className="text-sm font-black text-main leading-relaxed uppercase tracking-tight flex-1">
                             {formatValue(cat.value)}
                         </p>
                     </motion.div>

@@ -46,7 +46,7 @@ const HelpArticle = () => {
                 
                 return (
                     <div key={index} className="flex gap-4 mb-6 group">
-                        <div className="w-8 h-8 shrink-0 rounded-xl bg-indigo-50 flex items-center justify-center font-black text-indigo-600 text-xs">
+                        <div className="w-8 h-8 shrink-0 rounded-xl bg-indigo-500/10 flex items-center justify-center font-black text-indigo-500 text-xs">
                             {isNumbered ? line.match(/^\d+\./)?.[0] : <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>}
                         </div>
                         <p className="text-[17px] text-main opacity-90 leading-relaxed font-medium">
@@ -89,14 +89,14 @@ const HelpArticle = () => {
     if (!article) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-page p-8 text-center">
-                <div className="w-24 h-24 bg-red-50 rounded-[2rem] flex items-center justify-center mb-8">
-                    <AlertCircle className="text-red-500" size={48} />
+                <div className="w-24 h-24 bg-error/10 rounded-[2rem] flex items-center justify-center mb-8">
+                    <AlertCircle className="text-error" size={48} />
                 </div>
                 <h2 className="text-3xl font-black text-main tracking-tight mb-4">Content Unavailable</h2>
                 <p className="text-muted max-w-md mx-auto mb-10 font-medium">We couldn't find the article you're looking for. It might have been moved or updated.</p>
                 <button 
                     onClick={() => navigate('/help')}
-                    className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-600 transition-colors"
+                    className="bg-card border border-border-card text-main px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:border-indigo-500/20 hover:text-indigo-500 transition-colors shadow-sm"
                 >
                     Back to Help Center
                 </button>
@@ -127,9 +127,9 @@ const HelpArticle = () => {
                 <header className="mb-16">
                     <h1 className="text-5xl font-black text-main tracking-tighter mb-8 leading-tight">{title}</h1>
                     {article.updatedAt && (
-                        <div className="inline-flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-xl">
-                            <Clock size={14} className="text-indigo-600" />
-                            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+                        <div className="inline-flex items-center gap-2 bg-indigo-500/10 px-4 py-2 rounded-xl">
+                            <Clock size={14} className="text-indigo-500" />
+                            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">
                                 Updated {new Date(article.updatedAt).toLocaleDateString()}
                             </span>
                         </div>
@@ -145,11 +145,11 @@ const HelpArticle = () => {
                     <div className="bg-card rounded-[2.5rem] p-10 text-center">
                         <h3 className="text-xl font-black text-main mb-8 tracking-tight">Did this guide help you?</h3>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button className="flex-1 sm:max-w-[160px] h-14 rounded-2xl bg-page border border-border-card flex items-center justify-center gap-3 text-emerald-600 font-black text-sm hover:bg-emerald-50 hover:border-emerald-100 transition-all shadow-sm">
+                            <button className="flex-1 sm:max-w-[160px] h-14 rounded-2xl bg-page border border-border-card flex items-center justify-center gap-3 text-emerald-500 font-black text-sm hover:bg-emerald-500/10 hover:border-emerald-500/20 transition-all shadow-sm">
                                 <ThumbsUp size={18} />
                                 Yes, thanks!
                             </button>
-                            <button className="flex-1 sm:max-w-[160px] h-14 rounded-2xl bg-page border border-border-card flex items-center justify-center gap-3 text-red-500 font-black text-sm hover:bg-red-50 hover:border-red-100 transition-all shadow-sm">
+                            <button className="flex-1 sm:max-w-[160px] h-14 rounded-2xl bg-page border border-border-card flex items-center justify-center gap-3 text-error font-black text-sm hover:bg-error/10 hover:border-error/20 transition-all shadow-sm">
                                 <ThumbsDown size={18} />
                                 Not really
                             </button>

@@ -197,7 +197,7 @@ const EditROS = () => {
                                 className={`p-4 rounded-2xl border-2 text-left transition-all ${
                                     value === option 
                                     ? theme.active 
-                                    : `bg-slate-50 border-transparent text-slate-600 ${theme.hoverBorder}`
+                                    : `bg-page border-transparent text-muted ${theme.hoverBorder}`
                                 }`}
                             >
                                 <span className="text-xs font-black uppercase tracking-tight">{option}</span>
@@ -218,7 +218,7 @@ const EditROS = () => {
                                     className={`p-4 rounded-2xl border-2 text-left transition-all ${
                                         isSelected 
                                         ? theme.active 
-                                        : `bg-slate-50 border-transparent text-slate-600 ${theme.hoverBorder}`
+                                        : `bg-page border-transparent text-muted ${theme.hoverBorder}`
                                     }`}
                                 >
                                     <span className="text-xs font-black uppercase tracking-tight">{option}</span>
@@ -239,7 +239,7 @@ const EditROS = () => {
                                     className={`flex-1 p-4 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] ${
                                         value === v 
                                         ? (v ? theme.active : 'bg-slate-800 border-slate-800 text-white shadow-md')
-                                        : 'bg-slate-50 border-transparent text-slate-400 hover:bg-slate-100'
+                                        : 'bg-page border-transparent text-muted opacity-80 hover:bg-page'
                                     }`}
                                 >
                                     {v ? 'Yes / Present' : 'No / Denied'}
@@ -254,7 +254,7 @@ const EditROS = () => {
                             >
                                 {question.follow_up.map((fu: any) => (
                                     <div key={fu.key} className="space-y-3">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{fu.label}</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">{fu.label}</p>
                                         {renderQuestion(section, fu)}
                                     </div>
                                 ))}
@@ -270,7 +270,7 @@ const EditROS = () => {
                             value={value || ''}
                             onChange={(e) => handleValueChange(section, question.key, e.target.value)}
                             placeholder={question.placeholder}
-                            className={`w-full min-h-[120px] p-6 bg-slate-50 border-2 border-transparent rounded-3xl text-sm font-medium ${theme.borderFocus} focus:bg-white outline-none transition-all resize-none placeholder:text-slate-300 font-bold`}
+                            className={`w-full min-h-[120px] p-6 bg-page border-2 border-transparent rounded-3xl text-sm font-medium ${theme.borderFocus} focus:bg-card outline-none transition-all resize-none placeholder:text-muted opacity-40 font-bold`}
                         />
                     </div>
                 );
@@ -285,7 +285,7 @@ const EditROS = () => {
                             max={question.max}
                             onChange={(e) => handleValueChange(section, question.key, e.target.value)}
                             placeholder={question.placeholder}
-                            className={`w-32 p-5 bg-slate-50 border-2 border-transparent rounded-[1.5rem] text-sm font-black ${theme.borderFocus} focus:bg-white outline-none transition-all shadow-sm`}
+                            className={`w-32 p-5 bg-page border-2 border-transparent rounded-[1.5rem] text-sm font-black ${theme.borderFocus} focus:bg-card outline-none transition-all shadow-sm`}
                         />
                     </div>
                 );
@@ -299,7 +299,7 @@ const EditROS = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <Loader2 className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Hydrating Review Data...</p>
+                <p className="text-sm font-bold text-muted uppercase tracking-widest">Hydrating Review Data...</p>
             </div>
         );
     }
@@ -313,16 +313,16 @@ const EditROS = () => {
             <header className="flex items-center gap-6">
                 <button
                     onClick={navigateBack}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    className="p-3 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <h1 className="text-4xl font-black text-main tracking-tight flex items-center gap-3">
                         <Stethoscope className="text-indigo-600" size={32} />
                         Update Review of Systems
                     </h1>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1.5">Modify Systemic Symptom Review</p>
+                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mt-1.5">Modify Systemic Symptom Review</p>
                 </div>
             </header>
 
@@ -341,10 +341,10 @@ const EditROS = () => {
                                 ? `${theme.active} -translate-y-1` 
                                 : isDone 
                                     ? `${theme.done}` 
-                                    : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
+                                    : 'bg-card border-border-card text-muted opacity-80 hover:border-border-card'
                             }`}
                         >
-                            <div className={`${isActive ? theme.iconActive : isDone ? theme.iconDone : 'text-slate-300'}`}>
+                            <div className={`${isActive ? theme.iconActive : isDone ? theme.iconDone : 'text-muted opacity-40'}`}>
                                 {getSectionIcon(s.section)}
                             </div>
                             <span className="text-[10px] font-black whitespace-nowrap uppercase tracking-widest">{s.title}</span>
@@ -365,7 +365,7 @@ const EditROS = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="card-premium p-12 bg-white border-slate-100 relative overflow-hidden ring-1 ring-slate-100 shadow-xl shadow-slate-100/50"
+                            className="card-premium p-12 bg-card border-border-card relative overflow-hidden ring-1 ring-slate-100 shadow-xl shadow-slate-100/50"
                         >
                             {/* Decorative Icon Background */}
                             <div className={`absolute top-0 right-0 p-8 opacity-[0.03] ${getTheme(currentSection.section).textSoft}`}>
@@ -374,14 +374,14 @@ const EditROS = () => {
 
                             <div className="relative space-y-12">
                                 {/* Section Header */}
-                                <header className="space-y-4 pb-8 border-b border-slate-50">
+                                <header className="space-y-4 pb-8 border-b border-border-card">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-12 h-12 rounded-2xl ${getTheme(currentSection.section).bgSoft} flex items-center justify-center ${getTheme(currentSection.section).textSoft}`}>
                                             {getSectionIcon(currentSection.section)}
                                         </div>
                                         <div>
-                                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">{currentSection.title}</h2>
-                                            <p className="text-slate-500 font-medium max-w-2xl leading-relaxed text-sm">{currentSection.description}</p>
+                                            <h2 className="text-3xl font-black text-main tracking-tight">{currentSection.title}</h2>
+                                            <p className="text-muted font-medium max-w-2xl leading-relaxed text-sm">{currentSection.description}</p>
                                         </div>
                                     </div>
                                 </header>
@@ -392,7 +392,7 @@ const EditROS = () => {
                                         <div key={q.key} className="space-y-4">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-1.5 h-6 ${getTheme(currentSection.section).dot} rounded-full`} />
-                                                <label className="text-xs font-black text-slate-800 uppercase tracking-[0.1em]">{q.label}</label>
+                                                <label className="text-xs font-black text-main uppercase tracking-[0.1em]">{q.label}</label>
                                             </div>
                                             <div className="max-w-2xl">
                                                 {renderQuestion(currentSection.section, q)}
@@ -402,13 +402,13 @@ const EditROS = () => {
                                 </div>
 
                                 {/* Navigation Buttons */}
-                                <div className="flex items-center gap-4 pt-12 border-t border-slate-50">
+                                <div className="flex items-center gap-4 pt-12 border-t border-border-card">
                                     <Button
                                         variant="outline"
                                         disabled={currentStep === 0}
                                         onClick={() => setCurrentStep(prev => prev - 1)}
                                         leftIcon={<ChevronLeft size={18} />}
-                                        className="h-14 px-10 rounded-2xl border-2 font-bold hover:bg-slate-50 transition-colors"
+                                        className="h-14 px-10 rounded-2xl border-2 font-bold hover:bg-page transition-colors"
                                     >
                                         Previous
                                     </Button>
@@ -445,9 +445,9 @@ const EditROS = () => {
                             <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
                                 <div>
                                     <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-1">Clinical Intake</h3>
-                                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Review Framework Progress</p>
+                                    <p className="text-[9px] font-bold text-muted uppercase tracking-widest">Review Framework Progress</p>
                                 </div>
-                                <div className="text-slate-700">
+                                <div className="text-main">
                                     <Stethoscope size={20} strokeWidth={1.5} />
                                 </div>
                             </div>
@@ -462,7 +462,7 @@ const EditROS = () => {
                                         <div 
                                             key={s.section} 
                                             className={`relative flex items-center gap-4 py-3.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer group ${
-                                                isActive ? 'bg-white/10 ring-1 ring-white/10' : 'hover:bg-white/5'
+                                                isActive ? 'bg-card/10 ring-1 ring-white/10' : 'hover:bg-card/5'
                                             }`}
                                             onClick={() => setCurrentStep(idx)}
                                         >
@@ -471,14 +471,14 @@ const EditROS = () => {
                                                 ? `${theme.dot} shadow-xl ${theme.shadow} scale-100` 
                                                 : isDone 
                                                     ? 'bg-emerald-500/10 text-emerald-500' 
-                                                    : 'bg-slate-800 text-slate-600'
+                                                    : 'bg-slate-800 text-muted'
                                             }`}>
                                                 {isDone && !isActive ? <CheckCircle2 size={14} /> : React.cloneElement(getSectionIcon(s.section) as React.ReactElement<any>, { size: 14, strokeWidth: 2.5 })}
                                             </div>
 
                                             <div className="flex-1 min-w-0">
                                                 <span className={`text-[10px] font-black tracking-widest uppercase whitespace-nowrap transition-all ${
-                                                    isActive ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
+                                                    isActive ? 'text-white' : isDone ? 'text-muted opacity-40' : 'text-muted group-hover:text-muted opacity-80'
                                                 }`}>
                                                     {s.title}
                                                 </span>

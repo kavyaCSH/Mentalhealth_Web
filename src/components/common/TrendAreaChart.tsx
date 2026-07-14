@@ -104,7 +104,7 @@ const TrendAreaChart: React.FC<TrendAreaChartProps> = ({
             
             <div className="flex justify-between mt-4">
                 {data.map((d, i) => (
-                    <span key={i} className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <span key={i} className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                         {d.label}
                     </span>
                 ))}

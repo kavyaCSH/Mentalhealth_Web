@@ -84,7 +84,7 @@ const FeedbackGovernancePage = () => {
             <div className="min-h-screen flex items-center justify-center bg-page">
                 <div className="flex flex-col items-center gap-4">
                     <RefreshCw size={40} className="text-indigo-600 animate-spin" />
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Loading Governance Ledger...</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-muted opacity-80">Loading Governance Ledger...</p>
                 </div>
             </div>
         );
@@ -96,7 +96,7 @@ const FeedbackGovernancePage = () => {
                 <div className="space-y-2">
                     <button 
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> System Command
                     </button>
@@ -105,7 +105,7 @@ const FeedbackGovernancePage = () => {
                             <MessageSquare size={30} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight text-main">Quality Oversight</h1>
+                            <h1 className="text-4xl font-black text-main tracking-tight text-main">Quality Oversight</h1>
                             <p className="text-muted font-medium">Centralized support desk for clinicians, patients, and platform staff.</p>
                         </div>
                     </div>
@@ -145,7 +145,7 @@ const FeedbackGovernancePage = () => {
             <div className="grid gap-10 lg:grid-cols-[1fr,400px]">
                 <div className="space-y-8">
                     {/* Filter Suite */}
-                    <div className="card-premium p-6 flex flex-col md:flex-row gap-6 items-center justify-between border-slate-100/50">
+                    <div className="card-premium p-6 flex flex-col md:flex-row gap-6 items-center justify-between border-border-card/50">
                         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0 w-full">
                             {statuses.map((s) => (
                                 <button
@@ -154,7 +154,7 @@ const FeedbackGovernancePage = () => {
                                     className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                                         statusFilter === s 
                                         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' 
-                                        : 'bg-slate-50 text-slate-500 border border-slate-100 hover:border-indigo-200'
+                                        : 'bg-page text-muted border border-border-card hover:border-indigo-200'
                                     }`}
                                 >
                                     {s}
@@ -162,13 +162,13 @@ const FeedbackGovernancePage = () => {
                             ))}
                         </div>
                         <div className="relative w-full md:w-80 shrink-0">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted opacity-40" size={18} />
                             <input
                                 type="text"
                                 placeholder="Search support threads..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                                className="w-full bg-page border border-border-card rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -181,7 +181,7 @@ const FeedbackGovernancePage = () => {
                                     key={ticket._id}
                                     layout
                                     onClick={() => setSelectedTicket(ticket)}
-                                    className={`card-premium p-8 cursor-pointer transition-all border-slate-100/50 ${
+                                    className={`card-premium p-8 cursor-pointer transition-all border-border-card/50 ${
                                         selectedTicket?._id === ticket._id ? 'ring-2 ring-indigo-600 ring-offset-4 shadow-2xl' : 'hover:translate-x-2'
                                     }`}
                                 >
@@ -195,17 +195,17 @@ const FeedbackGovernancePage = () => {
                                                 }`}>
                                                     {ticket.category}
                                                 </span>
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                                                     ID: {ticket._id.slice(-8)}
                                                 </span>
                                             </div>
-                                            <h3 className="text-xl font-black text-slate-900 tracking-tight">{ticket.subject}</h3>
-                                            <p className="text-sm font-medium text-slate-500 line-clamp-1">{ticket.message}</p>
+                                            <h3 className="text-xl font-black text-main tracking-tight">{ticket.subject}</h3>
+                                            <p className="text-sm font-medium text-muted line-clamp-1">{ticket.message}</p>
                                         </div>
                                         <div className="flex items-center gap-6 shrink-0">
                                             <div className="text-right">
-                                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">Received</p>
-                                                <p className="text-xs font-black text-slate-600">{new Date(ticket.createdAt).toLocaleDateString()}</p>
+                                                <p className="text-[9px] font-black text-muted opacity-40 uppercase tracking-widest leading-none mb-1">Received</p>
+                                                <p className="text-xs font-black text-muted">{new Date(ticket.createdAt).toLocaleDateString()}</p>
                                             </div>
                                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
                                                 ticket.status === 'resolved' ? 'bg-emerald-50 text-emerald-600' :
@@ -219,10 +219,10 @@ const FeedbackGovernancePage = () => {
                                 </motion.div>
                             ))
                         ) : (
-                            <div className="card-premium p-20 text-center border-dashed border-2 border-slate-100">
-                                <Inbox size={60} className="mx-auto text-slate-200 mb-6" />
-                                <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">Support Bench Clear</h3>
-                                <p className="text-sm font-medium text-slate-400 mt-2">All governance protocols have been resolved.</p>
+                            <div className="card-premium p-20 text-center border-dashed border-2 border-border-card">
+                                <Inbox size={60} className="mx-auto text-muted opacity-40 mb-6" />
+                                <h3 className="text-xl font-black text-muted opacity-80 uppercase tracking-widest">Support Bench Clear</h3>
+                                <p className="text-sm font-medium text-muted opacity-80 mt-2">All governance protocols have been resolved.</p>
                             </div>
                         )}
                     </div>
@@ -247,7 +247,7 @@ const FeedbackGovernancePage = () => {
 
                                     <div className="space-y-6">
                                         <div className="p-6 bg-slate-800/50 rounded-3xl border border-slate-700/50">
-                                            <p className="text-sm font-medium text-slate-300 leading-relaxed italic">
+                                            <p className="text-sm font-medium text-muted opacity-40 leading-relaxed italic">
                                                 "{selectedTicket.message}"
                                             </p>
                                         </div>
@@ -255,12 +255,12 @@ const FeedbackGovernancePage = () => {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="p-5 bg-slate-800/50 rounded-3xl border border-slate-700/50">
                                                 <User size={18} className="text-indigo-400 mb-2" />
-                                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Requester</p>
+                                                <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-1">Requester</p>
                                                 <p className="text-xs font-black truncate">{selectedTicket.userId || 'Anonymous'}</p>
                                             </div>
                                             <div className="p-5 bg-slate-800/50 rounded-3xl border border-slate-700/50">
                                                 <Clock size={18} className="text-indigo-400 mb-2" />
-                                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Time Elapsed</p>
+                                                <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-1">Time Elapsed</p>
                                                 <p className="text-xs font-black">2h 45m</p>
                                             </div>
                                         </div>
@@ -292,14 +292,14 @@ const FeedbackGovernancePage = () => {
                             <motion.div 
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="card-premium p-10 text-center border-slate-100 h-[600px] flex flex-col items-center justify-center gap-6"
+                                className="card-premium p-10 text-center border-border-card h-[600px] flex flex-col items-center justify-center gap-6"
                             >
-                                <div className="w-20 h-20 bg-page rounded-full flex items-center justify-center text-slate-200">
+                                <div className="w-20 h-20 bg-page rounded-full flex items-center justify-center text-muted opacity-40">
                                     <Inbox size={40} />
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="text-lg font-black text-slate-900 tracking-tight uppercase">Protocol Selector</h3>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Securely select a ticket to initiate resolution oversight.</p>
+                                    <h3 className="text-lg font-black text-main tracking-tight uppercase">Protocol Selector</h3>
+                                    <p className="text-xs font-bold text-muted opacity-80 uppercase tracking-widest">Securely select a ticket to initiate resolution oversight.</p>
                                 </div>
                             </motion.div>
                         )}

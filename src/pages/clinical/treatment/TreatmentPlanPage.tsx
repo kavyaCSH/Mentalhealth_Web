@@ -24,11 +24,11 @@ import Button from '../../../components/ui/Button';
 
 const StatusBadge = ({ status }: { status: TreatmentStage['status'] }) => {
     const styles: Record<TreatmentStage['status'], string> = {
-        pending: 'bg-slate-50 text-slate-500 border-slate-200',
+        pending: 'bg-page text-muted border-border-card',
         in_progress: 'bg-amber-50 text-amber-600 border-amber-200',
         completed: 'bg-emerald-50 text-emerald-600 border-emerald-200',
         on_hold: 'bg-rose-50 text-rose-600 border-rose-200',
-        skipped: 'bg-slate-100 text-slate-400 border-slate-300'
+        skipped: 'bg-page text-muted opacity-80 border-border-card'
     };
 
     const icons: Record<TreatmentStage['status'], React.ReactNode> = {
@@ -229,7 +229,7 @@ const TreatmentPlanPage = () => {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
                 <Activity className="animate-spin text-indigo-600" size={32} />
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-50">Syncing Data...</p>
+                <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest opacity-50">Syncing Data...</p>
             </div>
         );
     }
@@ -238,20 +238,20 @@ const TreatmentPlanPage = () => {
         <div className="p-6 max-w-7xl mx-auto animate-fade-in pb-24">
             <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-4">
-                    <button onClick={() => navigate(isPatient ? '/records' : `/patients/${identities?.userId || userIdFromRoute}/health`)} className="flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-[0.2em] group">
+                    <button onClick={() => navigate(isPatient ? '/records' : `/patients/${identities?.userId || userIdFromRoute}/health`)} className="flex items-center gap-2 text-[10px] font-black text-muted opacity-80 hover:text-indigo-600 transition-all uppercase tracking-[0.2em] group">
                         <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back
                     </button>
                     <div>
                         <div className="flex items-center gap-3 text-indigo-600 mb-2">
                             <Activity size={28} strokeWidth={2.5} />
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Treatment Flow</h1>
+                            <h1 className="text-4xl font-black text-main tracking-tighter leading-none">Treatment Flow</h1>
                         </div>
                         <div className="flex items-center gap-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] opacity-60 ml-1">Clinical Recovery Suite</p>
+                            <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.3em] opacity-60 ml-1">Clinical Recovery Suite</p>
                             <div className="h-2 w-px bg-slate-300 mx-1 opacity-40" />
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest opacity-80">ID: {identities?.patientId || progress.patientId}</p>
+                            <p className="text-[9px] font-bold text-muted opacity-80 uppercase tracking-widest opacity-80">ID: {identities?.patientId || progress.patientId}</p>
                             {identities?.userId && identities.userId !== (identities.patientId || progress.patientId) && (
-                                <span className="text-[8px] font-medium text-slate-300 tracking-tighter">({identities.userId})</span>
+                                <span className="text-[8px] font-medium text-muted opacity-40 tracking-tighter">({identities.userId})</span>
                             )}
                         </div>
                     </div>
@@ -263,9 +263,9 @@ const TreatmentPlanPage = () => {
                             <Plus size={16} /> Record Session
                         </button>
                     )}
-                    <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
-                        <button onClick={() => setActiveTab('journey')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'journey' ? 'bg-white text-indigo-600 shadow-lg ring-1 ring-slate-200/50' : 'text-slate-400'}`}>Journey</button>
-                        <button onClick={() => setActiveTab('history')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'history' ? 'bg-white text-indigo-600 shadow-lg ring-1 ring-slate-200/50' : 'text-slate-400'}`}>History</button>
+                    <div className="flex bg-page p-1 rounded-2xl border border-border-card">
+                        <button onClick={() => setActiveTab('journey')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'journey' ? 'bg-card text-indigo-600 shadow-lg ring-1 ring-slate-200/50' : 'text-muted opacity-80'}`}>Journey</button>
+                        <button onClick={() => setActiveTab('history')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'history' ? 'bg-card text-indigo-600 shadow-lg ring-1 ring-slate-200/50' : 'text-muted opacity-80'}`}>History</button>
                     </div>
                 </div>
             </header>
@@ -275,10 +275,10 @@ const TreatmentPlanPage = () => {
                     <motion.div key="journey" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid lg:grid-cols-4 gap-8">
                         <div className="lg:col-span-1 space-y-4">
                             {!progress?.stages || progress.stages.length === 0 ? (
-                                <div className="p-6 text-center bg-slate-50 border border-dashed border-slate-200 rounded-[1.5rem] shadow-sm flex flex-col items-center">
-                                    <LayoutDashboard size={32} className="text-slate-300 mb-4" />
-                                    <h3 className="text-sm font-black text-slate-900 uppercase">Initialize Plan</h3>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed mt-2 mb-6">Setup the clinical roadmap.</p>
+                                <div className="p-6 text-center bg-page border border-dashed border-border-card rounded-[1.5rem] shadow-sm flex flex-col items-center">
+                                    <LayoutDashboard size={32} className="text-muted opacity-40 mb-4" />
+                                    <h3 className="text-sm font-black text-main uppercase">Initialize Plan</h3>
+                                    <p className="text-[9px] font-bold text-muted opacity-80 uppercase leading-relaxed mt-2 mb-6">Setup the clinical roadmap.</p>
                                     {isPractitioner && (
                                         <Button onClick={handleInitializeJourney} isLoading={isActionLoading} variant="primary" className="w-full rounded-[1rem] py-4 uppercase font-black tracking-widest text-[10px]">
                                             Establish
@@ -287,10 +287,10 @@ const TreatmentPlanPage = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    <div className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-xl flex flex-col items-center text-center">
-                                        <div className="text-5xl font-black text-slate-900 mb-1 tracking-tighter leading-none">{progress.overall_progress}%</div>
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6 italic">Total Mastery</span>
-                                        <div className="w-full h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100"><div className="h-full bg-indigo-600 transition-all duration-700" style={{ width: `${progress.overall_progress}%` }} /></div>
+                                    <div className="p-6 bg-card border border-border-card rounded-[2rem] shadow-xl flex flex-col items-center text-center">
+                                        <div className="text-5xl font-black text-main mb-1 tracking-tighter leading-none">{progress.overall_progress}%</div>
+                                        <span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-6 italic">Total Mastery</span>
+                                        <div className="w-full h-1.5 bg-page rounded-full overflow-hidden border border-border-card"><div className="h-full bg-indigo-600 transition-all duration-700" style={{ width: `${progress.overall_progress}%` }} /></div>
                                     </div>
                                     <div className="p-6 bg-slate-900 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
                                         <h2 className="text-xl font-black tracking-tight leading-tight mb-6">{progress.diagnosis || 'Active Protocol'}</h2>
@@ -306,21 +306,21 @@ const TreatmentPlanPage = () => {
                         <div className="lg:col-span-3">
                             <div className="grid gap-3">
                             {progress?.stages?.map((stg, i) => (
-                                <div key={stg.id || i} className={`p-5 bg-white border border-slate-100 rounded-[1.75rem] flex items-center gap-6 transition-all hover:bg-slate-50 shadow-sm relative ${stg.status === 'in_progress' ? 'ring-2 ring-indigo-500/5' : ''}`}>
-                                    <div className={`absolute left-0 top-5 bottom-5 w-1 rounded-r-xl ${stg.status === 'completed' ? 'bg-emerald-500' : stg.status === 'in_progress' ? 'bg-indigo-600' : 'bg-slate-200'}`} />
+                                <div key={stg.id || i} className={`p-5 bg-card border border-border-card rounded-[1.75rem] flex items-center gap-6 transition-all hover:bg-page shadow-sm relative ${stg.status === 'in_progress' ? 'ring-2 ring-indigo-500/5' : ''}`}>
+                                    <div className={`absolute left-0 top-5 bottom-5 w-1 rounded-r-xl ${stg.status === 'completed' ? 'bg-emerald-500' : stg.status === 'in_progress' ? 'bg-indigo-600' : 'bg-border-card'}`} />
                                     
-                                    <div className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center shrink-0 border transition-all ${stg.status === 'completed' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : stg.status === 'in_progress' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                    <div className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center shrink-0 border transition-all ${stg.status === 'completed' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : stg.status === 'in_progress' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-page border-border-card text-muted opacity-80'}`}>
                                         {stg.status === 'completed' ? <CheckCircle2 size={20} /> : <span className="text-lg font-black tracking-tighter">0{i + 1}</span>}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-1">
-                                            <h3 className="text-xl font-black text-slate-900 tracking-tighter truncate leading-tight">{stg.title}</h3>
+                                            <h3 className="text-xl font-black text-main tracking-tighter truncate leading-tight">{stg.title}</h3>
                                             <StatusBadge status={stg.status} />
                                         </div>
                                         <div className="flex items-center justify-between gap-4">
-                                            <p className="text-[13px] font-semibold text-slate-400 italic truncate opacity-80">{stg.description || 'Milestone pending clinical evaluation.'}</p>
+                                            <p className="text-[13px] font-semibold text-muted opacity-80 italic truncate opacity-80">{stg.description || 'Milestone pending clinical evaluation.'}</p>
                                             {isPractitioner && (
-                                                <button onClick={() => handleOpenUpdate(stg)} className="shrink-0 text-indigo-600 hover:text-slate-900 text-[9px] font-black uppercase tracking-[0.2em] underline underline-offset-4">
+                                                <button onClick={() => handleOpenUpdate(stg)} className="shrink-0 text-indigo-600 hover:text-main text-[9px] font-black uppercase tracking-[0.2em] underline underline-offset-4">
                                                     Update Stage
                                                 </button>
                                             )}
@@ -334,18 +334,18 @@ const TreatmentPlanPage = () => {
                 ) : (
                     <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                          {history.length === 0 ? (
-                            <div className="col-span-full p-20 text-center bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-100 flex flex-col items-center">
-                                <ClipboardCheck size={48} className="text-slate-200 mb-6" />
-                                <h3 className="text-xl font-black text-slate-500 uppercase">Records Vault Empty</h3>
+                            <div className="col-span-full p-20 text-center bg-card/50 rounded-[2rem] border-2 border-dashed border-border-card flex flex-col items-center">
+                                <ClipboardCheck size={48} className="text-muted opacity-40 mb-6" />
+                                <h3 className="text-xl font-black text-muted uppercase">Records Vault Empty</h3>
                             </div>
                         ) : (
                             history.filter(Boolean).map((rec, i) => (
-                                <div key={rec.id || i} className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm flex flex-col hover:border-indigo-100 transition-all">
-                                     <div className="flex items-center justify-between mb-5 pb-5 border-b border-slate-50">
+                                <div key={rec.id || i} className="p-6 bg-card border border-border-card rounded-[2rem] shadow-sm flex flex-col hover:border-indigo-100 transition-all">
+                                     <div className="flex items-center justify-between mb-5 pb-5 border-b border-border-card">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-slate-900 text-white rounded-[1rem] flex items-center justify-center"><Activity size={18} /></div>
                                             <div className="flex flex-col">
-                                                <span className="text-[12px] font-black text-slate-900 tracking-tighter italic">{new Date(rec.createdAt || rec.date).toLocaleDateString()}</span>
+                                                <span className="text-[12px] font-black text-main tracking-tighter italic">{new Date(rec.createdAt || rec.date).toLocaleDateString()}</span>
                                             </div>
                                         </div>
                                         <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 tracking-widest uppercase italic">Verified</span>
@@ -353,13 +353,13 @@ const TreatmentPlanPage = () => {
                                     <div className="space-y-4 flex-1">
                                         {rec.plan && (
                                             <div className="space-y-1.5">
-                                                <div className="flex items-center gap-1.5 ml-1"><div className="w-1.5 h-1.5 rounded-full bg-indigo-500" /><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Impression</span></div>
-                                                <p className="text-[13px] font-bold text-slate-600 leading-relaxed italic">{rec.plan}</p>
+                                                <div className="flex items-center gap-1.5 ml-1"><div className="w-1.5 h-1.5 rounded-full bg-indigo-500" /><span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest leading-none">Impression</span></div>
+                                                <p className="text-[13px] font-bold text-muted leading-relaxed italic">{rec.plan}</p>
                                             </div>
                                         )}
                                         {rec.medications && (
-                                            <div className="space-y-1.5 pt-4 border-t border-slate-50">
-                                                <div className="flex items-center gap-1.5 ml-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500" /><span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Meds</span></div>
+                                            <div className="space-y-1.5 pt-4 border-t border-border-card">
+                                                <div className="flex items-center gap-1.5 ml-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500" /><span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest leading-none">Meds</span></div>
                                                 <p className="text-[11px] font-black text-rose-600 uppercase tracking-tight">{rec.medications}</p>
                                             </div>
                                         )}
@@ -375,29 +375,29 @@ const TreatmentPlanPage = () => {
             <AnimatePresence>
                 {updatingStage && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-slate-900/60 backdrop-blur-sm shadow-2xl">
-                        <motion.div initial={{ scale: 0.95, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100 relative max-h-[85vh] flex flex-col">
+                        <motion.div initial={{ scale: 0.95, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="bg-card w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden border border-border-card relative max-h-[85vh] flex flex-col">
                             {/* Compact Form Header */}
-                            <div className="px-6 py-5 flex items-center justify-between bg-slate-50 border-b border-slate-100 shrink-0">
+                            <div className="px-6 py-5 flex items-center justify-between bg-page border-b border-border-card shrink-0">
                                 <div className="space-y-0.5">
-                                    <h2 className="text-xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Update Protocol</h2>
+                                    <h2 className="text-xl font-black text-main tracking-tighter uppercase italic leading-none">Update Protocol</h2>
                                     <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest opacity-80">Synchronizing stage</p>
                                 </div>
-                                <button onClick={() => setUpdatingStage(null)} className="p-2.5 bg-white text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-xl shadow-sm transition-all border border-slate-100"><X size={18} /></button>
+                                <button onClick={() => setUpdatingStage(null)} className="p-2.5 bg-card text-muted opacity-80 hover:bg-rose-50 hover:text-rose-600 rounded-xl shadow-sm transition-all border border-border-card"><X size={18} /></button>
                             </div>
 
                             <div className="px-6 py-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
                                 {/* Compact Caption Card */}
-                                <div className="space-y-2 p-4 bg-slate-50/50 rounded-[1.25rem] border border-slate-100">
-                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><LayoutDashboard size={10} /> Stage Caption</label>
-                                    <input type="text" value={updateForm.title} onChange={(e) => setUpdateForm({ ...updateForm, title: e.target.value })} className="w-full bg-white border border-slate-100 rounded-xl py-3 px-5 text-[13px] font-black uppercase tracking-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" placeholder="Header" />
+                                <div className="space-y-2 p-4 bg-card/50 rounded-[1.25rem] border border-border-card">
+                                    <label className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2"><LayoutDashboard size={10} /> Stage Caption</label>
+                                    <input type="text" value={updateForm.title} onChange={(e) => setUpdateForm({ ...updateForm, title: e.target.value })} className="w-full bg-card border border-border-card rounded-xl py-3 px-5 text-[13px] font-black uppercase tracking-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" placeholder="Header" />
                                 </div>
 
                                 {/* Compact Status Grid */}
                                 <div className="space-y-2.5">
-                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Progress Mastery</label>
+                                    <label className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Progress Mastery</label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {(['pending', 'in_progress', 'completed', 'on_hold'] as const).map((s) => (
-                                            <button key={s} onClick={() => setUpdateForm({ ...updateForm, status: s })} className={`px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all ${updateForm.status === s ? (s === 'completed' ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-indigo-600 border-indigo-600 text-white shadow-md') : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-100'}`}>
+                                            <button key={s} onClick={() => setUpdateForm({ ...updateForm, status: s })} className={`px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-tighter border transition-all ${updateForm.status === s ? (s === 'completed' ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-indigo-600 border-indigo-600 text-white shadow-md') : 'bg-card border-border-card text-muted opacity-80 hover:border-indigo-100'}`}>
                                                 {s.replace(/_/g, ' ')}
                                             </button>
                                         ))}
@@ -406,19 +406,19 @@ const TreatmentPlanPage = () => {
 
                                 {/* Clinical Notes Card */}
                                 <div className="space-y-2">
-                                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Clinical findings</label>
-                                    <textarea value={updateForm.notes} onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-[1.25rem] p-4 text-[13px] font-bold text-slate-600 leading-relaxed focus:outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all min-h-[90px] resize-none shadow-inner" placeholder="Log progression..." />
+                                    <label className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Clinical findings</label>
+                                    <textarea value={updateForm.notes} onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })} className="w-full bg-page border border-border-card rounded-[1.25rem] p-4 text-[13px] font-bold text-muted leading-relaxed focus:outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all min-h-[90px] resize-none shadow-inner" placeholder="Log progression..." />
                                 </div>
 
                                 {updateForm.status === 'completed' && (
                                     <div className="space-y-2.5 animate-fade-in p-4 bg-emerald-50/50 rounded-[1.25rem] border border-emerald-100/50">
                                         <label className="text-[8px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2"><Calendar size={10} /> Completion Date</label>
-                                        <input type="date" value={updateForm.completedAt} onChange={(e) => setUpdateForm({ ...updateForm, completedAt: e.target.value })} className="w-full bg-white border border-emerald-100/60 rounded-xl py-3 px-5 text-[12px] font-black uppercase tracking-widest focus:outline-none shadow-sm" />
+                                        <input type="date" value={updateForm.completedAt} onChange={(e) => setUpdateForm({ ...updateForm, completedAt: e.target.value })} className="w-full bg-card border border-emerald-100/60 rounded-xl py-3 px-5 text-[12px] font-black uppercase tracking-widest focus:outline-none shadow-sm" />
                                     </div>
                                 )}
                             </div>
 
-                            <div className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 shrink-0">
+                            <div className="px-6 py-5 bg-card/50 border-t border-border-card shrink-0">
                                 <Button onClick={handleUpdateStatus} isLoading={isUpdating} className="w-full rounded-[1.25rem] py-4 flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 hover:scale-[1.01] transition-transform text-[11px] uppercase font-black tracking-widest">
                                     <Save size={18} /> Commit Status
                                 </Button>

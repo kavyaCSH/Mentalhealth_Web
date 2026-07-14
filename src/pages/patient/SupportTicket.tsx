@@ -67,8 +67,8 @@ const CATEGORIES: {
         slug: 'other', 
         icon: MoreHorizontal, 
         colorClass: 'bg-page0',
-        bgClass: 'bg-page/50',
-        borderClass: 'border-slate-500',
+        bgClass: 'bg-page0/10',
+        borderClass: 'border-border-card0',
         shadowClass: 'shadow-slate-500/20',
         textClass: 'text-muted',
         desc: 'None of the above? Well, we are still here to listen.'
@@ -115,8 +115,8 @@ const SupportTicket = () => {
     if (success) {
         return (
             <div className="min-h-screen bg-page flex items-center justify-center p-6">
-                <div className="max-w-md w-full bg-card rounded-[3rem] p-12 shadow-2xl shadow-indigo-500/5 text-center flex flex-col items-center">
-                    <div className="w-24 h-24 bg-emerald-50 rounded-[2rem] flex items-center justify-center mb-8 animate-bounce">
+                <div className="max-w-md w-full bg-card border border-border-card rounded-[3rem] p-12 shadow-2xl shadow-indigo-500/5 text-center flex flex-col items-center">
+                    <div className="w-24 h-24 bg-emerald-500/10 rounded-[2rem] flex items-center justify-center mb-8 animate-bounce">
                         <CheckCircle2 size={48} className="text-emerald-500" />
                     </div>
                     <h2 className="text-3xl font-black text-main tracking-tight mb-4">Ticket Submitted!</h2>
@@ -126,13 +126,13 @@ const SupportTicket = () => {
                     <div className="flex flex-col gap-4 w-full">
                         <button 
                             onClick={() => navigate('/help/tickets')}
-                            className="bg-indigo-600 text-white p-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100"
+                            className="bg-indigo-600 text-white p-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
                         >
                             View My History
                         </button>
                         <button 
                             onClick={() => navigate('/help')}
-                            className="bg-page text-muted p-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-100 transition-all"
+                            className="bg-page border border-border-card text-main p-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:border-indigo-500/20 hover:text-indigo-500 transition-all"
                         >
                             Back to Help Center
                         </button>
@@ -194,9 +194,9 @@ const SupportTicket = () => {
                             </div>
 
                             {error && (
-                                <div className="p-4 bg-red-50 rounded-xl flex items-start gap-3 border border-red-100">
-                                    <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={18} />
-                                    <p className="text-sm font-bold text-red-600 leading-relaxed">{error}</p>
+                                <div className="p-4 bg-error/10 rounded-xl flex items-start gap-3 border border-error/20">
+                                    <AlertTriangle className="text-error shrink-0 mt-0.5" size={18} />
+                                    <p className="text-sm font-bold text-error leading-relaxed">{error}</p>
                                 </div>
                             )}
 
@@ -204,7 +204,7 @@ const SupportTicket = () => {
                                 <button 
                                     type="submit"
                                     disabled={submitting}
-                                    className="w-full bg-slate-900 text-white p-6 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-xs hover:bg-indigo-600 transition-all shadow-xl shadow-slate-100 flex items-center justify-center gap-3 disabled:opacity-50"
+                                    className="w-full bg-indigo-600 text-white p-6 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-xs hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-3 disabled:opacity-50"
                                 >
                                     {submitting ? (
                                         <>

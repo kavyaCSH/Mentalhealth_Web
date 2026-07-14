@@ -115,7 +115,7 @@ const ROSDetail = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Hydrating Clinical Details...</p>
+                <p className="text-sm font-bold text-muted uppercase tracking-widest">Hydrating Clinical Details...</p>
             </div>
         );
     }
@@ -143,18 +143,18 @@ const ROSDetail = () => {
                     <div className="flex items-center gap-3 mb-2">
                         <button
                             onClick={navigateBack}
-                            className="p-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-full text-slate-500 transition-all hover:shadow-md active:scale-95 mr-2"
+                            className="p-2 bg-card hover:bg-page border border-border-card rounded-full text-muted transition-all hover:shadow-md active:scale-95 mr-2"
                         >
                             <ChevronLeft size={16} />
                         </button>
                         <div className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ring-indigo-100">
                             Review Complete
                         </div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest tabular-nums">
+                        <span className="text-[10px] font-bold text-muted opacity-80 uppercase tracking-widest tabular-nums">
                             ID: {userId?.slice(-8).toUpperCase()} • {result.createdAt ? new Date(result.createdAt).toLocaleDateString() : 'Date Unknown'}
                         </span>
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3 mt-4">
+                    <h1 className="text-4xl font-black text-main tracking-tight flex items-center gap-3 mt-4">
                         <Stethoscope className="text-indigo-600" size={32} />
                         Review of Systems Detail
                     </h1>
@@ -181,20 +181,20 @@ const ROSDetail = () => {
             </header>
 
             <div className="grid gap-10">
-                <section className="card-premium p-12 bg-white border-slate-100 relative overflow-hidden shadow-2xl shadow-indigo-50/50 ring-1 ring-slate-100">
+                <section className="card-premium p-12 bg-card border-border-card relative overflow-hidden shadow-2xl shadow-indigo-50/50 ring-1 ring-slate-100">
                     <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12">
                         <Sparkles size={240} />
                     </div>
 
                     <div className="relative space-y-12">
-                        <header className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-50 pb-8">
+                        <header className="flex items-center justify-between flex-wrap gap-4 border-b border-border-card pb-8">
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
                                     <Activity size={28} />
                                 </div>
                                 <div>
                                     <h2 className="text-xs font-black text-indigo-500 uppercase tracking-[0.4em] mb-1">AI Systemic Correlation</h2>
-                                    <p className="text-xl font-black text-slate-900 tracking-tight">Systemic Findings & Organic R/O</p>
+                                    <p className="text-xl font-black text-main tracking-tight">Systemic Findings & Organic R/O</p>
                                 </div>
                             </div>
                             {result.substance_induced_probability && (
@@ -210,29 +210,29 @@ const ROSDetail = () => {
                             <div className="lg:col-span-12 space-y-10">
                                 {result.ai_notes && (
                                     <div className="space-y-4">
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <h3 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                             <FileText size={14} />
                                             Clinical Review Notes
                                         </h3>
-                                        <p className="text-xl font-black text-slate-800 leading-relaxed tracking-tight">
+                                        <p className="text-xl font-black text-main leading-relaxed tracking-tight">
                                             "{result.ai_notes}"
                                         </p>
                                     </div>
                                 )}
 
                                 {result.extra_notes && (
-                                    <div className="space-y-4 pt-8 border-t border-slate-50">
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <div className="space-y-4 pt-8 border-t border-border-card">
+                                        <h3 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                             <ClipboardList size={14} />
                                             Provider Clinical Observations
                                         </h3>
-                                        <p className="text-sm font-bold text-slate-600 leading-relaxed">
+                                        <p className="text-sm font-bold text-muted leading-relaxed">
                                             {result.extra_notes}
                                         </p>
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-2 gap-8 pt-8 border-t border-slate-50">
+                                <div className="grid grid-cols-2 gap-8 pt-8 border-t border-border-card">
                                     <div className="space-y-4">
                                         <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-2">
                                             <AlertCircle size={14} />
@@ -240,7 +240,7 @@ const ROSDetail = () => {
                                         </h3>
                                         <div className="space-y-2">
                                             {result.organic_red_flags?.map((item, idx) => (
-                                                <p key={idx} className="text-xs font-bold text-slate-700 uppercase tracking-tight">• {item}</p>
+                                                <p key={idx} className="text-xs font-bold text-main uppercase tracking-tight">• {item}</p>
                                             ))}
                                             {(!result.organic_red_flags || result.organic_red_flags.length === 0) && (
                                                 <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">No systemic red flags detected.</p>
@@ -254,7 +254,7 @@ const ROSDetail = () => {
                                         </h3>
                                         <div className="space-y-2">
                                             {result.medication_induced_risk?.map((item, idx) => (
-                                                <p key={idx} className="text-xs font-bold text-slate-700 uppercase tracking-tight">• {item}</p>
+                                                <p key={idx} className="text-xs font-bold text-main uppercase tracking-tight">• {item}</p>
                                             ))}
                                             {(!result.medication_induced_risk || result.medication_induced_risk.length === 0) && (
                                                 <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Low medication-induced risk.</p>
@@ -271,7 +271,7 @@ const ROSDetail = () => {
                     <div className="lg:col-span-12 space-y-8">
                         <div className="flex items-center gap-3">
                             <div className="w-1.5 h-6 bg-slate-900 rounded-full" />
-                            <h2 className="text-xs font-black text-slate-900 uppercase tracking-[0.3em]">Detailed Systemic Findings</h2>
+                            <h2 className="text-xs font-black text-main uppercase tracking-[0.3em]">Detailed Systemic Findings</h2>
                         </div>
 
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -289,12 +289,12 @@ const ROSDetail = () => {
                                 if (findings.length === 0) return null;
 
                                 return (
-                                    <div key={sectionName} className="card-premium p-8 bg-white border-slate-100 group transition-all">
-                                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-50">
+                                    <div key={sectionName} className="card-premium p-8 bg-card border-border-card group transition-all">
+                                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border-card">
                                             <div className={`p-2 rounded-lg ${getTheme(sectionName).bgSoft} ${getTheme(sectionName).textSoft}`}>
                                                 {getSectionIcon(sectionName)}
                                             </div>
-                                            <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{sectionName}</h3>
+                                            <h3 className="text-[10px] font-black text-main uppercase tracking-widest">{sectionName}</h3>
                                         </div>
                                         <div className="space-y-1">
                                             {findings.map(([key, value]) => {
@@ -312,9 +312,9 @@ const ROSDetail = () => {
                                                 const isPositive = value === true || (typeof value === 'string' && value.length > 0 && value !== 'None' && !key.includes('duration'));
 
                                                 return (
-                                                    <div key={key} className="flex justify-between items-start py-3 border-b border-slate-50 last:border-none">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
-                                                        <span className={`text-xs font-bold uppercase tracking-tight text-right max-w-[60%] ${isPositive ? 'text-indigo-600' : 'text-slate-700'}`}>{displayValue}</span>
+                                                    <div key={key} className="flex justify-between items-start py-3 border-b border-border-card last:border-none">
+                                                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">{label}</span>
+                                                        <span className={`text-xs font-bold uppercase tracking-tight text-right max-w-[60%] ${isPositive ? 'text-indigo-600' : 'text-main'}`}>{displayValue}</span>
                                                     </div>
                                                 );
                                             })}

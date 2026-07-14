@@ -315,11 +315,11 @@ const SideNav: React.FC<SideNavProps> = ({ isMobileOpen, onMobileClose }) => {
                     )}
                 </button>
 
-                <div className={`mt-4 pt-4 border-t border-slate-100 flex flex-col gap-0.5 ${isCollapsed ? 'items-center' : 'px-4'}`}>
-                    <p className="text-[9px] font-black tracking-widest text-slate-300 uppercase leading-none">
+                <div className={`mt-4 pt-4 border-t border-border-card flex flex-col gap-0.5 ${isCollapsed ? 'items-center' : 'px-4'}`}>
+                    <p className="text-[9px] font-black tracking-widest text-muted opacity-40 uppercase leading-none">
                         {isCollapsed ? 'V' : 'Version Control'}
                     </p>
-                    <p className="text-[10px] font-bold text-slate-400">
+                    <p className="text-[10px] font-bold text-muted opacity-80">
                         {isCollapsed ? webVersion : `v${webVersion}`}
                     </p>
                 </div>

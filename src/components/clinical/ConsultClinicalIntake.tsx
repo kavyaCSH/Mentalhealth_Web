@@ -291,13 +291,13 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
     const riskMarkers = structured?.risk_markers || structured?.structured?.risk_markers;
 
     return (
-        <div className="flex flex-col h-full bg-white px-2">
-            <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200 mb-6 group shadow-inner">
+        <div className="flex flex-col h-full bg-card px-2">
+            <div className="flex bg-page p-1.5 rounded-xl border border-border-card mb-6 group shadow-inner">
                 {sections.map(s => (
                     <button
                         key={s.id}
                         onClick={() => setActiveSection(s.id)}
-                        className={`flex-1 flex flex-col items-center py-2.5 rounded-lg transition-all ${activeSection === s.id ? 'bg-white text-indigo-600 shadow-md border border-slate-200' : 'text-slate-400 hover:text-slate-600'
+                        className={`flex-1 flex flex-col items-center py-2.5 rounded-lg transition-all ${activeSection === s.id ? 'bg-card text-indigo-600 shadow-md border border-border-card' : 'text-muted opacity-80 hover:text-muted'
                             }`}
                     >
                         <div className="flex items-center gap-2">
@@ -334,15 +334,15 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                     <ClipboardList size={15} />
                                 </div>
                                 <div>
-                                    <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Chief Complaints</h3>
-                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">{ccComplaints.length} Record{ccComplaints.length !== 1 ? 's' : ''}</p>
+                                    <h3 className="text-[11px] font-black text-main uppercase tracking-widest">Chief Complaints</h3>
+                                    <p className="text-[8px] font-bold text-muted opacity-80 uppercase tracking-tighter">{ccComplaints.length} Record{ccComplaints.length !== 1 ? 's' : ''}</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => { setCcShowNew(v => !v); setNarrative(''); setStructured(null); }}
                                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
                                     ccShowNew
-                                        ? 'bg-slate-100 border-slate-200 text-slate-500'
+                                        ? 'bg-page border-border-card text-muted'
                                         : 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-100 hover:bg-rose-700'
                                 }`}
                             >
@@ -357,15 +357,15 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                         {/* New CC Form (slide in when ccShowNew) */}
                         {ccShowNew && (
                             <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                <div className="bg-white border-2 border-rose-100 rounded-[2rem] p-5 shadow-sm">
+                                <div className="bg-card border-2 border-rose-100 rounded-[2rem] p-5 shadow-sm">
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-2">
                                             <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center">
                                                 <Sparkles size={15} />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">New Chief Complaint</p>
-                                                <p className="text-[8px] font-bold text-slate-400 uppercase">AI Extraction Active</p>
+                                                <p className="text-[10px] font-black text-main uppercase tracking-widest">New Chief Complaint</p>
+                                                <p className="text-[8px] font-bold text-muted opacity-80 uppercase">AI Extraction Active</p>
                                             </div>
                                         </div>
                                         <button
@@ -373,7 +373,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                             className={`p-2.5 rounded-xl transition-all flex items-center gap-1.5 border-2 ${
                                                 isRecording
                                                     ? 'bg-rose-500 text-white border-rose-500 animate-pulse'
-                                                    : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-indigo-600 hover:text-white hover:border-indigo-600'
+                                                    : 'bg-page text-muted opacity-80 border-border-card hover:bg-indigo-600 hover:text-white hover:border-indigo-600'
                                             }`}
                                         >
                                             {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
@@ -386,7 +386,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                             value={narrative}
                                             onChange={(e) => setNarrative(e.target.value)}
                                             placeholder="Describe the patient's chief complaint in detail — presenting symptoms, duration, severity..."
-                                            className="w-full h-36 bg-slate-50/50 border-2 border-slate-100 rounded-2xl p-5 text-xs font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-rose-200 focus:bg-white transition-all resize-none shadow-inner leading-relaxed"
+                                            className="w-full h-36 bg-card/50 border-2 border-border-card rounded-2xl p-5 text-xs font-bold text-main placeholder:text-muted opacity-40 focus:outline-none focus:border-rose-200 focus:bg-card transition-all resize-none shadow-inner leading-relaxed"
                                         />
                                         {isRecording && (
                                             <div className="absolute top-3 right-3 flex items-center gap-1.5 text-rose-500 font-black text-[8px] uppercase tracking-widest">
@@ -402,7 +402,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                             size="sm"
                                             disabled={extracting || !narrative.trim()}
                                             onClick={handleAIExtract}
-                                            className="flex-1 rounded-xl font-black uppercase text-[9px] tracking-widest border border-slate-200"
+                                            className="flex-1 rounded-xl font-black uppercase text-[9px] tracking-widest border border-border-card"
                                         >
                                             {extracting ? 'Extracting...' : '✦ AI Extract'}
                                         </Button>
@@ -421,7 +421,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
 
                                 {/* AI extraction result preview for CC */}
                                 {structured && (
-                                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-3 animate-in fade-in duration-300">
+                                    <div className="bg-page border border-border-card rounded-2xl p-5 space-y-3 animate-in fade-in duration-300">
                                         <div className="flex items-center gap-2">
                                             <Brain size={14} className="text-indigo-600" />
                                             <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">AI Analysis</p>
@@ -429,7 +429,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                                 riskMarkers?.risk_level === 'High' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'
                                             }`}>{riskMarkers?.risk_level || 'Routine'}</span>
                                         </div>
-                                        <p className="text-[10px] font-bold text-slate-600 italic leading-relaxed">
+                                        <p className="text-[10px] font-bold text-muted italic leading-relaxed">
                                             "{structured.ai_summary || structured.narrative || narrative}"
                                         </p>
                                         <div className="grid grid-cols-3 gap-2">
@@ -438,9 +438,9 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                                 { label: 'Severity', value: (structured.structured || structured).severity || 'Acute' },
                                                 { label: 'Pattern', value: (structured.structured || structured).onset_pattern || 'Stable' },
                                             ].map((item, i) => (
-                                                <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 text-center">
-                                                    <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
-                                                    <p className="text-[10px] font-black text-slate-800 uppercase mt-0.5">{item.value}</p>
+                                                <div key={i} className="bg-card p-3 rounded-xl border border-border-card text-center">
+                                                    <p className="text-[7px] font-black text-muted opacity-80 uppercase tracking-widest">{item.label}</p>
+                                                    <p className="text-[10px] font-black text-main uppercase mt-0.5">{item.value}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -453,15 +453,15 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                         {ccLoading ? (
                             <div className="flex items-center justify-center py-12">
                                 <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
-                                <p className="ml-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading...</p>
+                                <p className="ml-3 text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Loading...</p>
                             </div>
                         ) : ccComplaints.length === 0 && !ccShowNew ? (
-                            <div className="flex flex-col items-center justify-center py-16 bg-white border-2 border-dashed border-slate-200 rounded-[2rem]">
+                            <div className="flex flex-col items-center justify-center py-16 bg-card border-2 border-dashed border-border-card rounded-[2rem]">
                                 <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center mb-3">
                                     <MessageSquare size={22} className="text-rose-300" />
                                 </div>
-                                <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-widest mb-1">No Complaints Recorded</h4>
-                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight mb-5">No chief complaints on file for this patient</p>
+                                <h4 className="text-[11px] font-black text-main uppercase tracking-widest mb-1">No Complaints Recorded</h4>
+                                <p className="text-[9px] font-bold text-muted opacity-80 uppercase tracking-tight mb-5">No chief complaints on file for this patient</p>
                                 <button
                                     onClick={() => setCcShowNew(true)}
                                     className="flex items-center gap-2 px-6 py-2.5 bg-rose-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-rose-100 hover:bg-rose-700 transition-all"
@@ -474,7 +474,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                 {ccComplaints.map((cc: any, index: number) => (
                                     <div
                                         key={cc._id || cc.id || cc.chiefComplaintId || index}
-                                        className="bg-white border-2 border-slate-100 rounded-[1.75rem] p-5 shadow-sm hover:border-rose-200 hover:shadow-md transition-all group"
+                                        className="bg-card border-2 border-border-card rounded-[1.75rem] p-5 shadow-sm hover:border-rose-200 hover:shadow-md transition-all group"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -482,8 +482,8 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                                     <MessageSquare size={16} />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Chief Complaint</p>
-                                                    <p className="text-[11px] font-bold text-slate-600 leading-relaxed line-clamp-3 italic">
+                                                    <p className="text-[10px] font-black text-main uppercase tracking-widest mb-1">Chief Complaint</p>
+                                                    <p className="text-[11px] font-bold text-muted leading-relaxed line-clamp-3 italic">
                                                         "{cc.narrative || 'No narrative recorded.'}"
                                                     </p>
                                                     {/* Structured tags */}
@@ -510,14 +510,14 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                                         {cc.structured.severity}
                                                     </span>
                                                 )}
-                                                <p className="text-[8px] font-bold text-slate-300 uppercase">
+                                                <p className="text-[8px] font-bold text-muted opacity-40 uppercase">
                                                     {cc.createdAt ? new Date(cc.createdAt).toLocaleDateString() : 'Recent'}
                                                 </p>
                                             </div>
                                         </div>
                                         {cc.structured?.duration && (
-                                            <div className="mt-3 pt-3 border-t border-slate-50 flex items-center gap-3">
-                                                <div className="flex items-center gap-1 text-slate-400">
+                                            <div className="mt-3 pt-3 border-t border-border-card flex items-center gap-3">
+                                                <div className="flex items-center gap-1 text-muted opacity-80">
                                                     <Clock size={10} />
                                                     <span className="text-[8px] font-black uppercase tracking-widest">{cc.structured.duration}</span>
                                                 </div>
@@ -531,15 +531,15 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                 ) : (
                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 pb-20">
                         {/* Entry Workspace */}
-                        <div className="bg-white border-2 border-slate-200 rounded-[2rem] p-6 shadow-sm">
+                        <div className="bg-card border-2 border-border-card rounded-[2rem] p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-5">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-lg">
                                         <Sparkles size={20} />
                                     </div>
                                     <div>
-                                        <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Clinical Intake Narrative</h3>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Virtual Assistant Active</p>
+                                        <h3 className="text-[11px] font-black text-main uppercase tracking-widest">Clinical Intake Narrative</h3>
+                                        <p className="text-[9px] font-bold text-muted opacity-80 uppercase tracking-tight">Virtual Assistant Active</p>
                                     </div>
                                 </div>
 
@@ -547,7 +547,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                     onClick={toggleRecording}
                                     className={`p-3 rounded-xl transition-all flex items-center gap-2 border-2 ${isRecording
                                         ? 'bg-rose-500 text-white border-rose-500 animate-pulse'
-                                        : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-indigo-600 hover:text-white hover:border-indigo-600'
+                                        : 'bg-page text-muted opacity-80 border-border-card hover:bg-indigo-600 hover:text-white hover:border-indigo-600'
                                         }`}
                                 >
                                     {isRecording ? <MicOff size={16} /> : <Mic size={16} />}
@@ -562,7 +562,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                     value={narrative}
                                     onChange={(e) => setNarrative(e.target.value)}
                                     placeholder={`Describe the patient's ${activeSection.toUpperCase()} in clinical detail...`}
-                                    className="w-full h-56 bg-slate-50/50 border-2 border-slate-100 rounded-2xl p-6 text-xs font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-200 focus:bg-white transition-all resize-none shadow-inner leading-relaxed"
+                                    className="w-full h-56 bg-card/50 border-2 border-border-card rounded-2xl p-6 text-xs font-bold text-main placeholder:text-muted opacity-40 focus:outline-none focus:border-indigo-200 focus:bg-card transition-all resize-none shadow-inner leading-relaxed"
                                 />
                                 {isRecording && (
                                     <div className="absolute top-4 right-4 flex items-center gap-2 text-rose-500 font-black text-[9px] uppercase tracking-widest">
@@ -590,7 +590,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 { (riskMarkers?.self_harm_detected || riskMarkers?.psychosis_detected || riskMarkers?.violence_detected) && (
                                     <div className="p-5 bg-rose-600 text-white rounded-2xl shadow-xl shadow-rose-100 flex items-center gap-5 animate-pulse">
-                                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                                        <div className="w-12 h-12 bg-card/20 rounded-xl flex items-center justify-center">
                                             <ShieldAlert size={28} />
                                         </div>
                                         <div className="flex-1">
@@ -606,13 +606,13 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                 )}
 
                                 {/* Analysis Grid */}
-                                <div className="bg-slate-50 border-2 border-slate-100 rounded-[2.5rem] p-8 space-y-8">
+                                <div className="bg-page border-2 border-border-card rounded-[2.5rem] p-8 space-y-8">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-200">
                                                 <Brain size={20} />
                                             </div>
-                                            <h4 className="text-sm font-black text-slate-900 tracking-tight">Clinical Diagnostic Analytics</h4>
+                                            <h4 className="text-sm font-black text-main tracking-tight">Clinical Diagnostic Analytics</h4>
                                         </div>
                                         <div className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${riskMarkers?.risk_level === 'High' ? 'bg-rose-100 text-rose-600 shadow-sm shadow-rose-50' : 'bg-emerald-100 text-emerald-600 shadow-sm shadow-emerald-50'}`}>
                                             {riskMarkers?.risk_level || 'Routine'} Priority
@@ -620,7 +620,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                     </div>
 
                                     {/* Narrative Abstract */}
-                                    <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm italic text-xs font-bold text-slate-600 leading-relaxed">
+                                    <div className="p-6 bg-card border border-border-card rounded-2xl shadow-sm italic text-xs font-bold text-muted leading-relaxed">
                                         "{structured.ai_summary || structured.narrative || narrative}"
                                     </div>
 
@@ -633,10 +633,10 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                                 { icon: <Sparkles size={16} />, label: 'Sleep', value: (structured.structured || structured).sleep || 'Disturbed' },
                                                 { icon: <ShieldAlert size={16} />, label: 'Safety', value: (structured.structured || structured).suicidal_ideation || (structured.structured || structured).safety || 'Not Detected' },
                                             ].map((insight, i) => (
-                                                <div key={i} className="bg-white p-4 rounded-xl border border-slate-50 flex flex-col items-center text-center gap-1.5 shadow-sm">
+                                                <div key={i} className="bg-card p-4 rounded-xl border border-border-card flex flex-col items-center text-center gap-1.5 shadow-sm">
                                                     <div className="text-indigo-600 opacity-80">{insight.icon}</div>
-                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{insight.label}</p>
-                                                    <p className="text-[10px] font-black text-slate-800 uppercase tabular-nums">{insight.value}</p>
+                                                    <p className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest">{insight.label}</p>
+                                                    <p className="text-[10px] font-black text-main uppercase tabular-nums">{insight.value}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -648,7 +648,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                                     {/* Potential Diagnoses & DSM Tags */}
                                     {(structured.structured || structured).potential_diagnoses && (
                                         <div className="space-y-3">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Clinical Impressions</p>
+                                            <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">Clinical Impressions</p>
                                             <div className="flex flex-wrap gap-2">
                                                 {(structured.structured || structured).potential_diagnoses.map((dx: string) => (
                                                     <span key={dx} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg text-[10px] font-bold uppercase tracking-tight">
@@ -661,7 +661,7 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
 
                                     {(structured.structured || structured).dsm5_mapping && (
                                         <div className="space-y-3">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">DSM-5 Mapping</p>
+                                            <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">DSM-5 Mapping</p>
                                             <div className="flex flex-wrap gap-2">
                                                 {(structured.structured || structured).dsm5_mapping.map((dx: string) => (
                                                     <span key={dx} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg text-[10px] font-bold uppercase tracking-tight">
@@ -688,12 +688,12 @@ export const ConsultClinicalIntake: React.FC<ConsultClinicalIntakeProps> = ({
                             {saving ? 'Synchronizing Clinical Archive...' : `Commit ${activeSection.toUpperCase()} Entry`}
                         </Button>
 
-                        <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div className="p-6 bg-page rounded-2xl border border-border-card">
                             <div className="flex items-center gap-3 mb-2">
-                                <AlertCircle size={14} className="text-slate-400" />
-                                <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Clinical Protocol</h5>
+                                <AlertCircle size={14} className="text-muted opacity-80" />
+                                <h5 className="text-[10px] font-black text-main uppercase tracking-widest">Clinical Protocol</h5>
                             </div>
-                            <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight">
+                            <p className="text-[9px] font-bold text-muted leading-relaxed uppercase tracking-tight">
                                 All clinical data captured during this teleconsult is encrypted and stored in compliance with HIPAA longevity standards.
                             </p>
                         </div>

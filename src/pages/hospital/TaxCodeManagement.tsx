@@ -117,7 +117,7 @@ const TaxCodeManagement = () => {
                 <div className="space-y-2">
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> Back to Finance
                     </button>
@@ -126,8 +126,8 @@ const TaxCodeManagement = () => {
                             <Percent size={28} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Tax Schemes</h1>
-                            <p className="text-slate-500 font-medium">Manage facility tax codes and percentage distributions.</p>
+                            <h1 className="text-4xl font-black text-main tracking-tight">Tax Schemes</h1>
+                            <p className="text-muted font-medium">Manage facility tax codes and percentage distributions.</p>
                         </div>
                     </div>
                 </div>
@@ -142,20 +142,20 @@ const TaxCodeManagement = () => {
             </header>
 
             <div className="relative max-w-md">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted opacity-80" />
                 <input
                     type="text"
                     placeholder="Search tax codes..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm"
+                    className="w-full bg-card border border-border-card rounded-2xl py-3.5 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm"
                 />
             </div>
 
             {isLoading ? (
                 <div className="py-24 text-center">
                     <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-400 font-black text-xs uppercase tracking-widest">Loading Analytics...</p>
+                    <p className="text-muted opacity-80 font-black text-xs uppercase tracking-widest">Loading Analytics...</p>
                 </div>
             ) : (
                 <div className="space-y-6">
@@ -175,21 +175,21 @@ const TaxCodeManagement = () => {
                                                 {code.rate}%
                                             </div>
                                             <div className="flex gap-2">
-                                                <button onClick={() => handleOpenModal(code)} className="p-2 text-slate-300 hover:text-indigo-600 transition-colors">
+                                                <button onClick={() => handleOpenModal(code)} className="p-2 text-muted opacity-40 hover:text-indigo-600 transition-colors">
                                                     <Edit2 size={18} />
                                                 </button>
-                                                <button onClick={() => handleDelete((code.id || code._id)!)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                                                <button onClick={() => handleDelete((code.id || code._id)!)} className="p-2 text-muted opacity-40 hover:text-red-500 transition-colors">
                                                     <Trash2 size={18} />
                                                 </button>
                                             </div>
                                         </div>
                                         <div className="space-y-4">
                                             <div>
-                                                <h3 className="text-xl font-black text-slate-900 leading-tight">{code.name}</h3>
+                                                <h3 className="text-xl font-black text-main leading-tight">{code.name}</h3>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Code: {code.code}</span>
-                                                    <span className="w-1 h-1 bg-slate-200 rounded-full" />
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                                                    <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest whitespace-nowrap">Code: {code.code}</span>
+                                                    <span className="w-1 h-1 bg-border-card rounded-full" />
+                                                    <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest whitespace-nowrap">
                                                         {code.createdAt ? new Date(code.createdAt).toLocaleDateString(undefined, {
                                                             year: 'numeric',
                                                             month: 'short',
@@ -200,17 +200,17 @@ const TaxCodeManagement = () => {
                                                     </span>
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-slate-500 font-medium line-clamp-3">{code.description || 'No description provided for this fiscal entry.'}</p>
+                                            <p className="text-sm text-muted font-medium line-clamp-3">{code.description || 'No description provided for this fiscal entry.'}</p>
                                         </div>
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
                         </div>
                     ) : (
-                        <div className="py-24 text-center card-premium bg-slate-50/50 border-dashed border-2">
+                        <div className="py-24 text-center card-premium bg-card/50 border-dashed border-2">
                             <Percent size={48} className="mx-auto mb-4 text-slate-100" />
-                            <p className="text-slate-900 font-black text-sm uppercase tracking-widest mb-1">No Tax Schemes Found</p>
-                            <p className="text-slate-400 font-medium text-sm">Create your first tax configuration to get started.</p>
+                            <p className="text-main font-black text-sm uppercase tracking-widest mb-1">No Tax Schemes Found</p>
+                            <p className="text-muted opacity-80 font-medium text-sm">Create your first tax configuration to get started.</p>
                         </div>
                     )}
                 </div>
@@ -224,7 +224,7 @@ const TaxCodeManagement = () => {
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-white rounded-[2.5rem] w-full max-w-xl overflow-hidden shadow-2xl shadow-slate-900/20"
+                            className="bg-card rounded-[2.5rem] w-full max-w-xl overflow-hidden shadow-2xl shadow-slate-900/20"
                         >
                             <form onSubmit={handleSubmit} className="p-10 space-y-8">
                                 <div className="flex items-center gap-4">
@@ -232,8 +232,8 @@ const TaxCodeManagement = () => {
                                         <ShieldCheck size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{editingCode ? 'Edit Fiscal Code' : 'New Fiscal Entry'}</h2>
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Define percentage based tax distribution</p>
+                                        <h2 className="text-2xl font-black text-main tracking-tight">{editingCode ? 'Edit Fiscal Code' : 'New Fiscal Entry'}</h2>
+                                        <p className="text-xs font-bold text-muted opacity-80 uppercase tracking-widest">Define percentage based tax distribution</p>
                                     </div>
                                 </div>
 
@@ -264,13 +264,13 @@ const TaxCodeManagement = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Notes / Description</label>
+                                    <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Notes / Description</label>
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                                         rows={3}
                                         placeholder="Optional fiscal notes..."
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                                        className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                                     />
                                 </div>
 

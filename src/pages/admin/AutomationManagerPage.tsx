@@ -119,7 +119,7 @@ const AutomationManagerPage = () => {
             <div className="min-h-screen flex items-center justify-center bg-page">
                 <div className="flex flex-col items-center gap-4">
                     <RefreshCw size={40} className="text-indigo-600 animate-spin" />
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Synchronizing Automation Hub...</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-muted opacity-80">Synchronizing Automation Hub...</p>
                 </div>
             </div>
         );
@@ -131,7 +131,7 @@ const AutomationManagerPage = () => {
                 <div className="space-y-2">
                     <button 
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> System Command
                     </button>
@@ -140,7 +140,7 @@ const AutomationManagerPage = () => {
                             <Cpu size={30} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight text-main">Automation Manager</h1>
+                            <h1 className="text-4xl font-black text-main tracking-tight text-main">Automation Manager</h1>
                             <p className="text-muted font-medium">Real-time oversight for background protocols & "Night Shift" automation.</p>
                         </div>
                     </div>
@@ -153,7 +153,7 @@ const AutomationManagerPage = () => {
                                 Heartbeat: {lastSync.toLocaleTimeString()}
                             </span>
                         </div>
-                        <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest mr-2">Cluster Status: Synchronized</p>
+                        <p className="text-[9px] font-bold text-muted opacity-40 uppercase tracking-widest mr-2">Cluster Status: Synchronized</p>
                     </div>
                     <Button 
                         variant="primary"
@@ -184,13 +184,13 @@ const AutomationManagerPage = () => {
                     <motion.div 
                         key={job.name}
                         layout
-                        className="card-premium p-8 flex flex-col gap-8 relative overflow-hidden group border-slate-100/50"
+                        className="card-premium p-8 flex flex-col gap-8 relative overflow-hidden group border-border-card/50"
                     >
                         <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-10 transition-opacity group-hover:opacity-20 ${job.isRunning ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                         
                         <div className="flex justify-between items-start">
                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                                job.isRunning ? 'bg-emerald-50 text-emerald-600 shadow-lg shadow-emerald-100' : 'bg-slate-50 text-slate-400'
+                                job.isRunning ? 'bg-emerald-50 text-emerald-600 shadow-lg shadow-emerald-100' : 'bg-page text-muted opacity-80'
                             }`}>
                                 {job.actionType === 'NOTIFICATION_BROADCAST' ? <Bell size={26} /> : 
                                  job.actionType === 'AI_TIP_BROADCAST' ? <Sparkles size={26} /> :
@@ -199,29 +199,29 @@ const AutomationManagerPage = () => {
                                  <Zap size={26} />}
                             </div>
                             <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                                job.isRunning ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500'
+                                job.isRunning ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-page border-border-card text-muted'
                             }`}>
                                 {job.status}
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight">{job.name}</h3>
-                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+                            <h3 className="text-xl font-black text-main tracking-tight">{job.name}</h3>
+                            <p className="text-[11px] font-bold text-muted opacity-80 uppercase tracking-widest leading-relaxed">
                                 {job.description || `Automated platform protocol for ${job.name}.`}
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-50">
+                        <div className="grid grid-cols-2 gap-4 pb-4 border-b border-border-card">
                             <div>
-                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Schedule</p>
-                                <div className="flex items-center gap-2 text-xs font-black text-slate-600">
-                                    <Calendar size={14} className="text-slate-300" />
+                                <p className="text-[9px] font-black text-muted opacity-40 uppercase tracking-widest mb-1">Schedule</p>
+                                <div className="flex items-center gap-2 text-xs font-black text-muted">
+                                    <Calendar size={14} className="text-muted opacity-40" />
                                     {job.cron || 'System Sync'}
                                 </div>
                             </div>
                             <div>
-                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Next Sync</p>
+                                <p className="text-[9px] font-black text-muted opacity-40 uppercase tracking-widest mb-1">Next Sync</p>
                                 <div className="flex items-center gap-2 text-xs font-black text-indigo-600">
                                     <Activity size={14} className="text-indigo-200" />
                                     {job.nextRun ? new Date(job.nextRun).toLocaleTimeString() : 'Pending'}
@@ -249,31 +249,31 @@ const AutomationManagerPage = () => {
                         <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
                             <Moon size={24} />
                         </div>
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">The "Night Shift" Insight</h2>
+                        <h2 className="text-2xl font-black text-main tracking-tight">The "Night Shift" Insight</h2>
                     </div>
-                    <p className="text-sm font-medium text-slate-600 leading-relaxed">
+                    <p className="text-sm font-medium text-muted leading-relaxed">
                         Automated jobs run asynchronously across our server cluster. Toggling a job manually affects the immediate availability of the logic for all patients and clinical staff.
                     </p>
                     <div className="flex flex-wrap gap-3">
-                        <div className="px-5 py-2.5 bg-white border border-indigo-100 rounded-2xl flex items-center gap-3 shadow-sm">
+                        <div className="px-5 py-2.5 bg-card border border-indigo-100 rounded-2xl flex items-center gap-3 shadow-sm">
                             <CheckCircle2 size={16} className="text-emerald-500" />
-                            <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Audit Red-Flags</span>
+                            <span className="text-[10px] font-black text-muted uppercase tracking-widest">Audit Red-Flags</span>
                         </div>
-                        <div className="px-5 py-2.5 bg-white border border-indigo-100 rounded-2xl flex items-center gap-3 shadow-sm opacity-50">
+                        <div className="px-5 py-2.5 bg-card border border-indigo-100 rounded-2xl flex items-center gap-3 shadow-sm opacity-50">
                             <AlertCircle size={16} className="text-rose-500" />
-                            <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Fail-Safe Active</span>
+                            <span className="text-[10px] font-black text-muted uppercase tracking-widest">Fail-Safe Active</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="card-premium p-10 space-y-6 border-slate-100/50">
+                <div className="card-premium p-10 space-y-6 border-border-card/50">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-indigo-400 shadow-lg">
                             <Settings size={24} />
                         </div>
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Platform Controls</h2>
+                        <h2 className="text-2xl font-black text-main tracking-tight">Platform Controls</h2>
                     </div>
-                    <p className="text-sm font-medium text-slate-600 leading-relaxed">
+                    <p className="text-sm font-medium text-muted leading-relaxed">
                         Need to deploy an emergency protocol or restart the automation engine? Contact the DevOps team or use the System Config for low-level environment overrides.
                     </p>
                     <button className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 hover:translate-x-2 transition-transform">
@@ -297,22 +297,22 @@ const AutomationManagerPage = () => {
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-3xl bg-white rounded-[40px] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+                            className="relative w-full max-w-3xl bg-card rounded-[40px] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
                         >
                             <div className="p-10 space-y-10 overflow-y-auto custom-scrollbar">
-                                <div className="flex items-center justify-between sticky top-0 bg-white z-10 -mt-2 pb-4">
+                                <div className="flex items-center justify-between sticky top-0 bg-card z-10 -mt-2 pb-4">
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
                                             <Zap size={24} />
                                         </div>
                                         <div>
-                                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Sync New Automation</h2>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Registering Background Pulse</p>
+                                            <h2 className="text-2xl font-black text-main tracking-tight">Sync New Automation</h2>
+                                            <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Registering Background Pulse</p>
                                         </div>
                                     </div>
                                     <button 
                                         onClick={() => setIsCreateModalOpen(false)}
-                                        className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all"
+                                        className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted opacity-80 hover:bg-rose-50 hover:text-rose-500 transition-all"
                                     >
                                         <X size={20} />
                                     </button>
@@ -321,23 +321,23 @@ const AutomationManagerPage = () => {
                                 <form onSubmit={handleCreateJob} className="space-y-8 pb-4">
                                     <div className="grid gap-6 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Job Identifier</label>
+                                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Job Identifier</label>
                                             <input 
                                                 required
                                                 type="text" 
                                                 placeholder="e.g., weekly_wellness_pulse"
-                                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                                                className="w-full bg-page border border-border-card rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
                                                 value={newJob.name}
                                                 onChange={(e) => setNewJob({...newJob, name: e.target.value})}
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cron Expression</label>
+                                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Cron Expression</label>
                                             <input 
                                                 required
                                                 type="text" 
                                                 placeholder="e.g., 0 9 * * 1"
-                                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                                                className="w-full bg-page border border-border-card rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
                                                 value={newJob.cron}
                                                 onChange={(e) => setNewJob({...newJob, cron: e.target.value})}
                                             />
@@ -345,22 +345,22 @@ const AutomationManagerPage = () => {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Abstract / Description</label>
+                                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Abstract / Description</label>
                                         <textarea 
                                             required
                                             rows={2}
                                             placeholder="What does this protocol accomplish?"
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none resize-none"
+                                            className="w-full bg-page border border-border-card rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none resize-none"
                                             value={newJob.description}
                                             onChange={(e) => setNewJob({...newJob, description: e.target.value})}
                                         />
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Execution Action</label>
+                                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Execution Action</label>
                                         <div className="relative">
                                             <select 
-                                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none appearance-none cursor-pointer"
+                                                className="w-full bg-page border border-border-card rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none appearance-none cursor-pointer"
                                                 value={newJob.actionType}
                                                 onChange={(e) => setNewJob({...newJob, actionType: e.target.value as any})}
                                             >
@@ -368,7 +368,7 @@ const AutomationManagerPage = () => {
                                                 <option value="AI_TIP_BROADCAST">✨ AI Wellness Tip</option>
                                                 <option value="DB_CLEANUP">🧹 DB maintenance</option>
                                             </select>
-                                            <Settings className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={18} />
+                                            <Settings className="absolute right-6 top-1/2 -translate-y-1/2 text-muted opacity-40 pointer-events-none" size={18} />
                                         </div>
                                     </div>
 
@@ -387,7 +387,7 @@ const AutomationManagerPage = () => {
                                                     <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Target Audience</label>
                                                     <div className="relative">
                                                         <select 
-                                                            className="w-full bg-white border border-indigo-100 rounded-xl px-5 py-3 text-xs font-bold outline-none appearance-none cursor-pointer"
+                                                            className="w-full bg-card border border-indigo-100 rounded-xl px-5 py-3 text-xs font-bold outline-none appearance-none cursor-pointer"
                                                             value={newJob.payload.role}
                                                             onChange={(e) => setNewJob({...newJob, payload: {...newJob.payload, role: e.target.value}})}
                                                         >
@@ -403,7 +403,7 @@ const AutomationManagerPage = () => {
                                                 <input 
                                                     type="text" 
                                                     placeholder="Notification Title"
-                                                    className="w-full bg-white border border-indigo-100 rounded-xl px-5 py-3 text-xs font-bold outline-none"
+                                                    className="w-full bg-card border border-indigo-100 rounded-xl px-5 py-3 text-xs font-bold outline-none"
                                                     value={newJob.payload.title}
                                                     onChange={(e) => setNewJob({...newJob, payload: {...newJob.payload, title: e.target.value}})}
                                                 />
@@ -411,14 +411,14 @@ const AutomationManagerPage = () => {
                                             <textarea 
                                                 rows={2}
                                                 placeholder="Notification Body Message"
-                                                className="w-full bg-white border border-indigo-100 rounded-xl px-5 py-3 text-xs font-bold outline-none resize-none"
+                                                className="w-full bg-card border border-indigo-100 rounded-xl px-5 py-3 text-xs font-bold outline-none resize-none"
                                                 value={newJob.payload.message}
                                                 onChange={(e) => setNewJob({...newJob, payload: {...newJob.payload, message: e.target.value}})}
                                             />
                                         </motion.div>
                                     )}
 
-                                    <div className="flex gap-4 pt-4 sticky bottom-0 bg-white -mb-4 pb-4">
+                                    <div className="flex gap-4 pt-4 sticky bottom-0 bg-card -mb-4 pb-4">
                                         <Button 
                                             variant="outline" 
                                             type="button"

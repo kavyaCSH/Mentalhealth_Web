@@ -85,7 +85,7 @@ const GlobalSettingsPage = () => {
             <div className="min-h-screen flex items-center justify-center bg-page">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 size={40} className="text-indigo-600 animate-spin" />
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Decrypting Infrastructure Variables...</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-muted opacity-80">Decrypting Infrastructure Variables...</p>
                 </div>
             </div>
         );
@@ -97,7 +97,7 @@ const GlobalSettingsPage = () => {
                 <div className="space-y-2">
                     <button 
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> System Command
                     </button>
@@ -106,7 +106,7 @@ const GlobalSettingsPage = () => {
                             <Settings size={30} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight text-main">Infrastructure Config</h1>
+                            <h1 className="text-4xl font-black text-main tracking-tight text-main">Infrastructure Config</h1>
                             <p className="text-muted font-medium">Global platform variables and core operational parameters.</p>
                         </div>
                     </div>
@@ -137,8 +137,8 @@ const GlobalSettingsPage = () => {
                         <Database size={26} />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Deployment</p>
-                        <h3 className="text-2xl font-black text-slate-900 leading-none">v{settings.find(s => s.key === 'web_version')?.value || '1.0.0'}</h3>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5 leading-none">Deployment</p>
+                        <h3 className="text-2xl font-black text-main leading-none">v{settings.find(s => s.key === 'web_version')?.value || '1.0.0'}</h3>
                     </div>
                 </div>
                 <div className="p-6 glass-card group flex items-center gap-5">
@@ -146,8 +146,8 @@ const GlobalSettingsPage = () => {
                         <Zap size={26} />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Maintenance</p>
-                        <h3 className="text-2xl font-black text-slate-900 leading-none">Offline</h3>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5 leading-none">Maintenance</p>
+                        <h3 className="text-2xl font-black text-main leading-none">Offline</h3>
                     </div>
                 </div>
                 <div className="p-6 glass-card group flex items-center gap-5">
@@ -155,8 +155,8 @@ const GlobalSettingsPage = () => {
                         <Lock size={26} />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">ACL Integrity</p>
-                        <h3 className="text-2xl font-black text-slate-900 leading-none">Locked</h3>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5 leading-none">ACL Integrity</p>
+                        <h3 className="text-2xl font-black text-main leading-none">Locked</h3>
                     </div>
                 </div>
                 <div className="p-6 glass-card group flex items-center gap-5">
@@ -164,8 +164,8 @@ const GlobalSettingsPage = () => {
                         <Globe size={26} />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Env Mode</p>
-                        <h3 className="text-2xl font-black text-slate-900 leading-none uppercase">Production</h3>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5 leading-none">Env Mode</p>
+                        <h3 className="text-2xl font-black text-main leading-none uppercase">Production</h3>
                     </div>
                 </div>
             </div>
@@ -184,7 +184,7 @@ const GlobalSettingsPage = () => {
             )}
 
             {/* Filter Hub */}
-            <div className="card-premium p-6 flex flex-col md:flex-row gap-6 items-center justify-between border-slate-100/50">
+            <div className="card-premium p-6 flex flex-col md:flex-row gap-6 items-center justify-between border-border-card/50">
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
                     {categories.map((cat) => (
                         <button
@@ -193,7 +193,7 @@ const GlobalSettingsPage = () => {
                             className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                                 activeCategory === cat 
                                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' 
-                                : 'bg-slate-50 text-slate-500 border border-slate-100 hover:border-indigo-200'
+                                : 'bg-page text-muted border border-border-card hover:border-indigo-200'
                             }`}
                         >
                             {cat}
@@ -201,22 +201,22 @@ const GlobalSettingsPage = () => {
                     ))}
                 </div>
                 <div className="relative w-full md:w-80">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted opacity-40" size={18} />
                     <input
                         type="text"
                         placeholder="Search infrastructure keys..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                        className="w-full bg-page border border-border-card rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
                     />
                 </div>
             </div>
 
             {/* Settings Registry */}
-            <div className="card-premium overflow-hidden border-slate-100/50">
+            <div className="card-premium overflow-hidden border-border-card/50">
                 <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-100">
-                        <tr className="text-[11px] font-black text-slate-600 uppercase tracking-widest">
+                    <thead className="bg-page border-b border-border-card">
+                        <tr className="text-[11px] font-black text-muted uppercase tracking-widest">
                             <th className="px-8 py-5">Platform Key</th>
                             <th className="px-8 py-5">Current Global Value</th>
                             <th className="px-8 py-5">Category</th>
@@ -230,7 +230,7 @@ const GlobalSettingsPage = () => {
                                 <motion.tr 
                                     key={setting.key}
                                     layout
-                                    className="group hover:bg-slate-50 transition-colors cursor-pointer"
+                                    className="group hover:bg-page transition-colors cursor-pointer"
                                     onClick={() => {
                                         setEditingSetting(setting);
                                         setShowCreateModal(true);
@@ -238,13 +238,13 @@ const GlobalSettingsPage = () => {
                                 >
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-sm font-black text-slate-900 font-mono tracking-tight">{setting.key}</span>
-                                            <span className="text-[11px] font-bold text-slate-500">{setting.description || 'No specific description provided.'}</span>
+                                            <span className="text-sm font-black text-main font-mono tracking-tight">{setting.key}</span>
+                                            <span className="text-[11px] font-bold text-muted">{setting.description || 'No specific description provided.'}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="min-w-[120px]">
-                                            <code className="px-3 py-1.5 bg-slate-100 text-indigo-700 rounded-lg text-[11px] font-black border border-slate-200">
+                                            <code className="px-3 py-1.5 bg-page text-indigo-700 rounded-lg text-[11px] font-black border border-border-card">
                                                 {setting.value}
                                             </code>
                                         </div>
@@ -253,19 +253,19 @@ const GlobalSettingsPage = () => {
                                         <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
                                             setting.category === 'maintenance' ? 'bg-rose-50 text-rose-600 border-rose-100' :
                                             setting.category === 'clinical' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
-                                            'bg-slate-50 text-slate-500 border-slate-100'
+                                            'bg-page text-muted border-border-card'
                                         }`}>
                                             {setting.category || 'general'}
                                         </span>
                                     </td>
                                     <td className="px-8 py-6">
-                                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                                        <span className="text-[11px] font-black text-muted uppercase tracking-widest">
                                             {setting.updatedAt ? new Date(setting.updatedAt).toLocaleString() : 'Legacy Sync'}
                                         </span>
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button className="p-2.5 bg-white text-slate-400 hover:text-indigo-600 rounded-xl border border-slate-100 hover:shadow-lg transition-all">
+                                            <button className="p-2.5 bg-card text-muted opacity-80 hover:text-indigo-600 rounded-xl border border-border-card hover:shadow-lg transition-all">
                                                 <Eye size={18} />
                                             </button>
                                         </div>
@@ -276,8 +276,8 @@ const GlobalSettingsPage = () => {
                             <tr>
                                 <td colSpan={5} className="px-8 py-20 text-center">
                                     <div className="max-w-xs mx-auto space-y-4">
-                                        <Settings size={48} className="mx-auto text-slate-200" />
-                                        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Registry Clear for Query</p>
+                                        <Settings size={48} className="mx-auto text-muted opacity-40" />
+                                        <p className="text-muted opacity-80 font-bold uppercase text-[10px] tracking-widest">Registry Clear for Query</p>
                                     </div>
                                 </td>
                             </tr>
@@ -294,13 +294,13 @@ const GlobalSettingsPage = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white w-full max-w-xl rounded-[3rem] shadow-2xl relative overflow-hidden"
+                            className="bg-card w-full max-w-xl rounded-[3rem] shadow-2xl relative overflow-hidden"
                         >
                             <div className="absolute top-0 left-0 w-full h-2 bg-indigo-600" />
                             <div className="p-10 space-y-8">
                                 <header className="text-center space-y-2">
-                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">System Variable</h2>
-                                    <p className="text-slate-500 text-sm font-medium italic">All modifications are written to the cloud registry instantly.</p>
+                                    <h2 className="text-3xl font-black text-main tracking-tight">System Variable</h2>
+                                    <p className="text-muted text-sm font-medium italic">All modifications are written to the cloud registry instantly.</p>
                                 </header>
 
                                 <div className="space-y-6">
@@ -318,9 +318,9 @@ const GlobalSettingsPage = () => {
                                         onChange={(e) => setEditingSetting({...editingSetting, value: e.target.value})}
                                     />
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Functional Category</label>
+                                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Functional Category</label>
                                         <select 
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-xs font-black outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none cursor-pointer"
+                                            className="w-full bg-page border border-border-card rounded-2xl px-5 py-4 text-xs font-black outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none cursor-pointer"
                                             value={editingSetting.category}
                                             onChange={(e) => setEditingSetting({...editingSetting, category: e.target.value as any})}
                                         >
@@ -331,10 +331,10 @@ const GlobalSettingsPage = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Internal Description</label>
+                                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Internal Description</label>
                                         <textarea 
                                             rows={2}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-5 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                                            className="w-full bg-page border border-border-card rounded-2xl p-5 text-xs font-bold text-main outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
                                             placeholder="What does this variable control?"
                                             value={editingSetting.description}
                                             onChange={(e) => setEditingSetting({...editingSetting, description: e.target.value})}

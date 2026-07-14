@@ -248,11 +248,11 @@ const TermsOfServicePage = () => {
                         <div className="absolute -top-16 -right-16 w-72 h-72 bg-indigo-600/20 rounded-full blur-3xl" />
                         <div className="absolute -bottom-16 -left-16 w-72 h-72 bg-purple-600/10 rounded-full blur-3xl" />
                         <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
-                            <div className="w-20 h-20 shrink-0 rounded-[1.75rem] bg-white/10 backdrop-blur flex items-center justify-center border border-white/10 shadow-xl">
+                            <div className="w-20 h-20 shrink-0 rounded-[1.75rem] bg-card/10 backdrop-blur flex items-center justify-center border border-white/10 shadow-xl">
                                 <Scale size={36} className="text-white" />
                             </div>
                             <div className="space-y-3">
-                                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                                <div className="inline-flex items-center gap-2 bg-card/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
                                     <Shield size={11} className="text-indigo-300" />
                                     <span className="text-[10px] font-black tracking-[0.2em] text-indigo-200 uppercase">Legal Document</span>
                                 </div>
@@ -339,7 +339,7 @@ const TermsOfServicePage = () => {
                     <div className="mt-14 rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-purple-600 p-10 text-center relative overflow-hidden">
                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
                         <div className="relative z-10 space-y-4">
-                            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur px-4 py-1.5 rounded-full">
+                            <div className="inline-flex items-center gap-2 bg-card/20 backdrop-blur px-4 py-1.5 rounded-full">
                                 <Mail size={12} className="text-white" />
                                 <span className="text-[10px] font-black tracking-[0.2em] text-white uppercase">Questions?</span>
                             </div>
@@ -349,7 +349,7 @@ const TermsOfServicePage = () => {
                             </p>
                             <button
                                 onClick={() => navigate('/help/support')}
-                                className="mt-2 inline-flex items-center gap-2 bg-white text-indigo-700 px-8 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-xl shadow-black/10"
+                                className="mt-2 inline-flex items-center gap-2 bg-card text-indigo-700 px-8 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-xl shadow-black/10"
                             >
                                 Contact Support
                                 <ChevronRight size={16} />

@@ -200,7 +200,7 @@ const ClinicalRecordsHub = () => {
             case 'mse': return 'bg-violet-50 border-violet-100';
             case 'ros': return 'bg-emerald-50 border-emerald-100';
             case 'past-history': return 'bg-blue-50 border-blue-100';
-            default: return 'bg-slate-50 border-slate-100';
+            default: return 'bg-card border-border-card';
         }
     };
 
@@ -230,7 +230,7 @@ const ClinicalRecordsHub = () => {
                 <div className="space-y-4">
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors"
                     >
                         <ChevronLeft size={14} /> Back
                     </button>
@@ -239,10 +239,10 @@ const ClinicalRecordsHub = () => {
                             <ClipboardList size={18} />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em]">{patientId ? 'Clinical Records Vault' : 'Your Health History'}</span>
                         </div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                        <h1 className="text-4xl font-black text-main tracking-tight">
                             {patientId ? `${patientName}'s History` : 'My Clinical Journey'}
                         </h1>
-                        <p className="text-slate-500 font-medium mt-1">Consolidated timeline of all clinical findings and intake narratives.</p>
+                        <p className="text-muted font-medium mt-1">Consolidated timeline of all clinical findings and intake narratives.</p>
                     </div>
                 </div>
                 <div className="flex gap-3">
@@ -255,21 +255,21 @@ const ClinicalRecordsHub = () => {
             {/* Controls */}
             <div className="grid md:grid-cols-12 gap-6 mb-8">
                 <div className="md:col-span-8 relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted opacity-80" size={18} />
                     <input
                         type="text"
                         placeholder="Search longitudinal findings..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-white border border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        className="w-full bg-card border border-border-card rounded-2xl py-4 pl-12 pr-4 text-sm font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     />
                 </div>
-                <div className="md:col-span-4 flex items-center gap-2 bg-white p-1 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="md:col-span-4 flex items-center gap-2 bg-card p-1 rounded-2xl border border-border-card shadow-sm">
                     {(['all', 'complaint', 'hpi', 'mse', 'ros', 'past-history'] as const).map((f) => (
                         <button
                             key={f}
                             onClick={() => setActiveFilter(f)}
-                            className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeFilter === f ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeFilter === f ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-muted opacity-80 hover:text-muted'}`}
                         >
                             {f === 'complaint' ? 'CC' : f === 'past-history' ? 'History' : f}
                         </button>
@@ -282,11 +282,11 @@ const ClinicalRecordsHub = () => {
                 {isLoading ? (
                     <div className="py-20 flex flex-col items-center justify-center opacity-40">
                         <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aggregating History...</p>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Aggregating History...</p>
                     </div>
                 ) : filteredRecords.length > 0 ? (
                     <div className="relative">
-                        <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-slate-100 hidden md:block" />
+                        <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-page hidden md:block" />
                         <div className="space-y-8">
                             {filteredRecords.map((record, idx) => (
                                 <motion.div
@@ -299,13 +299,13 @@ const ClinicalRecordsHub = () => {
                                 >
                                     {/* Date Column (MD+) */}
                                     <div className="hidden md:flex flex-col items-end w-24 shrink-0 pt-4">
-                                        <p className="text-xs font-black text-slate-900 uppercase">
+                                        <p className="text-xs font-black text-main uppercase">
                                             {new Date(record.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                         </p>
                                     </div>
 
                                     {/* Icon & Connection (MD+) */}
-                                    <div className="hidden md:flex relative z-10 w-16 h-16 rounded-[1.25rem] items-center justify-center bg-white border-4 border-slate-50 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <div className="hidden md:flex relative z-10 w-16 h-16 rounded-[1.25rem] items-center justify-center bg-card border-4 border-border-card shadow-sm group-hover:scale-110 transition-transform duration-300">
                                         {getRecordIcon(record.type)}
                                     </div>
 
@@ -313,29 +313,29 @@ const ClinicalRecordsHub = () => {
                                     <div className={`flex-1 p-6 rounded-[2.5rem] border ${getRecordColor(record.type)} shadow-sm group-hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1`}>
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-white rounded-lg border border-slate-100 shadow-sm">
+                                                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-card rounded-lg border border-border-card shadow-sm">
                                                     {record.type === 'complaint' ? 'Chief Complaint' : record.type.toUpperCase()}
                                                 </span>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                                <span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">
                                                     {record.status}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400">
+                                            <div className="flex items-center gap-2 text-[10px] font-black text-muted opacity-80">
                                                 <Calendar size={12} />
                                                 {new Date(record.date).toLocaleDateString()}
                                             </div>
                                         </div>
 
-                                        <p className="text-sm font-bold text-slate-700 leading-relaxed mb-6 line-clamp-2 italic">
+                                        <p className="text-sm font-bold text-main leading-relaxed mb-6 line-clamp-2 italic">
                                             "{record.narrative}"
                                         </p>
 
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded-full bg-slate-200 border border-white" />
-                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{record.author}</span>
+                                                <div className="w-6 h-6 rounded-full bg-border-card border border-white" />
+                                                <span className="text-[10px] font-black text-muted uppercase tracking-widest">{record.author}</span>
                                             </div>
-                                            <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                            <div className="w-8 h-8 rounded-xl bg-card border border-border-card flex items-center justify-center text-muted opacity-40 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                                 <ChevronRight size={16} />
                                             </div>
                                         </div>
@@ -345,12 +345,12 @@ const ClinicalRecordsHub = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center py-24 bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-100">
-                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                            <FileText className="text-slate-300" size={32} />
+                    <div className="text-center py-24 bg-card/50 rounded-[3rem] border-2 border-dashed border-border-card">
+                        <div className="w-20 h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                            <FileText className="text-muted opacity-40" size={32} />
                         </div>
-                        <h3 className="text-xl font-black text-slate-900 mb-2">No Records Found</h3>
-                        <p className="text-slate-500 font-medium text-sm">No clinical history records were found matching your filters.</p>
+                        <h3 className="text-xl font-black text-main mb-2">No Records Found</h3>
+                        <p className="text-muted font-medium text-sm">No clinical history records were found matching your filters.</p>
                         <Button variant="outline" className="mt-8 px-8" onClick={() => { setSearchQuery(''); setActiveFilter('all'); }}>Clear Filters</Button>
                     </div>
                 )}

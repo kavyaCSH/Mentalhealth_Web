@@ -42,7 +42,7 @@ const MindBalanceHelpModal: React.FC<MindBalanceHelpModalProps> = ({ isOpen, onC
 
             if (line.startsWith('###')) {
                 return (
-                    <h3 key={index} className="text-xl font-black text-slate-900 mt-8 mb-4 tracking-tight uppercase">
+                    <h3 key={index} className="text-xl font-black text-main mt-8 mb-4 tracking-tight uppercase">
                         {line.replace('###', '').trim()}
                     </h3>
                 );
@@ -58,7 +58,7 @@ const MindBalanceHelpModal: React.FC<MindBalanceHelpModalProps> = ({ isOpen, onC
                         <div className="w-8 h-8 shrink-0 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center font-black text-indigo-600 text-[10px]">
                             {isNumbered ? line.match(/^\d+\./)?.[0] : <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />}
                         </div>
-                        <p className="text-sm font-medium text-slate-600 leading-relaxed pt-1">
+                        <p className="text-sm font-medium text-muted leading-relaxed pt-1">
                             {itemContent.split('**').map((part, i) => (
                                 <span key={i} className={i % 2 === 1 ? 'font-black text-indigo-600' : ''}>{part}</span>
                             ))}
@@ -69,9 +69,9 @@ const MindBalanceHelpModal: React.FC<MindBalanceHelpModalProps> = ({ isOpen, onC
 
             // Normal text
             return (
-                <p key={index} className="text-sm font-medium text-slate-500 mb-4 leading-relaxed">
+                <p key={index} className="text-sm font-medium text-muted mb-4 leading-relaxed">
                     {line.split('**').map((part, i) => (
-                        <span key={i} className={i % 2 === 1 ? 'font-black text-slate-900' : 'opacity-90'}>{part}</span>
+                        <span key={i} className={i % 2 === 1 ? 'font-black text-main' : 'opacity-90'}>{part}</span>
                     ))}
                 </p>
             );
@@ -86,17 +86,17 @@ const MindBalanceHelpModal: React.FC<MindBalanceHelpModalProps> = ({ isOpen, onC
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="bg-white rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col border border-slate-100"
+                        className="bg-card rounded-[2.5rem] md:rounded-[3.5rem] w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col border border-border-card"
                     >
                         {/* Header */}
-                        <div className="px-8 md:px-12 h-20 md:h-24 shrink-0 flex items-center justify-between border-b border-slate-50 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+                        <div className="px-8 md:px-12 h-20 md:h-24 shrink-0 flex items-center justify-between border-b border-border-card bg-card/50 backdrop-blur-sm sticky top-0 z-10">
                             <div>
-                                <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tight uppercase">Clinical Guide</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{content?.title || 'Loading Documentation...'}</p>
+                                <h3 className="text-lg md:text-xl font-black text-main tracking-tight uppercase">Clinical Guide</h3>
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">{content?.title || 'Loading Documentation...'}</p>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all hover:rotate-90 active:scale-90"
+                                className="w-12 h-12 rounded-2xl bg-page flex items-center justify-center text-muted opacity-80 hover:text-red-500 hover:bg-red-50 transition-all hover:rotate-90 active:scale-90"
                             >
                                 <X size={24} />
                             </button>
@@ -109,7 +109,7 @@ const MindBalanceHelpModal: React.FC<MindBalanceHelpModalProps> = ({ isOpen, onC
                                     <div className="w-16 h-1 bg-indigo-100 rounded-full overflow-hidden">
                                         <div className="w-1/2 h-full bg-indigo-600 rounded-full animate-[progress_1.5s_ease-in-out_infinite]" />
                                     </div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse italic">Aggregating Clinical Data...</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em] animate-pulse italic">Aggregating Clinical Data...</p>
                                 </div>
                             ) : (
                                 <article className="prose prose-slate max-w-none">
@@ -126,8 +126,8 @@ const MindBalanceHelpModal: React.FC<MindBalanceHelpModalProps> = ({ isOpen, onC
                                     </div>
 
                                     {/* Feedback (Mobile Parity) */}
-                                    <div className="mt-16 pt-10 border-t border-slate-50 text-center mb-6">
-                                        <h4 className="text-sm font-black text-slate-900 mb-8 uppercase tracking-tight italic">Was this clinical insight helpful?</h4>
+                                    <div className="mt-16 pt-10 border-t border-border-card text-center mb-6">
+                                        <h4 className="text-sm font-black text-main mb-8 uppercase tracking-tight italic">Was this clinical insight helpful?</h4>
                                         <div className="flex gap-4 max-w-xs mx-auto">
                                             <button className="flex-1 h-12 rounded-xl bg-emerald-50 text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center justify-center gap-2 active:scale-95 border border-emerald-100/50">
                                                 <ThumbsUp size={14} /> Yes

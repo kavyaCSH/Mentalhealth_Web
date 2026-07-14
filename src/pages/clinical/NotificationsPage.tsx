@@ -177,7 +177,7 @@ const ClinicalNotificationsPage = () => {
                     >
                         <Settings size={20} />
                     </button>
-                    <div className="w-[1.5px] h-8 bg-slate-200 mx-1 hidden md:block"></div>
+                    <div className="w-[1.5px] h-8 bg-border-card mx-1 hidden md:block"></div>
                     <button
                         onClick={handleMarkAllAsRead}
                         disabled={unreadCount === 0}
@@ -275,7 +275,7 @@ const ClinicalNotificationsPage = () => {
                                                         <span>{getNotificationDisplayTime(notif.createdAt || notif.created_at)}</span>
                                                         {notif.patientName && (
                                                             <>
-                                                                <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                                                <span className="w-1 h-1 bg-border-card rounded-full"></span>
                                                                 <span className="text-rose-600">{notif.patientName}</span>
                                                             </>
                                                         )}
@@ -310,7 +310,7 @@ const ClinicalNotificationsPage = () => {
                 ) : (
                     <div className="text-center py-48 card-premium bg-page/50 border-dashed border-2 flex flex-col items-center">
                         <div className="w-24 h-24 bg-card rounded-[2.5rem] flex items-center justify-center mb-8 shadow-inner ring-8 ring-slate-100/50">
-                            <Sparkles size={40} className="text-slate-200" />
+                            <Sparkles size={40} className="text-muted opacity-40" />
                         </div>
                         <h3 className="text-[11px] font-black text-muted opacity-80 uppercase tracking-[0.4em] mb-3">Clear Horizon</h3>
                         <p className="text-muted font-medium max-w-sm mx-auto text-lg">No active alerts currently require clinical intervention.</p>

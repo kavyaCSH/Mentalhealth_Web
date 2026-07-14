@@ -25,12 +25,12 @@ import type { AssessmentResult } from '../../types/assessment.types';
 const getSeverityStyle = (severity?: string, interpretation?: string) => {
     const key = String(severity || interpretation || '').toLowerCase();
     if (key.includes('severe') || key.includes('high'))
-        return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', icon: AlertTriangle, gauge: '#ef4444' };
+        return { color: 'text-error', bg: 'bg-error/10', border: 'border-error/20', icon: AlertTriangle, gauge: '#ef4444' };
     if (key.includes('moderate') || key.includes('medium'))
-        return { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', icon: TrendingUp, gauge: '#f97316' };
+        return { color: 'text-warning', bg: 'bg-warning/10', border: 'border-warning/20', icon: TrendingUp, gauge: '#f97316' };
     if (key.includes('mild') || key.includes('low'))
-        return { color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', icon: Shield, gauge: '#6366f1' };
-    return { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', icon: CheckCircle2, gauge: '#10b981' };
+        return { color: 'text-indigo-500', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', icon: Shield, gauge: '#6366f1' };
+    return { color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: CheckCircle2, gauge: '#10b981' };
 };
 
 const getCategoryIcon = (slug?: string) => {
@@ -91,7 +91,7 @@ const AssessmentResultPage = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Loading Assessment Details...</p>
+                <p className="text-sm font-bold text-muted uppercase tracking-widest">Loading Assessment Details...</p>
             </div>
         );
     }
@@ -99,7 +99,7 @@ const AssessmentResultPage = () => {
     if (error || !assessment) {
         return (
             <div className="p-8 max-w-3xl text-center py-20">
-                <AlertTriangle className="text-orange-500 mx-auto mb-4" size={48} />
+                <AlertTriangle className="text-warning mx-auto mb-4" size={48} />
                 <h2 className="text-2xl font-black text-main mb-2">Unable to Load</h2>
                 <p className="text-muted mb-8">{error || 'Assessment not found.'}</p>
                 <Button onClick={() => navigate(patientId ? `/history/professional/${patientId}` : '/history')}>Back to History</Button>
@@ -118,7 +118,7 @@ const AssessmentResultPage = () => {
                     onClick={() => navigate(patientId ? `/history/professional/${patientId}` : '/history')}
                     className="flex items-center gap-3 text-muted hover:text-indigo-600 transition-all font-black text-[10px] uppercase tracking-widest group"
                 >
-                    <div className="p-2 bg-page rounded-xl group-hover:bg-indigo-50 transition-colors">
+                    <div className="p-2 bg-page border border-border-card rounded-xl group-hover:bg-indigo-500/10 transition-colors">
                         <ChevronLeft size={16} />
                     </div>
                     {patientId ? 'Back to Professional History' : 'Back to History'}
@@ -128,7 +128,7 @@ const AssessmentResultPage = () => {
             {/* Assessment Title & Origin Badge */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-6">
-                    <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-100 ${style.bg} ${style.color}`}>
+                    <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-500/20 border ${style.border} ${style.bg} ${style.color}`}>
                         {getCategoryIcon(assessment.slug)}
                     </div>
                     <div>
@@ -136,10 +136,10 @@ const AssessmentResultPage = () => {
                             {assessment.category || assessment.slug || 'General'} Result
                         </h1>
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${assessment.isProfessional ? 'bg-indigo-600 text-white' : 'bg-amber-500 text-white shadow-lg shadow-amber-100'}`}>
+                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${assessment.isProfessional ? 'bg-indigo-600 text-white' : 'bg-warning text-white shadow-lg shadow-warning/20'}`}>
                                 {assessment.isProfessional ? 'Clinical Assessment' : 'Patient Self-Check'}
                             </span>
-                            <span className="px-3 py-1 bg-slate-100 text-muted rounded-lg text-[9px] font-black uppercase tracking-widest">{assessment.slug || 'standard'}</span>
+                            <span className="px-3 py-1 bg-border-card text-muted rounded-lg text-[9px] font-black uppercase tracking-widest">{assessment.slug || 'standard'}</span>
                         </div>
                     </div>
                 </div>
@@ -151,7 +151,7 @@ const AssessmentResultPage = () => {
                 <div className="absolute -top-6 -right-6 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-1000" />
                 <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-violet-500/10 blur-3xl rounded-full group-hover:scale-125 transition-transform duration-1000" />
 
-                <div className="relative z-10 bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 rounded-[3rem] p-10 md:p-14 text-white shadow-2xl shadow-indigo-200 overflow-hidden border border-white/10">
+                <div className="relative z-10 bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 rounded-[3rem] p-10 md:p-14 text-white shadow-2xl shadow-indigo-500/20 overflow-hidden border border-white/10">
                     <div className="flex flex-col md:flex-row md:items-center gap-12 relative z-20">
                         {/* Circular Score Metric */}
                         <div className="flex-shrink-0 flex flex-col items-center justify-center w-40 h-40 rounded-full bg-card/10 backdrop-blur-md border-2 border-white/20 shadow-inner group-hover:scale-105 transition-transform duration-500">
@@ -226,9 +226,9 @@ const AssessmentResultPage = () => {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.1 }}
-                                className="bg-card p-6 rounded-3xl border border-border-card flex gap-4 hover:border-indigo-100 transition-all shadow-sm group"
+                                className="bg-card p-6 rounded-3xl border border-border-card flex gap-4 hover:border-indigo-500/30 transition-all shadow-sm group"
                             >
-                                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-black text-xs group-hover:scale-110 transition-transform">
+                                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 font-black text-xs group-hover:scale-110 transition-transform">
                                     {i + 1}
                                 </div>
                                 <p className="text-sm font-semibold text-main opacity-90 leading-relaxed pt-1">{rec}</p>
@@ -267,11 +267,11 @@ const AssessmentResultPage = () => {
                                     whileInView={{ opacity: 1, x: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: i * 0.05 }}
-                                    className="group bg-card p-6 md:p-8 rounded-[2.5rem] border border-border-card flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-indigo-100 hover:shadow-2xl hover:shadow-indigo-50/50 transition-all"
+                                    className="group bg-card p-6 md:p-8 rounded-[2.5rem] border border-border-card flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all"
                                 >
                                     <div className="flex items-start gap-6 flex-1">
-                                        <div className="w-12 h-12 bg-page border border-slate-50 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-50 transition-all group-hover:scale-110">
-                                            <span className="text-[11px] font-black text-muted group-hover:text-indigo-600">
+                                        <div className="w-12 h-12 bg-page border border-border-card rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-indigo-500/10 transition-all group-hover:scale-110">
+                                            <span className="text-[11px] font-black text-muted group-hover:text-indigo-500">
                                                 {String(i + 1).padStart(2, '0')}
                                             </span>
                                         </div>
@@ -281,8 +281,8 @@ const AssessmentResultPage = () => {
                                             </p>
                                             <div className="flex flex-col gap-1">
                                                 <p className="text-[9px] font-black text-muted uppercase tracking-widest italic">Subjective Response</p>
-                                                <div className="inline-flex items-center gap-3 px-4 py-2 bg-page rounded-xl group-hover:bg-indigo-50/30 transition-all border border-transparent group-hover:border-indigo-100">
-                                                    <span className="text-sm font-black text-indigo-600">
+                                                <div className="inline-flex items-center gap-3 px-4 py-2 bg-page rounded-xl group-hover:bg-indigo-500/10 transition-all border border-transparent group-hover:border-indigo-500/20">
+                                                    <span className="text-sm font-black text-indigo-500">
                                                         {displayAnswer}
                                                     </span>
                                                 </div>
@@ -291,9 +291,9 @@ const AssessmentResultPage = () => {
                                     </div>
                                     
                                     <div className="shrink-0 flex items-center gap-6 pl-16 md:pl-0">
-                                        <div className="h-10 w-[1.5px] bg-slate-100 hidden md:block" />
+                                        <div className="h-10 w-[1.5px] bg-border-card hidden md:block" />
                                         <div className={`px-6 py-3 rounded-2xl flex flex-col items-center justify-center min-w-[90px] border transition-all ${
-                                            (resp as any).score ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-page border-border-card opacity-50'
+                                            (resp as any).score ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'bg-page border-border-card opacity-50'
                                         }`}>
                                             <span className="text-lg font-black leading-none">
                                                 {(resp as any).score ? `+${(resp as any).score}` : '0'}
@@ -337,7 +337,7 @@ const AssessmentResultPage = () => {
                 </Button>
                 <Button 
                     variant="primary" 
-                    className="flex-1 py-6 rounded-3xl shadow-xl shadow-indigo-100 font-black uppercase tracking-[0.2em] text-[10px] bg-slate-900"
+                    className="flex-1 py-6 rounded-3xl shadow-xl shadow-indigo-500/20 font-black uppercase tracking-[0.2em] text-[10px] bg-indigo-600 text-white hover:bg-indigo-700"
                     onClick={() => window.print()}
                 >
                     Generate Clinical PDF

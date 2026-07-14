@@ -120,16 +120,16 @@ const HPIHistory = () => {
             <header className="flex items-center gap-6">
                 <button
                     onClick={navigateBack}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    className="p-3 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                    <h1 className="text-4xl font-black text-main tracking-tight">
                         HPI history
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Identity:</span>
+                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Patient Identity:</span>
                         <span className="text-xs font-bold text-indigo-600">
                             Patient #{userId}
                         </span>
@@ -155,7 +155,7 @@ const HPIHistory = () => {
                             transition={{ delay: idx * 0.05 }}
                             key={item.id || item._id}
                             onClick={() => navigate(`/patients/${userId}/hpi/${item.id || item._id || item.hpiId}`)}
-                            className="card-premium p-8 bg-white border-slate-100 hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
+                            className="card-premium p-8 bg-card border-border-card hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -191,7 +191,7 @@ const HPIHistory = () => {
                                         </span>
                                     )}
                                 </div>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+                                <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-2">
                                     {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
                                         month: 'short',
                                         day: 'numeric',
@@ -199,20 +199,20 @@ const HPIHistory = () => {
                                     }) : 'Recently'}
                                 </span>
                             </div>
-                            <p className="text-slate-700 font-bold leading-relaxed line-clamp-6 flex-1 italic">
+                            <p className="text-main font-bold leading-relaxed line-clamp-6 flex-1 italic">
                                 "{item.narrative || (item as any).content || 'No clinical narrative available.'}"
                             </p>
-                            <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                            <div className="pt-4 border-t border-border-card flex items-center justify-between">
                                 <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest group-hover:text-indigo-600 transition-colors">View AI Analysis</span>
-                                <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-transform group-hover:translate-x-1" />
+                                <ChevronLeft size={14} className="rotate-180 text-muted opacity-40 group-hover:text-indigo-500 transition-transform group-hover:translate-x-1" />
                             </div>
                         </motion.div>
                     ))
                 ) : (
-                    <div className="col-span-full card-premium p-20 text-center border-dashed border-slate-200 bg-slate-50/50">
-                        <HistoryIcon size={48} className="mx-auto text-slate-300 mb-6 opacity-50" />
-                        <h3 className="text-xl font-black text-slate-900 mb-2">No Records Found</h3>
-                        <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto italic mb-8">
+                    <div className="col-span-full card-premium p-20 text-center border-dashed border-border-card bg-card/50">
+                        <HistoryIcon size={48} className="mx-auto text-muted opacity-40 mb-6 opacity-50" />
+                        <h3 className="text-xl font-black text-main mb-2">No Records Found</h3>
+                        <p className="text-sm font-bold text-muted opacity-80 max-w-xs mx-auto italic mb-8">
                             There are no previous HPI history records for this patient.
                         </p>
                     </div>

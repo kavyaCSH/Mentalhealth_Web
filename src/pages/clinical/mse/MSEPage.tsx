@@ -61,9 +61,9 @@ const FindingItem: React.FC<{ label: string; value: any }> = ({ label, value }) 
     if (!displayValue || displayValue === 'No specific markers') return null;
 
     return (
-        <div className="flex flex-col gap-1 py-3 border-b border-slate-50 last:border-none group">
-            <span className="text-[10px] font-bold text-slate-400 tracking-tight">{label.replace(/_/g, ' ')}</span>
-            <span className="text-[13px] font-bold text-slate-700 leading-tight group-hover:text-indigo-600 transition-colors tracking-tight">{displayValue}</span>
+        <div className="flex flex-col gap-1 py-3 border-b border-border-card last:border-none group">
+            <span className="text-[10px] font-bold text-muted opacity-80 tracking-tight">{label.replace(/_/g, ' ')}</span>
+            <span className="text-[13px] font-bold text-main leading-tight group-hover:text-indigo-600 transition-colors tracking-tight">{displayValue}</span>
         </div>
     );
 };
@@ -323,7 +323,7 @@ const MSEPage = () => {
                                 onClick={() => handleValueChange(section, question.key, option)}
                                 className={`p-5 rounded-3xl border text-left transition-all ${value === option
                                     ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-200'
-                                    : `bg-slate-50 border-transparent text-slate-500 ${theme.hoverBorder}`
+                                    : `bg-page border-transparent text-muted ${theme.hoverBorder}`
                                     }`}
                             >
                                 <span className="text-[12px] font-bold tracking-tight leading-tight">{option}</span>
@@ -342,7 +342,7 @@ const MSEPage = () => {
                                     onClick={() => handleMultiselectToggle(section, question.key, option)}
                                     className={`p-5 rounded-3xl border text-left transition-all ${isSelected
                                         ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-200'
-                                        : `bg-slate-50 border-transparent text-slate-500 ${theme.hoverBorder}`
+                                        : `bg-page border-transparent text-muted ${theme.hoverBorder}`
                                         }`}
                                 >
                                     <span className="text-[12px] font-bold tracking-tight leading-tight">{option}</span>
@@ -361,7 +361,7 @@ const MSEPage = () => {
                                     onClick={() => handleValueChange(section, question.key, v)}
                                     className={`flex-1 p-5 rounded-3xl border transition-all font-bold tracking-tight text-[12px] ${value === v
                                         ? (v ? 'bg-indigo-600 border-indigo-600 text-white shadow-xl shadow-indigo-100' : 'bg-slate-800 border-slate-800 text-white shadow-xl shadow-slate-200')
-                                        : 'bg-slate-50 border-transparent text-slate-400 hover:bg-slate-100'
+                                        : 'bg-page border-transparent text-muted opacity-80 hover:bg-page'
                                         }`}
                                 >
                                     {v ? 'Normal or Negative' : 'Non-atypical or Positive'}
@@ -372,7 +372,7 @@ const MSEPage = () => {
                             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="pl-6 border-l-4 border-indigo-50 space-y-8 mt-4">
                                 {question.follow_up.map(fu => (
                                     <div key={fu.key} className="space-y-4">
-                                        <label className="text-[11px] font-bold text-slate-400 tracking-tight leading-none">{fu.label}</label>
+                                        <label className="text-[11px] font-bold text-muted opacity-80 tracking-tight leading-none">{fu.label}</label>
                                         {renderQuestion(section, fu)}
                                     </div>
                                 ))}
@@ -386,7 +386,7 @@ const MSEPage = () => {
                         value={value || ''}
                         onChange={(e) => handleValueChange(section, question.key, e.target.value)}
                         placeholder="Provide detailed clinical observations here..."
-                        className="w-full min-h-[140px] p-8 bg-slate-50 border border-transparent rounded-[2.5rem] text-sm font-bold text-slate-700 outline-none transition-all resize-none shadow-inner focus:bg-white focus:border-indigo-600"
+                        className="w-full min-h-[140px] p-8 bg-page border border-transparent rounded-[2.5rem] text-sm font-bold text-main outline-none transition-all resize-none shadow-inner focus:bg-card focus:border-indigo-600"
                     />
                 );
             case 'number':
@@ -398,11 +398,11 @@ const MSEPage = () => {
                             min={question.min}
                             max={question.max}
                             onChange={(e) => handleValueChange(section, question.key, e.target.value)}
-                            className="w-32 p-6 bg-slate-50 border border-transparent rounded-3xl text-lg font-black text-slate-900 outline-none transition-all text-center placeholder:text-slate-200 focus:bg-white focus:border-indigo-600"
+                            className="w-32 p-6 bg-page border border-transparent rounded-3xl text-lg font-black text-main outline-none transition-all text-center placeholder:text-muted opacity-40 focus:bg-card focus:border-indigo-600"
                         />
                         <div className="flex flex-col">
-                            <span className="text-[11px] font-bold text-slate-400 tracking-tight leading-tight">Scale limit</span>
-                            <span className="text-sm font-black text-slate-900">{question.max} Points Total</span>
+                            <span className="text-[11px] font-bold text-muted opacity-80 tracking-tight leading-tight">Scale limit</span>
+                            <span className="text-sm font-black text-main">{question.max} Points Total</span>
                         </div>
                     </div>
                 );
@@ -414,7 +414,7 @@ const MSEPage = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
                 <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin shadow-2xl shadow-indigo-100" />
-                <p className="text-[11px] font-bold text-slate-400 tracking-tight animate-pulse">Synchronizing Workspace</p>
+                <p className="text-[11px] font-bold text-muted opacity-80 tracking-tight animate-pulse">Synchronizing Workspace</p>
             </div>
         );
     }
@@ -427,7 +427,7 @@ const MSEPage = () => {
 
         return (
             <div className="p-10 max-w-[1400px] mx-auto space-y-12 animate-fade-in pb-32">
-                <header className="flex items-end justify-between border-b-2 border-slate-50 pb-12">
+                <header className="flex items-end justify-between border-b-2 border-border-card pb-12">
                     <div className="space-y-4">
                         <div className="flex items-center gap-4">
                             <div className="w-14 h-14 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-100/20">
@@ -436,28 +436,28 @@ const MSEPage = () => {
                             <div>
                                 <div className="flex items-center gap-3 mb-1">
                                     <span className="px-3 py-1 bg-indigo-600 text-white rounded-lg text-[10px] font-bold tracking-tight shadow-lg shadow-indigo-200">Clinical Evaluation</span>
-                                    <span className="text-[11px] font-medium text-slate-400 tabular-nums tracking-tight leading-none">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                    <span className="text-[11px] font-medium text-muted opacity-80 tabular-nums tracking-tight leading-none">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                                 </div>
-                                <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Evaluation Analysis</h1>
+                                <h1 className="text-4xl font-black text-main tracking-tighter leading-none">Evaluation Analysis</h1>
                             </div>
                         </div>
                     </div>
-                    <Button variant="outline" onClick={navigateBack} className="h-14 px-10 rounded-2xl border border-slate-200 font-bold text-[11px] tracking-tight hover:bg-slate-50">
+                    <Button variant="outline" onClick={navigateBack} className="h-14 px-10 rounded-2xl border border-border-card font-bold text-[11px] tracking-tight hover:bg-page">
                         Exit Record
                     </Button>
                 </header>
 
                 <div className="grid lg:grid-cols-12 gap-12">
                     <div className="lg:col-span-12">
-                        <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] relative overflow-hidden group">
+                        <section className="bg-card p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] relative overflow-hidden group">
                            <div className="absolute top-0 right-0 p-16 opacity-[0.03] group-hover:scale-110 transition-transform duration-[3s] text-indigo-600"><Cpu size={240} /></div>
                            <div className="relative space-y-8">
                                <div className="flex items-center gap-4">
                                    <div className="w-1 h-8 bg-indigo-600 rounded-full" />
                                    <h3 className="text-[12px] font-bold text-indigo-600 tracking-tight transition-all">Integrated clinical formulation</h3>
                                </div>
-                               <div className="pl-6 border-l-4 border-slate-50 py-1">
-                                   <p className="text-2xl font-bold text-slate-800 leading-relaxed tracking-tight italic">
+                               <div className="pl-6 border-l-4 border-border-card py-1">
+                                   <p className="text-2xl font-bold text-main leading-relaxed tracking-tight italic">
                                        "{result.ai_analysis?.clinical_formulation || 'Diagnostic reasoning pending formal auditor verification.'}"
                                    </p>
                                </div>
@@ -466,10 +466,10 @@ const MSEPage = () => {
                     </div>
 
                     <div className="lg:col-span-8">
-                        <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] h-full">
+                        <section className="bg-card p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] h-full">
                             <div className="space-y-12">
                                 <header className="flex items-center gap-4">
-                                    <h3 className="text-[12px] font-bold text-slate-900 tracking-tight flex items-center gap-4">
+                                    <h3 className="text-[12px] font-bold text-main tracking-tight flex items-center gap-4">
                                         <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center"><Activity size={22} /></div>
                                         Clinical observations
                                     </h3>
@@ -480,27 +480,27 @@ const MSEPage = () => {
                                         <div className="space-y-5">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
-                                                <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Affective baseline</h4>
+                                                <h4 className="text-[11px] font-bold text-muted opacity-80 tracking-tight">Affective baseline</h4>
                                             </div>
-                                            <p className="text-sm font-bold text-slate-700 leading-relaxed tracking-tight italic">"{result.ai_analysis?.affect_recognition}"</p>
+                                            <p className="text-sm font-bold text-main leading-relaxed tracking-tight italic">"{result.ai_analysis?.affect_recognition}"</p>
                                         </div>
                                     )}
                                     {isAiAnalysisMeaningful(result.ai_analysis?.speech_tempo_analysis) && (
                                         <div className="space-y-5">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
-                                                <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Speech prosody dynamics</h4>
+                                                <h4 className="text-[11px] font-bold text-muted opacity-80 tracking-tight">Speech prosody dynamics</h4>
                                             </div>
-                                            <p className="text-sm font-bold text-slate-700 leading-relaxed tracking-tight italic">"{result.ai_analysis?.speech_tempo_analysis}"</p>
+                                            <p className="text-sm font-bold text-main leading-relaxed tracking-tight italic">"{result.ai_analysis?.speech_tempo_analysis}"</p>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="space-y-6 pt-10 border-t border-slate-50">
-                                    <h5 className="text-[11px] font-bold text-slate-400 tracking-tight">Psychomotor audit trace</h5>
+                                <div className="space-y-6 pt-10 border-t border-border-card">
+                                    <h5 className="text-[11px] font-bold text-muted opacity-80 tracking-tight">Psychomotor audit trace</h5>
                                     <div className="flex flex-wrap gap-3">
                                         {result.ai_analysis?.psychomotor_markers?.map((marker, idx) => (
-                                            <div key={idx} className="px-5 py-3 bg-slate-50 text-indigo-800 rounded-2xl text-[11px] font-bold tracking-tight flex items-center gap-3 transition-colors hover:bg-slate-100">
+                                            <div key={idx} className="px-5 py-3 bg-page text-indigo-800 rounded-2xl text-[11px] font-bold tracking-tight flex items-center gap-3 transition-colors hover:bg-page">
                                                 <Activity size={14} className="text-indigo-400" />
                                                 {marker}
                                             </div>
@@ -513,16 +513,16 @@ const MSEPage = () => {
 
                     <div className="lg:col-span-4">
                         <div className="space-y-8">
-                            <h3 className="text-[12px] font-bold text-slate-900 tracking-tight flex items-center gap-4 mb-2 p-1">
+                            <h3 className="text-[12px] font-bold text-main tracking-tight flex items-center gap-4 mb-2 p-1">
                                 <Target size={20} className="text-indigo-600" />
                                 Clinical impressions
                             </h3>
                             <div className="grid gap-4">
                                 {result.ai_analysis?.diagnostic_impressions?.map((item, idx) => (
-                                    <div key={idx} className="p-6 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(79,70,229,0.06)] flex items-center gap-6 transition-all hover:translate-x-2 relative group">
+                                    <div key={idx} className="p-6 bg-card rounded-[2rem] shadow-[0_15px_40px_rgba(79,70,229,0.06)] flex items-center gap-6 transition-all hover:translate-x-2 relative group">
                                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-indigo-600 rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <div className="w-10 h-10 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-bold text-xs shrink-0 shadow-lg shadow-slate-100">{idx + 1}</div>
-                                        <p className="text-[13px] font-bold text-slate-700 leading-tight tracking-tight">{item}</p>
+                                        <p className="text-[13px] font-bold text-main leading-tight tracking-tight">{item}</p>
                                     </div>
                                 ))}
                             </div>
@@ -531,8 +531,8 @@ const MSEPage = () => {
 
                     <div className="lg:col-span-12 pt-20">
                         <header className="flex items-center gap-6 mb-12">
-                            <h2 className="text-[11px] font-bold text-slate-900 tracking-tight whitespace-nowrap">Clinical domain findings</h2>
-                            <div className="h-[2px] bg-slate-50 flex-1" />
+                            <h2 className="text-[11px] font-bold text-main tracking-tight whitespace-nowrap">Clinical domain findings</h2>
+                            <div className="h-[2px] bg-page flex-1" />
                         </header>
                         
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -540,13 +540,13 @@ const MSEPage = () => {
                                 const sectionData = (result as any)[s.section];
                                 if (!sectionData) return null;
                                 return (
-                                    <div key={s.section} className="p-8 bg-white rounded-[3rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(79,70,229,0.06)] transition-all group">
-                                        <header className="flex items-center justify-between mb-8 pb-4 border-b border-slate-50">
+                                    <div key={s.section} className="p-8 bg-card rounded-[3rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(79,70,229,0.06)] transition-all group">
+                                        <header className="flex items-center justify-between mb-8 pb-4 border-b border-border-card">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                                <div className="w-10 h-10 rounded-2xl bg-page flex items-center justify-center text-muted opacity-80 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                                     {getSectionIcon(s.section)}
                                                 </div>
-                                                <h3 className="text-[11px] font-bold text-slate-900 tracking-tight">{s.title}</h3>
+                                                <h3 className="text-[11px] font-bold text-main tracking-tight">{s.title}</h3>
                                             </div>
                                             <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-100" />
                                         </header>
@@ -569,21 +569,21 @@ const MSEPage = () => {
 
     return (
         <div className="p-10 max-w-[1400px] mx-auto space-y-12 animate-fade-in pb-32">
-            <header className="flex items-center justify-between border-b border-slate-50 pb-12">
+            <header className="flex items-center justify-between border-b border-border-card pb-12">
                 <div className="flex items-center gap-8">
-                    <button onClick={navigateBack} className="w-14 h-14 bg-white hover:bg-slate-50 border border-slate-100 rounded-[1.5rem] flex items-center justify-center text-slate-900 transition-all hover:shadow-xl active:scale-95 group">
+                    <button onClick={navigateBack} className="w-14 h-14 bg-card hover:bg-page border border-border-card rounded-[1.5rem] flex items-center justify-center text-main transition-all hover:shadow-xl active:scale-95 group">
                         <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
                     </button>
                     <div>
                         <div className="flex items-center gap-3 mb-1">
                             <span className="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[10px] font-bold tracking-tight shadow-lg shadow-slate-200">Evaluation Mode</span>
-                            <span className="text-[10px] font-medium text-slate-300 tracking-tight tabular-nums leading-none">Diagnostic Record Protocol</span>
+                            <span className="text-[10px] font-medium text-muted opacity-40 tracking-tight tabular-nums leading-none">Diagnostic Record Protocol</span>
                         </div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Clinical Intake</h1>
+                        <h1 className="text-4xl font-black text-main tracking-tighter leading-none">Clinical Intake</h1>
                     </div>
                 </div>
                 
-                <button onClick={() => setUseAssistant(!useAssistant)} className={`px-10 py-5 rounded-3xl font-bold tracking-tight text-[12px] flex items-center gap-4 transition-all shadow-[0_20px_50px_rgba(79,70,229,0.12)] ${useAssistant ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 hover:bg-slate-50'}`}>
+                <button onClick={() => setUseAssistant(!useAssistant)} className={`px-10 py-5 rounded-3xl font-bold tracking-tight text-[12px] flex items-center gap-4 transition-all shadow-[0_20px_50px_rgba(79,70,229,0.12)] ${useAssistant ? 'bg-indigo-600 text-white' : 'bg-card text-indigo-600 hover:bg-page'}`}>
                     <Bot size={20} />
                     {useAssistant ? 'Manual entry' : 'Clinical AI'}
                 </button>
@@ -596,17 +596,17 @@ const MSEPage = () => {
                             <div className="absolute top-0 right-0 p-8 opacity-5 text-white"><Database size={120} /></div>
                             <header className="mb-8 px-2">
                                 <h3 className="text-[11px] font-bold text-indigo-400 tracking-tight mb-2 leading-none">Evaluation protocol</h3>
-                                <div className="h-[1px] bg-white/10 w-full" />
+                                <div className="h-[1px] bg-card/10 w-full" />
                             </header>
                             {sections.map((s, idx) => {
                                 const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
                                 const isActive = idx === currentStep;
                                 return (
-                                    <button key={s.section} onClick={() => setCurrentStep(idx)} className={`w-full group flex items-center gap-5 py-4.5 px-6 rounded-2xl transition-all ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}`}>
-                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isActive ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-900 scale-110' : isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/5 text-slate-700'}`}>
+                                    <button key={s.section} onClick={() => setCurrentStep(idx)} className={`w-full group flex items-center gap-5 py-4.5 px-6 rounded-2xl transition-all ${isActive ? 'bg-card/10' : 'hover:bg-card/5'}`}>
+                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isActive ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-900 scale-110' : isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-card/5 text-main'}`}>
                                             {isDone && !isActive ? <CheckCircle2 size={16} /> : getSectionIcon(s.section)}
                                         </div>
-                                        <span className={`text-[12px] font-bold tracking-tight transition-all ${isActive ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-600 group-hover:text-slate-500'}`}>{s.title}</span>
+                                        <span className={`text-[12px] font-bold tracking-tight transition-all ${isActive ? 'text-white' : isDone ? 'text-muted opacity-40' : 'text-muted group-hover:text-muted'}`}>{s.title}</span>
                                         {isActive && <div className="ml-auto w-1 h-3 bg-indigo-600 rounded-full" />}
                                     </button>
                                 );
@@ -617,50 +617,50 @@ const MSEPage = () => {
 
                 <div className="lg:col-span-9">
                     {useAssistant ? (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-12 rounded-[3.5rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] space-y-12 relative overflow-hidden">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card p-12 rounded-[3.5rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] space-y-12 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-indigo-600"><Sparkles size={240} /></div>
-                            <header className="flex items-center justify-between border-b border-slate-50 pb-10">
+                            <header className="flex items-center justify-between border-b border-border-card pb-10">
                                 <div className="flex items-center gap-5">
                                     <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center shadow-lg shadow-indigo-100/30"><Sparkles size={32} /></div>
                                     <div>
-                                        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">Narrative workspace</h2>
-                                        <p className="text-xs font-bold text-slate-400 tracking-tight mt-1">Live Clinical Observations Engine</p>
+                                        <h2 className="text-3xl font-black text-main tracking-tight leading-tight">Narrative workspace</h2>
+                                        <p className="text-xs font-bold text-muted opacity-80 tracking-tight mt-1">Live Clinical Observations Engine</p>
                                     </div>
                                 </div>
-                                <button onClick={toggleRecording} className={`h-16 px-10 rounded-2xl flex items-center gap-4 font-bold tracking-tight text-[12px] transition-all ${isRecording ? 'bg-rose-500 text-white shadow-xl shadow-rose-200 animate-pulse' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>
+                                <button onClick={toggleRecording} className={`h-16 px-10 rounded-2xl flex items-center gap-4 font-bold tracking-tight text-[12px] transition-all ${isRecording ? 'bg-rose-500 text-white shadow-xl shadow-rose-200 animate-pulse' : 'bg-page text-muted opacity-80 hover:bg-page'}`}>
                                     {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
                                     {isRecording ? 'Recording...' : 'Start dictation'}
                                 </button>
                             </header>
-                            <textarea value={narrative} onChange={(e) => setNarrative(e.target.value)} placeholder="Observe and describe the patient's state... Orientation, attention, cognitive markers, and affective baseline will be autonomously extracted." className="w-full min-h-[500px] p-12 bg-slate-50 border-none rounded-[3rem] text-xl font-bold text-slate-800 outline-none resize-none leading-relaxed focus:bg-white shadow-inner transition-all" />
+                            <textarea value={narrative} onChange={(e) => setNarrative(e.target.value)} placeholder="Observe and describe the patient's state... Orientation, attention, cognitive markers, and affective baseline will be autonomously extracted." className="w-full min-h-[500px] p-12 bg-page border-none rounded-[3rem] text-xl font-bold text-main outline-none resize-none leading-relaxed focus:bg-card shadow-inner transition-all" />
                             <div className="flex justify-end pt-4">
                                 <Button variant="primary" className="h-16 px-20 rounded-2xl font-bold tracking-tight text-[12px] bg-slate-900 border-none shadow-2xl shadow-indigo-100" onClick={handleNarrativeExtract} isLoading={isExtracting} rightIcon={<ArrowRight size={20} />}>Process observation</Button>
                             </div>
                         </motion.div>
                     ) : (
                         <AnimatePresence mode="wait">
-                            <motion.div key={currentSection.section} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="bg-white p-16 rounded-[4rem] shadow-[0_20px_60px_rgba(79,70,229,0.08)] relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-slate-900 group-hover:scale-110 transition-transform duration-[4s]">{getSectionIcon(currentSection.section)}</div>
-                                <header className="space-y-6 pb-12 border-b border-slate-50 mb-12">
+                            <motion.div key={currentSection.section} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="bg-card p-16 rounded-[4rem] shadow-[0_20px_60px_rgba(79,70,229,0.08)] relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-main group-hover:scale-110 transition-transform duration-[4s]">{getSectionIcon(currentSection.section)}</div>
+                                <header className="space-y-6 pb-12 border-b border-border-card mb-12">
                                     <div className="flex items-center gap-6">
                                         <div className="w-14 h-14 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl shadow-indigo-100">{getSectionIcon(currentSection.section)}</div>
-                                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{currentSection.title}</h2>
+                                        <h2 className="text-4xl font-black text-main tracking-tighter leading-none">{currentSection.title}</h2>
                                     </div>
-                                    <p className="text-sm font-bold text-slate-400 tracking-tight max-w-2xl leading-relaxed">{currentSection.description}</p>
+                                    <p className="text-sm font-bold text-muted opacity-80 tracking-tight max-w-2xl leading-relaxed">{currentSection.description}</p>
                                 </header>
                                 <div className="space-y-16">
                                     {currentSection.questions.map(q => (
                                         <div key={q.key} className="space-y-8">
                                             <div className="flex items-center gap-5">
                                                 <div className="w-1.5 h-10 bg-indigo-600 rounded-full" />
-                                                <label className="text-[12px] font-bold text-slate-800 tracking-tight">{q.label}</label>
+                                                <label className="text-[12px] font-bold text-main tracking-tight">{q.label}</label>
                                             </div>
                                             <div className="max-w-3xl">{renderQuestion(currentSection.section, q)}</div>
                                         </div>
                                     ))}
                                 </div>
-                                <footer className="pt-16 mt-20 border-t border-slate-50 flex items-center justify-between">
-                                    <Button variant="outline" disabled={currentStep === 0} onClick={() => setCurrentStep(prev => prev - 1)} leftIcon={<ChevronLeft size={22} />} className="h-16 px-12 rounded-[1.5rem] font-bold text-[11px] tracking-tight border-slate-200">Go back</Button>
+                                <footer className="pt-16 mt-20 border-t border-border-card flex items-center justify-between">
+                                    <Button variant="outline" disabled={currentStep === 0} onClick={() => setCurrentStep(prev => prev - 1)} leftIcon={<ChevronLeft size={22} />} className="h-16 px-12 rounded-[1.5rem] font-bold text-[11px] tracking-tight border-border-card">Go back</Button>
                                     {currentStep < sections.length - 1 ? (
                                         <Button variant="primary" onClick={() => setCurrentStep(prev => prev + 1)} rightIcon={<ChevronRight size={22} />} className="h-16 px-20 rounded-[1.5rem] bg-indigo-600 border-none font-bold text-[11px] tracking-tight shadow-2xl shadow-indigo-100/50">Save domain</Button>
                                     ) : (

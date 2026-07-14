@@ -41,22 +41,22 @@ interface NormalisedQuestion {
 const getSeverityStyle = (severity?: string, interpretation?: string) => {
     const key = (severity || interpretation || '').toLowerCase();
     if (key.includes('severe') || key.includes('high'))
-        return { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', icon: AlertTriangle, glow: 'shadow-red-100', gauge: '#ef4444' };
+        return { color: 'text-error', bg: 'bg-error/10', border: 'border-error/20', icon: AlertTriangle, glow: 'shadow-error/20', gauge: '#ef4444' };
     if (key.includes('moderate') || key.includes('medium'))
-        return { color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', icon: TrendingUp, glow: 'shadow-orange-100', gauge: '#f97316' };
+        return { color: 'text-warning', bg: 'bg-warning/10', border: 'border-warning/20', icon: TrendingUp, glow: 'shadow-warning/20', gauge: '#f97316' };
     if (key.includes('mild') || key.includes('low'))
-        return { color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', icon: Shield, glow: 'shadow-indigo-100', gauge: '#6366f1' };
-    return { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', icon: CheckCircle2, glow: 'shadow-emerald-100', gauge: '#10b981' };
+        return { color: 'text-indigo-500', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', icon: Shield, glow: 'shadow-indigo-500/20', gauge: '#6366f1' };
+    return { color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: CheckCircle2, glow: 'shadow-emerald-500/20', gauge: '#10b981' };
 };
 
 // ─── Score color helper ──────────────────────────────────────────────────────
 const getScoreColor = (score: number, maxScore: number) => {
-    if (maxScore === 0) return 'bg-slate-200 text-slate-600';
+    if (maxScore === 0) return 'bg-page border border-border-card text-muted';
     const ratio = score / maxScore;
-    if (ratio >= 0.75) return 'bg-red-100 text-red-700';
-    if (ratio >= 0.5) return 'bg-orange-100 text-orange-700';
-    if (ratio >= 0.25) return 'bg-indigo-100 text-indigo-700';
-    return 'bg-emerald-100 text-emerald-700';
+    if (ratio >= 0.75) return 'bg-error/10 text-error border border-error/20';
+    if (ratio >= 0.5) return 'bg-warning/10 text-warning border border-warning/20';
+    if (ratio >= 0.25) return 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20';
+    return 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20';
 };
 
 const QuestionnairePage = () => {
@@ -222,7 +222,7 @@ const QuestionnairePage = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Loading Clinical Assessment...</p>
+                <p className="text-sm font-bold text-muted uppercase tracking-widest">Loading Clinical Assessment...</p>
             </div>
         );
     }
@@ -241,21 +241,21 @@ const QuestionnairePage = () => {
                     <div className={`w-24 h-24 ${style.bg} ${style.color} rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl ${style.glow}`}>
                         <CheckCircle2 size={48} />
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-4">Assessment Complete</h1>
-                    <p className="text-slate-500 font-medium">
+                    <h1 className="text-4xl font-black text-main tracking-tight mb-4">Assessment Complete</h1>
+                    <p className="text-muted font-medium">
                         Your results have been scored and analyzed by the clinical system.
                     </p>
                 </div>
 
                 {/* Score + Interpretation Card */}
-                <div className="glass-card p-10 relative overflow-hidden">
+                <div className="bg-card border border-border-card shadow-sm rounded-[2rem] p-10 relative overflow-hidden">
                     <div className={`absolute top-0 left-0 w-2 h-full`} style={{ backgroundColor: style.gauge }}></div>
 
                     {/* Score section */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8 pb-8 border-b border-slate-50">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8 pb-8 border-b border-border-card">
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Clinical Interpretation</p>
-                            <h2 className="text-2xl font-black text-slate-900">{result.interpretation}</h2>
+                            <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Clinical Interpretation</p>
+                            <h2 className="text-2xl font-black text-main">{result.interpretation}</h2>
                             {result.severity && (
                                 <div className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${style.bg} ${style.color} ${style.border} border`}>
                                     <SeverityIcon size={12} />
@@ -275,9 +275,9 @@ const QuestionnairePage = () => {
                             </div>
 
                             {result.tScore !== undefined && result.tScore !== null && (
-                                <div className={`px-8 py-4 rounded-2xl border flex flex-col items-center justify-center min-w-[140px] bg-slate-50 border-slate-100`}>
-                                    <span className="text-3xl font-black text-slate-800">{result.tScore}</span>
-                                    <span className="text-[10px] font-black uppercase tracking-widest mt-1 text-slate-400">T-Score</span>
+                                <div className={`px-8 py-4 rounded-2xl border flex flex-col items-center justify-center min-w-[140px] bg-page border-border-card`}>
+                                    <span className="text-3xl font-black text-main">{result.tScore}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest mt-1 text-muted">T-Score</span>
                                 </div>
                             )}
                         </div>
@@ -287,12 +287,12 @@ const QuestionnairePage = () => {
                     {result.percentage != null && (
                         <div className="mb-8">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                <span className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-1.5">
                                     <BarChart3 size={12} /> Score Distribution
                                 </span>
-                                <span className="text-sm font-black text-slate-600">{result.percentage}%</span>
+                                <span className="text-sm font-black text-muted">{result.percentage}%</span>
                             </div>
-                            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="w-full h-3 bg-border-card rounded-full overflow-hidden">
                                 <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${Math.min(result.percentage, 100)}%` }}
@@ -307,12 +307,12 @@ const QuestionnairePage = () => {
                     {/* Recommendations */}
                     {recs.length > 0 && recs[0] && (
                         <div className="space-y-4 mb-10">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-1.5">
                                 <Lightbulb size={12} /> Recommendations
                             </p>
                             <div className="space-y-3">
                                 {recs.map((rec: string, i: number) => (
-                                    <div key={i} className="flex items-start gap-3 text-slate-700 font-medium leading-relaxed bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                    <div key={i} className="flex items-start gap-3 text-main font-medium leading-relaxed bg-page p-5 rounded-2xl border border-border-card">
                                         <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${style.bg} ${style.color}`}>
                                             <span className="text-[10px] font-black">{i + 1}</span>
                                         </div>
@@ -330,7 +330,7 @@ const QuestionnairePage = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-50">
+                    <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border-card">
                         <Button variant="outline" className="flex-1 py-4" onClick={() => targetPatientId ? navigate(`/patients/${targetPatientId}?view=focused`) : navigate('/history')}>
                             {targetPatientId ? 'Back to Patient Record' : 'View Full History'}
                         </Button>
@@ -347,9 +347,9 @@ const QuestionnairePage = () => {
     if (questions.length === 0) {
         return (
             <div className="p-8 max-w-3xl  text-center py-20">
-                <AlertCircle className="text-orange-500 mx-auto mb-4" size={48} />
-                <h2 className="text-2xl font-black text-slate-900 mb-2">Assessment Unavailable</h2>
-                <p className="text-slate-500 mb-8">
+                <AlertCircle className="text-warning mx-auto mb-4" size={48} />
+                <h2 className="text-2xl font-black text-main mb-2">Assessment Unavailable</h2>
+                <p className="text-muted mb-8">
                     {error || 'This assessment could not be loaded or contains no clinical questions for your profile.'}
                 </p>
                 <Button onClick={() => navigate('/assessments')}>Back to Center</Button>
@@ -366,22 +366,22 @@ const QuestionnairePage = () => {
             <header className="flex items-center justify-between">
                 <button
                     onClick={() => navigate('/assessments')}
-                    className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors font-bold text-sm"
+                    className="flex items-center gap-2 text-muted hover:text-indigo-600 transition-colors font-bold text-sm"
                 >
                     <ChevronLeft size={18} /> Exit Assessment
                 </button>
                 <div className="flex items-center gap-4">
                     {/* Running score display */}
-                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-page rounded-xl border border-border-card">
                         <BarChart3 size={14} className="text-indigo-500" />
-                        <span className="text-sm font-black text-slate-700">
+                        <span className="text-sm font-black text-main">
                             {runningScore}
                         </span>
-                        <span className="text-[10px] font-bold text-slate-400">
+                        <span className="text-[10px] font-bold text-muted">
                             / {maxPossibleScore}
                         </span>
                     </div>
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <div className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">
                         {currentStep + 1} / {questions.length}
                     </div>
                 </div>
@@ -389,7 +389,7 @@ const QuestionnairePage = () => {
 
             {/* Patient profile info */}
             {profile && (
-                <div className="flex items-center gap-3 px-4 py-2.5 bg-indigo-50 rounded-xl border border-indigo-100 text-xs font-bold text-indigo-700 w-fit">
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-xs font-bold text-indigo-500 w-fit">
                     <User size={14} />
                     <span>{profile.firstName}</span>
                     <span className="text-indigo-400">|</span>
@@ -400,7 +400,7 @@ const QuestionnairePage = () => {
             )}
 
             {/* Progress Bar */}
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-border-card rounded-full overflow-hidden">
                 <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercentage}%` }}
@@ -418,7 +418,7 @@ const QuestionnairePage = () => {
                         transition={{ duration: 0.3 }}
                         className="max-w-2xl mx-auto w-full"
                     >
-                        <h2 className="text-3xl font-black text-slate-900 leading-tight mb-10 text-center">
+                        <h2 className="text-3xl font-black text-main leading-tight mb-10 text-center">
                             {question.text}
                         </h2>
 
@@ -430,8 +430,8 @@ const QuestionnairePage = () => {
                                         key={option.optionId || index}
                                         onClick={() => handleAnswer(question.id, option.value, option.optionId)}
                                         className={`p-5 text-left rounded-2xl border-2 transition-all duration-300 font-bold ${isSelected
-                                            ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md shadow-indigo-100 scale-[1.02]'
-                                            : 'border-slate-100 bg-white text-slate-600 hover:border-indigo-200 hover:bg-slate-50 hover:shadow-sm'
+                                            ? 'border-indigo-600 bg-indigo-500/10 text-indigo-500 shadow-md shadow-indigo-500/20 scale-[1.02]'
+                                            : 'border-border-card bg-card text-main hover:border-indigo-500/20 hover:bg-page hover:shadow-sm'
                                             }`}
                                     >
                                         <div className="flex items-center justify-between">
@@ -462,7 +462,7 @@ const QuestionnairePage = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="mt-6 text-center"
                             >
-                                <span className="text-xs font-bold text-slate-400">
+                                <span className="text-xs font-bold text-muted">
                                     Selected score: <span className="text-indigo-600 font-black">{answers[question.id]}</span> / {question.maxOptionScore}
                                 </span>
                             </motion.div>
@@ -472,12 +472,12 @@ const QuestionnairePage = () => {
                 {/* Notes section on last question */}
             {currentStep === questions.length - 1 && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto w-full mb-4">
-                    <div className="glass-card p-6">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Additional Notes (Optional)</p>
+                    <div className="bg-card border border-border-card rounded-2xl shadow-sm p-6">
+                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-3">Additional Notes (Optional)</p>
                         <textarea
                             value={notes} onChange={e => setNotes(e.target.value)} rows={3}
                             placeholder="Add any observations, context, or feelings here..."
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                            className="w-full bg-page border border-border-card rounded-xl px-4 py-3 text-sm font-medium text-main focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                         />
                     </div>
                 </motion.div>
@@ -485,12 +485,12 @@ const QuestionnairePage = () => {
         </main>
 
             {error && (
-                <div className="p-4 bg-red-50 text-red-600 text-sm font-bold rounded-xl border border-red-100 text-center">
+                <div className="p-4 bg-error/10 text-error text-sm font-bold rounded-xl border border-error/20 text-center">
                     {error}
                 </div>
             )}
 
-            <footer className="flex items-center justify-between border-t border-slate-100 pt-6">
+            <footer className="flex items-center justify-between border-t border-border-card pt-6">
                 <Button
                     variant="ghost"
                     disabled={currentStep === 0}
@@ -502,8 +502,8 @@ const QuestionnairePage = () => {
 
                 {/* Center: running total */}
                 <div className="hidden sm:flex flex-col items-center">
-                    <span className="text-2xl font-black text-slate-800">{runningScore}</span>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="text-2xl font-black text-main">{runningScore}</span>
+                    <span className="text-[9px] font-black text-muted uppercase tracking-widest">
                         Running Score ({answeredCount}/{questions.length} answered)
                     </span>
                 </div>

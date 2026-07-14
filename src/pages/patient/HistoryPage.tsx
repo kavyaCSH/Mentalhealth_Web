@@ -473,7 +473,7 @@ const HistoryPage = () => {
                                                     </div>
                                                 )}
 
-                                                <div className="w-10 h-10 rounded-2xl bg-card border border-border-card flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                                <div className="w-10 h-10 rounded-2xl bg-card border border-border-card flex items-center justify-center text-muted opacity-40 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
                                                     <ChevronRight size={20} />
                                                 </div>
                                             </div>
@@ -522,7 +522,7 @@ const HistoryPage = () => {
                 ) : (
                     <div className="text-center py-32 glass-card">
                         <div className="w-24 h-24 bg-page rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
-                            {fetchError ? <AlertTriangle size={40} className="text-red-400" /> : <BarChart3 size={40} className="text-slate-200" />}
+                            {fetchError ? <AlertTriangle size={40} className="text-red-400" /> : <BarChart3 size={40} className="text-muted opacity-40" />}
                         </div>
                         <h3 className="text-2xl font-black text-main mb-3">
                             {fetchError ? 'Sync Failure' : 'Void of Clinical Data'}

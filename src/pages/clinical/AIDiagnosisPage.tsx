@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
@@ -10,6 +10,7 @@ import { UserService } from '../../api/services/user.service';
 const AIDiagnosisPage = () => {
     const { patientId } = useParams<{ patientId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useSelector((state: RootState) => state.auth);
 
     const isPatient =
@@ -21,9 +22,9 @@ const AIDiagnosisPage = () => {
     const [resolvedId, setResolvedId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Patients always land on history; clinicians start on 'new'
+    // Check if back navigation specified returning to the history tab
     const [activeTab, setActiveTab] = useState<'new' | 'history'>(
-        isPatient ? 'history' : 'new'
+        location.state?.activeTab || (isPatient ? 'history' : 'new')
     );
 
     useEffect(() => {
@@ -51,30 +52,30 @@ const AIDiagnosisPage = () => {
     return (
         <div className="p-8 max-w-5xl mx-auto animate-fade-in pb-16">
             <button
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 mb-8 transition-colors"
+                onClick={() => navigate(isPatient ? '/records' : `/patients/${patientId}/health`)}
+                className="flex items-center gap-2 text-sm font-bold text-muted hover:text-indigo-600 mb-8 transition-colors"
             >
                 <ArrowLeft size={16} /> Back to Health Overview
             </button>
 
             <header className="mb-10 flex items-end justify-between">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <h1 className="text-4xl font-black text-main tracking-tight flex items-center gap-3">
                         <Activity className="text-violet-600" size={32} />
                         {isPatient ? 'My Diagnosis History' : 'AI Clinical Diagnosis'}
                     </h1>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 ml-11">
+                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mt-2 ml-11">
                         {isPatient ? 'Your past AI clinical assessments' : 'Advanced clinical decision support'}
                     </p>
                 </div>
 
                 {/* Tabs — only shown to clinicians */}
                 {!isPatient && (
-                    <div className="flex bg-slate-100 p-1 rounded-2xl">
+                    <div className="flex bg-page p-1 rounded-2xl">
                         <button
                             onClick={() => setActiveTab('new')}
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                                activeTab === 'new' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                                activeTab === 'new' ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted hover:text-main'
                             }`}
                         >
                             <Plus size={14} /> New Analysis
@@ -82,7 +83,7 @@ const AIDiagnosisPage = () => {
                         <button
                             onClick={() => setActiveTab('history')}
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                                activeTab === 'history' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                                activeTab === 'history' ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted hover:text-main'
                             }`}
                         >
                             <History size={14} /> History

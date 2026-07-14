@@ -52,7 +52,7 @@ const AIDiagnosisHistory = ({ patientId }: AIDiagnosisHistoryProps) => {
         return (
             <div className="flex flex-col items-center justify-center p-16 space-y-4">
                 <Loader2 className="animate-spin text-indigo-500" size={32} />
-                <p className="text-sm font-bold text-slate-500">Loading history...</p>
+                <p className="text-sm font-bold text-muted">Loading history...</p>
             </div>
         );
     }
@@ -68,10 +68,10 @@ const AIDiagnosisHistory = ({ patientId }: AIDiagnosisHistoryProps) => {
 
     if (history.length === 0) {
         return (
-            <div className="text-center p-16 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
-                <FileText className="mx-auto text-slate-300 mb-4" size={48} />
-                <h3 className="text-lg font-black text-slate-700 mb-1">No past diagnoses</h3>
-                <p className="text-sm font-medium text-slate-500">
+            <div className="text-center p-16 border-2 border-dashed border-border-card rounded-3xl bg-card/50">
+                <FileText className="mx-auto text-muted opacity-40 mb-4" size={48} />
+                <h3 className="text-lg font-black text-main mb-1">No past diagnoses</h3>
+                <p className="text-sm font-medium text-muted">
                     This patient doesn't have any AI diagnosis records yet.
                 </p>
             </div>
@@ -92,17 +92,17 @@ const AIDiagnosisHistory = ({ patientId }: AIDiagnosisHistoryProps) => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        onClick={() => navigate(`/patients/${patientId}/ai-diagnosis/result`, { state: { result: diagnosisData } })}
-                        className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-indigo-300 hover:shadow-lg transition-all group cursor-pointer flex flex-col md:flex-row md:items-center gap-6"
+                        onClick={() => navigate(`/patients/${patientId}/ai-diagnosis/result`, { state: { result: diagnosisData, fromTab: 'history' } })}
+                        className="bg-card border border-border-card rounded-2xl p-5 hover:border-indigo-300 hover:shadow-lg transition-all group cursor-pointer flex flex-col md:flex-row md:items-center gap-6"
                     >
                         {/* Date column */}
                         <div className="flex items-center gap-3 md:w-48 shrink-0">
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                            <div className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
                                 <Calendar size={18} />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Date</p>
-                                <p className="text-sm font-bold text-slate-700">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-muted opacity-80 mb-0.5">Date</p>
+                                <p className="text-sm font-bold text-main">
                                     {date ? new Date(date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown Date'}
                                 </p>
                             </div>
@@ -115,9 +115,9 @@ const AIDiagnosisHistory = ({ patientId }: AIDiagnosisHistoryProps) => {
                                 <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600">Primary Diagnosis</p>
                             </div>
                             {primaryCondition ? (
-                                <h4 className="text-base font-black text-slate-900 truncate">{primaryCondition}</h4>
+                                <h4 className="text-base font-black text-main truncate">{primaryCondition}</h4>
                             ) : (
-                                <p className="text-sm font-medium text-slate-500 italic">No primary diagnosis recorded</p>
+                                <p className="text-sm font-medium text-muted italic">No primary diagnosis recorded</p>
                             )}
                         </div>
 
@@ -132,7 +132,7 @@ const AIDiagnosisHistory = ({ patientId }: AIDiagnosisHistoryProps) => {
 
                         {/* Action column */}
                         <div className="shrink-0 flex items-center justify-end">
-                            <ChevronRight size={20} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                            <ChevronRight size={20} className="text-muted opacity-40 group-hover:text-indigo-500 transition-colors" />
                         </div>
                     </motion.div>
                 );

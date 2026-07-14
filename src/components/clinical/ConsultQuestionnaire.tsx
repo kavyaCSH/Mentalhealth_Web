@@ -81,16 +81,16 @@ export const ConsultQuestionnaire: React.FC<ConsultQuestionnaireProps> = ({
 
     return (
         <div className="flex flex-col h-full animate-fade-in pb-20">
-            <div className="flex items-center gap-4 mb-6 sticky top-0 bg-slate-50 z-10 py-3 border-b border-slate-100">
+            <div className="flex items-center gap-4 mb-6 sticky top-0 bg-page z-10 py-3 border-b border-border-card">
                 <button
                     onClick={onCancel}
-                    className="w-10 h-10 bg-white hover:bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 transition-all border border-slate-100 hover:text-indigo-600 shadow-sm"
+                    className="w-10 h-10 bg-card hover:bg-page rounded-xl flex items-center justify-center text-muted opacity-80 transition-all border border-border-card hover:text-indigo-600 shadow-sm"
                 >
                     <ChevronLeft size={18} />
                 </button>
                 <div>
-                    <h2 className="text-[12px] font-black text-slate-900 uppercase tracking-tight">{title}</h2>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                    <h2 className="text-[12px] font-black text-main uppercase tracking-tight">{title}</h2>
+                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mt-0.5">
                         {questions.length} Diagnostic Elements
                     </p>
                 </div>
@@ -98,13 +98,13 @@ export const ConsultQuestionnaire: React.FC<ConsultQuestionnaireProps> = ({
 
             <div className="flex-1 overflow-y-auto space-y-6 scrollbar-hide px-1">
                 {questions.map((q, idx) => (
-                    <div key={q.id || q.questionId || idx} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:border-slate-200 transition-all">
+                    <div key={q.id || q.questionId || idx} className="bg-card p-6 rounded-2xl border border-border-card shadow-sm hover:border-border-card transition-all">
                         <div className="flex gap-4">
-                            <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-indigo-600 font-black text-[10px] shrink-0 border border-slate-100">
+                            <div className="w-8 h-8 rounded-lg bg-page flex items-center justify-center text-indigo-600 font-black text-[10px] shrink-0 border border-border-card">
                                 {idx + 1}
                             </div>
                             <div className="flex-1 space-y-5 mt-1">
-                                <h3 className="text-[11px] font-black text-slate-700 uppercase tracking-widest leading-loose">
+                                <h3 className="text-[11px] font-black text-main uppercase tracking-widest leading-loose">
                                     {q.questionText || q.text}
                                 </h3>
                                 <div className="space-y-3">
@@ -121,18 +121,18 @@ export const ConsultQuestionnaire: React.FC<ConsultQuestionnaireProps> = ({
                                                 className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all text-left ${
                                                     isSelected
                                                     ? 'bg-indigo-600 border-indigo-600 shadow-xl shadow-indigo-600/20 text-white'
-                                                    : 'bg-white border-slate-100 text-slate-500 hover:border-slate-300 hover:text-slate-900'
+                                                    : 'bg-card border-border-card text-muted hover:border-border-card hover:text-main'
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
                                                         isSelected 
-                                                        ? 'bg-white border-white text-indigo-600 shadow-sm' 
-                                                        : 'bg-slate-50 border-slate-200 text-slate-400'
+                                                        ? 'bg-card border-white text-indigo-600 shadow-sm' 
+                                                        : 'bg-page border-border-card text-muted opacity-80'
                                                     }`}>
-                                                        {isSelected ? <CheckCircle2 size={16} /> : <div className="w-2 h-2 rounded-full bg-slate-200" />}
+                                                        {isSelected ? <CheckCircle2 size={16} /> : <div className="w-2 h-2 rounded-full bg-border-card" />}
                                                     </div>
-                                                    <span className={`text-[11px] font-black uppercase tracking-[0.05em] transition-colors ${isSelected ? 'text-white' : 'text-slate-600'}`}>
+                                                    <span className={`text-[11px] font-black uppercase tracking-[0.05em] transition-colors ${isSelected ? 'text-white' : 'text-muted'}`}>
                                                         {opt.text || opt.label}
                                                     </span>
                                                 </div>
@@ -150,7 +150,7 @@ export const ConsultQuestionnaire: React.FC<ConsultQuestionnaireProps> = ({
                 ))}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-100">
+            <div className="mt-8 pt-6 border-t border-border-card">
                 <Button
                     variant="primary"
                     className="w-full h-14 text-[10px] tracking-widest uppercase font-black rounded-xl shadow-xl shadow-indigo-600/20"

@@ -24,7 +24,7 @@ const TagList = ({ items, variant }: { items: string[]; variant: 'green' | 'red'
     const cls: Record<string, string> = {
         green: 'bg-emerald-50 text-emerald-700 border border-emerald-100',
         red:   'bg-red-50 text-red-700 border border-red-100',
-        slate: 'bg-slate-100 text-slate-600 border border-slate-200',
+        slate: 'bg-page text-muted border border-border-card',
         amber: 'bg-amber-50 text-amber-700 border border-amber-100',
     };
     return (
@@ -37,15 +37,15 @@ const TagList = ({ items, variant }: { items: string[]; variant: 'green' | 'red'
 };
 
 const ConditionCard = ({ dx, title, color }: { dx: NewDiagnosisCondition; title: string; color: string }) => (
-    <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+    <div className="flex items-start gap-3 p-3 bg-page rounded-xl border border-border-card">
         <div className={`w-6 h-6 rounded-lg ${color.replace('text-', 'bg-').replace('600', '100')} ${color} flex items-center justify-center shrink-0 mt-0.5`}>
             <Target size={12} />
         </div>
         <div className="flex-1 min-w-0">
             <p className={`text-[9px] font-black uppercase tracking-widest ${color}`}>{title}</p>
-            <p className="font-black text-slate-900 text-sm mt-0.5">{dx.condition}</p>
+            <p className="font-black text-main text-sm mt-0.5">{dx.condition}</p>
             {dx.dsm5_code && (
-                <span className="px-2 py-0.5 bg-slate-200 text-slate-600 rounded text-[9px] font-black uppercase tracking-widest mt-1 inline-block">
+                <span className="px-2 py-0.5 bg-border-card text-muted rounded text-[9px] font-black uppercase tracking-widest mt-1 inline-block">
                     {dx.dsm5_code}
                 </span>
             )}
@@ -54,8 +54,8 @@ const ConditionCard = ({ dx, title, color }: { dx: NewDiagnosisCondition; title:
 );
 
 const Section = ({ icon, title, color, children }: { icon: React.ReactNode; title: string; color: string; children: React.ReactNode }) => (
-    <div className="border border-slate-100 rounded-xl overflow-hidden mb-3">
-        <div className="w-full flex items-center px-4 py-3 bg-slate-50/70 border-b border-slate-100">
+    <div className="border border-border-card rounded-xl overflow-hidden mb-3">
+        <div className="w-full flex items-center px-4 py-3 bg-page/70 border-b border-border-card">
             <div className={`flex items-center gap-2 font-black text-xs ${color}`}>{icon} {title}</div>
         </div>
         <div className="px-4 pb-4 pt-3 space-y-2">{children}</div>
@@ -82,15 +82,15 @@ const InlineDiagnosisResult = ({ result, onBack }: InlineDiagnosisResultProps) =
         >
             <button
                 onClick={onBack}
-                className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-indigo-600 mb-2 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-bold text-muted hover:text-indigo-600 mb-2 transition-colors"
             >
                 <ArrowLeft size={13} /> Back to History
             </button>
 
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+            <div className="flex items-center gap-2 pb-2 border-b border-border-card">
                 <Brain size={16} className="text-violet-600" />
-                <h3 className="text-sm font-black text-slate-900">Diagnosis Report</h3>
-                <span className="ml-auto text-[9px] font-bold text-slate-400 flex items-center gap-1">
+                <h3 className="text-sm font-black text-main">Diagnosis Report</h3>
+                <span className="ml-auto text-[9px] font-bold text-muted opacity-80 flex items-center gap-1">
                     <Clock size={9} />
                     {date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                 </span>
@@ -124,7 +124,7 @@ const InlineDiagnosisResult = ({ result, onBack }: InlineDiagnosisResultProps) =
 
             {result.primaryDiagnosis && (
                 <Section icon={<Target size={12} />} title="Primary Diagnosis" color="text-indigo-600">
-                    <p className="font-black text-slate-900 text-sm">{result.primaryDiagnosis}</p>
+                    <p className="font-black text-main text-sm">{result.primaryDiagnosis}</p>
                     {result.severity && (
                         <span className="px-2 py-0.5 bg-rose-50 text-rose-700 rounded-lg text-[9px] font-black uppercase border border-rose-100 inline-block">
                             Severity: {result.severity}
@@ -166,7 +166,7 @@ const InlineDiagnosisResult = ({ result, onBack }: InlineDiagnosisResultProps) =
                 <Section icon={<Lightbulb size={12} />} title="Recommendations" color="text-amber-600">
                     <ul className="space-y-1.5">
                         {result.recommendations.map((r, i) => (
-                            <li key={i} className="flex items-start gap-2 text-xs font-medium text-slate-700">
+                            <li key={i} className="flex items-start gap-2 text-xs font-medium text-main">
                                 <TrendingUp size={11} className="text-amber-500 shrink-0 mt-0.5" /> {r}
                             </li>
                         ))}
@@ -175,8 +175,8 @@ const InlineDiagnosisResult = ({ result, onBack }: InlineDiagnosisResultProps) =
             )}
 
             {result.narrative && (
-                <Section icon={<FileText size={12} />} title="Submitted Narrative" color="text-slate-400">
-                    <p className="text-xs font-medium text-slate-600 leading-relaxed italic border-l-2 border-slate-200 pl-3 py-0.5">
+                <Section icon={<FileText size={12} />} title="Submitted Narrative" color="text-muted opacity-80">
+                    <p className="text-xs font-medium text-muted leading-relaxed italic border-l-2 border-border-card pl-3 py-0.5">
                         "{result.narrative}"
                     </p>
                 </Section>
@@ -227,7 +227,7 @@ const AIDiagnosisHistoryInline = ({ patientId, onSelect }: AIDiagnosisHistoryInl
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center p-10 space-y-3">
             <Loader2 className="animate-spin text-indigo-500" size={28} />
-            <p className="text-xs font-bold text-slate-500">Loading history...</p>
+            <p className="text-xs font-bold text-muted">Loading history...</p>
         </div>
     );
 
@@ -239,10 +239,10 @@ const AIDiagnosisHistoryInline = ({ patientId, onSelect }: AIDiagnosisHistoryInl
     );
 
     if (history.length === 0) return (
-        <div className="text-center p-12 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-            <FileText className="mx-auto text-slate-300 mb-3" size={40} />
-            <h3 className="text-sm font-black text-slate-700 mb-1">No past diagnoses</h3>
-            <p className="text-xs font-medium text-slate-500">No AI diagnosis records yet.</p>
+        <div className="text-center p-12 border-2 border-dashed border-border-card rounded-2xl bg-card/50">
+            <FileText className="mx-auto text-muted opacity-40 mb-3" size={40} />
+            <h3 className="text-sm font-black text-main mb-1">No past diagnoses</h3>
+            <p className="text-xs font-medium text-muted">No AI diagnosis records yet.</p>
         </div>
     );
 
@@ -261,19 +261,19 @@ const AIDiagnosisHistoryInline = ({ patientId, onSelect }: AIDiagnosisHistoryInl
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.05 }}
                         onClick={() => onSelect(diagnosisData)}
-                        className="bg-white border border-slate-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-md transition-all group cursor-pointer flex items-center gap-4"
+                        className="bg-card border border-border-card rounded-xl p-4 hover:border-indigo-300 hover:shadow-md transition-all group cursor-pointer flex items-center gap-4"
                     >
-                        <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-page flex items-center justify-center text-muted group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors shrink-0">
                             <Calendar size={16} />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted opacity-80 mb-0.5">
                                 {date ? new Date(date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown Date'}
                             </p>
                             {primaryCondition ? (
-                                <h4 className="text-sm font-black text-slate-900 truncate">{primaryCondition}</h4>
+                                <h4 className="text-sm font-black text-main truncate">{primaryCondition}</h4>
                             ) : (
-                                <p className="text-xs font-medium text-slate-400 italic">No primary diagnosis recorded</p>
+                                <p className="text-xs font-medium text-muted opacity-80 italic">No primary diagnosis recorded</p>
                             )}
                             {severity && (
                                 <span className="px-2 py-0.5 bg-rose-50 text-rose-700 rounded text-[9px] font-black uppercase tracking-widest border border-rose-100 mt-1 inline-block">
@@ -281,7 +281,7 @@ const AIDiagnosisHistoryInline = ({ patientId, onSelect }: AIDiagnosisHistoryInl
                                 </span>
                             )}
                         </div>
-                        <ChevronRight size={16} className="text-slate-300 group-hover:text-indigo-500 transition-colors shrink-0" />
+                        <ChevronRight size={16} className="text-muted opacity-40 group-hover:text-indigo-500 transition-colors shrink-0" />
                     </motion.div>
                 );
             })}
@@ -312,11 +312,11 @@ export const ConsultAIDiagnosis = ({ patientId }: ConsultAIDiagnosisProps) => {
 
     return (
         <div className="space-y-4">
-            <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+            <div className="flex bg-page p-1 rounded-xl gap-1">
                 <button
                     onClick={() => setActiveTab('new')}
                     className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                        activeTab === 'new' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                        activeTab === 'new' ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted hover:text-main'
                     }`}
                 >
                     <Plus size={11} /> New Analysis
@@ -324,7 +324,7 @@ export const ConsultAIDiagnosis = ({ patientId }: ConsultAIDiagnosisProps) => {
                 <button
                     onClick={() => setActiveTab('history')}
                     className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                        activeTab === 'history' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                        activeTab === 'history' ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted hover:text-main'
                     }`}
                 >
                     <History size={11} /> History
@@ -337,7 +337,7 @@ export const ConsultAIDiagnosis = ({ patientId }: ConsultAIDiagnosisProps) => {
                         {numericId ? (
                             <AIDiagnosisPanel patientId={numericId} />
                         ) : (
-                            <p className="text-xs text-slate-500 italic p-4">Patient ID not resolved yet.</p>
+                            <p className="text-xs text-muted italic p-4">Patient ID not resolved yet.</p>
                         )}
                     </motion.div>
                 ) : (
@@ -345,7 +345,7 @@ export const ConsultAIDiagnosis = ({ patientId }: ConsultAIDiagnosisProps) => {
                         {numericId ? (
                             <InlineHistoryWithResult patientId={numericId} />
                         ) : (
-                            <p className="text-xs text-slate-500 italic p-4">Patient ID not resolved yet.</p>
+                            <p className="text-xs text-muted italic p-4">Patient ID not resolved yet.</p>
                         )}
                     </motion.div>
                 )}
@@ -389,21 +389,21 @@ export const PatientTeleconsultDiagnosisPanel = ({ patientId }: { patientId: num
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: '100%', opacity: 0 }}
                             transition={{ type: 'spring', damping: 28, stiffness: 200 }}
-                            className="fixed bottom-0 left-0 right-0 z-[220] bg-white rounded-t-3xl shadow-[0_-20px_60px_rgba(0,0,0,0.15)] max-h-[80vh] flex flex-col"
+                            className="fixed bottom-0 left-0 right-0 z-[220] bg-card rounded-t-3xl shadow-[0_-20px_60px_rgba(0,0,0,0.15)] max-h-[80vh] flex flex-col"
                         >
-                            <div className="flex items-center justify-between p-6 pb-4 border-b border-slate-100 shrink-0">
+                            <div className="flex items-center justify-between p-6 pb-4 border-b border-border-card shrink-0">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600">
                                         <Sparkles size={20} />
                                     </div>
                                     <div>
-                                        <h2 className="text-lg font-black text-slate-900">My Diagnosis History</h2>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Past AI clinical assessments</p>
+                                        <h2 className="text-lg font-black text-main">My Diagnosis History</h2>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mt-0.5">Past AI clinical assessments</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setIsOpen(false)}
-                                    className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-all border border-slate-200"
+                                    className="w-9 h-9 rounded-xl bg-page hover:bg-page flex items-center justify-center text-muted opacity-80 hover:text-muted transition-all border border-border-card"
                                 >
                                     <X size={18} />
                                 </button>

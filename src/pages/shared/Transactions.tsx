@@ -50,7 +50,7 @@ const Transactions = () => {
             case 'cancelled':
                 return 'bg-red-50 text-red-600 border-red-100';
             default:
-                return 'bg-slate-50 text-slate-600 border-slate-100';
+                return 'bg-page text-muted border-border-card';
         }
     };
 
@@ -78,7 +78,7 @@ const Transactions = () => {
                 <div className="space-y-2">
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> Back to Dashboard
                     </button>
@@ -87,8 +87,8 @@ const Transactions = () => {
                             <CreditCard size={28} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Transaction History</h1>
-                            <p className="text-slate-500 font-medium">Digital ledger of your healthcare activities and associated costs.</p>
+                            <h1 className="text-4xl font-black text-main tracking-tight">Transaction History</h1>
+                            <p className="text-muted font-medium">Digital ledger of your healthcare activities and associated costs.</p>
                         </div>
                     </div>
                 </div>
@@ -115,18 +115,18 @@ const Transactions = () => {
                     </div>
 
                     <div className="card-premium p-6 space-y-4">
-                        <h3 className="font-black text-slate-900 uppercase tracking-widest text-[10px]">Upcoming Payments</h3>
+                        <h3 className="font-black text-main uppercase tracking-widest text-[10px]">Upcoming Payments</h3>
                         <div className="space-y-3">
                             {upcomingPayments.length > 0 ? upcomingPayments.slice(0, 3).map((tx: Consultation) => (
-                                <div key={tx.id || tx._id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                <div key={tx.id || tx._id} className="p-4 bg-page rounded-2xl border border-border-card flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Calendar size={16} className="text-indigo-600" />
-                                        <span className="text-xs font-bold text-slate-700">{new Date(tx.scheduled_at || tx.createdAt || '').toLocaleDateString()}</span>
+                                        <span className="text-xs font-bold text-main">{new Date(tx.scheduled_at || tx.createdAt || '').toLocaleDateString()}</span>
                                     </div>
-                                    <span className="text-xs font-black text-slate-900">₹{tx.totalPrice || '0.00'}</span>
+                                    <span className="text-xs font-black text-main">₹{tx.totalPrice || '0.00'}</span>
                                 </div>
                             )) : (
-                                <p className="text-[10px] text-slate-400 italic">No upcoming payments.</p>
+                                <p className="text-[10px] text-muted opacity-80 italic">No upcoming payments.</p>
                             )}
                         </div>
                     </div>
@@ -135,12 +135,12 @@ const Transactions = () => {
                 {/* Transactions Table */}
                 <div className="lg:col-span-3 space-y-6">
                     <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                        <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
+                        <div className="flex gap-2 p-1 bg-page rounded-2xl w-fit">
                             {['all', 'upcoming', 'completed'].map((f) => (
                                 <button
                                     key={f}
                                     onClick={() => setFilter(f)}
-                                    className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                                    className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted opacity-80 hover:text-muted'
                                         }`}
                                 >
                                     {f}
@@ -148,19 +148,19 @@ const Transactions = () => {
                             ))}
                         </div>
                         <div className="relative w-full md:w-64">
-                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted opacity-40" />
                             <input
                                 type="text"
                                 placeholder="Search records..."
-                                className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                className="w-full bg-page border border-border-card rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
                             />
                         </div>
                     </div>
 
-                    <div className="card-premium overflow-hidden border-slate-100">
+                    <div className="card-premium overflow-hidden border-border-card">
                         <table className="w-full text-left">
-                            <thead className="bg-slate-50/50 border-b border-slate-100">
-                                <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <thead className="bg-card/50 border-b border-border-card">
+                                <tr className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                                     <th className="px-8 py-5">Transaction ID</th>
                                     <th className="px-8 py-5">Service / Provider</th>
                                     <th className="px-8 py-5 text-center">Amount</th>
@@ -184,11 +184,11 @@ const Transactions = () => {
                                                 initial={{ opacity: 0, x: -10 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: i * 0.03 }}
-                                                className="group hover:bg-slate-50/30 transition-colors"
+                                                className="group hover:bg-page/30 transition-colors"
                                             >
                                                 <td className="px-8 py-6">
-                                                    <p className="text-xs font-black text-slate-400 tracking-widest">#{String(tx.id || tx._id).substring(0, 8).toUpperCase()}</p>
-                                                    <p className="text-[10px] font-medium text-slate-400 mt-1">{new Date(tx.createdAt || '').toLocaleDateString()}</p>
+                                                    <p className="text-xs font-black text-muted opacity-80 tracking-widest">#{String(tx.id || tx._id).substring(0, 8).toUpperCase()}</p>
+                                                    <p className="text-[10px] font-medium text-muted opacity-80 mt-1">{new Date(tx.createdAt || '').toLocaleDateString()}</p>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-3">
@@ -196,13 +196,13 @@ const Transactions = () => {
                                                             {practitioner?.name?.charAt(0) || 'C'}
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-black text-slate-900">{tx.reason || 'Teleconsultation'}</p>
-                                                            <p className="text-[10px] font-bold text-slate-400">{practitioner?.name || 'Assigned Professional'}</p>
+                                                            <p className="text-sm font-black text-main">{tx.reason || 'Teleconsultation'}</p>
+                                                            <p className="text-[10px] font-bold text-muted opacity-80">{practitioner?.name || 'Assigned Professional'}</p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6 text-center">
-                                                    <p className="text-sm font-black text-slate-900">₹{tx.totalPrice || '150.00'}</p>
+                                                    <p className="text-sm font-black text-main">₹{tx.totalPrice || '150.00'}</p>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex justify-center">
@@ -213,7 +213,7 @@ const Transactions = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
-                                                    <button className="p-2 text-slate-300 hover:text-indigo-600 transition-colors">
+                                                    <button className="p-2 text-muted opacity-40 hover:text-indigo-600 transition-colors">
                                                         <ArrowUpRight size={18} />
                                                     </button>
                                                 </td>
@@ -225,7 +225,7 @@ const Transactions = () => {
                                         <td colSpan={5} className="px-8 py-20 text-center">
                                             <div className="space-y-4">
                                                 <Wallet size={48} className="mx-auto text-slate-100" />
-                                                <p className="text-slate-400 font-bold text-sm">No transaction records detected.</p>
+                                                <p className="text-muted opacity-80 font-bold text-sm">No transaction records detected.</p>
                                             </div>
                                         </td>
                                     </tr>

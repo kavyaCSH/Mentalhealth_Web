@@ -77,27 +77,27 @@ const PatientDashboard = () => {
             label: 'Self Assessment',
             icon: <ClipboardCheck size={24} />,
             onPress: () => navigate('/assessments'),
-            color: 'text-indigo-600',
-            bg: 'bg-indigo-50',
-            border: 'border-indigo-100'
+            color: 'text-indigo-600 dark:text-indigo-400',
+            bg: 'bg-indigo-50 dark:bg-indigo-500/10',
+            border: 'border-indigo-100 dark:border-indigo-500/20'
         },
         {
             id: 'records',
             label: 'My Records',
             icon: <FileText size={24} />,
             onPress: () => navigate('/records'),
-            color: 'text-amber-600',
-            bg: 'bg-amber-50',
-            border: 'border-amber-100'
+            color: 'text-amber-600 dark:text-amber-400',
+            bg: 'bg-amber-50 dark:bg-amber-500/10',
+            border: 'border-amber-100 dark:border-amber-500/20'
         },
         {
             id: 'book',
             label: 'Book Session',
             icon: <Calendar size={24} />,
             onPress: () => navigate('/schedule?action=book'),
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            border: 'border-emerald-100'
+            color: 'text-emerald-600 dark:text-emerald-400',
+            bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+            border: 'border-emerald-100 dark:border-emerald-500/20'
         },
         
         {
@@ -105,43 +105,43 @@ const PatientDashboard = () => {
             label: 'Health History',
             icon: <History size={24} />,
             onPress: () => navigate('/history/assistant?mode=list'),
-            color: 'text-rose-600',
-            bg: 'bg-rose-50',
-            border: 'border-rose-100'
+            color: 'text-rose-600 dark:text-rose-400',
+            bg: 'bg-rose-50 dark:bg-rose-500/10',
+            border: 'border-rose-100 dark:border-rose-500/20'
         },
         {
             id: 'history-assistant',
             label: 'AI History Asst',
             icon: <Bot size={24} />,
             onPress: () => navigate('/history/assistant?view=assistant&source=assistant'),
-            color: 'text-violet-600',
-            bg: 'bg-violet-50',
-            border: 'border-violet-100'
+            color: 'text-violet-600 dark:text-violet-400',
+            bg: 'bg-violet-50 dark:bg-violet-500/10',
+            border: 'border-violet-100 dark:border-violet-500/20'
         },
         {
             id: 'neuro-vitals',
             label: 'NeuroVitals',
             icon: <Zap size={24} />,
             onPress: () => navigate('/neuro-vitals'),
-            color: 'text-sky-600',
-            bg: 'bg-sky-50',
-            border: 'border-sky-100'
+            color: 'text-sky-600 dark:text-sky-400',
+            bg: 'bg-sky-50 dark:bg-sky-500/10',
+            border: 'border-sky-100 dark:border-sky-500/20'
         }
     ];
 
     const getConsultStatusInfo = (status?: any) => {
         const s = (typeof status === 'string' ? status : status?.name || status?.slug || 'Scheduled').toLowerCase();
 
-        if (s === 'scheduled') return { label: 'Scheduled', style: 'bg-blue-50 text-blue-600 border-blue-100', color: 'blue' };
+        if (s === 'scheduled') return { label: 'Scheduled', style: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-500/20', color: 'blue' };
         if (['in progress', 'in-progress', 'in_progress', 'waiting', 'ongoing'].includes(s))
-            return { label: 'In Progress', style: 'bg-amber-50 text-amber-600 border-amber-100', color: 'amber' };
-        if (s === 'confirmed') return { label: 'Confirmed', style: 'bg-teal-50 text-teal-600 border-teal-100', color: 'teal' };
-        if (s === 'completed') return { label: 'Completed', style: 'bg-emerald-50 text-emerald-600 border-emerald-100', color: 'emerald' };
+            return { label: 'In Progress', style: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-500/20', color: 'amber' };
+        if (s === 'confirmed') return { label: 'Confirmed', style: 'bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-100 dark:border-teal-500/20', color: 'teal' };
+        if (s === 'completed') return { label: 'Completed', style: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20', color: 'emerald' };
         if (['cancelled', 'canceled'].includes(s))
-            return { label: 'Cancelled', style: 'bg-red-50 text-red-500 border-red-100', color: 'red' };
-        if (s === 'payment pending') return { label: 'Pending Payment', style: 'bg-violet-50 text-violet-600 border-violet-100', color: 'violet' };
+            return { label: 'Cancelled', style: 'bg-red-50 dark:bg-red-500/10 text-red-500 border-red-100 dark:border-red-500/20', color: 'red' };
+        if (s === 'payment pending') return { label: 'Pending Payment', style: 'bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-100 dark:border-violet-500/20', color: 'violet' };
 
-        return { label: s.charAt(0).toUpperCase() + s.slice(1), style: 'bg-slate-50 text-slate-500 border-slate-100', color: 'slate' };
+        return { label: s.charAt(0).toUpperCase() + s.slice(1), style: 'bg-page text-muted border-border-card', color: 'slate' };
     };
 
     const handleJoinCall = (appt: Consultation) => {
@@ -197,18 +197,18 @@ const PatientDashboard = () => {
                 className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 shadow-2xl shadow-indigo-200 cursor-pointer group"
             >
                 {/* Decorative Blobs mirrored from mobile */}
-                <div className="absolute -top-10 -right-10 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700" />
-                <div className="absolute -bottom-20 -left-10 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+                <div className="absolute -top-10 -right-10 w-64 h-64 bg-card/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute -bottom-20 -left-10 w-80 h-80 bg-card/5 rounded-full blur-3xl" />
 
                 <div className="relative z-10 p-10 flex flex-col md:flex-row items-center gap-10">
                     <div className="relative flex-shrink-0">
-                        <div className="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-[2.5rem] flex items-center justify-center border border-white/20 shadow-xl relative animate-pulse-slow">
+                        <div className="w-24 h-24 bg-card/20 backdrop-blur-xl rounded-[2.5rem] flex items-center justify-center border border-white/20 shadow-xl relative animate-pulse-slow">
                             <Bot size={48} className="text-white" />
                         </div>
                     </div>
 
                     <div className="flex-1 text-center md:text-left space-y-4">
-                        <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                        <div className="inline-flex items-center gap-2 bg-card/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
                             <Sparkles size={12} className="text-white" />
                             <span className="text-[10px] font-black tracking-[0.2em] text-white uppercase">Virtual Companion</span>
                         </div>
@@ -217,7 +217,7 @@ const PatientDashboard = () => {
                             Your personal mental wellness guide, available 24/7 for support and clinical insights.
                         </p>
                         <div className="pt-4 flex justify-center md:justify-start">
-                            <button className="bg-white text-indigo-600 px-8 py-4 rounded-[2rem] flex items-center gap-3 font-black text-[11px] uppercase tracking-widest transition-all hover:scale-105 shadow-xl shadow-black/10">
+                            <button className="bg-card text-indigo-600 px-8 py-4 rounded-[2rem] flex items-center gap-3 font-black text-[11px] uppercase tracking-widest transition-all hover:scale-105 shadow-xl shadow-black/10">
                                 Start Conversation <ChevronRight size={18} />
                             </button>
                         </div>
@@ -258,7 +258,7 @@ const PatientDashboard = () => {
                                     <div className="p-8">
                                         <div className="flex items-start justify-between mb-8">
                                             <div className="flex items-center gap-6">
-                                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors shadow-inner ${isVirtual ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors shadow-inner ${isVirtual ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
                                                     {isVirtual ? <Video size={32} /> : <MapPin size={32} />}
                                                 </div>
                                                 <div>

@@ -138,7 +138,7 @@ export const ConsultROS: React.FC<ConsultROSProps> = ({
                             const isSel = question.type === 'select' ? value === opt : (Array.isArray(value) && value.includes(opt));
                             return (
                                 <button key={opt} onClick={() => question.type === 'select' ? handleValueChange(section, question.key, opt) : handleMultiselectToggle(section, question.key, opt)}
-                                    className={`p-3 rounded-xl border text-left transition-all ${isSel ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'}`}>
+                                    className={`p-3 rounded-xl border text-left transition-all ${isSel ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-page border-border-card text-muted hover:bg-page'}`}>
                                     <span className="text-[10px] font-bold uppercase tracking-tight">{opt}</span>
                                 </button>
                             );
@@ -151,7 +151,7 @@ export const ConsultROS: React.FC<ConsultROSProps> = ({
                         <div className="flex gap-2">
                             {[true, false].map(v => (
                                 <button key={v ? 'y' : 'n'} onClick={() => handleValueChange(section, question.key, v)}
-                                    className={`flex-1 p-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${value === v ? (v ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-800 border-slate-800 text-white') : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                    className={`flex-1 p-3 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${value === v ? (v ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-800 border-slate-800 text-white') : 'bg-page border-border-card text-muted opacity-80'}`}>
                                     {v ? 'Positive' : 'Denied'}
                                 </button>
                             ))}
@@ -163,12 +163,12 @@ export const ConsultROS: React.FC<ConsultROSProps> = ({
     };
 
     return (
-        <div className="flex flex-col h-full bg-white px-2">
+        <div className="flex flex-col h-full bg-card px-2">
             {!selectedRecord && (
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 shadow-inner">
-                        <button onClick={() => setActiveTab('history')} className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-400'}`}>Archive</button>
-                        <button onClick={() => setActiveTab('new')} className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-400'}`}>Evaluate</button>
+                    <div className="flex bg-page p-1 rounded-lg border border-border-card shadow-inner">
+                        <button onClick={() => setActiveTab('history')} className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-card text-indigo-600 shadow-sm border border-border-card' : 'text-muted opacity-80'}`}>Archive</button>
+                        <button onClick={() => setActiveTab('new')} className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-card text-indigo-600 shadow-sm border border-border-card' : 'text-muted opacity-80'}`}>Evaluate</button>
                     </div>
                 </div>
             )}
@@ -177,17 +177,17 @@ export const ConsultROS: React.FC<ConsultROSProps> = ({
                 {activeTab === 'history' ? (
                     <div className="space-y-3">
                         {loading ? (
-                            <div className="flex flex-col items-center justify-center py-12"><Activity className="animate-spin text-slate-400" size={24} /></div>
+                            <div className="flex flex-col items-center justify-center py-12"><Activity className="animate-spin text-muted opacity-80" size={24} /></div>
                         ) : history.length === 0 ? (
-                            <div className="text-center py-10 border-2 border-dashed border-slate-100 rounded-2xl"><HistoryIcon size={24} className="mx-auto text-slate-200 mb-2" /><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">No systemic records found</p></div>
+                            <div className="text-center py-10 border-2 border-dashed border-border-card rounded-2xl"><HistoryIcon size={24} className="mx-auto text-muted opacity-40 mb-2" /><p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">No systemic records found</p></div>
                         ) : (
                             history.map((record, i) => (
-                                <button key={i} onClick={() => setSelectedRecord(record)} className="w-full text-left bg-white p-4 rounded-xl border-2 border-slate-100 hover:border-indigo-600 transition-all">
+                                <button key={i} onClick={() => setSelectedRecord(record)} className="w-full text-left bg-card p-4 rounded-xl border-2 border-border-card hover:border-indigo-600 transition-all">
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{new Date(record.createdAt).toLocaleDateString()}</span>
+                                        <span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">{new Date(record.createdAt).toLocaleDateString()}</span>
                                         <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[7px] font-black">SYSTEMIC</span>
                                     </div>
-                                    <p className="text-[10px] font-bold text-slate-600 line-clamp-2 italic">"{record.ai_notes || 'ROS capture completed.'}"</p>
+                                    <p className="text-[10px] font-bold text-muted line-clamp-2 italic">"{record.ai_notes || 'ROS capture completed.'}"</p>
                                 </button>
                             ))
                         )}
@@ -195,24 +195,24 @@ export const ConsultROS: React.FC<ConsultROSProps> = ({
                 ) : (
                     <div className="space-y-4 pb-20 pt-1">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Review of Systems</h3>
+                            <h3 className="text-[10px] font-black text-main uppercase tracking-widest">Review of Systems</h3>
                         </div>
 
 
                             <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                                     {sections.map((s, i) => (
-                                        <button key={s.section} onClick={() => setCurrentStep(i)} className={`px-4 py-3 rounded-xl border-2 whitespace-nowrap text-[9px] font-black uppercase tracking-widest transition-all ${i === currentStep ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-100'}`}>{s.title}</button>
+                                        <button key={s.section} onClick={() => setCurrentStep(i)} className={`px-4 py-3 rounded-xl border-2 whitespace-nowrap text-[9px] font-black uppercase tracking-widest transition-all ${i === currentStep ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-card border-border-card text-muted opacity-80 hover:border-indigo-100'}`}>{s.title}</button>
                                     ))}
                                 </div>
                                 
                                 {currentSection && (
-                                    <div className="card-premium p-6 bg-white border-slate-100 space-y-6">
-                                        <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2"><div className="w-1 h-5 bg-indigo-600 rounded-full" /> {currentSection.title}</h4>
+                                    <div className="card-premium p-6 bg-card border-border-card space-y-6">
+                                        <h4 className="text-[11px] font-black text-main uppercase tracking-widest flex items-center gap-2"><div className="w-1 h-5 bg-indigo-600 rounded-full" /> {currentSection.title}</h4>
                                         <div className="space-y-8">
                                             {currentSection.questions.map(q => (
                                                 <div key={q.key} className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{q.label}</label>
+                                                    <label className="text-[10px] font-bold text-muted uppercase tracking-tight">{q.label}</label>
                                                     {renderQuestion(currentSection.section, q)}
                                                 </div>
                                             ))}

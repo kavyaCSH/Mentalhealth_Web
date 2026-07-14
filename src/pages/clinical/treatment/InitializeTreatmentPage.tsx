@@ -142,7 +142,7 @@ const InitializeTreatmentPage = () => {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
                 <Activity className="animate-spin text-indigo-600" size={40} />
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Syncing Clinical Context...</p>
+                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest italic">Syncing Clinical Context...</p>
             </div>
         );
     }
@@ -153,8 +153,8 @@ const InitializeTreatmentPage = () => {
                 <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-[2.5rem] flex items-center justify-center shadow-xl shadow-emerald-100/50 mb-4">
                     <CheckCircle2 size={40} />
                 </div>
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Protocol Finalized</h2>
-                <p className="text-slate-500 font-medium max-w-xs uppercase text-[10px] tracking-widest">Synchronizing records with patient dashboard...</p>
+                <h2 className="text-3xl font-black text-main tracking-tight">Protocol Finalized</h2>
+                <p className="text-muted font-medium max-w-xs uppercase text-[10px] tracking-widest">Synchronizing records with patient dashboard...</p>
             </div>
         );
     }
@@ -164,7 +164,7 @@ const InitializeTreatmentPage = () => {
             <header className="mb-12">
                 <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-[0.2em] mb-6"
+                    className="flex items-center gap-2 text-[10px] font-black text-muted opacity-80 hover:text-indigo-600 transition-all uppercase tracking-[0.2em] mb-6"
                 >
                     <ChevronLeft size={16} /> Back to Session History
                 </button>
@@ -173,8 +173,8 @@ const InitializeTreatmentPage = () => {
                         <Activity size={32} />
                     </div>
                     <div>
-                        <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none">Initialize Plan</h1>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2 opacity-60">Mobile Parity: Dynamic Clinical Synthesis</p>
+                        <h1 className="text-5xl font-black text-main tracking-tighter leading-none">Initialize Plan</h1>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.3em] mt-2 opacity-60">Mobile Parity: Dynamic Clinical Synthesis</p>
                     </div>
                 </div>
             </header>
@@ -185,7 +185,7 @@ const InitializeTreatmentPage = () => {
                     <div className="p-10 bg-slate-900 text-white rounded-[3rem] shadow-2xl relative overflow-hidden group border border-white/5">
                         <div className="absolute -right-6 -top-6 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700" />
                         
-                        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-10">Patient Context</h3>
+                        <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-10">Patient Context</h3>
                         <div className="flex items-center gap-6 mb-12">
                             <div className="w-20 h-20 rounded-[1.5rem] bg-indigo-600 flex items-center justify-center text-3xl font-black shadow-2xl shadow-indigo-500/30 ring-4 ring-white/10">
                                 {patient?.firstName?.charAt(0) || 'P'}
@@ -199,7 +199,7 @@ const InitializeTreatmentPage = () => {
                         <div className="space-y-6 pt-10 border-t border-white/10">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3 opacity-60">
-                                    <UserIcon size={14} className="text-slate-400" />
+                                    <UserIcon size={14} className="text-muted opacity-80" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Metadata</span>
                                 </div>
                                 <span className="text-[11px] font-black text-indigo-200 uppercase tracking-tighter">{patient?.gender || 'Unspecified'}</span>
@@ -208,7 +208,7 @@ const InitializeTreatmentPage = () => {
                     </div>
                     
                     <div className="p-8 bg-indigo-50/30 rounded-[2.5rem] border border-indigo-100 flex items-start gap-4 shadow-sm">
-                        <div className="p-3 bg-white text-indigo-600 rounded-xl shadow-sm border border-indigo-50"><Brain size={18} /></div>
+                        <div className="p-3 bg-card text-indigo-600 rounded-xl shadow-sm border border-indigo-50"><Brain size={18} /></div>
                         <p className="text-[11px] font-bold text-indigo-900/60 uppercase tracking-tight leading-relaxed font-medium">
                             Synthesized clinical impressions are automatically indexed for longitudinal tracking.
                         </p>
@@ -218,19 +218,19 @@ const InitializeTreatmentPage = () => {
                 {/* Right: The High-Density Form */}
                 <div className="lg:col-span-8">
                     <form onSubmit={handleSubmit} className="space-y-10">
-                        <div className="bg-white p-12 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/20 space-y-12">
+                        <div className="bg-card p-12 rounded-[3.5rem] border border-border-card shadow-xl shadow-slate-200/20 space-y-12">
                             
                             {/* Section: Imp */}
                             <div className="space-y-4">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-indigo-50 text-indigo-600 rounded-[1.25rem]"><Brain size={22} /></div>
-                                    <label className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Clinical Impression</label>
+                                    <label className="text-xs font-black text-main uppercase tracking-[0.2em]">Clinical Impression</label>
                                 </div>
                                 <textarea
                                     value={plan}
                                     onChange={(e) => setPlan(e.target.value)}
                                     placeholder="Summarize the core clinical findings and session synthesis..."
-                                    className="w-full bg-slate-50/50 border border-slate-100 rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all min-h-[160px] resize-none placeholder:text-slate-300 shadow-inner leading-relaxed"
+                                    className="w-full bg-card/50 border border-border-card rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all min-h-[160px] resize-none placeholder:text-muted opacity-40 shadow-inner leading-relaxed"
                                 />
                             </div>
 
@@ -238,13 +238,13 @@ const InitializeTreatmentPage = () => {
                             <div className="space-y-4">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-rose-50 text-rose-600 rounded-[1.25rem]"><Pill size={22} /></div>
-                                    <label className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Medication Regimen</label>
+                                    <label className="text-xs font-black text-main uppercase tracking-[0.2em]">Medication Regimen</label>
                                 </div>
                                 <textarea
                                     value={medications}
                                     onChange={(e) => setMedications(e.target.value)}
                                     placeholder="Detail any titrations or new prescriptions..."
-                                    className="w-full bg-slate-50/50 border border-slate-100 rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-rose-500/5 transition-all min-h-[110px] resize-none placeholder:text-slate-300 shadow-inner"
+                                    className="w-full bg-card/50 border border-border-card rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-rose-500/5 transition-all min-h-[110px] resize-none placeholder:text-muted opacity-40 shadow-inner"
                                 />
                             </div>
 
@@ -252,26 +252,26 @@ const InitializeTreatmentPage = () => {
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-emerald-50 text-emerald-600 rounded-[1.25rem]"><ClipboardList size={22} /></div>
-                                    <label className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Recommendations & Journey Steps</label>
+                                    <label className="text-xs font-black text-main uppercase tracking-[0.2em]">Recommendations & Journey Steps</label>
                                 </div>
                                 <textarea
                                     value={nextSteps}
                                     onChange={(e) => setNextSteps(e.target.value)}
                                     placeholder="Define actionable milestones for the patient journey..."
-                                    className="w-full bg-slate-50/50 border border-slate-100 rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all min-h-[160px] resize-none placeholder:text-slate-300 shadow-inner"
+                                    className="w-full bg-card/50 border border-border-card rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all min-h-[160px] resize-none placeholder:text-muted opacity-40 shadow-inner"
                                 />
 
                                 <div className="space-y-4 pt-4">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] ml-2">Quick Protocol Integration</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.25em] ml-2">Quick Protocol Integration</p>
                                     <div className="flex flex-wrap gap-3">
                                         {recommendations.map((rec, i) => (
                                             <button
                                                 key={i}
                                                 type="button"
                                                 onClick={() => addRecommendation(rec)}
-                                                className="px-6 py-3 bg-white border border-slate-100 rounded-2xl text-[10px] font-black text-slate-500 uppercase tracking-widest hover:border-indigo-600 hover:text-indigo-600 hover:shadow-lg hover:shadow-indigo-100 transition-all flex items-center gap-3 group"
+                                                className="px-6 py-3 bg-card border border-border-card rounded-2xl text-[10px] font-black text-muted uppercase tracking-widest hover:border-indigo-600 hover:text-indigo-600 hover:shadow-lg hover:shadow-indigo-100 transition-all flex items-center gap-3 group"
                                             >
-                                                <Plus size={14} className="text-slate-300 group-hover:text-indigo-600 transition-colors" />
+                                                <Plus size={14} className="text-muted opacity-40 group-hover:text-indigo-600 transition-colors" />
                                                 {rec}
                                             </button>
                                         ))}
@@ -288,7 +288,7 @@ const InitializeTreatmentPage = () => {
                         )}
 
                         <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-8">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] max-w-sm leading-loose">
+                            <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em] max-w-sm leading-loose">
                                 Finalizing this plan will synchronize all data with the mobile application's treatment history and progress tracker.
                             </p>
                             <Button

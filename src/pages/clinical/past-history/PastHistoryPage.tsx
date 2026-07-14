@@ -45,15 +45,15 @@ const FindingItem = ({ label, value }: { label: string; value: any }) => {
         if (value.length === 0) return null;
         if (typeof value[0] === 'object') {
             return (
-                <div className="flex flex-col py-5 border-b border-slate-50 last:border-none group">
-                    <span className="text-[10px] font-bold text-slate-400 tracking-tight mb-4">{label.replace(/_/g, ' ')}</span>
+                <div className="flex flex-col py-5 border-b border-border-card last:border-none group">
+                    <span className="text-[10px] font-bold text-muted opacity-80 tracking-tight mb-4">{label.replace(/_/g, ' ')}</span>
                     <div className="space-y-4">
                         {value.map((item: any, idx: number) => (
-                            <div key={idx} className="bg-slate-50 p-5 rounded-2xl space-y-3 hover:bg-slate-100 transition-colors">
+                            <div key={idx} className="bg-page p-5 rounded-2xl space-y-3 hover:bg-page transition-colors">
                                 {Object.entries(item).map(([k, v]) => (
                                     <div key={k} className="flex justify-between items-center text-xs">
-                                        <span className="text-slate-500 font-medium tracking-tight">{k.replace(/_/g, ' ')}</span>
-                                        <span className="font-bold text-slate-800">{String(v)}</span>
+                                        <span className="text-muted font-medium tracking-tight">{k.replace(/_/g, ' ')}</span>
+                                        <span className="font-bold text-main">{String(v)}</span>
                                     </div>
                                 ))}
                             </div>
@@ -85,9 +85,9 @@ const FindingItem = ({ label, value }: { label: string; value: any }) => {
     if (!displayValue || displayValue === 'No specific markers' || displayValue === 'Neutral') return null;
 
     return (
-        <div className="flex justify-between items-start py-4 border-b border-slate-50 last:border-none group">
-            <span className="text-[11px] font-bold text-slate-400 tracking-tight">{label.replace(/_/g, ' ')}</span>
-            <span className="text-[13px] font-bold text-slate-700 text-right max-w-[60%] group-hover:text-indigo-600 transition-colors tracking-tight leading-tight">{displayValue}</span>
+        <div className="flex justify-between items-start py-4 border-b border-border-card last:border-none group">
+            <span className="text-[11px] font-bold text-muted opacity-80 tracking-tight">{label.replace(/_/g, ' ')}</span>
+            <span className="text-[13px] font-bold text-main text-right max-w-[60%] group-hover:text-indigo-600 transition-colors tracking-tight leading-tight">{displayValue}</span>
         </div>
     );
 };
@@ -594,7 +594,7 @@ const PastHistoryPage = () => {
                                         <button key={opt} onClick={() => question.type === 'select' ? handleValueChange(section, question.key, opt) : handleMultiselectToggle(section, question.key, opt)}
                                             className={`p-5 rounded-3xl border transition-all text-left ${isSel 
                                                 ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-200' 
-                                                : `bg-slate-50 border-transparent text-slate-500 ${theme.hoverBorder}`}`}>
+                                                : `bg-page border-transparent text-muted ${theme.hoverBorder}`}`}>
                                             <span className="text-[12px] font-bold tracking-tight leading-tight">{opt}</span>
                                         </button>
                                     );
@@ -611,7 +611,7 @@ const PastHistoryPage = () => {
                                 <button key={v ? 'y' : 'n'} onClick={() => handleValueChange(section, question.key, v)}
                                     className={`flex-1 p-5 rounded-3xl border transition-all font-bold tracking-tight text-[12px] ${value === v 
                                         ? (v ? `${theme.active} shadow-xl ${theme.shadow}` : 'bg-slate-800 border-slate-800 text-white shadow-xl shadow-slate-200') 
-                                        : 'bg-slate-50 border-transparent text-slate-400 hover:bg-slate-100'}`}>
+                                        : 'bg-page border-transparent text-muted opacity-80 hover:bg-page'}`}>
                                     {v ? 'Confirmed' : 'Denied'}
                                 </button>
                             ))}
@@ -624,15 +624,15 @@ const PastHistoryPage = () => {
                         value={value || ''}
                         onChange={e => handleValueChange(section, question.key, e.target.value)}
                         placeholder="Provide detailed clinical history here..."
-                        className={`w-full min-h-[140px] p-8 bg-slate-50 border border-transparent rounded-[2.5rem] text-sm font-bold text-slate-700 outline-none transition-all resize-none mt-4 focus:bg-white focus:border-indigo-600 shadow-inner`}
+                        className={`w-full min-h-[140px] p-8 bg-page border border-transparent rounded-[2.5rem] text-sm font-bold text-main outline-none transition-all resize-none mt-4 focus:bg-card focus:border-indigo-600 shadow-inner`}
                     />
                 );
             case 'boolean_group':
                 return (
-                    <div className={`space-y-8 mt-4 p-8 bg-white rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-slate-100`}>
+                    <div className={`space-y-8 mt-4 p-8 bg-card rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.02)] border border-border-card`}>
                         {question.fields?.map((f: any) => (
                             <div key={f.key} className="space-y-4">
-                                <label className="text-[11px] font-bold text-slate-400 tracking-tight">{f.label}</label>
+                                <label className="text-[11px] font-bold text-muted opacity-80 tracking-tight">{f.label}</label>
                                 {f.type === 'boolean' ? (
                                     <div className="flex gap-3">
                                         {[true, false].map(boolVal => {
@@ -640,19 +640,19 @@ const PastHistoryPage = () => {
                                             return (
                                                 <button key={boolVal ? 'y' : 'n'}
                                                     onClick={() => handleBooleanGroupChange(section, question.key, f.key, boolVal)}
-                                                    className={`px-8 py-3 rounded-2xl text-[11px] font-bold tracking-tight transition-all ${isSel ? (boolVal ? theme.active : 'bg-slate-800 text-white') : 'bg-slate-50 text-slate-400 border border-transparent hover:border-slate-200'}`}>
+                                                    className={`px-8 py-3 rounded-2xl text-[11px] font-bold tracking-tight transition-all ${isSel ? (boolVal ? theme.active : 'bg-slate-800 text-white') : 'bg-page text-muted opacity-80 border border-transparent hover:border-border-card'}`}>
                                                     {boolVal ? 'Yes' : 'No'}
                                                 </button>
                                             );
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="bg-slate-50 rounded-2xl overflow-hidden border border-transparent group-focus-within:bg-white group-focus-within:border-indigo-200 transition-all">
+                                    <div className="bg-page rounded-2xl overflow-hidden border border-transparent group-focus-within:bg-card group-focus-within:border-indigo-200 transition-all">
                                         {f.type === 'select' ? (
                                             <select
                                                 value={responses[section]?.[question.key]?.[f.key] || ''}
                                                 onChange={e => handleBooleanGroupChange(section, question.key, f.key, e.target.value)}
-                                                className="w-full p-4 text-xs font-bold text-slate-700 outline-none bg-transparent"
+                                                className="w-full p-4 text-xs font-bold text-main outline-none bg-transparent"
                                             >
                                                 <option value="">Choose option...</option>
                                                 {f.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
@@ -663,7 +663,7 @@ const PastHistoryPage = () => {
                                                 placeholder={`Enter ${f.label.toLowerCase()}...`}
                                                 value={responses[section]?.[question.key]?.[f.key] || ''}
                                                 onChange={e => handleBooleanGroupChange(section, question.key, f.key, e.target.value)}
-                                                className="w-full p-4 text-xs font-bold text-slate-700 outline-none bg-transparent placeholder:text-slate-300"
+                                                className="w-full p-4 text-xs font-bold text-main outline-none bg-transparent placeholder:text-muted opacity-40"
                                             />
                                         )}
                                     </div>
@@ -678,7 +678,7 @@ const PastHistoryPage = () => {
                     <div className="space-y-6 mt-4">
                         <div className="space-y-4">
                             {items.map((item: any, idx: number) => (
-                                <div key={idx} className="bg-white rounded-[2rem] p-8 relative group/row shadow-[0_15px_40px_rgba(0,0,0,0.032)] border border-slate-50 hover:border-indigo-100 transition-all">
+                                <div key={idx} className="bg-card rounded-[2rem] p-8 relative group/row shadow-[0_15px_40px_rgba(0,0,0,0.032)] border border-border-card hover:border-indigo-100 transition-all">
                                     <button
                                         onClick={() => handleArrayRemove(section, question.key, idx)}
                                         className="absolute -top-3 -right-3 w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all shadow-xl hover:bg-rose-600 scale-90 group-hover/row:scale-100"
@@ -688,12 +688,12 @@ const PastHistoryPage = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         {question.item_structure?.map((field: any) => (
                                             <div key={field.key} className="space-y-3">
-                                                <label className="text-[11px] font-bold text-slate-400 tracking-tight">{field.label}</label>
+                                                <label className="text-[11px] font-bold text-muted opacity-80 tracking-tight">{field.label}</label>
                                                 {field.type === 'select' ? (
                                                     <select
                                                         value={item[field.key] || ''}
                                                         onChange={e => handleArrayItemChange(section, question.key, idx, field.key, e.target.value)}
-                                                        className="w-full p-4 bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 outline-none hover:bg-slate-100 focus:bg-white focus:ring-4 ring-indigo-50 border border-transparent focus:border-indigo-200 transition-all"
+                                                        className="w-full p-4 bg-page rounded-2xl text-xs font-bold text-main outline-none hover:bg-page focus:bg-card focus:ring-4 ring-indigo-50 border border-transparent focus:border-indigo-200 transition-all"
                                                     >
                                                         <option value="">Choose...</option>
                                                         {field.options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
@@ -704,7 +704,7 @@ const PastHistoryPage = () => {
                                                         value={item[field.key] || ''}
                                                         onChange={e => handleArrayItemChange(section, question.key, idx, field.key, e.target.value)}
                                                         placeholder={`Enter ${field.label.toLowerCase()}...`}
-                                                        className="w-full p-4 bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 outline-none hover:bg-slate-100 focus:bg-white focus:ring-4 ring-indigo-50 border border-transparent focus:border-indigo-200 transition-all"
+                                                        className="w-full p-4 bg-page rounded-2xl text-xs font-bold text-main outline-none hover:bg-page focus:bg-card focus:ring-4 ring-indigo-50 border border-transparent focus:border-indigo-200 transition-all"
                                                     />
                                                 )}
                                             </div>
@@ -715,7 +715,7 @@ const PastHistoryPage = () => {
                         </div>
                         <button
                             onClick={() => handleArrayAdd(section, question.key, question.item_structure || [])}
-                            className={`w-full py-6 border-2 border-dashed border-slate-100 rounded-[2rem] text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/20 transition-all font-bold text-[11px] tracking-tight flex items-center justify-center gap-3`}
+                            className={`w-full py-6 border-2 border-dashed border-border-card rounded-[2rem] text-muted opacity-80 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/20 transition-all font-bold text-[11px] tracking-tight flex items-center justify-center gap-3`}
                         >
                             <Sparkles size={16} /> Add clinical entry record
                         </button>
@@ -728,7 +728,7 @@ const PastHistoryPage = () => {
     if (isLoading) return (
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
             <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin shadow-2xl shadow-indigo-100" />
-            <p className="text-[11px] font-bold text-slate-400 tracking-tight animate-pulse">Compiling clinical framework</p>
+            <p className="text-[11px] font-bold text-muted opacity-80 tracking-tight animate-pulse">Compiling clinical framework</p>
         </div>
     );
 
@@ -740,7 +740,7 @@ const PastHistoryPage = () => {
 
         return (
             <div className="p-10 max-w-[1400px] mx-auto space-y-12 animate-fade-in pb-32">
-                <header className="flex items-end justify-between border-b-2 border-slate-50 pb-12">
+                <header className="flex items-end justify-between border-b-2 border-border-card pb-12">
                     <div className="space-y-4">
                         <div className="flex items-center gap-4">
                             <div className="w-14 h-14 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-100/20">
@@ -749,14 +749,14 @@ const PastHistoryPage = () => {
                             <div>
                                 <div className="flex items-center gap-3 mb-1">
                                     <span className="px-3 py-1 bg-indigo-600 text-white rounded-lg text-[10px] font-bold tracking-tight shadow-lg shadow-indigo-200">Historical Record</span>
-                                    <span className="text-[11px] font-medium text-slate-400 tabular-nums tracking-tight leading-none">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                    <span className="text-[11px] font-medium text-muted opacity-80 tabular-nums tracking-tight leading-none">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                                 </div>
-                                <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">History Synthesis</h1>
+                                <h1 className="text-4xl font-black text-main tracking-tighter leading-none">History Synthesis</h1>
                             </div>
                         </div>
                     </div>
                     <div className="flex gap-4">
-                        <Button variant="outline" onClick={() => setResult(null)} className="h-14 px-8 rounded-2xl border border-slate-200 font-bold text-[11px] tracking-tight hover:bg-slate-50">
+                        <Button variant="outline" onClick={() => setResult(null)} className="h-14 px-8 rounded-2xl border border-border-card font-bold text-[11px] tracking-tight hover:bg-page">
                             Re-analyze history
                         </Button>
                         <Button variant="primary" onClick={navigateBack} className="h-14 px-10 rounded-2xl bg-indigo-600 border-none font-bold text-[11px] tracking-tight shadow-2xl shadow-indigo-200">
@@ -767,7 +767,7 @@ const PastHistoryPage = () => {
 
                 <div className="grid lg:grid-cols-12 gap-12">
                     <div className="lg:col-span-12">
-                        <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] relative overflow-hidden group">
+                        <section className="bg-card p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] relative overflow-hidden group">
                            <div className="absolute top-0 right-0 p-16 opacity-[0.03] group-hover:scale-110 transition-transform duration-[3s] text-indigo-600"><Cpu size={240} /></div>
                            <div className="relative space-y-8">
                                <div className="flex items-center justify-between">
@@ -776,14 +776,14 @@ const PastHistoryPage = () => {
                                        <h3 className="text-[12px] font-bold text-indigo-600 tracking-tight">Clinical history formulation</h3>
                                    </div>
                                     {result.treatment_resistance_risk && (
-                                        <div className="flex items-center gap-4 bg-slate-50 px-5 py-2 rounded-2xl border border-slate-100 shadow-sm">
-                                            <span className="text-[10px] font-bold text-slate-400 tracking-tight">Treatment resistance:</span>
+                                        <div className="flex items-center gap-4 bg-page px-5 py-2 rounded-2xl border border-border-card shadow-sm">
+                                            <span className="text-[10px] font-bold text-muted opacity-80 tracking-tight">Treatment resistance:</span>
                                             <span className={`text-[11px] font-black tracking-tight ${result.treatment_resistance_risk === 'High' ? 'text-rose-600' : 'text-emerald-600'}`}>{result.treatment_resistance_risk}</span>
                                         </div>
                                     )}
                                </div>
-                               <div className="pl-6 border-l-4 border-slate-50 py-1">
-                                   <p className="text-2xl font-bold text-slate-800 leading-relaxed tracking-tight italic">
+                               <div className="pl-6 border-l-4 border-border-card py-1">
+                                   <p className="text-2xl font-bold text-main leading-relaxed tracking-tight italic">
                                        "{result.ai_notes || 'Historical synthesis currently being processed.'}"
                                    </p>
                                </div>
@@ -792,18 +792,18 @@ const PastHistoryPage = () => {
                     </div>
 
                     <div className="lg:col-span-8">
-                        <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] h-full">
+                        <section className="bg-card p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] h-full">
                             <div className="space-y-12">
                                 <header className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-100/40"><AlertTriangle size={22} /></div>
-                                    <h3 className="text-[12px] font-bold text-slate-900 tracking-tight">Clinical risk audit</h3>
+                                    <h3 className="text-[12px] font-bold text-main tracking-tight">Clinical risk audit</h3>
                                 </header>
                                 
                                 <div className="grid md:grid-cols-2 gap-10">
                                     <div className="space-y-6">
                                         <div className="flex items-center gap-3">
                                             <div className="w-1.5 h-6 bg-rose-600 rounded-full" />
-                                            <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Critical clinical flags</h4>
+                                            <h4 className="text-[11px] font-bold text-muted opacity-80 tracking-tight">Critical clinical flags</h4>
                                         </div>
                                         <div className="flex flex-wrap gap-3">
                                             {result.risk_flags?.length ? result.risk_flags.map((flag, i) => (
@@ -811,7 +811,7 @@ const PastHistoryPage = () => {
                                                     <AlertCircle size={14} />
                                                     {flag}
                                                 </div>
-                                            )) : <p className="text-sm font-bold text-slate-400 italic px-2">No historical alerts detected.</p>}
+                                            )) : <p className="text-sm font-bold text-muted opacity-80 italic px-2">No historical alerts detected.</p>}
                                         </div>
                                     </div>
 
@@ -819,9 +819,9 @@ const PastHistoryPage = () => {
                                         <div className="space-y-6">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
-                                                <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Genetic risk synthesis</h4>
+                                                <h4 className="text-[11px] font-bold text-muted opacity-80 tracking-tight">Genetic risk synthesis</h4>
                                             </div>
-                                            <p className="text-sm font-bold text-slate-700 leading-relaxed tracking-tight italic">"{result.genetic_risk_summary}"</p>
+                                            <p className="text-sm font-bold text-main leading-relaxed tracking-tight italic">"{result.genetic_risk_summary}"</p>
                                         </div>
                                     )}
                                 </div>
@@ -831,7 +831,7 @@ const PastHistoryPage = () => {
                                         <Shield size={20} className="text-indigo-400" />
                                         <h5 className="text-[11px] font-bold text-indigo-400 tracking-tight">Practitioner Guidance</h5>
                                     </div>
-                                    <p className="text-xs font-bold text-slate-300 leading-relaxed opacity-80">This analysis serves as a clinical aid. Longitudinal history must be verified against primary sources and corroborated by clinical documentation audits.</p>
+                                    <p className="text-xs font-bold text-muted opacity-40 leading-relaxed opacity-80">This analysis serves as a clinical aid. Longitudinal history must be verified against primary sources and corroborated by clinical documentation audits.</p>
                                 </div>
                             </div>
                         </section>
@@ -841,19 +841,19 @@ const PastHistoryPage = () => {
                         <div className="space-y-8">
                             <header className="flex items-center gap-4 mb-2 p-1">
                                 <Target size={20} className="text-indigo-600" />
-                                <h3 className="text-[12px] font-bold text-slate-900 tracking-tight">Aesthetic indicators</h3>
+                                <h3 className="text-[12px] font-bold text-main tracking-tight">Aesthetic indicators</h3>
                             </header>
                             
                             <div className="grid gap-4">
-                                <div className="p-6 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.032)] flex items-center gap-6 relative group border border-slate-50">
+                                <div className="p-6 bg-card rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.032)] flex items-center gap-6 relative group border border-border-card">
                                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-indigo-600 rounded-r-full" />
-                                    <div className="w-10 h-10 bg-slate-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-sm"><Users size={18} /></div>
-                                    <p className="text-sm font-bold text-slate-700 leading-tight tracking-tight">Hereditary Audit Complete</p>
+                                    <div className="w-10 h-10 bg-page text-indigo-600 rounded-2xl flex items-center justify-center shadow-sm"><Users size={18} /></div>
+                                    <p className="text-sm font-bold text-main leading-tight tracking-tight">Hereditary Audit Complete</p>
                                 </div>
-                                <div className="p-6 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.032)] flex items-center gap-6 relative group border border-slate-50">
+                                <div className="p-6 bg-card rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.032)] flex items-center gap-6 relative group border border-border-card">
                                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-rose-600 rounded-r-full" />
-                                    <div className="w-10 h-10 bg-slate-50 text-rose-600 rounded-2xl flex items-center justify-center shadow-sm"><Zap size={18} /></div>
-                                    <p className="text-sm font-bold text-slate-700 leading-tight tracking-tight">Systemic Toxicity Evaluated</p>
+                                    <div className="w-10 h-10 bg-page text-rose-600 rounded-2xl flex items-center justify-center shadow-sm"><Zap size={18} /></div>
+                                    <p className="text-sm font-bold text-main leading-tight tracking-tight">Systemic Toxicity Evaluated</p>
                                 </div>
                             </div>
                         </div>
@@ -861,8 +861,8 @@ const PastHistoryPage = () => {
 
                     <div className="lg:col-span-12 pt-20">
                         <header className="flex items-center gap-6 mb-12">
-                            <h2 className="text-[11px] font-bold text-slate-900 tracking-tight whitespace-nowrap">Chronological history breakdowns</h2>
-                            <div className="h-[2px] bg-slate-50 flex-1" />
+                            <h2 className="text-[11px] font-bold text-main tracking-tight whitespace-nowrap">Chronological history breakdowns</h2>
+                            <div className="h-[2px] bg-page flex-1" />
                         </header>
                         
                         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -870,13 +870,13 @@ const PastHistoryPage = () => {
                                 const sectionData = (result as any)[s.section] || (result as any)[s.section.replace(/_past/g, '_history')];
                                 if (!sectionData) return null;
                                 return (
-                                    <div key={s.section} className="p-8 bg-white rounded-[3rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(79,70,229,0.06)] transition-all group">
-                                        <header className="flex items-center justify-between mb-8 pb-4 border-b border-slate-50">
+                                    <div key={s.section} className="p-8 bg-card rounded-[3rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_rgba(79,70,229,0.06)] transition-all group">
+                                        <header className="flex items-center justify-between mb-8 pb-4 border-b border-border-card">
                                             <div className="flex items-center gap-4">
-                                                <div className={`w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center transition-all group-hover:bg-indigo-600 group-hover:text-white`}>
+                                                <div className={`w-10 h-10 rounded-2xl bg-page flex items-center justify-center transition-all group-hover:bg-indigo-600 group-hover:text-white`}>
                                                     {getSectionIcon(s.section)}
                                                 </div>
-                                                <h3 className="text-[11px] font-bold text-slate-900 tracking-tight">{s.title}</h3>
+                                                <h3 className="text-[11px] font-bold text-main tracking-tight">{s.title}</h3>
                                             </div>
                                             <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg" />
                                         </header>
@@ -899,21 +899,21 @@ const PastHistoryPage = () => {
 
     return (
         <div className="p-10 max-w-[1400px] mx-auto space-y-12 animate-fade-in pb-32">
-            <header className="flex items-center justify-between border-b border-slate-50 pb-12">
+            <header className="flex items-center justify-between border-b border-border-card pb-12">
                 <div className="flex items-center gap-8">
-                    <button onClick={navigateBack} className="w-14 h-14 bg-white hover:bg-slate-50 border border-slate-100 rounded-[1.5rem] flex items-center justify-center text-slate-900 transition-all hover:shadow-xl group">
+                    <button onClick={navigateBack} className="w-14 h-14 bg-card hover:bg-page border border-border-card rounded-[1.5rem] flex items-center justify-center text-main transition-all hover:shadow-xl group">
                         <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
                     </button>
                     <div>
                         <div className="flex items-center gap-3 mb-1">
                             <span className="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[10px] font-bold tracking-tight shadow-lg shadow-slate-200">Evaluation mode</span>
-                            <span className="text-[10px] font-medium text-slate-300 tracking-tight tabular-nums leading-none">Longitudinal History Record</span>
+                            <span className="text-[10px] font-medium text-muted opacity-40 tracking-tight tabular-nums leading-none">Longitudinal History Record</span>
                         </div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">History assistant</h1>
+                        <h1 className="text-4xl font-black text-main tracking-tighter leading-none">History assistant</h1>
                     </div>
                 </div>
                 
-                <button onClick={() => setUseAssistant(!useAssistant)} className={`px-10 py-5 rounded-3xl font-bold tracking-tight text-[12px] flex items-center gap-4 transition-all shadow-[0_20px_50px_rgba(79,70,229,0.12)] ${useAssistant ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 hover:bg-slate-50'}`}>
+                <button onClick={() => setUseAssistant(!useAssistant)} className={`px-10 py-5 rounded-3xl font-bold tracking-tight text-[12px] flex items-center gap-4 transition-all shadow-[0_20px_50px_rgba(79,70,229,0.12)] ${useAssistant ? 'bg-indigo-600 text-white' : 'bg-card text-indigo-600 hover:bg-page'}`}>
                     <Bot size={20} />
                     {useAssistant ? 'Manual input interface' : 'History AI assistant'}
                 </button>
@@ -926,17 +926,17 @@ const PastHistoryPage = () => {
                             <div className="absolute top-0 right-0 p-8 opacity-5 text-white"><Database size={120} /></div>
                             <header className="mb-8 px-2">
                                 <h3 className="text-[11px] font-bold text-indigo-400 tracking-tight mb-2 leading-none">Clinical chronogram</h3>
-                                <div className="h-[1px] bg-white/10 w-full" />
+                                <div className="h-[1px] bg-card/10 w-full" />
                             </header>
                             {sections.map((s, idx) => {
                                 const isDone = responses[s.section] && Object.keys(responses[s.section]).length > 0;
                                 const isActive = idx === currentStep;
                                 return (
-                                    <button key={s.section} onClick={() => setCurrentStep(idx)} className={`w-full group flex items-center gap-5 py-5 px-6 rounded-2xl transition-all ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}`}>
-                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isActive ? (getTheme(s.section).active + ' shadow-xl scale-110') : isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-white/5 text-slate-700'}`}>
+                                    <button key={s.section} onClick={() => setCurrentStep(idx)} className={`w-full group flex items-center gap-5 py-5 px-6 rounded-2xl transition-all ${isActive ? 'bg-card/10' : 'hover:bg-card/5'}`}>
+                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isActive ? (getTheme(s.section).active + ' shadow-xl scale-110') : isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-card/5 text-main'}`}>
                                             {isDone && !isActive ? <CheckCircle2 size={16} /> : getSectionIcon(s.section)}
                                         </div>
-                                        <span className={`text-[12px] font-bold tracking-tight transition-all ${isActive ? 'text-white' : isDone ? 'text-slate-300' : 'text-slate-600 group-hover:text-slate-500'}`}>{s.title}</span>
+                                        <span className={`text-[12px] font-bold tracking-tight transition-all ${isActive ? 'text-white' : isDone ? 'text-muted opacity-40' : 'text-muted group-hover:text-muted'}`}>{s.title}</span>
                                         {isActive && <div className={`ml-auto w-1 h-3 ${getTheme(s.section).dot} rounded-full`} />}
                                     </button>
                                 );
@@ -947,55 +947,55 @@ const PastHistoryPage = () => {
 
                 <div className="lg:col-span-9">
                     {useAssistant ? (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-12 rounded-[3.5rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] space-y-12 relative overflow-hidden">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card p-12 rounded-[3.5rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] space-y-12 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-indigo-600"><Sparkles size={240} /></div>
-                            <header className="flex items-center justify-between border-b border-slate-50 pb-10">
+                            <header className="flex items-center justify-between border-b border-border-card pb-10">
                                 <div className="flex items-center gap-5">
                                     <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center shadow-lg"><Sparkles size={32} /></div>
                                     <div>
-                                        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">Narrative engine</h2>
-                                        <p className="text-xs font-bold text-slate-400 tracking-tight mt-1">Live Clinical History Extraction</p>
+                                        <h2 className="text-3xl font-black text-main tracking-tight leading-tight">Narrative engine</h2>
+                                        <p className="text-xs font-bold text-muted opacity-80 tracking-tight mt-1">Live Clinical History Extraction</p>
                                     </div>
                                 </div>
-                                <button onClick={toggleRecording} className={`h-16 px-10 rounded-2xl flex items-center gap-4 font-bold tracking-tight text-[12px] transition-all shadow-xl shadow-slate-100 ${isRecording ? 'bg-rose-500 text-white animate-pulse' : 'bg-slate-50 text-slate-400 hover:bg-slate-200'}`}>
+                                <button onClick={toggleRecording} className={`h-16 px-10 rounded-2xl flex items-center gap-4 font-bold tracking-tight text-[12px] transition-all shadow-xl shadow-sm ${isRecording ? 'bg-rose-500 text-white animate-pulse' : 'bg-page text-muted opacity-80 hover:bg-border-card'}`}>
                                     {isRecording ? <MicOff size={22} /> : <Mic size={22} />}
                                     {isRecording ? 'Recording...' : 'Voice scribe'}
                                 </button>
                             </header>
-                            <textarea value={narrative} onChange={(e) => setNarrative(e.target.value)} placeholder="Describe the patient's medical and psychiatric history in natural language. Diagnoses, hospitalizations, surgeries, and family risk markers will be autonomously extracted." className="w-full min-h-[500px] p-12 bg-slate-50 border-none rounded-[3rem] text-xl font-bold text-slate-800 outline-none resize-none leading-relaxed focus:bg-white shadow-inner transition-all" />
+                            <textarea value={narrative} onChange={(e) => setNarrative(e.target.value)} placeholder="Describe the patient's medical and psychiatric history in natural language. Diagnoses, hospitalizations, surgeries, and family risk markers will be autonomously extracted." className="w-full min-h-[500px] p-12 bg-page border-none rounded-[3rem] text-xl font-bold text-main outline-none resize-none leading-relaxed focus:bg-card shadow-inner transition-all" />
                             <div className="flex justify-end pt-4">
                                 <Button variant="primary" className="h-16 px-20 rounded-2xl font-bold tracking-tight text-[12px] bg-slate-900 border-none shadow-2xl shadow-indigo-100" onClick={handleNarrativeExtract} isLoading={isExtracting} rightIcon={<ArrowRight size={20} />}>Extract clinical insights</Button>
                             </div>
                         </motion.div>
                     ) : (
                         <AnimatePresence mode="wait">
-                            <motion.div key={currentSection.section} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="bg-white p-16 rounded-[4rem] shadow-[0_20px_60px_rgba(79,70,229,0.08)] relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-slate-900 group-hover:scale-110 transition-transform duration-[4s]">{getSectionIcon(currentSection.section)}</div>
-                                <header className="space-y-6 pb-12 border-b border-slate-50 mb-12">
+                            <motion.div key={currentSection.section} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="bg-card p-16 rounded-[4rem] shadow-[0_20px_60px_rgba(79,70,229,0.08)] relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-main group-hover:scale-110 transition-transform duration-[4s]">{getSectionIcon(currentSection.section)}</div>
+                                <header className="space-y-6 pb-12 border-b border-border-card mb-12">
                                     <div className="flex items-center gap-6">
                                         <div className={`w-14 h-14 ${getTheme(currentSection.section).active} rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl`}>{getSectionIcon(currentSection.section)}</div>
-                                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{currentSection.title}</h2>
+                                        <h2 className="text-4xl font-black text-main tracking-tighter leading-none">{currentSection.title}</h2>
                                     </div>
-                                    <p className="text-sm font-bold text-slate-400 tracking-tight max-w-2xl leading-relaxed">{currentSection.description}</p>
+                                    <p className="text-sm font-bold text-muted opacity-80 tracking-tight max-w-2xl leading-relaxed">{currentSection.description}</p>
                                 </header>
                                 <div className="space-y-16">
                                     {currentSection.questions.map(q => (
                                         <div key={q.key} className="space-y-8">
                                             <div className="flex items-center gap-5">
                                                 <div className={`w-1.5 h-10 ${getTheme(currentSection.section).dot} rounded-full`} />
-                                                <label className="text-[12px] font-bold text-slate-800 tracking-tight">{q.patient_label || q.professional_label || q.label}</label>
+                                                <label className="text-[12px] font-bold text-main tracking-tight">{q.patient_label || q.professional_label || q.label}</label>
                                             </div>
                                             <div className="max-w-3xl">{renderQuestion(currentSection.section, q)}</div>
                                         </div>
                                     ))}
                                 </div>
-                                <footer className="pt-16 mt-20 border-t border-slate-50 flex items-center justify-between">
-                                    <Button variant="outline" disabled={currentStep === 0} onClick={() => setCurrentStep(prev => prev - 1)} leftIcon={<ChevronLeft size={22} />} className="h-16 px-12 rounded-[1.5rem] font-bold text-[11px] tracking-tight border-slate-200">Go back</Button>
+                                <footer className="pt-16 mt-20 border-t border-border-card flex items-center justify-between">
+                                    <Button variant="outline" disabled={currentStep === 0} onClick={() => setCurrentStep(prev => prev - 1)} leftIcon={<ChevronLeft size={22} />} className="h-16 px-12 rounded-[1.5rem] font-bold text-[11px] tracking-tight border-border-card">Go back</Button>
                                     {currentStep < sections.length - 1 ? (
                                         <Button variant="primary" onClick={() => setCurrentStep(prev => prev + 1)} rightIcon={<ChevronRight size={22} />} className={`h-16 px-20 rounded-[1.5rem] ${getTheme(currentSection.section).active} border-none font-bold text-[11px] tracking-tight shadow-2xl`}>Save historical domain</Button>
                                     ) : (
                                         <div className="flex gap-4">
-                                            <Button variant="outline" onClick={() => handleManualAnalyze()} isLoading={isSaving} leftIcon={<Sparkles size={20} />} className="h-16 px-12 rounded-[1.5rem] border-slate-200 font-bold text-[11px] tracking-tight">AI Analyze</Button>
+                                            <Button variant="outline" onClick={() => handleManualAnalyze()} isLoading={isSaving} leftIcon={<Sparkles size={20} />} className="h-16 px-12 rounded-[1.5rem] border-border-card font-bold text-[11px] tracking-tight">AI Analyze</Button>
                                             <Button variant="primary" onClick={() => handleSubmit()} isLoading={isSaving} leftIcon={<Save size={22} />} className="h-16 px-20 rounded-[1.5rem] bg-slate-900 border-none font-bold text-[11px] tracking-tight shadow-2xl">Commit record</Button>
                                         </div>
                                     )}

@@ -103,6 +103,7 @@ const HospitalPatientDirectory = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
     const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Side-nav panel state
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -153,6 +154,28 @@ const HospitalPatientDirectory = () => {
     const handleProvisionPatient = async (e: React.FormEvent) => {
         e.preventDefault();
         setProvisionError(null);
+
+        const newErrors: Record<string, string> = {};
+        if (!formData.firstName.trim()) {
+            newErrors.firstName = 'First name is required.';
+        }
+        if (!formData.lastName.trim()) {
+            newErrors.lastName = 'Last name is required.';
+        }
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email address is required.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            newErrors.email = 'Please enter a valid email address.';
+        }
+        if (!formData.dateOfBirth) {
+            newErrors.dateOfBirth = 'Date of birth is required.';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
         setIsProvisioning(true);
         try {
             await AuthService.register({
@@ -163,6 +186,20 @@ const HospitalPatientDirectory = () => {
             setIsAddModalOpen(false);
             fetchPatients();
             alert('Patient account provisioned successfully.');
+            setFormData({
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                dateOfBirth: '',
+                gender: 'male',
+                city: '',
+                address: '',
+                bloodGroup: '',
+                emergencyContact: '',
+                password: Math.random().toString(36).slice(-10) + 'A1!'
+            });
+            setErrors({});
         } catch (err: any) {
             setProvisionError(err.response?.data?.message || 'Failed to create patient account.');
         } finally {
@@ -546,25 +583,33 @@ const HospitalPatientDirectory = () => {
                                     <h2 className="text-2xl font-black text-main tracking-tight">Provision Profile</h2>
                                     <p className="text-muted text-[11px] font-black uppercase tracking-widest mt-1">New Clinical Identity</p>
                                 </div>
-                                <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-page rounded-xl transition-colors">
+                                <button onClick={() => { setIsAddModalOpen(false); setErrors({}); }} className="p-2 hover:bg-page rounded-xl transition-colors">
                                     <X size={20} className="text-muted" />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleProvisionPatient} className="p-8 pt-4 space-y-6 overflow-y-auto custom-scrollbar">
+                            <form onSubmit={handleProvisionPatient} noValidate className="p-8 pt-4 space-y-6 overflow-y-auto custom-scrollbar">
                                 <div className="grid grid-cols-2 gap-4">
                                     <InputField
                                         label="First Name"
                                         placeholder="e.g. John"
                                         value={formData.firstName}
-                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, firstName: e.target.value });
+                                            if (errors.firstName) setErrors(prev => ({ ...prev, firstName: '' }));
+                                        }}
+                                        error={errors.firstName}
                                         required
                                     />
                                     <InputField
                                         label="Last Name"
                                         placeholder="e.g. Doe"
                                         value={formData.lastName}
-                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, lastName: e.target.value });
+                                            if (errors.lastName) setErrors(prev => ({ ...prev, lastName: '' }));
+                                        }}
+                                        error={errors.lastName}
                                         required
                                     />
                                 </div>
@@ -574,7 +619,11 @@ const HospitalPatientDirectory = () => {
                                     leftIcon={<Mail size={16} />}
                                     placeholder="patient@example.com"
                                     value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, email: e.target.value });
+                                        if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                                    }}
+                                    error={errors.email}
                                     required
                                 />
                                 <InputField
@@ -590,7 +639,11 @@ const HospitalPatientDirectory = () => {
                                         label="Date of Birth"
                                         type="date"
                                         value={formData.dateOfBirth}
-                                        onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, dateOfBirth: e.target.value });
+                                            if (errors.dateOfBirth) setErrors(prev => ({ ...prev, dateOfBirth: '' }));
+                                        }}
+                                        error={errors.dateOfBirth}
                                         required
                                     />
                                      <div className="space-y-3">

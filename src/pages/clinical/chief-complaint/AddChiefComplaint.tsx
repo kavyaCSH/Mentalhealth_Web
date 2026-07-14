@@ -206,15 +206,15 @@ const AddChiefComplaint = () => {
             <header className="flex items-center gap-6">
                 <button
                     onClick={() => navigate(isPatient ? '/records/chief-complaint' : `/patients/${userId}/chief-complaint`)}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    className="p-3 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                    <h1 className="text-4xl font-black text-main tracking-tight">
                         New Chief Complaint
                     </h1>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Capture clinical narrative</p>
+                    <p className="text-xs font-bold text-muted opacity-80 uppercase tracking-widest mt-1">Capture clinical narrative</p>
                 </div>
             </header>
 
@@ -222,7 +222,7 @@ const AddChiefComplaint = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="card-premium p-10 bg-white border-slate-100 space-y-8"
+                    className="card-premium p-10 bg-card border-border-card space-y-8"
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -230,8 +230,8 @@ const AddChiefComplaint = () => {
                                 <Stethoscope size={24} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900">Patient Complaint</h2>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Capture present symptoms</p>
+                                <h2 className="text-xl font-black text-main">Patient Complaint</h2>
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Capture present symptoms</p>
                             </div>
                         </div>
 
@@ -254,7 +254,7 @@ const AddChiefComplaint = () => {
                             value={narrative}
                             onChange={(e) => setNarrative(e.target.value)}
                             placeholder="Describe the patient's primary symptoms and duration..."
-                            className="w-full min-h-[300px] p-8 bg-slate-50/50 border-2 border-slate-100 rounded-[2.5rem] text-lg font-semibold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all resize-none leading-relaxed"
+                            className="w-full min-h-[300px] p-8 bg-card/50 border-2 border-border-card rounded-[2.5rem] text-lg font-semibold text-main placeholder:text-muted opacity-40 focus:outline-none focus:border-indigo-500 focus:bg-card transition-all resize-none leading-relaxed"
                         />
                         {isRecording && (
                             <div className="absolute bottom-6 right-6 flex items-center gap-2 text-rose-500 font-bold text-[10px] uppercase tracking-widest">
@@ -292,7 +292,7 @@ const AddChiefComplaint = () => {
                             <div className="p-2 bg-indigo-600 text-white rounded-xl">
                                 <Brain size={20} />
                             </div>
-                            <h2 className="text-xl font-black text-slate-900 tracking-tight">AI Clinical Insight Preview</h2>
+                            <h2 className="text-xl font-black text-main tracking-tight">AI Clinical Insight Preview</h2>
                         </div>
                         <Button variant="outline" size="sm" leftIcon={<Edit2 size={16} />} onClick={() => setStep(0)}>Edit Narrative</Button>
                     </div>
@@ -300,7 +300,7 @@ const AddChiefComplaint = () => {
                     {/* Risk Level Alert */}
                     {extractionData?.risk_markers?.risk_level === 'High' && (
                         <div className="p-6 bg-rose-600 text-white rounded-[2rem] shadow-xl shadow-rose-200 flex items-center gap-6 border-b-4 border-rose-800">
-                            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center animate-pulse">
+                            <div className="w-14 h-14 bg-card/20 rounded-2xl flex items-center justify-center animate-pulse">
                                 <ShieldAlert size={32} />
                             </div>
                             <div>
@@ -321,13 +321,13 @@ const AddChiefComplaint = () => {
                             </div>
 
                             {/* MSE Detected */}
-                            <div className="card-premium p-8 bg-white border-slate-100 space-y-6">
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-4">Mental Status Findings</h3>
+                            <div className="card-premium p-8 bg-card border-border-card space-y-6">
+                                <h3 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em] border-b border-border-card pb-4">Mental Status Findings</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     {Object.entries(extractionData?.structured?.mse_observations || {}).map(([key, value]) => (
                                         <div key={key}>
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">{key.replace('_', ' ')}</p>
-                                            <p className="text-xs font-bold text-slate-700">{String(value) || 'Stable'}</p>
+                                            <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-tighter mb-1">{key.replace('_', ' ')}</p>
+                                            <p className="text-xs font-bold text-main">{String(value) || 'Stable'}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -336,24 +336,24 @@ const AddChiefComplaint = () => {
 
                         <div className="space-y-8">
                             {/* Risks grid */}
-                            <div className="card-premium p-8 bg-white border-slate-100 space-y-6">
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-4">Risk Profiling</h3>
+                            <div className="card-premium p-8 bg-card border-border-card space-y-6">
+                                <h3 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em] border-b border-border-card pb-4">Risk Profiling</h3>
                                 <div className="space-y-4">
-                                    <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
-                                        <span className="text-xs font-bold text-slate-600">Self Harm detected</span>
-                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${extractionData?.risk_markers?.self_harm_detected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                    <div className="flex justify-between items-center bg-page p-3 rounded-xl">
+                                        <span className="text-xs font-bold text-muted">Self Harm detected</span>
+                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${extractionData?.risk_markers?.self_harm_detected ? 'bg-rose-600 text-white' : 'bg-border-card text-muted'}`}>
                                             {extractionData?.risk_markers?.self_harm_detected ? 'Detected' : 'Negative'}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
-                                        <span className="text-xs font-bold text-slate-600">Psychosis detected</span>
-                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${extractionData?.risk_markers?.psychosis_detected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                    <div className="flex justify-between items-center bg-page p-3 rounded-xl">
+                                        <span className="text-xs font-bold text-muted">Psychosis detected</span>
+                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${extractionData?.risk_markers?.psychosis_detected ? 'bg-rose-600 text-white' : 'bg-border-card text-muted'}`}>
                                             {extractionData?.risk_markers?.psychosis_detected ? 'Detected' : 'Negative'}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
-                                        <span className="text-xs font-bold text-slate-600">Violence risk</span>
-                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${extractionData?.risk_markers?.violence_detected ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                    <div className="flex justify-between items-center bg-page p-3 rounded-xl">
+                                        <span className="text-xs font-bold text-muted">Violence risk</span>
+                                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${extractionData?.risk_markers?.violence_detected ? 'bg-rose-600 text-white' : 'bg-border-card text-muted'}`}>
                                             {extractionData?.risk_markers?.violence_detected ? 'Detected' : 'Negative'}
                                         </span>
                                     </div>
@@ -366,7 +366,7 @@ const AddChiefComplaint = () => {
                                 </h3>
                                 <div className="space-y-3">
                                     {extractionData?.structured?.potential_diagnoses?.slice(0, 3).map((dx: string) => (
-                                        <div key={dx} className="flex items-center gap-2 text-xs font-bold text-emerald-800 bg-white/50 p-2 rounded-lg border border-emerald-200">
+                                        <div key={dx} className="flex items-center gap-2 text-xs font-bold text-emerald-800 bg-card/50 p-2 rounded-lg border border-emerald-200">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                             {dx}
                                         </div>

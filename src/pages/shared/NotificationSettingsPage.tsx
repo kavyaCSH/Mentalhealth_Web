@@ -63,7 +63,7 @@ const NotificationSettingsPage = () => {
             title: 'Email Notifications',
             description: 'Direct clinical updates, session reminders, and health insights sent to your registered inbox.',
             icon: <Mail className="text-blue-500" size={24} />,
-            bg: 'bg-blue-50',
+            bg: 'bg-blue-500/10',
             value: preferences.email
         },
         {
@@ -71,7 +71,7 @@ const NotificationSettingsPage = () => {
             title: 'SMS Alerts',
             description: 'Instant mobile text messages for urgent appointment changes and clinical priority alerts.',
             icon: <MessageSquare className="text-emerald-500" size={24} />,
-            bg: 'bg-emerald-50',
+            bg: 'bg-emerald-500/10',
             value: preferences.sms
         },
         {
@@ -79,7 +79,7 @@ const NotificationSettingsPage = () => {
             title: 'Push Notifications',
             description: 'Real-time browser and device alerts for messages, results, and system status updates.',
             icon: <Smartphone className="text-indigo-500" size={24} />,
-            bg: 'bg-indigo-50',
+            bg: 'bg-indigo-500/10',
             value: preferences.push
         }
     ];
@@ -100,8 +100,8 @@ const NotificationSettingsPage = () => {
                         <Bell size={18} />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em]">Clinical Connectivity</span>
                     </div>
-                    <h1 className="text-5xl font-black text-slate-900 tracking-tighter">Notification Settings</h1>
-                    <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl">
+                    <h1 className="text-5xl font-black text-main tracking-tighter">Notification Settings</h1>
+                    <p className="text-muted font-medium text-lg leading-relaxed max-w-xl">
                         Control how you receive clinical signals and administrative updates across all channels.
                     </p>
                 </div>
@@ -113,7 +113,7 @@ const NotificationSettingsPage = () => {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex items-center gap-3 text-emerald-700"
+                        className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl flex items-center gap-3 text-emerald-500"
                     >
                         <CheckCircle2 size={18} />
                         <span className="text-xs font-bold uppercase tracking-widest">{successMessage}</span>
@@ -125,7 +125,7 @@ const NotificationSettingsPage = () => {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="bg-rose-50 border border-rose-100 p-4 rounded-2xl flex items-center gap-3 text-rose-600"
+                        className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl flex items-center gap-3 text-rose-500"
                     >
                         <AlertCircle size={18} />
                         <span className="text-xs font-bold uppercase tracking-widest">{errorMessage}</span>
@@ -134,15 +134,15 @@ const NotificationSettingsPage = () => {
             </AnimatePresence>
 
             {/* Delivery Info Card */}
-            <div className="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[80px] -mr-32 -mt-32 rounded-full"></div>
+            <div className="bg-indigo-950 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/30 blur-[80px] -mr-32 -mt-32 rounded-full"></div>
                 <div className="relative z-10 flex items-start gap-6">
-                    <div className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
-                        <ShieldCheck size={28} />
+                    <div className="w-14 h-14 bg-card/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
+                        <ShieldCheck size={28} className="text-emerald-400" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-black tracking-tight mb-2 uppercase">Encryption Standard</h3>
-                        <p className="text-indigo-100 font-medium leading-relaxed opacity-90 text-sm">
+                        <h3 className="text-xl font-black tracking-tight mb-2 uppercase text-white">Encryption Standard</h3>
+                        <p className="text-indigo-200 font-medium leading-relaxed opacity-90 text-sm">
                             All notification payloads containing protected health information (PHI) are end-to-end encrypted before delivery to third-party providers (Email/SMS).
                         </p>
                     </div>
@@ -157,17 +157,17 @@ const NotificationSettingsPage = () => {
                     {sections.map((section) => (
                         <div 
                             key={section.id}
-                            className="bg-white border border-slate-100 rounded-[3rem] p-8 flex flex-col md:flex-row md:items-center gap-8 transition-all hover:border-indigo-100"
+                            className="bg-card border border-border-card rounded-[3rem] p-8 flex flex-col md:flex-row md:items-center gap-8 transition-all hover:border-indigo-500/30"
                         >
                             <div className={`w-16 h-16 shrink-0 rounded-[1.50rem] flex items-center justify-center ${section.bg}`}>
                                 {section.icon}
                             </div>
 
                             <div className="flex-1 space-y-2">
-                                <h4 className="text-xl font-black text-slate-800 tracking-tight uppercase">
+                                <h4 className="text-xl font-black text-main tracking-tight uppercase">
                                     {section.title}
                                 </h4>
-                                <p className="text-slate-500 font-medium leading-relaxed max-w-2xl">
+                                <p className="text-muted font-medium leading-relaxed max-w-2xl">
                                     {section.description}
                                 </p>
                             </div>
@@ -176,16 +176,16 @@ const NotificationSettingsPage = () => {
                                 <button
                                     onClick={() => handleToggle(section.id as any)}
                                     disabled={isLoading}
-                                    className={`relative w-20 h-10 rounded-full transition-all duration-500 focus:outline-none ring-4 ring-transparent focus:ring-indigo-100
-                                        ${section.value ? 'bg-indigo-600' : 'bg-slate-100'}
+                                    className={`relative w-20 h-10 rounded-full transition-all duration-500 focus:outline-none ring-4 ring-transparent focus:ring-indigo-500/20
+                                        ${section.value ? 'bg-indigo-600' : 'bg-page border border-border-card'}
                                     `}
                                 >
-                                    <div className={`absolute top-1 w-8 h-8 bg-white rounded-full transition-all duration-500 shadow-lg transform
+                                    <div className={`absolute top-1 w-8 h-8 bg-card rounded-full transition-all duration-500 shadow-lg transform
                                         ${section.value ? 'translate-x-11' : 'translate-x-1'}
                                     `}></div>
                                 </button>
                                 <span className={`text-[10px] font-black uppercase tracking-widest w-12
-                                    ${section.value ? 'text-indigo-600' : 'text-slate-400'}
+                                    ${section.value ? 'text-indigo-600' : 'text-muted'}
                                 `}>
                                     {section.value ? 'On' : 'Off'}
                                 </span>
@@ -195,11 +195,11 @@ const NotificationSettingsPage = () => {
                 </div>
             </div>
 
-            <div className="bg-slate-50 border border-slate-100 p-8 rounded-[2.5rem] flex items-start gap-4">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400 shrink-0 shadow-sm">
+            <div className="bg-page border border-border-card p-8 rounded-[2.5rem] flex items-start gap-4">
+                <div className="w-10 h-10 bg-card rounded-xl flex items-center justify-center text-muted shrink-0 shadow-sm border border-border-card">
                     <Info size={20} />
                 </div>
-                <p className="text-[11px] font-bold text-slate-500 leading-relaxed uppercase tracking-widest">
+                <p className="text-[11px] font-bold text-muted leading-relaxed uppercase tracking-widest">
                     Note: Critical biological alerts, security codes, and system maintenance bulletins will always be delivered to ensure clinical safety, regardless of these preferences.
                 </p>
             </div>

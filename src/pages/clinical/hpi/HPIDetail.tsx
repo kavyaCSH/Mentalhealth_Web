@@ -69,7 +69,7 @@ const HPIDetail = () => {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
                 <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-                <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Processing Clinical AI Analysis...</p>
+                <p className="text-muted opacity-80 font-black uppercase tracking-widest text-[10px]">Processing Clinical AI Analysis...</p>
             </div>
         );
     }
@@ -95,7 +95,7 @@ const HPIDetail = () => {
             <header className="flex items-start gap-6">
                 <button
                     onClick={navigateBack}
-                    className="p-2.5 mt-1 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    className="p-2.5 mt-1 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={18} />
                 </button>
@@ -104,17 +104,17 @@ const HPIDetail = () => {
                         <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
                             <HistoryIcon size={18} />
                         </div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                        <h1 className="text-2xl font-black text-main tracking-tight">
                             HPI Clinical AI Detail
                         </h1>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">AI Extraction:</span>
+                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">AI Extraction:</span>
                         <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
                             GPT-4o Clinical
                         </span>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Processed:</span>
-                        <span className="text-xs font-bold text-slate-600">
+                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-4">Processed:</span>
+                        <span className="text-xs font-bold text-muted">
                             {createdAt ? new Date(createdAt).toLocaleString() : 'Just now'}
                         </span>
                     </div>
@@ -128,14 +128,14 @@ const HPIDetail = () => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="card-premium p-6 bg-white border-slate-100 flex flex-col gap-3 relative overflow-hidden shadow-sm"
+                        className="card-premium p-6 bg-card border-border-card flex flex-col gap-3 relative overflow-hidden shadow-sm"
                     >
                         <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -z-10 opacity-50" />
                         <div className="flex items-center gap-2.5 border-b border-indigo-100 pb-3">
                             <FileText size={18} className="text-indigo-600" />
-                            <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">Clinical Narrative</h2>
+                            <h2 className="text-xs font-black text-main uppercase tracking-widest">Clinical Narrative</h2>
                         </div>
-                        <p className="text-base font-bold text-slate-800 leading-relaxed pt-1 italic">
+                        <p className="text-base font-bold text-main leading-relaxed pt-1 italic">
                             "{narrative}"
                         </p>
                     </motion.div>
@@ -147,29 +147,29 @@ const HPIDetail = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="card-premium p-6 bg-white border-slate-100 flex flex-col gap-5"
+                            className="card-premium p-6 bg-card border-border-card flex flex-col gap-5"
                         >
-                            <div className="flex items-center gap-2.5 border-b border-slate-50 pb-3">
+                            <div className="flex items-center gap-2.5 border-b border-border-card pb-3">
                                 <Zap size={16} className="text-amber-500" />
-                                <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">Presentation</h2>
+                                <h2 className="text-xs font-black text-main uppercase tracking-widest">Presentation</h2>
                             </div>
                             <div className="space-y-5">
                                 <div className="grid grid-cols-2 gap-5">
                                     <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Onset</p>
-                                        <p className="text-sm font-bold text-slate-900">{structured?.onset || 'Not specified'}</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-0.5">Onset</p>
+                                        <p className="text-sm font-bold text-main">{structured?.onset || 'Not specified'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Duration</p>
-                                        <p className="text-sm font-bold text-slate-900">{structured?.duration || 'Not specified'}</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-0.5">Duration</p>
+                                        <p className="text-sm font-bold text-main">{structured?.duration || 'Not specified'}</p>
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Course</p>
-                                    <p className="text-sm font-bold text-slate-900">{structured?.course || 'Not specified'}</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-0.5">Course</p>
+                                    <p className="text-sm font-bold text-main">{structured?.course || 'Not specified'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Suicidal Ideation</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5">Suicidal Ideation</p>
                                     <p className={`text-xs font-black px-3 py-1 rounded-xl inline-block ${structured?.suicidal_ideation === 'None' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
                                         {structured?.suicidal_ideation || 'Unknown'}
                                     </p>
@@ -182,27 +182,27 @@ const HPIDetail = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="card-premium p-6 bg-white border-slate-100 flex flex-col gap-5"
+                            className="card-premium p-6 bg-card border-border-card flex flex-col gap-5"
                         >
-                            <div className="flex items-center gap-2.5 border-b border-slate-50 pb-3">
+                            <div className="flex items-center gap-2.5 border-b border-border-card pb-3">
                                 <Brain size={16} className="text-indigo-500" />
-                                <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">Signs & Features</h2>
+                                <h2 className="text-xs font-black text-main uppercase tracking-widest">Signs & Features</h2>
                             </div>
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Mood & Anxiety</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-2">Mood & Anxiety</p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {[...(structured?.mood_features || []), ...(structured?.anxiety_features || [])].map((feat, i) => (
                                             <span key={i} className="text-[10px] font-black bg-indigo-600 text-white px-2 py-1 rounded-md shadow-sm">
                                                 {feat}
                                             </span>
                                         ))}
-                                        {!(structured?.mood_features?.length || structured?.anxiety_features?.length) && <span className="text-sm text-slate-400 font-bold">None detected</span>}
+                                        {!(structured?.mood_features?.length || structured?.anxiety_features?.length) && <span className="text-sm text-muted opacity-80 font-bold">None detected</span>}
                                     </div>
                                 </div>
                                 {structured?.psychotic_features && structured.psychotic_features.length > 0 && (
                                     <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Psychotic Features</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-2">Psychotic Features</p>
                                         <div className="flex flex-wrap gap-1.5">
                                             {structured.psychotic_features.map((feat, i) => (
                                                 <span key={i} className="text-[10px] font-black bg-rose-600 text-white px-2 py-1 rounded-md shadow-sm">
@@ -214,20 +214,20 @@ const HPIDetail = () => {
                                 )}
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Sleep</p>
-                                        <p className="text-sm font-bold text-slate-900">{structured?.sleep || 'Normal'}</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-0.5">Sleep</p>
+                                        <p className="text-sm font-bold text-main">{structured?.sleep || 'Normal'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Appetite</p>
-                                        <p className="text-sm font-bold text-slate-900">{structured?.appetite || 'Normal'}</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-0.5">Appetite</p>
+                                        <p className="text-sm font-bold text-main">{structured?.appetite || 'Normal'}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Energy</p>
-                                        <p className="text-sm font-bold text-slate-900">{structured?.energy || 'Normal'}</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-0.5">Energy</p>
+                                        <p className="text-sm font-bold text-main">{structured?.energy || 'Normal'}</p>
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Cognitive Features</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-0.5">Cognitive Features</p>
                                     <p className="text-sm font-bold text-indigo-700">{structured?.cognitive?.join(', ') || 'Normal concentration'}</p>
                                 </div>
                             </div>
@@ -240,17 +240,17 @@ const HPIDetail = () => {
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="card-premium p-8 bg-white border-none shadow-2xl shadow-indigo-100/40 relative overflow-hidden group"
+                            className="card-premium p-8 bg-card border-none shadow-2xl shadow-indigo-100/40 relative overflow-hidden group"
                         >
                             <div className="relative z-10">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-6 mb-6">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border-card pb-6 mb-6">
                                     <div className="flex items-center gap-4">
                                         <div className="p-3 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-100 rotate-3 group-hover:rotate-0 transition-transform duration-500">
                                             <Scale size={24} />
                                         </div>
                                         <div>
-                                            <h2 className="text-lg font-black text-slate-900 tracking-tight">DSM-5 Clinical Mapping</h2>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Diagnostic Criterion Alignment</p>
+                                            <h2 className="text-lg font-black text-main tracking-tight">DSM-5 Clinical Mapping</h2>
+                                            <p className="text-[10px] font-bold text-muted opacity-80 uppercase tracking-widest mt-0.5">Diagnostic Criterion Alignment</p>
                                         </div>
                                     </div>
                                     <div className="px-4 py-2 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center gap-3">
@@ -264,12 +264,12 @@ const HPIDetail = () => {
                                         <motion.div
                                             key={i}
                                             whileHover={{ y: -3, scale: 1.01 }}
-                                            className="flex gap-4 items-center p-4 bg-slate-50/50 hover:bg-white rounded-2xl border border-transparent hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-100/20 transition-all duration-300"
+                                            className="flex gap-4 items-center p-4 bg-card/50 hover:bg-card rounded-2xl border border-transparent hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-100/20 transition-all duration-300"
                                         >
                                             <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-indigo-600 text-white rounded-xl shadow-sm">
                                                 <CheckCircle2 size={20} />
                                             </div>
-                                            <span className="text-base font-bold text-slate-800 leading-snug tracking-tight">
+                                            <span className="text-base font-bold text-main leading-snug tracking-tight">
                                                 {item}
                                             </span>
                                         </motion.div>
@@ -305,16 +305,16 @@ const HPIDetail = () => {
                             style={{ backgroundColor: color_code || '#6366f1' }}
                         />
                         <div className="flex items-center justify-between relative">
-                            <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">Severity Index</h2>
+                            <h2 className="text-xs font-black text-main uppercase tracking-widest">Severity Index</h2>
                             <ShieldAlert size={18} style={{ color: color_code || '#6366f1' }} />
                         </div>
 
                         <div className="flex flex-col items-center gap-3 relative">
                             <div className="text-5xl font-black tabular-nums tracking-tighter" style={{ color: color_code || '#6366f1' }}>
                                 {severity_index}
-                                <span className="text-base text-slate-300 ml-1">/10</span>
+                                <span className="text-base text-muted opacity-40 ml-1">/10</span>
                             </div>
-                            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="w-full h-2 bg-page rounded-full overflow-hidden">
                                 <div
                                     className="h-full transition-all duration-1000"
                                     style={{
@@ -323,7 +323,7 @@ const HPIDetail = () => {
                                     }}
                                 />
                             </div>
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center px-4 leading-relaxed">
+                            <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest text-center px-4 leading-relaxed">
                                 AI-calculated based on symptom density.
                             </p>
                         </div>
@@ -343,7 +343,7 @@ const HPIDetail = () => {
                             </h2>
                             <ul className="space-y-4">
                                 {recommendations.map((rec, i) => (
-                                    <li key={i} className="flex gap-3 text-sm font-bold text-slate-900">
+                                    <li key={i} className="flex gap-3 text-sm font-bold text-main">
                                         <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-1.5 flex-shrink-0 ring-2 ring-amber-100" />
                                         <span className="leading-snug">{rec}</span>
                                     </li>
@@ -357,20 +357,20 @@ const HPIDetail = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 }}
-                        className="card-premium p-6 bg-white border-slate-100"
+                        className="card-premium p-6 bg-card border-border-card"
                     >
-                        <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-5 border-b border-slate-50 pb-3">Clinical Profile</h2>
+                        <h2 className="text-xs font-black text-main uppercase tracking-widest mb-5 border-b border-border-card pb-3">Clinical Profile</h2>
                         <div className="space-y-5">
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">History</p>
-                                <p className="text-sm font-bold text-slate-900">{structured?.previous_episodes === 'No' ? 'First time occurrence' : 'Recurrent condition'}</p>
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-0.5">History</p>
+                                <p className="text-sm font-bold text-main">{structured?.previous_episodes === 'No' ? 'First time occurrence' : 'Recurrent condition'}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Treatment Intensity</p>
-                                <p className="text-sm font-bold text-slate-900">{structured?.treatment_response || 'Assessment needed'}</p>
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-0.5">Treatment Intensity</p>
+                                <p className="text-sm font-bold text-main">{structured?.treatment_response || 'Assessment needed'}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Status</p>
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5">Status</p>
                                 <span className="inline-block text-[10px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 uppercase tracking-widest">
                                     Validated by AI
                                 </span>

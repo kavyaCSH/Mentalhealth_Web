@@ -171,9 +171,9 @@ const HospitalEditPatient = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="p-6 bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 rounded-[2rem] text-white relative overflow-hidden"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full translate-x-10 -translate-y-10" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-card/10 blur-3xl rounded-full translate-x-10 -translate-y-10" />
                         <div className="relative z-10 flex items-center gap-5">
-                            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white font-black text-2xl border border-white/20 shrink-0">
+                            <div className="w-16 h-16 bg-card/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white font-black text-2xl border border-white/20 shrink-0">
                                 {formData.firstName?.charAt(0)}{formData.lastName?.charAt(0)}
                             </div>
                             <div>

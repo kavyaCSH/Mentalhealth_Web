@@ -218,7 +218,7 @@ const AddROS = () => {
                             const isSel = question.type === 'select' ? value === opt : (Array.isArray(value) && value.includes(opt));
                             return (
                                 <button key={opt} onClick={() => question.type === 'select' ? handleValueChange(section, question.key, opt) : handleMultiselectToggle(section, question.key, opt)}
-                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${isSel ? theme.active : `bg-slate-50 border-transparent text-slate-600 ${theme.hoverBorder}`}`}>
+                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${isSel ? theme.active : `bg-page border-transparent text-muted ${theme.hoverBorder}`}`}>
                                     <span className="text-xs font-black uppercase tracking-tight">{opt}</span>
                                 </button>
                             );
@@ -231,7 +231,7 @@ const AddROS = () => {
                         <div className="flex gap-4">
                             {[true, false].map(v => (
                                 <button key={v ? 'y' : 'n'} onClick={() => handleValueChange(section, question.key, v)}
-                                    className={`flex-1 p-4 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] ${value === v ? (v ? theme.active : 'bg-slate-800 border-slate-800 text-white') : 'bg-slate-50 border-transparent text-slate-400'}`}>
+                                    className={`flex-1 p-4 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] ${value === v ? (v ? theme.active : 'bg-slate-800 border-slate-800 text-white') : 'bg-page border-transparent text-muted opacity-80'}`}>
                                     {v ? 'Yes / Present' : 'No / Denied'}
                                 </button>
                             ))}
@@ -240,7 +240,7 @@ const AddROS = () => {
                             <div className={`pl-6 border-l-4 ${theme.borderSoft} space-y-6 mt-4`}>
                                 {question.follow_up.map((fu: any) => (
                                     <div key={fu.key} className="space-y-3">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{fu.label}</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">{fu.label}</p>
                                         {renderQuestion(section, fu)}
                                     </div>
                                 ))}
@@ -249,18 +249,18 @@ const AddROS = () => {
                     </div>
                 );
             case 'text':
-                return <textarea value={value || ''} onChange={e => handleValueChange(section, question.key, e.target.value)} className={`w-full min-h-[100px] p-6 bg-slate-50 border-2 border-transparent rounded-3xl text-sm font-bold focus:bg-white outline-none transition-all resize-none mt-4`} />;
+                return <textarea value={value || ''} onChange={e => handleValueChange(section, question.key, e.target.value)} className={`w-full min-h-[100px] p-6 bg-page border-2 border-transparent rounded-3xl text-sm font-bold focus:bg-card outline-none transition-all resize-none mt-4`} />;
             default: return null;
         }
     };
 
     const navigateBack = () => navigate(-1);
 
-    if (isLoading) return <div className="flex flex-col items-center justify-center min-h-[60vh]"><Activity className="animate-spin text-indigo-600 mb-4" size={40} /><p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Hydrating Review...</p></div>;
+    if (isLoading) return <div className="flex flex-col items-center justify-center min-h-[60vh]"><Activity className="animate-spin text-indigo-600 mb-4" size={40} /><p className="text-sm font-bold text-muted uppercase tracking-widest">Hydrating Review...</p></div>;
 
     if (result) return (
         <div className="p-10 max-w-[1400px] mx-auto space-y-12 animate-fade-in pb-32">
-            <header className="flex items-end justify-between border-b-2 border-slate-50 pb-12">
+            <header className="flex items-end justify-between border-b-2 border-border-card pb-12">
                 <div className="space-y-4">
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-100/20">
@@ -269,28 +269,28 @@ const AddROS = () => {
                         <div>
                             <div className="flex items-center gap-3 mb-1">
                                 <span className={`px-3 py-1 ${result.color_code === 'Red' ? 'bg-rose-600' : 'bg-emerald-600'} text-white rounded-lg text-[10px] font-bold tracking-tight shadow-lg`}>Record processed</span>
-                                <span className="text-[11px] font-medium text-slate-400 tabular-nums tracking-tight leading-none">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                <span className="text-[11px] font-medium text-muted opacity-80 tabular-nums tracking-tight leading-none">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                             </div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none">Systemic review</h1>
+                            <h1 className="text-4xl font-black text-main tracking-tighter leading-none">Systemic review</h1>
                         </div>
                     </div>
                 </div>
-                <Button variant="outline" onClick={navigateBack} className="h-14 px-10 rounded-2xl border border-slate-200 font-bold text-[11px] tracking-tight hover:bg-slate-50">
+                <Button variant="outline" onClick={navigateBack} className="h-14 px-10 rounded-2xl border border-border-card font-bold text-[11px] tracking-tight hover:bg-page">
                     Exit record
                 </Button>
             </header>
 
             <div className="grid lg:grid-cols-12 gap-12">
                 <div className="lg:col-span-12">
-                    <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] relative overflow-hidden group">
+                    <section className="bg-card p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-16 opacity-[0.03] group-hover:scale-110 transition-transform duration-[3s] text-indigo-600"><Cpu size={240} /></div>
                         <div className="relative space-y-8">
                             <div className="flex items-center gap-4">
                                 <div className={`w-1 h-8 ${result.color_code === 'Red' ? 'bg-rose-600' : 'bg-indigo-600'} rounded-full`} />
-                                <h3 className="text-[12px] font-bold text-slate-900 tracking-tight">Clinical systemic formulation</h3>
+                                <h3 className="text-[12px] font-bold text-main tracking-tight">Clinical systemic formulation</h3>
                             </div>
-                            <div className="pl-6 border-l-4 border-slate-50 py-1">
-                                <p className="text-2xl font-bold text-slate-800 leading-relaxed tracking-tight italic">
+                            <div className="pl-6 border-l-4 border-border-card py-1">
+                                <p className="text-2xl font-bold text-main leading-relaxed tracking-tight italic">
                                     "{result.ai_notes || 'Systemic correlation pending formal auditor verification.'}"
                                 </p>
                             </div>
@@ -299,18 +299,18 @@ const AddROS = () => {
                 </div>
 
                 <div className="lg:col-span-8">
-                    <section className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] h-full">
+                    <section className="bg-card p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(79,70,229,0.08)] h-full">
                         <div className="space-y-12">
                             <header className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-100/40"><AlertTriangle size={22} /></div>
-                                <h3 className="text-[12px] font-bold text-slate-900 tracking-tight">Organic rule-outs & alerts</h3>
+                                <h3 className="text-[12px] font-bold text-main tracking-tight">Organic rule-outs & alerts</h3>
                             </header>
                             
                             <div className="grid md:grid-cols-2 gap-10">
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3">
                                         <div className="w-1.5 h-6 bg-rose-600 rounded-full" />
-                                        <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Organic red flags</h4>
+                                        <h4 className="text-[11px] font-bold text-muted opacity-80 tracking-tight">Organic red flags</h4>
                                     </div>
                                     <div className="space-y-3">
                                         {result.organic_red_flags?.length ? result.organic_red_flags.map((flag: string, i: number) => (
@@ -318,13 +318,13 @@ const AddROS = () => {
                                                 <AlertCircle size={18} />
                                                 {flag}
                                             </div>
-                                        )) : <p className="text-sm font-bold text-slate-400 italic font-medium px-2">No acute organic flags identified.</p>}
+                                        )) : <p className="text-sm font-bold text-muted opacity-80 italic font-medium px-2">No acute organic flags identified.</p>}
                                     </div>
                                 </div>
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3">
                                         <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
-                                        <h4 className="text-[11px] font-bold text-slate-400 tracking-tight">Pharmacological risks</h4>
+                                        <h4 className="text-[11px] font-bold text-muted opacity-80 tracking-tight">Pharmacological risks</h4>
                                     </div>
                                     <div className="space-y-3">
                                         {result.medication_induced_risk?.length ? result.medication_induced_risk.map((risk: string, i: number) => (
@@ -332,14 +332,14 @@ const AddROS = () => {
                                                 <Shield size={18} />
                                                 {risk}
                                             </div>
-                                        )) : <p className="text-sm font-bold text-slate-400 italic font-medium px-2">No atypical medication correlations found.</p>}
+                                        )) : <p className="text-sm font-bold text-muted opacity-80 italic font-medium px-2">No atypical medication correlations found.</p>}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="pt-10 border-t border-slate-50 flex items-center justify-between">
+                            <div className="pt-10 border-t border-border-card flex items-center justify-between">
                                 <div className="space-y-2">
-                                    <h5 className="text-[11px] font-bold text-slate-400 tracking-tight">Substance probability audit</h5>
+                                    <h5 className="text-[11px] font-bold text-muted opacity-80 tracking-tight">Substance probability audit</h5>
                                     <div className="flex items-center gap-3">
                                         <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                                             result.substance_induced_probability === 'High' ? 'bg-rose-600 text-white shadow-lg shadow-rose-200' :
@@ -360,19 +360,19 @@ const AddROS = () => {
                     <div className="space-y-8">
                         <header className="flex items-center gap-4 mb-2 p-1">
                             <Target size={20} className="text-indigo-600" />
-                            <h3 className="text-[12px] font-bold text-slate-900 tracking-tight">Clinical highlights</h3>
+                            <h3 className="text-[12px] font-bold text-main tracking-tight">Clinical highlights</h3>
                         </header>
                         
                         <div className="grid gap-4">
-                            <div className="p-6 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] flex items-center gap-6 relative group">
+                            <div className="p-6 bg-card rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] flex items-center gap-6 relative group">
                                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-indigo-600 rounded-r-full" />
                                 <div className="w-10 h-10 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-bold text-xs shrink-0 shadow-lg shadow-slate-100"><Activity size={18} /></div>
-                                <p className="text-sm font-bold text-slate-700 leading-tight tracking-tight">Organic correlation performed</p>
+                                <p className="text-sm font-bold text-main leading-tight tracking-tight">Organic correlation performed</p>
                             </div>
-                            <div className="p-6 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] flex items-center gap-6 relative group">
+                            <div className="p-6 bg-card rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] flex items-center gap-6 relative group">
                                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-rose-600 rounded-r-full" />
                                 <div className="w-10 h-10 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-bold text-xs shrink-0 shadow-lg shadow-slate-100"><Shield size={18} /></div>
-                                <p className="text-sm font-bold text-slate-700 leading-tight tracking-tight">Medication cross-audit complete</p>
+                                <p className="text-sm font-bold text-main leading-tight tracking-tight">Medication cross-audit complete</p>
                             </div>
                         </div>
                     </div>
@@ -387,38 +387,38 @@ const AddROS = () => {
         <div className="p-8 max-w-6xl mx-auto space-y-10 animate-fade-in pb-24">
             <header className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                    <button onClick={navigateBack} className="p-3 bg-white border rounded-2xl text-slate-500"><ChevronLeft size={20} /></button>
-                    <div><h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3"><Stethoscope className="text-indigo-600" size={32} />Review of Systems</h1></div>
+                    <button onClick={navigateBack} className="p-3 bg-card border rounded-2xl text-muted"><ChevronLeft size={20} /></button>
+                    <div><h1 className="text-4xl font-black text-main tracking-tight flex items-center gap-3"><Stethoscope className="text-indigo-600" size={32} />Review of Systems</h1></div>
                 </div>
-                <button onClick={() => setUseAssistant(!useAssistant)} className={`px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 border-2 transition-all ${useAssistant ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-indigo-100 text-indigo-600'}`}><Bot size={16} />{useAssistant ? 'FORM VIEW' : 'AI ASSISTANT'}</button>
+                <button onClick={() => setUseAssistant(!useAssistant)} className={`px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 border-2 transition-all ${useAssistant ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-card border-indigo-100 text-indigo-600'}`}><Bot size={16} />{useAssistant ? 'FORM VIEW' : 'AI ASSISTANT'}</button>
             </header>
 
             {useAssistant ? (
-                <div className="card-premium p-12 bg-white space-y-8">
+                <div className="card-premium p-12 bg-card space-y-8">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4"><div className="p-4 bg-indigo-50 text-indigo-600 rounded-full"><Sparkles size={24} /></div><div><h2 className="text-2xl font-black text-slate-900 tracking-tight">Systemic Narrative Intake</h2><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Describe current symptoms or systemic issues</p></div></div>
-                        <button onClick={toggleRecording} className={`p-4 rounded-2xl flex items-center gap-3 border-2 ${isRecording ? 'bg-rose-500 text-white border-rose-500 animate-pulse' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>{isRecording ? <MicOff size={20} /> : <Mic size={20} />}<span className="text-[10px] font-black uppercase tracking-widest">{isRecording ? 'Listening...' : 'Record Voice'}</span></button>
+                        <div className="flex items-center gap-4"><div className="p-4 bg-indigo-50 text-indigo-600 rounded-full"><Sparkles size={24} /></div><div><h2 className="text-2xl font-black text-main tracking-tight">Systemic Narrative Intake</h2><p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Describe current symptoms or systemic issues</p></div></div>
+                        <button onClick={toggleRecording} className={`p-4 rounded-2xl flex items-center gap-3 border-2 ${isRecording ? 'bg-rose-500 text-white border-rose-500 animate-pulse' : 'bg-page border-border-card text-muted opacity-80'}`}>{isRecording ? <MicOff size={20} /> : <Mic size={20} />}<span className="text-[10px] font-black uppercase tracking-widest">{isRecording ? 'Listening...' : 'Record Voice'}</span></button>
                     </div>
-                    <textarea value={narrative} onChange={e => setNarrative(e.target.value)} placeholder="Tell us about any symptoms in your body systems (heart, lung, skin, stomach, etc.)..." className="w-full min-h-[350px] p-8 bg-slate-50 border-2 border-transparent rounded-[2.5rem] text-lg font-bold text-slate-700 outline-none transition-all resize-none shadow-inner" />
+                    <textarea value={narrative} onChange={e => setNarrative(e.target.value)} placeholder="Tell us about any symptoms in your body systems (heart, lung, skin, stomach, etc.)..." className="w-full min-h-[350px] p-8 bg-page border-2 border-transparent rounded-[2.5rem] text-lg font-bold text-main outline-none transition-all resize-none shadow-inner" />
                     <div className="flex justify-end"><Button variant="primary" className="px-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-100" onClick={handleNarrativeExtract} isLoading={isExtracting} rightIcon={<ChevronRight size={18} />}>Extract ROS with AI</Button></div>
                 </div>
             ) : (
                 <>
                     <div className="flex gap-4 overflow-x-auto pb-6 hide-scrollbar px-2">
-                        {sections.map((s, idx) => <button key={s.section} onClick={() => setCurrentStep(idx)} className={`px-8 py-6 rounded-[2rem] border-2 transition-all min-w-[200px] ${idx === currentStep ? getTheme(s.section).active : 'bg-white border-slate-100 text-slate-400'}`}>{getSectionIcon(s.section)}<span className="text-[10px] font-black uppercase tracking-widest mt-2 block">{s.title}</span></button>)}
+                        {sections.map((s, idx) => <button key={s.section} onClick={() => setCurrentStep(idx)} className={`px-8 py-6 rounded-[2rem] border-2 transition-all min-w-[200px] ${idx === currentStep ? getTheme(s.section).active : 'bg-card border-border-card text-muted opacity-80'}`}>{getSectionIcon(s.section)}<span className="text-[10px] font-black uppercase tracking-widest mt-2 block">{s.title}</span></button>)}
                     </div>
                     <div className="grid lg:grid-cols-4 gap-12">
                         <div className="lg:col-span-3">
-                            <AnimatePresence mode="wait"><motion.div key={currentSection.section} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="card-premium p-12 bg-white border-slate-100 ring-1 ring-slate-100 shadow-xl">
-                                <header className="mb-8"><h2 className="text-3xl font-black text-slate-900 tracking-tight">{currentSection.title}</h2><p className="text-slate-500 text-sm">{currentSection.description}</p></header>
-                                <div className="space-y-12">{currentSection.questions.map(q => <div key={q.key} className="space-y-4"><label className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2"><div className={`w-1.5 h-6 ${getTheme(currentSection.section).dot} rounded-full`} />{q.label}</label>{renderQuestion(currentSection.section, q)}</div>)}</div>
+                            <AnimatePresence mode="wait"><motion.div key={currentSection.section} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="card-premium p-12 bg-card border-border-card ring-1 ring-slate-100 shadow-xl">
+                                <header className="mb-8"><h2 className="text-3xl font-black text-main tracking-tight">{currentSection.title}</h2><p className="text-muted text-sm">{currentSection.description}</p></header>
+                                <div className="space-y-12">{currentSection.questions.map(q => <div key={q.key} className="space-y-4"><label className="text-xs font-black text-main uppercase tracking-widest flex items-center gap-2"><div className={`w-1.5 h-6 ${getTheme(currentSection.section).dot} rounded-full`} />{q.label}</label>{renderQuestion(currentSection.section, q)}</div>)}</div>
                                 <div className="flex items-center gap-4 pt-12 border-t mt-12">
                                     <Button variant="outline" disabled={currentStep === 0} onClick={() => setCurrentStep(prev => prev - 1)} leftIcon={<ChevronLeft size={18} />}>Back</Button>
                                     {currentStep < sections.length - 1 ? <Button variant="primary" className={`ml-auto rounded-2xl ${getTheme(currentSection.section).active}`} onClick={() => setCurrentStep(prev => prev + 1)} rightIcon={<ChevronRight size={18} />}>Next Section</Button> : <Button variant="primary" className="ml-auto rounded-2xl bg-black border-black text-white px-10" onClick={handleSubmit} isLoading={isSaving} leftIcon={<Save size={18} />}>Finalize Review</Button>}
                                 </div>
                             </motion.div></AnimatePresence>
                         </div>
-                        <div className="lg:col-span-1 border-l pl-8 space-y-4"><h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Review Systems</h3>{sections.map((s, i) => <div key={s.section} className={`p-4 rounded-xl text-xs font-bold cursor-pointer ${i === currentStep ? 'bg-indigo-600 text-white' : 'text-slate-500'}`} onClick={() => setCurrentStep(i)}>{s.title}</div>)}</div>
+                        <div className="lg:col-span-1 border-l pl-8 space-y-4"><h3 className="text-[10px] font-black uppercase tracking-widest text-muted opacity-80">Review Systems</h3>{sections.map((s, i) => <div key={s.section} className={`p-4 rounded-xl text-xs font-bold cursor-pointer ${i === currentStep ? 'bg-indigo-600 text-white' : 'text-muted'}`} onClick={() => setCurrentStep(i)}>{s.title}</div>)}</div>
                     </div>
                 </>
             )}

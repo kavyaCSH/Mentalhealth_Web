@@ -121,7 +121,7 @@ const ClinicalIntelligencePage = () => {
                 <div className="space-y-2">
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> Clinical Command
                     </button>
@@ -130,7 +130,7 @@ const ClinicalIntelligencePage = () => {
                             <Brain size={30} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight text-main">Clinical Intelligence</h1>
+                            <h1 className="text-4xl font-black text-main tracking-tight text-main">Clinical Intelligence</h1>
                             <p className="text-muted font-medium">AI-powered diagnostics, treatment oversight & risk stratification.</p>
                         </div>
                     </div>
@@ -138,36 +138,36 @@ const ClinicalIntelligencePage = () => {
             </header>
 
             {/* Patient Lookup */}
-            <div className="card-premium p-8 border-slate-100/50 space-y-6">
+            <div className="card-premium p-8 border-border-card/50 space-y-6">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
                         <Search size={20} />
                     </div>
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 tracking-tight">Patient Intelligence Lookup</h2>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Enter a Patient ID to load their clinical dossier.</p>
+                        <h2 className="text-lg font-black text-main tracking-tight">Patient Intelligence Lookup</h2>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Enter a Patient ID to load their clinical dossier.</p>
                     </div>
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1 space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Patient ID</label>
+                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Patient ID</label>
                         <input
                             required
                             type="text"
                             placeholder="e.g., 17"
-                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                            className="w-full bg-page border border-border-card rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
                             value={patientId}
                             onChange={(e) => setPatientId(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
                         />
                     </div>
                     <div className="w-full md:w-48 space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Consult ID <span className="text-slate-300">(Opt.)</span></label>
+                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Consult ID <span className="text-muted opacity-40">(Opt.)</span></label>
                         <input
                             type="text"
                             placeholder="e.g., 1001"
-                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                            className="w-full bg-page border border-border-card rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none"
                             value={consultId}
                             onChange={(e) => setConsultId(e.target.value)}
                         />
@@ -223,7 +223,7 @@ const ClinicalIntelligencePage = () => {
                                 className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                                     activeTab === tab
                                         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
-                                        : 'bg-slate-50 text-slate-500 border border-slate-100 hover:border-indigo-200'
+                                        : 'bg-page text-muted border border-border-card hover:border-indigo-200'
                                 }`}
                             >
                                 {tab === 'summary' ? '📋 Clinical Summary' : tab === 'inference' ? '🧠 AI Inference' : `💊 Plans (${planHistory.length})`}
@@ -235,14 +235,14 @@ const ClinicalIntelligencePage = () => {
                     {activeTab === 'summary' && summary && (
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                             {/* Patient Header + Risk */}
-                            <div className="card-premium p-8 border-slate-100/50 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="card-premium p-8 border-border-card/50 flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 <div className="flex items-center gap-5">
                                     <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm">
                                         <User size={32} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{summary.patient.name}</h2>
-                                        <p className="text-sm font-bold text-slate-500">
+                                        <h2 className="text-2xl font-black text-main tracking-tight">{summary.patient.name}</h2>
+                                        <p className="text-sm font-bold text-muted">
                                             {summary.patient.age} yrs • {summary.patient.gender} • ID: {patientId}
                                         </p>
                                     </div>
@@ -257,7 +257,7 @@ const ClinicalIntelligencePage = () => {
 
                             {/* Module Status Grid */}
                             <div>
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1">
+                                <h3 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-4 ml-1">
                                     Clinical Modules — {summary.summary.total_modules_completed}/6 Completed
                                 </h3>
                                 <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
@@ -267,22 +267,22 @@ const ClinicalIntelligencePage = () => {
                                         return (
                                             <div
                                                 key={key}
-                                                className={`card-premium p-5 text-center space-y-3 border-slate-100/50 ${
+                                                className={`card-premium p-5 text-center space-y-3 border-border-card/50 ${
                                                     status === 'completed' ? 'ring-2 ring-emerald-200 ring-offset-2' : ''
                                                 }`}
                                             >
                                                 <div className={`w-10 h-10 mx-auto rounded-xl flex items-center justify-center ${
                                                     status === 'completed' ? 'bg-emerald-50 text-emerald-600' :
                                                     status === 'in_progress' ? 'bg-amber-50 text-amber-600' :
-                                                    'bg-slate-50 text-slate-300'
+                                                    'bg-page text-muted opacity-40'
                                                 }`}>
                                                     <ModIcon size={20} />
                                                 </div>
-                                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-tight">{mod.label}</p>
+                                                <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-tight">{mod.label}</p>
                                                 <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border inline-block ${
                                                     status === 'completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
                                                     status === 'in_progress' ? 'bg-amber-50 text-amber-600 border-amber-200' :
-                                                    'bg-slate-50 text-slate-400 border-slate-200'
+                                                    'bg-page text-muted opacity-80 border-border-card'
                                                 }`}>
                                                     {status}
                                                 </span>
@@ -309,8 +309,8 @@ const ClinicalIntelligencePage = () => {
                                         <Sparkles size={40} className="text-violet-600 animate-pulse" />
                                     </div>
                                     <div>
-                                        <p className="text-lg font-black text-slate-900 uppercase tracking-widest">Generating AI Inference</p>
-                                        <p className="text-xs font-bold text-slate-400 mt-1">Analyzing clinical modules, cross-referencing DSM-5 criteria...</p>
+                                        <p className="text-lg font-black text-main uppercase tracking-widest">Generating AI Inference</p>
+                                        <p className="text-xs font-bold text-muted opacity-80 mt-1">Analyzing clinical modules, cross-referencing DSM-5 criteria...</p>
                                     </div>
                                 </div>
                             ) : inference ? (
@@ -330,14 +330,14 @@ const ClinicalIntelligencePage = () => {
                                                 'text-emerald-600'
                                             } />
                                             <div>
-                                                <h3 className="text-xl font-black text-slate-900 tracking-tight">Risk Stratification</h3>
-                                                <p className="text-sm font-bold text-slate-600 capitalize">
+                                                <h3 className="text-xl font-black text-main tracking-tight">Risk Stratification</h3>
+                                                <p className="text-sm font-bold text-muted capitalize">
                                                     Level: <span className="font-black uppercase">{inference.risk_stratification.level}</span> • Score: {inference.risk_stratification.score}/100
                                                 </p>
                                             </div>
                                         </div>
                                         {inference.risk_stratification.description && (
-                                            <p className="text-sm font-medium text-slate-600 leading-relaxed">{inference.risk_stratification.description}</p>
+                                            <p className="text-sm font-medium text-muted leading-relaxed">{inference.risk_stratification.description}</p>
                                         )}
                                     </div>
 
@@ -350,7 +350,7 @@ const ClinicalIntelligencePage = () => {
                                             </div>
                                             <div className="space-y-2">
                                                 {inference.red_flags.map((flag, i) => (
-                                                    <div key={i} className="flex items-start gap-3 p-4 bg-white/80 rounded-2xl border border-rose-100">
+                                                    <div key={i} className="flex items-start gap-3 p-4 bg-card/80 rounded-2xl border border-rose-100">
                                                         <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
                                                         <p className="text-sm font-bold text-rose-800">{flag}</p>
                                                     </div>
@@ -360,20 +360,20 @@ const ClinicalIntelligencePage = () => {
                                     )}
 
                                     {/* Differential Diagnosis */}
-                                    <div className="card-premium p-8 border-slate-100/50 space-y-6">
+                                    <div className="card-premium p-8 border-border-card/50 space-y-6">
                                         <div className="flex items-center gap-3">
                                             <Stethoscope size={24} className="text-indigo-600" />
-                                            <h3 className="text-lg font-black text-slate-900 tracking-tight">Differential Diagnosis</h3>
+                                            <h3 className="text-lg font-black text-main tracking-tight">Differential Diagnosis</h3>
                                         </div>
                                         <div className="space-y-4">
                                             {inference.differential_diagnosis.map((dx, i) => (
-                                                <div key={i} className="flex items-center gap-6 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <div key={i} className="flex items-center gap-6 p-5 bg-page rounded-2xl border border-border-card">
                                                     <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-700 text-sm font-black shrink-0">
                                                         #{i + 1}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-base font-black text-slate-900">{dx.condition}</p>
-                                                        {dx.reasoning && <p className="text-xs font-medium text-slate-500 mt-1 leading-relaxed">{dx.reasoning}</p>}
+                                                        <p className="text-base font-black text-main">{dx.condition}</p>
+                                                        {dx.reasoning && <p className="text-xs font-medium text-muted mt-1 leading-relaxed">{dx.reasoning}</p>}
                                                     </div>
                                                     <div className="text-right shrink-0">
                                                         <div className="relative w-14 h-14">
@@ -401,10 +401,10 @@ const ClinicalIntelligencePage = () => {
                                                 {inference.criteria_matched.map((c, i) => (
                                                     <div key={i} className="flex items-start gap-3 p-3 bg-emerald-50/50 rounded-xl">
                                                         <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-                                                        <p className="text-xs font-bold text-slate-700">{c}</p>
+                                                        <p className="text-xs font-bold text-main">{c}</p>
                                                     </div>
                                                 ))}
-                                                {inference.criteria_matched.length === 0 && <p className="text-xs font-bold text-slate-400">No criteria matched.</p>}
+                                                {inference.criteria_matched.length === 0 && <p className="text-xs font-bold text-muted opacity-80">No criteria matched.</p>}
                                             </div>
                                         </div>
                                         <div className="card-premium p-8 border-amber-100/50 space-y-4">
@@ -415,21 +415,21 @@ const ClinicalIntelligencePage = () => {
                                                 {inference.criteria_missing.map((c, i) => (
                                                     <div key={i} className="flex items-start gap-3 p-3 bg-amber-50/50 rounded-xl">
                                                         <X size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                                                        <p className="text-xs font-bold text-slate-700">{c}</p>
+                                                        <p className="text-xs font-bold text-main">{c}</p>
                                                     </div>
                                                 ))}
-                                                {inference.criteria_missing.length === 0 && <p className="text-xs font-bold text-slate-400">No missing criteria.</p>}
+                                                {inference.criteria_missing.length === 0 && <p className="text-xs font-bold text-muted opacity-80">No missing criteria.</p>}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Rule-Outs */}
                                     {inference.rule_outs.length > 0 && (
-                                        <div className="card-premium p-8 border-slate-100/50 space-y-4">
-                                            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Rule-Outs</h3>
+                                        <div className="card-premium p-8 border-border-card/50 space-y-4">
+                                            <h3 className="text-[10px] font-black text-muted uppercase tracking-widest">Rule-Outs</h3>
                                             <div className="flex flex-wrap gap-3">
                                                 {inference.rule_outs.map((r, i) => (
-                                                    <span key={i} className="px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-black text-slate-600 line-through decoration-rose-300 decoration-2">
+                                                    <span key={i} className="px-4 py-2 bg-page border border-border-card rounded-xl text-xs font-black text-muted line-through decoration-rose-300 decoration-2">
                                                         {r}
                                                     </span>
                                                 ))}
@@ -440,8 +440,8 @@ const ClinicalIntelligencePage = () => {
                             ) : (
                                 <div className="card-premium p-20 text-center border-dashed border-2 border-violet-100 space-y-4">
                                     <Sparkles size={50} className="mx-auto text-violet-200" />
-                                    <h3 className="text-lg font-black text-slate-400 uppercase tracking-widest">No Inference Generated</h3>
-                                    <p className="text-xs font-bold text-slate-300">Use the "AI Inference" button to trigger AI-powered clinical diagnostics.</p>
+                                    <h3 className="text-lg font-black text-muted opacity-80 uppercase tracking-widest">No Inference Generated</h3>
+                                    <p className="text-xs font-bold text-muted opacity-40">Use the "AI Inference" button to trigger AI-powered clinical diagnostics.</p>
                                 </div>
                             )}
                         </motion.div>
@@ -456,24 +456,24 @@ const ClinicalIntelligencePage = () => {
                                 </div>
                             ) : planHistory.length > 0 ? (
                                 planHistory.map((plan, i) => (
-                                    <div key={plan._id || i} className="card-premium p-8 border-slate-100/50 space-y-6">
+                                    <div key={plan._id || i} className="card-premium p-8 border-border-card/50 space-y-6">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
                                                     <Stethoscope size={24} />
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                                                    <h3 className="text-lg font-black text-main tracking-tight">
                                                         Clinical Plan #{planHistory.length - i}
                                                     </h3>
                                                     {plan.clinician && (
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                                                             By Dr. {plan.clinician.firstName} {plan.clinician.lastName} • {plan.clinician.role}
                                                         </p>
                                                     )}
                                                 </div>
                                             </div>
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                            <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                                                 {plan.createdAt ? new Date(plan.createdAt).toLocaleDateString() : '—'}
                                             </span>
                                         </div>
@@ -481,24 +481,24 @@ const ClinicalIntelligencePage = () => {
                                         <div className="grid gap-4 md:grid-cols-3">
                                             <div className="p-5 bg-indigo-50/50 rounded-3xl border border-indigo-100/50 space-y-2">
                                                 <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><FileText size={12} /> Treatment Plan</p>
-                                                <p className="text-sm font-medium text-slate-700 leading-relaxed">{plan.plan}</p>
+                                                <p className="text-sm font-medium text-main leading-relaxed">{plan.plan}</p>
                                             </div>
                                             <div className="p-5 bg-emerald-50/50 rounded-3xl border border-emerald-100/50 space-y-2">
                                                 <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2"><Pill size={12} /> Medications</p>
-                                                <p className="text-sm font-medium text-slate-700 leading-relaxed">{plan.medications || 'None prescribed'}</p>
+                                                <p className="text-sm font-medium text-main leading-relaxed">{plan.medications || 'None prescribed'}</p>
                                             </div>
                                             <div className="p-5 bg-amber-50/50 rounded-3xl border border-amber-100/50 space-y-2">
                                                 <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-2"><ChevronRight size={12} /> Next Steps</p>
-                                                <p className="text-sm font-medium text-slate-700 leading-relaxed">{plan.next_steps || '—'}</p>
+                                                <p className="text-sm font-medium text-main leading-relaxed">{plan.next_steps || '—'}</p>
                                             </div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="card-premium p-20 text-center border-dashed border-2 border-slate-100 space-y-4">
-                                    <Pill size={50} className="mx-auto text-slate-200" />
-                                    <h3 className="text-lg font-black text-slate-400 uppercase tracking-widest">No Plans Filed</h3>
-                                    <p className="text-xs font-bold text-slate-300">No clinical treatment plans have been recorded for this patient.</p>
+                                <div className="card-premium p-20 text-center border-dashed border-2 border-border-card space-y-4">
+                                    <Pill size={50} className="mx-auto text-muted opacity-40" />
+                                    <h3 className="text-lg font-black text-muted opacity-80 uppercase tracking-widest">No Plans Filed</h3>
+                                    <p className="text-xs font-bold text-muted opacity-40">No clinical treatment plans have been recorded for this patient.</p>
                                 </div>
                             )}
                         </motion.div>
@@ -508,13 +508,13 @@ const ClinicalIntelligencePage = () => {
 
             {/* Empty State */}
             {!summary && !inference && planHistory.length === 0 && !loadingSummary && (
-                <div className="card-premium p-20 text-center border-dashed border-2 border-slate-100 space-y-6">
+                <div className="card-premium p-20 text-center border-dashed border-2 border-border-card space-y-6">
                     <div className="w-24 h-24 mx-auto bg-violet-50 rounded-full flex items-center justify-center">
                         <Brain size={48} className="text-violet-300" />
                     </div>
                     <div className="space-y-2">
-                        <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">Clinical Intelligence Console</h3>
-                        <p className="text-sm font-bold text-slate-300 max-w-md mx-auto">
+                        <h3 className="text-xl font-black text-muted opacity-80 uppercase tracking-widest">Clinical Intelligence Console</h3>
+                        <p className="text-sm font-bold text-muted opacity-40 max-w-md mx-auto">
                             Enter a Patient ID above to load their clinical summary, treatment plan history, and on-demand AI inference diagnostics.
                         </p>
                     </div>

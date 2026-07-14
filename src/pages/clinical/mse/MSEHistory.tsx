@@ -130,7 +130,7 @@ const MSEHistory = () => {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
                 <Activity className="animate-spin text-indigo-600" size={40} />
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading MSE Records...</p>
+                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Loading MSE Records...</p>
             </div>
         );
     }
@@ -141,22 +141,22 @@ const MSEHistory = () => {
             <header className="flex items-center gap-6">
                 <button
                     onClick={navigateBack}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    className="p-3 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <h1 className="text-4xl font-black text-main tracking-tight flex items-center gap-3">
                         <Brain className="text-indigo-600" size={32} />
                         Mental Status History
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient:</span>
+                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Patient:</span>
                         <span className="text-xs font-bold text-indigo-600">
                             {patient ? `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || `#${userId}` : `#${userId}`}
                         </span>
                         <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                             {history.length} Record{history.length !== 1 ? 's' : ''}
                         </span>
                     </div>
@@ -177,7 +177,7 @@ const MSEHistory = () => {
             <div className="flex justify-end gap-3">
                  <button
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isFilterOpen ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200'}`}
+                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isFilterOpen ? 'bg-indigo-600 text-white shadow-lg' : 'bg-card text-muted border border-border-card'}`}
                 >
                     {isFilterOpen ? 'Hide Filters' : 'Show Review Filters'}
                 </button>
@@ -200,13 +200,13 @@ const MSEHistory = () => {
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                     >
-                        <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 grid md:grid-cols-4 gap-6">
+                        <div className="p-8 bg-page rounded-[2.5rem] border border-border-card grid md:grid-cols-4 gap-6">
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Severity / Urgency</label>
+                                <label className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Severity / Urgency</label>
                                 <select 
                                     value={filters.color_code}
                                     onChange={(e) => setFilters(f => ({ ...f, color_code: e.target.value }))}
-                                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 transition-all"
+                                    className="w-full p-3 bg-card border border-border-card rounded-xl text-xs font-bold outline-none focus:border-indigo-500 transition-all"
                                 >
                                     <option value="">All Triage Color</option>
                                     <option value="#E53935">Red — Immediate Risk</option>
@@ -217,11 +217,11 @@ const MSEHistory = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Insight Level</label>
+                                <label className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Insight Level</label>
                                 <select 
                                     value={filters.insight_level}
                                     onChange={(e) => setFilters(f => ({ ...f, insight_level: e.target.value }))}
-                                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 transition-all"
+                                    className="w-full p-3 bg-card border border-border-card rounded-xl text-xs font-bold outline-none focus:border-indigo-500 transition-all"
                                 >
                                     <option value="">All Insight Levels</option>
                                     <option value="Good">Good — Full Insight</option>
@@ -232,11 +232,11 @@ const MSEHistory = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Memory Evaluation</label>
+                                <label className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Memory Evaluation</label>
                                 <select 
                                     value={filters.memory}
                                     onChange={(e) => setFilters(f => ({ ...f, memory: e.target.value }))}
-                                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 transition-all"
+                                    className="w-full p-3 bg-card border border-border-card rounded-xl text-xs font-bold outline-none focus:border-indigo-500 transition-all"
                                 >
                                     <option value="">Any Memory State</option>
                                     <option value="Intact">Intact</option>
@@ -246,12 +246,12 @@ const MSEHistory = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Date Window (Start)</label>
+                                <label className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest ml-1">Date Window (Start)</label>
                                 <input 
                                     type="date"
                                     value={filters.startDate}
                                     onChange={(e) => setFilters(f => ({ ...f, startDate: e.target.value }))}
-                                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-500"
+                                    className="w-full p-2.5 bg-card border border-border-card rounded-xl text-xs font-bold outline-none focus:border-indigo-500"
                                 />
                             </div>
                         </div>
@@ -285,7 +285,7 @@ const MSEHistory = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05 }}
                                 onClick={() => navigate(`/patients/${userId}/mse/${id}`)}
-                                className="bg-white border border-slate-100 rounded-[2.5rem] hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-50 cursor-pointer transition-all group flex flex-col gap-0 overflow-hidden"
+                                className="bg-card border border-border-card rounded-[2.5rem] hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-50 cursor-pointer transition-all group flex flex-col gap-0 overflow-hidden"
                             >
                                 {/* Color bar */}
                                 <div className="h-1.5 w-full" style={{ backgroundColor: colorCode }} />
@@ -298,11 +298,11 @@ const MSEHistory = () => {
                                                 <Brain size={18} />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">MSE ID</p>
-                                                <p className="text-xs font-black text-slate-700">#{id?.toString().slice(-6).toUpperCase()}</p>
+                                                <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">MSE ID</p>
+                                                <p className="text-xs font-black text-main">#{id?.toString().slice(-6).toUpperCase()}</p>
                                             </div>
                                         </div>
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">
                                             {item.createdAt
                                                 ? new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                                                 : 'Recent'}
@@ -317,24 +317,24 @@ const MSEHistory = () => {
                                                     <Sparkles size={12} className="text-indigo-500" />
                                                     <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">AI Formulation</span>
                                                 </div>
-                                                <p className="text-sm font-bold text-slate-700 leading-relaxed line-clamp-3">
+                                                <p className="text-sm font-bold text-main leading-relaxed line-clamp-3">
                                                     "{formulation}"
                                                 </p>
                                             </div>
                                         ) : impressions.length > 0 ? (
                                             <div className="space-y-2">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Diagnostic Impressions</span>
+                                                <span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">Diagnostic Impressions</span>
                                                 <div className="space-y-1.5">
                                                     {impressions.slice(0, 2).map((imp, i) => (
                                                         <div key={i} className="flex items-start gap-2">
                                                             <div className="w-1 h-1 rounded-full bg-indigo-400 mt-1.5 shrink-0" />
-                                                            <p className="text-[11px] font-bold text-slate-600 line-clamp-1">{imp}</p>
+                                                            <p className="text-[11px] font-bold text-muted line-clamp-1">{imp}</p>
                                                         </div>
                                                     ))}
                                                 </div>
                                             </div>
                                         ) : (
-                                            <p className="text-xs text-slate-400 italic font-medium">No AI analysis available for this record.</p>
+                                            <p className="text-xs text-muted opacity-80 italic font-medium">No AI analysis available for this record.</p>
                                         )}
                                     </div>
 
@@ -342,7 +342,7 @@ const MSEHistory = () => {
                                     {tones.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5">
                                             {tones.slice(0, 3).map((tone, i) => (
-                                                <span key={i} className="px-2 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded-lg text-[8px] font-black uppercase tracking-tight italic">
+                                                <span key={i} className="px-2 py-1 bg-page text-muted border border-border-card rounded-lg text-[8px] font-black uppercase tracking-tight italic">
                                                     {tone}
                                                 </span>
                                             ))}
@@ -351,7 +351,7 @@ const MSEHistory = () => {
 
                                     {/* Section coverage badges */}
                                     <div className="space-y-2">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">
                                             Coverage — {coverage.length}/{SECTION_KEYS.length} Domains
                                         </span>
                                         <div className="flex flex-wrap gap-1.5">
@@ -368,21 +368,21 @@ const MSEHistory = () => {
                                     </div>
 
                                     {/* Footer */}
-                                    <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                                    <div className="pt-4 border-t border-border-card flex items-center justify-between">
                                         <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">View Full Analysis</span>
-                                        <ChevronRight size={14} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                        <ChevronRight size={14} className="text-muted opacity-40 group-hover:text-indigo-500 transition-colors" />
                                     </div>
                                 </div>
                             </motion.div>
                         );
                     })
                 ) : (
-                    <div className="col-span-full bg-white border-2 border-dashed border-slate-100 rounded-[2.5rem] p-20 text-center">
+                    <div className="col-span-full bg-card border-2 border-dashed border-border-card rounded-[2.5rem] p-20 text-center">
                         <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-8 text-indigo-300">
                             <Brain size={48} strokeWidth={1.5} />
                         </div>
-                        <h3 className="text-2xl font-black text-slate-900 mb-3">No MSE Records</h3>
-                        <p className="text-slate-400 font-medium max-w-xs mx-auto leading-relaxed mb-8">
+                        <h3 className="text-2xl font-black text-main mb-3">No MSE Records</h3>
+                        <p className="text-muted opacity-80 font-medium max-w-xs mx-auto leading-relaxed mb-8">
                             No Mental Status Examinations have been recorded for this patient yet.
                         </p>
                         {!isPatient && (

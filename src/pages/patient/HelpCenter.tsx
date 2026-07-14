@@ -118,7 +118,7 @@ const HelpCenter = () => {
                         {/* Legal Section */}
                         <section>
                             <div className="flex items-center gap-3 mb-8 ml-2">
-                                <div className="w-1 h-6 bg-slate-900 rounded-full"></div>
+                                <div className="w-1 h-6 bg-main rounded-full"></div>
                                 <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted opacity-80">Legal & Policy</h2>
                             </div>
 
@@ -194,16 +194,16 @@ const HelpCenter = () => {
                         </section>
 
                         {/* Support CTA */}
-                        <div className="bg-slate-900 rounded-[3rem] p-12 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/20 blur-[100px] -mr-48 -mt-48 rounded-full group-hover:bg-indigo-500/30 transition-colors duration-700"></div>
+                        <div className="bg-card border border-border-card rounded-[3rem] p-12 relative overflow-hidden group shadow-sm">
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 blur-[100px] -mr-48 -mt-48 rounded-full group-hover:bg-indigo-500/20 transition-colors duration-700"></div>
                             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                                 <div className="text-center md:text-left">
-                                    <h2 className="text-3xl font-black text-white mb-2 tracking-tight">Need direct assistance?</h2>
-                                    <p className="text-indigo-200 font-medium">Our clinical support team is here to help you 24/7.</p>
+                                    <h2 className="text-3xl font-black text-main mb-2 tracking-tight">Need direct assistance?</h2>
+                                    <p className="text-muted font-medium">Our clinical support team is here to help you 24/7.</p>
                                 </div>
                                 <button 
                                     onClick={() => navigate('/help/support')}
-                                    className="bg-card text-main px-10 py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-xs hover:bg-indigo-500/10 hover:text-indigo-500 transition-colors shadow-2xl flex items-center gap-3"
+                                    className="bg-page border border-border-card text-main px-10 py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-xs hover:bg-indigo-500/10 hover:border-indigo-500/20 hover:text-indigo-500 transition-all shadow-sm flex items-center gap-3"
                                 >
                                     <MessageCircle size={18} />
                                     Contact Support

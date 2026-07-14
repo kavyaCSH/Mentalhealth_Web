@@ -41,6 +41,8 @@ const ClinicalAvailabilityPage = () => {
     const [bufferTime, setBufferTime] = useState('5');
     const [maxAppointments, setMaxAppointments] = useState('10');
     const [specificDate, setSpecificDate] = useState('');
+    const [specificEndDate, setSpecificEndDate] = useState('');
+    const [breaks, setBreaks] = useState<{startTime: string, endTime: string, description: string}[]>([]);
     const [description, setDescription] = useState('');
     const [isActive, setIsActive] = useState(true);
 
@@ -70,6 +72,8 @@ const ClinicalAvailabilityPage = () => {
         setBufferTime('5');
         setMaxAppointments('10');
         setSpecificDate('');
+        setSpecificEndDate('');
+        setBreaks([]);
         setDescription('');
         setIsActive(true);
         setEditingBlock(null);
@@ -88,6 +92,8 @@ const ClinicalAvailabilityPage = () => {
             setBufferTime(String(block.bufferTime || 5));
             setMaxAppointments(String(block.maxAppointments || 10));
             setSpecificDate(block.specificDate || '');
+            setSpecificEndDate(block.specificEndDate || '');
+            setBreaks(block.breaks || []);
             setDescription(block.description || '');
             setIsActive(block.isActive !== false);
         } else {
@@ -114,6 +120,7 @@ const ClinicalAvailabilityPage = () => {
                 payload.bufferTime = parseInt(bufferTime);
                 payload.maxAppointments = parseInt(maxAppointments);
                 payload.locationTypes = ['virtual'];
+                if (breaks.length > 0) payload.breaks = breaks;
             }
 
             if (isRecurring && formType === 'availability') {
@@ -128,6 +135,9 @@ const ClinicalAvailabilityPage = () => {
             } else {
                 if (!isRecurring && !specificDate && formType === 'availability') throw new Error('Please select a date');
                 payload.specificDate = specificDate || undefined;
+                if (formType === 'unavailability' && specificEndDate) {
+                    payload.specificEndDate = specificEndDate;
+                }
                 if (editingBlock) {
                     await SpecialistService.updateScheduleBlock(editingBlock.id || editingBlock.scheduleId, payload);
                 } else {
@@ -168,7 +178,7 @@ const ClinicalAvailabilityPage = () => {
                     <p className="text-muted font-semibold text-sm">Review your active work shifts and time-off schedule blocks.</p>
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="primary" leftIcon={<Plus size={20} />} onClick={() => handleOpenModal()} className="rounded-2xl shadow-xl shadow-indigo-100 py-3.5">
+                    <Button variant="primary" leftIcon={<Plus size={20} />} onClick={() => handleOpenModal()} className="rounded-2xl shadow-xl shadow-sm py-3.5">
                         New Schedule Block
                     </Button>
                 </div>
@@ -200,14 +210,14 @@ const ClinicalAvailabilityPage = () => {
                                     key={block.id || block.scheduleId || idx}
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="p-8 rounded-[2.5rem] border border-border-card bg-card hover:border-indigo-500/30 hover:shadow-lg transition-all group relative overflow-hidden"
+                                    className="p-8 rounded-[2.5rem] border border-border-card bg-card hover:border-indigo-500/30 hover:shadow-lg transition-all group relative overflow-hidden flex flex-col"
                                 >
                                     <div className="flex items-start justify-between mb-6">
-                                        <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${isAvail ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-error/10 text-error border border-error/20'}`}>
+                                        <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${isAvail ? 'bg-success/100/10 text-success border border-emerald-500/20' : 'bg-error/10 text-error border border-error/20'}`}>
                                             {isAvail ? 'Work Shift' : 'Time Off'}
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => handleOpenModal(block)} className="p-2.5 text-muted hover:text-indigo-500 hover:bg-indigo-500/10 rounded-xl transition-all"><Edit3 size={16} /></button>
+                                            <button onClick={() => handleOpenModal(block)} className="p-2.5 text-muted hover:text-indigo-500 hover:bg-indigo-500/100/10 rounded-xl transition-all"><Edit3 size={16} /></button>
                                             <button onClick={() => handleDeleteAvailability(block.id || block.scheduleId)} className="p-2.5 text-muted hover:text-error hover:bg-error/10 rounded-xl transition-all"><Trash size={16} /></button>
                                         </div>
                                     </div>
@@ -236,6 +246,20 @@ const ClinicalAvailabilityPage = () => {
                                                 </div>
                                             </div>
                                         )}
+                                        {isAvail && block.breaks && block.breaks.length > 0 && (
+                                            <div className="mt-6 pt-6 border-t border-border-card space-y-3">
+                                                <p className="text-[9px] font-black text-muted uppercase tracking-widest">Breaks</p>
+                                                <div className="space-y-2">
+                                                    {block.breaks.map((b: any, bi: number) => (
+                                                        <div key={bi} className="flex items-center gap-3 bg-amber-500/10 text-amber-600 px-4 py-2.5 rounded-xl border border-amber-500/20">
+                                                            <Clock size={14} />
+                                                            <span className="text-xs font-bold">{b.startTime} - {b.endTime}</span>
+                                                            <span className="text-[10px] ml-auto opacity-80 uppercase tracking-widest font-black">{b.description}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                         {isAvail && (
                                             <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-border-card">
                                                 <p className="text-[10px] font-black text-muted uppercase">{block.slotDuration}m Slots</p>
@@ -259,7 +283,7 @@ const ClinicalAvailabilityPage = () => {
 
             <AnimatePresence>
                 {isModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
                         <motion.div 
                             initial={{ scale: 0.9, opacity: 0, y: 30 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -295,33 +319,62 @@ const ClinicalAvailabilityPage = () => {
                                 </div>
 
                                 {formType === 'availability' && (
-                                    <>
-                                        <div className="flex items-center justify-between p-6 bg-page rounded-[2rem] border border-border-card">
-                                            <div><h5 className="text-[10px] font-black text-main uppercase">Recurring weekly</h5><p className="text-[8px] font-bold text-muted uppercase mt-0.5 tracking-tighter">Apply to work week</p></div>
-                                            <button onClick={() => setIsRecurring(!isRecurring)} className={`w-12 h-6 rounded-full relative transition-colors ${isRecurring ? 'bg-indigo-500' : 'bg-muted/30'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isRecurring ? 'left-7' : 'left-1'}`} /></button>
+                                    <div className="flex items-center justify-between p-6 bg-page rounded-[2rem] border border-border-card">
+                                        <div><h5 className="text-[10px] font-black text-main uppercase">Recurring weekly</h5><p className="text-[8px] font-bold text-muted uppercase mt-0.5 tracking-tighter">Apply to work week</p></div>
+                                        <button onClick={() => setIsRecurring(!isRecurring)} className={`w-12 h-6 rounded-full relative transition-colors ${isRecurring ? 'bg-indigo-500' : 'bg-muted/30'}`}><div className={`absolute top-1 w-4 h-4 bg-card rounded-full transition-all ${isRecurring ? 'left-7' : 'left-1'}`} /></button>
+                                    </div>
+                                )}
+
+                                {(formType === 'availability' && isRecurring) ? (
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Days</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                                                <button key={i} onClick={() => setSelectedDays(prev => prev.includes(i) ? prev.filter(d => d !== i) : [...prev, i])} className={`w-10 h-10 rounded-xl text-xs font-black transition-all border-2 ${selectedDays.includes(i) ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-card border-border-card text-muted'}`}>{day}</button>
+                                            ))}
                                         </div>
-                                        {isRecurring ? (
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Start Date</label>
+                                            <input type="date" value={specificDate} onChange={e => setSpecificDate(e.target.value)} className="w-full bg-page text-main rounded-xl py-3 px-4 text-xs font-bold outline-none" min={new Date().toISOString().split('T')[0]} />
+                                        </div>
+                                        {formType === 'unavailability' && (
                                             <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Days</label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-                                                        <button key={i} onClick={() => setSelectedDays(prev => prev.includes(i) ? prev.filter(d => d !== i) : [...prev, i])} className={`w-10 h-10 rounded-xl text-xs font-black transition-all border-2 ${selectedDays.includes(i) ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-card border-border-card text-muted'}`}>{day}</button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Date</label>
-                                                <input type="date" value={specificDate} onChange={e => setSpecificDate(e.target.value)} className="w-full bg-page text-main rounded-xl py-3 px-4 text-xs font-bold outline-none" min={new Date().toISOString().split('T')[0]} />
+                                                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">End Date (Optional)</label>
+                                                <input type="date" value={specificEndDate} onChange={e => setSpecificEndDate(e.target.value)} className="w-full bg-page text-main rounded-xl py-3 px-4 text-xs font-bold outline-none" min={specificDate || new Date().toISOString().split('T')[0]} />
                                             </div>
                                         )}
-                                        <div className="grid grid-cols-2 gap-6">
-                                            <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Slot Duration</label><div className="flex bg-page rounded-xl px-4 py-3"><input type="number" value={slotDuration} onChange={e => setSlotDuration(e.target.value)} className="w-full bg-transparent text-main text-xs font-bold outline-none" /><span className="text-[8px] font-black text-muted uppercase">Min</span></div></div>
-                                            <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Buffer Time</label><div className="flex bg-page rounded-xl px-4 py-3"><input type="number" value={bufferTime} onChange={e => setBufferTime(e.target.value)} className="w-full bg-transparent text-main text-xs font-bold outline-none" /><span className="text-[8px] font-black text-muted uppercase">Min</span></div></div>
-                                        </div>
-                                        <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Max Appointments</label><div className="flex bg-page rounded-xl px-4 py-3"><input type="number" value={maxAppointments} onChange={e => setMaxAppointments(e.target.value)} className="w-full bg-transparent text-main text-xs font-bold outline-none" /><span className="text-[8px] font-black text-muted uppercase">Slots</span></div></div>
-                                    </>
+                                    </div>
                                 )}
+
+                                {formType === 'availability' && (
+                                            <>
+                                                <div className="grid grid-cols-2 gap-6">
+                                                    <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Slot Duration</label><div className="flex bg-page rounded-xl px-4 py-3"><input type="number" value={slotDuration} onChange={e => setSlotDuration(e.target.value)} className="w-full bg-transparent text-main text-xs font-bold outline-none" /><span className="text-[8px] font-black text-muted uppercase">Min</span></div></div>
+                                                    <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Buffer Time</label><div className="flex bg-page rounded-xl px-4 py-3"><input type="number" value={bufferTime} onChange={e => setBufferTime(e.target.value)} className="w-full bg-transparent text-main text-xs font-bold outline-none" /><span className="text-[8px] font-black text-muted uppercase">Min</span></div></div>
+                                                </div>
+                                                <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Max Appointments</label><div className="flex bg-page rounded-xl px-4 py-3"><input type="number" value={maxAppointments} onChange={e => setMaxAppointments(e.target.value)} className="w-full bg-transparent text-main text-xs font-bold outline-none" /><span className="text-[8px] font-black text-muted uppercase">Slots</span></div></div>
+                                                
+                                                <div className="mt-6 space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Breaks</label>
+                                                        <button onClick={() => setBreaks([...breaks, {startTime: '12:00', endTime: '13:00', description: 'Lunch Break'}])} className="text-[10px] font-black text-indigo-500 uppercase flex items-center gap-1 hover:text-indigo-600 transition-colors"><Plus size={12} /> Add Break</button>
+                                                    </div>
+                                                    {breaks.map((b, i) => (
+                                                        <div key={i} className="flex items-center gap-3 bg-page p-3 rounded-xl border border-border-card">
+                                                            <input type="time" value={b.startTime} onChange={e => { const newB = [...breaks]; newB[i].startTime = e.target.value; setBreaks(newB); }} className="bg-card px-2 py-1.5 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-indigo-500/50 w-24" />
+                                                            <span className="text-muted text-xs">-</span>
+                                                            <input type="time" value={b.endTime} onChange={e => { const newB = [...breaks]; newB[i].endTime = e.target.value; setBreaks(newB); }} className="bg-card px-2 py-1.5 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-indigo-500/50 w-24" />
+                                                            <input type="text" value={b.description} onChange={e => { const newB = [...breaks]; newB[i].description = e.target.value; setBreaks(newB); }} className="bg-card px-3 py-1.5 rounded-lg text-xs font-bold outline-none border border-transparent focus:border-indigo-500/50 flex-1" placeholder="Description" />
+                                                            <button onClick={() => setBreaks(breaks.filter((_, idx) => idx !== i))} className="p-1.5 text-muted hover:text-error hover:bg-error/10 rounded-lg transition-colors"><X size={14} /></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+
 
                                 {(!isRecurring || formType === 'unavailability') && (
                                     <div className="space-y-3"><label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Notes</label><textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full bg-page text-main rounded-xl py-4 px-6 text-xs font-bold outline-none resize-none" placeholder="Description..." /></div>
@@ -331,7 +384,7 @@ const ClinicalAvailabilityPage = () => {
 
                                 <div className="flex gap-4 pt-4">
                                     <Button variant="outline" className="flex-1 py-4" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                                    <Button variant="primary" className="flex-1 py-4 shadow-xl shadow-indigo-100" onClick={handleSaveAvailability} disabled={isSavingAvailability}>{isSavingAvailability ? <Activity className="animate-spin" size={18} /> : (editingBlock ? 'Update' : 'Commit Block')}</Button>
+                                    <Button variant="primary" className="flex-1 py-4 shadow-xl shadow-sm" onClick={handleSaveAvailability} disabled={isSavingAvailability}>{isSavingAvailability ? <Activity className="animate-spin" size={18} /> : (editingBlock ? 'Update' : 'Commit Block')}</Button>
                                 </div>
                             </div>
                         </motion.div>

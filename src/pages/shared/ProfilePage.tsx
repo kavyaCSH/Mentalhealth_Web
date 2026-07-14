@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { 
     User, ShieldCheck, Bell, HelpCircle, Mail, FileText, 
     Info, ChevronRight, Moon, Sun, Monitor, Pencil,
-    Globe, Star
+    Globe, Star, X
 } from 'lucide-react';
 import type { RootState } from '../../store';
 import { useTheme } from '../../context/ThemeContext';
@@ -52,6 +52,8 @@ const ProfilePage = () => {
     const [webVersion, setWebVersion] = useState('...');
 
     const { theme, setTheme } = useTheme();
+
+    const isClinical = ['psychiatrist', 'psychologist', 'nurse', 'counselor', 'social_worker'].includes(String(user?.role).toLowerCase());
 
     // Password State
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -128,7 +130,7 @@ const ProfilePage = () => {
                     
                     <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
                         <div className="relative">
-                            <div className="w-24 h-24 rounded-[40%] bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center overflow-hidden">
+                            <div className="w-24 h-24 rounded-[40%] bg-card/10 backdrop-blur-xl border border-white/20 flex items-center justify-center overflow-hidden">
                                 {user?.profileImage ? (
                                     <img 
                                         src={`${user.profileImage}${user.profileImage.includes('?') ? '&' : '?'}t=${new Date().getTime()}`} 
@@ -151,15 +153,100 @@ const ProfilePage = () => {
 
                         <button 
                             onClick={() => navigate('/profile/edit')}
-                            className="bg-white text-slate-900 w-14 h-14 rounded-2xl flex items-center justify-center hover:bg-indigo-50 transition-colors shadow-xl"
+                            className="bg-card text-main w-14 h-14 rounded-2xl flex items-center justify-center hover:bg-indigo-50 transition-colors shadow-xl"
                         >
                             <Pencil size={20} />
                         </button>
                     </div>
                 </div>
 
+                {/* Professional Details Section for Clinical Users */}
+                {isClinical && (
+                    <div className="bg-card rounded-[2.5rem] border border-border-card p-8 md:p-10 shadow-sm mb-10 space-y-8 animate-fade-in">
+                        <div className="flex items-center gap-3">
+                            <div className="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted">Professional Details</h2>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-6">
+                                <div>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1.5">Specialization</p>
+                                    <p className="text-main font-bold text-base">{user?.specialization || 'Not Specified'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1.5">Highest Qualification</p>
+                                    <p className="text-main font-bold text-base">
+                                        {Array.isArray(user?.qualifications) 
+                                            ? (user.qualifications as string[]).join(', ') 
+                                            : (user?.qualifications || 'Not Specified')}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1.5">Years of Experience</p>
+                                    <p className="text-main font-bold text-base">{user?.experienceYears ? `${user.experienceYears} Years` : 'Not Specified'}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1.5">Languages Spoken</p>
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {(() => {
+                                            const langs = Array.isArray(user?.languages) 
+                                                ? user.languages 
+                                                : typeof (user?.languages as any) === 'string'
+                                                    ? String(user?.languages).split(',').map(l => l.trim()).filter(Boolean)
+                                                    : [];
+                                            return langs.length > 0 ? (
+                                                langs.map((lang: string, i: number) => (
+                                                    <span key={i} className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                        {lang}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-muted text-sm font-medium">Not Specified</span>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1.5">Core Skills & Therapeutic Modalities</p>
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {(() => {
+                                            const skillsList = Array.isArray(user?.skills) 
+                                                ? user.skills 
+                                                : typeof (user?.skills as any) === 'string'
+                                                    ? String(user?.skills).split(',').map(s => s.trim()).filter(Boolean)
+                                                    : [];
+                                            return skillsList.length > 0 ? (
+                                                skillsList.map((skill: string, i: number) => (
+                                                    <span key={i} className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                        {skill}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-muted text-sm font-medium">Not Specified</span>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {user?.about && (
+                            <div className="pt-6 border-t border-border-card space-y-2">
+                                <p className="text-[10px] font-black text-muted uppercase tracking-widest">Professional Bio</p>
+                                <p className="text-main text-sm font-medium leading-relaxed italic">
+                                    "{user.about}"
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Appearance Grid */}
-                <div className="bg-card rounded-[2.5rem] border border-border-card p-8 shadow-sm mb-10">
+                <div id="visual-appearance" className="bg-card rounded-[2.5rem] border border-border-card p-8 shadow-sm mb-10 scroll-mt-24">
                     <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted mb-6">Visual Appearance</h2>
                     <div className="grid grid-cols-3 gap-4">
                         {[
@@ -190,6 +277,19 @@ const ProfilePage = () => {
                         label="Personal Information" 
                         value="Bio, Gender, Birthday" 
                         onClick={() => navigate('/profile/edit')} 
+                    />
+                    <MenuItem 
+                        icon={Monitor} 
+                        label="Appearance" 
+                        value="Theme and Visual Options" 
+                        color="text-indigo-500" 
+                        bg="bg-indigo-500/10"
+                        onClick={() => {
+                            const element = document.getElementById('visual-appearance');
+                            if (element) {
+                                element.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        }}
                     />
                     <MenuItem 
                         icon={ShieldCheck} 
@@ -243,15 +343,15 @@ const ProfilePage = () => {
                     <MenuItem 
                         icon={ShieldCheck} 
                         label="Privacy Policy" 
-                        color="text-slate-500" 
-                        bg="bg-slate-500/10"
+                        color="text-muted" 
+                        bg="bg-page0/10"
                         onClick={() => navigate('/help/article/privacy_policy')}
                     />
                     <MenuItem 
                         icon={FileText} 
                         label="Terms of Service" 
-                        color="text-slate-500" 
-                        bg="bg-slate-500/10"
+                        color="text-muted" 
+                        bg="bg-page0/10"
                         onClick={() => navigate('/help/article/terms_of_service')}
                     />
                 </Section>
@@ -286,10 +386,11 @@ const ProfilePage = () => {
                                     <div className="flex items-center justify-between mb-8">
                                         <h3 className="text-2xl font-black text-main tracking-tight">Security Update</h3>
                                         <button 
+                                            type="button"
                                             onClick={() => setShowPasswordModal(false)}
-                                            className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted hover:bg-red-50 hover:text-red-500 transition-colors"
+                                            className="w-10 h-10 rounded-xl bg-page flex items-center justify-center text-muted hover:bg-error/10 hover:text-error transition-colors"
                                         >
-                                            <Sun size={20} className="rotate-45" /> {/* Close icon substitute if X not imported */}
+                                            <X size={20} />
                                         </button>
                                     </div>
 
@@ -324,7 +425,7 @@ const ProfilePage = () => {
                                         />
 
                                         {passwordError && (
-                                            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-[10px] font-black uppercase tracking-widest text-center">
+                                            <div className="p-4 bg-error/10 border border-error/20 rounded-2xl text-error text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 text-center">
                                                 {passwordError}
                                             </div>
                                         )}
@@ -332,7 +433,7 @@ const ProfilePage = () => {
                                         <Button 
                                             type="submit" 
                                             isLoading={passwordLoading}
-                                            className="w-full py-6 rounded-[1.5rem] shadow-xl shadow-indigo-100"
+                                            className="w-full py-6 rounded-[1.5rem]"
                                         >
                                             Secure Account
                                         </Button>

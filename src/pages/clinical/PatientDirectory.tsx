@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -29,6 +29,7 @@ const PatientDirectory = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
     const [itemsPerPage, setItemsPerPage] = useState(8);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     console.log("patients", patients);
     // Add Patient Modal State
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -48,11 +49,12 @@ const PatientDirectory = () => {
         password: Math.random().toString(36).slice(-10) + 'A1!'
     });
 
-    const fetchPatients = async () => {
+    const fetchPatients = useCallback(async () => {
         setIsLoading(true);
         try {
             const { users, total } = await UserService.listUsers({
                 role: 'patient',
+                search: searchQuery || undefined,
                 page: currentPage,
                 limit: itemsPerPage
             });
@@ -66,15 +68,40 @@ const PatientDirectory = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [currentPage, itemsPerPage, searchQuery]);
 
     useEffect(() => {
-        fetchPatients();
-    }, [currentPage, itemsPerPage]);
+        const timer = setTimeout(() => {
+            fetchPatients();
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [fetchPatients]);
 
     const handleProvisionPatient = async (e: React.FormEvent) => {
         e.preventDefault();
         setProvisionError(null);
+        
+        const newErrors: Record<string, string> = {};
+        if (!formData.firstName.trim()) {
+            newErrors.firstName = 'First name is required.';
+        }
+        if (!formData.lastName.trim()) {
+            newErrors.lastName = 'Last name is required.';
+        }
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email address is required.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            newErrors.email = 'Please enter a valid email address.';
+        }
+        if (!formData.dateOfBirth) {
+            newErrors.dateOfBirth = 'Date of birth is required.';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
         setIsProvisioning(true);
         try {
             await AuthService.register({
@@ -85,6 +112,20 @@ const PatientDirectory = () => {
             setIsAddModalOpen(false);
             fetchPatients();
             alert('Patient account provisioned successfully.');
+            setFormData({
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                dateOfBirth: '',
+                gender: 'male',
+                city: '',
+                address: '',
+                bloodGroup: '',
+                emergencyContact: '',
+                password: Math.random().toString(36).slice(-10) + 'A1!'
+            });
+            setErrors({});
         } catch (err: any) {
             setProvisionError(err.response?.data?.message || 'Failed to create patient account.');
         } finally {
@@ -92,11 +133,7 @@ const PatientDirectory = () => {
         }
     };
 
-    const filteredPatients = patients.filter(p =>
-        p.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredPatients = patients;
 
     const totalPages = Math.ceil(totalUsers / itemsPerPage) || 1;
 
@@ -135,8 +172,16 @@ const PatientDirectory = () => {
                             placeholder="Search by name, email..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-card border border-border-card rounded-2xl py-3 pl-12 pr-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm text-main"
+                            className="w-full bg-card border border-border-card rounded-2xl py-3 pl-12 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm text-main"
                         />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-main transition-colors"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -290,25 +335,33 @@ const PatientDirectory = () => {
                                     <h2 className="text-2xl font-black text-main tracking-tight">Provision Profile</h2>
                                     <p className="text-muted text-[11px] font-black uppercase tracking-widest mt-1">New Clinical Identity</p>
                                 </div>
-                                <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-page rounded-xl transition-colors">
+                                <button onClick={() => { setIsAddModalOpen(false); setErrors({}); }} className="p-2 hover:bg-page rounded-xl transition-colors">
                                     <X size={20} className="text-muted" />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleProvisionPatient} className="p-8 pt-4 space-y-6 overflow-y-auto custom-scrollbar">
+                            <form onSubmit={handleProvisionPatient} noValidate className="p-8 pt-4 space-y-6 overflow-y-auto custom-scrollbar">
                                 <div className="grid grid-cols-2 gap-4">
                                     <InputField
                                         label="First Name"
                                         placeholder="e.g. John"
                                         value={formData.firstName}
-                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, firstName: e.target.value });
+                                            if (errors.firstName) setErrors(prev => ({ ...prev, firstName: '' }));
+                                        }}
+                                        error={errors.firstName}
                                         required
                                     />
                                     <InputField
                                         label="Last Name"
                                         placeholder="e.g. Doe"
                                         value={formData.lastName}
-                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, lastName: e.target.value });
+                                            if (errors.lastName) setErrors(prev => ({ ...prev, lastName: '' }));
+                                        }}
+                                        error={errors.lastName}
                                         required
                                     />
                                 </div>
@@ -318,7 +371,11 @@ const PatientDirectory = () => {
                                     leftIcon={<Mail size={16} />}
                                     placeholder="patient@example.com"
                                     value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, email: e.target.value });
+                                        if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                                    }}
+                                    error={errors.email}
                                     required
                                 />
                                 <InputField
@@ -334,7 +391,11 @@ const PatientDirectory = () => {
                                         label="Date of Birth"
                                         type="date"
                                         value={formData.dateOfBirth}
-                                        onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, dateOfBirth: e.target.value });
+                                            if (errors.dateOfBirth) setErrors(prev => ({ ...prev, dateOfBirth: '' }));
+                                        }}
+                                        error={errors.dateOfBirth}
                                         required
                                     />
                                      <div className="space-y-3">

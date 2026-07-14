@@ -74,7 +74,7 @@ const AppRatingModal = ({ isOpen, onClose, existingRating }: AppRatingModalProps
                                         <Heart className="text-emerald-500 fill-emerald-500" size={32} />
                                     </div>
                                     <h3 className="text-3xl font-black text-main tracking-tight mb-3">Thank You!</h3>
-                                    <p className="text-slate-500 font-medium max-w-[280px]">
+                                    <p className="text-muted font-medium max-w-[280px]">
                                         Your feedback helps us make MindBalance better for everyone.
                                     </p>
                                 </motion.div>
@@ -83,7 +83,7 @@ const AppRatingModal = ({ isOpen, onClose, existingRating }: AppRatingModalProps
                                     <div className="flex items-center justify-between mb-10">
                                         <div className="space-y-1">
                                             <h3 className="text-3xl font-black text-main tracking-tight">Enjoying the app?</h3>
-                                            <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Your feedback matters</p>
+                                            <p className="text-muted opacity-80 font-black uppercase tracking-widest text-[10px]">Your feedback matters</p>
                                         </div>
                                         <button
                                             onClick={onClose}
@@ -107,7 +107,7 @@ const AppRatingModal = ({ isOpen, onClose, existingRating }: AppRatingModalProps
                                                     className={`transition-all duration-300 ${
                                                         (hoveredStar !== null ? hoveredStar >= star : rating >= star)
                                                             ? 'text-amber-400 fill-amber-400 group-hover:scale-110 group-hover:brightness-110 drop-shadow-lg'
-                                                            : 'text-slate-200 group-hover:text-amber-200'
+                                                            : 'text-muted opacity-40 group-hover:text-amber-200'
                                                     }`}
                                                 />
                                             </button>
@@ -126,7 +126,7 @@ const AppRatingModal = ({ isOpen, onClose, existingRating }: AppRatingModalProps
                                                     placeholder="What can we do better? What do you love?"
                                                     className="w-full bg-page border border-border-card rounded-3xl p-6 text-sm font-medium focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 outline-none transition-all min-h-[120px] resize-none text-main placeholder:opacity-50"
                                                 />
-                                                <MessageSquare className="absolute bottom-6 right-6 text-slate-300 group-focus-within:text-amber-400 transition-colors" size={20} />
+                                                <MessageSquare className="absolute bottom-6 right-6 text-muted opacity-40 group-focus-within:text-amber-400 transition-colors" size={20} />
                                             </div>
                                         </div>
                                     </div>
@@ -137,7 +137,7 @@ const AppRatingModal = ({ isOpen, onClose, existingRating }: AppRatingModalProps
                                             disabled={rating === 0 || isSubmitting}
                                             isLoading={isSubmitting}
                                             className={`w-full py-6 rounded-[1.5rem] font-black uppercase tracking-widest text-xs shadow-xl transition-all h-16
-                                                ${rating === 0 ? 'bg-slate-100 text-slate-400 cursor-not-allowed grayscale' : 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200/50'}
+                                                ${rating === 0 ? 'bg-page text-muted opacity-80 cursor-not-allowed grayscale' : 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200/50'}
                                             `}
                                         >
                                             Submit Review

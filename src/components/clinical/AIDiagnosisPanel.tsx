@@ -168,19 +168,19 @@ const AIDiagnosisPanel = ({ patientId, patientName }: AIDiagnosisPanelProps) => 
     return (
         <div className="card-premium overflow-hidden">
             {/* ── Header ── */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-6 border-b border-border-card flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl font-black text-slate-900 flex items-center gap-2.5">
+                    <h2 className="text-xl font-black text-main flex items-center gap-2.5">
                         <Brain className="text-violet-600" size={24} />
                         AI Diagnosis Assistant
                         <span className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-[9px] font-black tracking-widest uppercase ml-1">Beta</span>
                     </h2>
-                    <p className="text-sm font-medium text-slate-500 mt-1">
+                    <p className="text-sm font-medium text-muted mt-1">
                         Synthesize clinical narratives into structured DSM/ICD assessments
                         {patientName && <span className="text-indigo-500 font-bold ml-1">for {patientName}</span>}
                     </p>
                 </div>
-                <button onClick={handleReset} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+                <button onClick={handleReset} className="p-2 text-muted opacity-80 hover:text-muted hover:bg-page rounded-xl transition-colors">
                     <RotateCcw size={18} />
                 </button>
             </div>
@@ -195,13 +195,13 @@ const AIDiagnosisPanel = ({ patientId, patientName }: AIDiagnosisPanelProps) => 
                         className="space-y-4"
                     >
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Clinical Narrative</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted opacity-80 ml-1">Clinical Narrative</label>
                             <div className="relative group">
                                 <textarea
                                     value={narrative}
                                     onChange={(e) => setNarrative(e.target.value)}
                                     placeholder="Dictate or type patient symptoms, history of present illness, clinical observations, duration, and any stressors..."
-                                    className="w-full h-40 p-5 bg-slate-50 rounded-2xl border border-slate-200 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:bg-white focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all resize-none shadow-inner pr-12"
+                                    className="w-full h-40 p-5 bg-page rounded-2xl border border-border-card text-sm font-medium text-main placeholder:text-muted opacity-80 focus:bg-card focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all resize-none shadow-inner pr-12"
                                     disabled={isLoading}
                                 />
                                 {/* Clear Text button */}
@@ -211,7 +211,7 @@ const AIDiagnosisPanel = ({ patientId, patientName }: AIDiagnosisPanelProps) => 
                                             setNarrative('');
                                             if (isListening) stopListening();
                                         }}
-                                        className="absolute top-3 right-3 p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                        className="absolute top-3 right-3 p-2 text-muted opacity-40 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
                                         title="Clear text"
                                     >
                                         <Trash2 size={16} />
@@ -220,7 +220,7 @@ const AIDiagnosisPanel = ({ patientId, patientName }: AIDiagnosisPanelProps) => 
                                 {/* Real-time speech interim text overlay */}
                                 {isListening && interimText && (
                                     <div className="absolute bottom-5 left-5 right-16 pointer-events-none">
-                                        <p className="text-sm font-medium text-slate-400 italic bg-white/80 backdrop-blur px-2 py-1 rounded inline-block">
+                                        <p className="text-sm font-medium text-muted opacity-80 italic bg-card/80 backdrop-blur px-2 py-1 rounded inline-block">
                                             {interimText}
                                         </p>
                                     </div>
@@ -233,7 +233,7 @@ const AIDiagnosisPanel = ({ patientId, patientName }: AIDiagnosisPanelProps) => 
                                         className={`absolute bottom-4 right-4 w-12 h-12 flex items-center justify-center rounded-xl shadow-sm transition-all duration-300 ${
                                             isListening 
                                                 ? 'bg-rose-50 text-rose-500 border border-rose-200' 
-                                                : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-50 hover:text-indigo-500 hover:border-indigo-200'
+                                                : 'bg-card text-muted opacity-80 border border-border-card hover:bg-page hover:text-indigo-500 hover:border-indigo-200'
                                         }`}
                                     >
                                         <AnimatePresence mode="wait">
@@ -271,11 +271,11 @@ const AIDiagnosisPanel = ({ patientId, patientName }: AIDiagnosisPanelProps) => 
                             </div>
 
                             <div className="flex items-center justify-between">
-                                <p className="text-[10px] font-medium text-slate-400">
+                                <p className="text-[10px] font-medium text-muted opacity-80">
                                     {narrative.length} chars · Min. 20 required
                                 </p>
                                 {voiceSupported ? (
-                                    <p className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
+                                    <p className="text-[10px] font-medium text-muted opacity-80 flex items-center gap-1">
                                         <Mic size={10} />
                                         Dictation supported
                                     </p>

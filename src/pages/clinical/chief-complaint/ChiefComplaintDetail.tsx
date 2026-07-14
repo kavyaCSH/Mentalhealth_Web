@@ -86,7 +86,7 @@ const ChiefComplaintDetail = () => {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
                 <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-                <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Retrieving AI Analysis...</p>
+                <p className="text-muted opacity-80 font-black uppercase tracking-widest text-[10px]">Retrieving AI Analysis...</p>
             </div>
         );
     }
@@ -113,7 +113,7 @@ const ChiefComplaintDetail = () => {
                 <div className="flex items-start gap-6">
                     <button
                         onClick={() => navigate(isPatient ? '/records' : `/patients/${userId}/chief-complaint`)}
-                        className="p-3 mt-1 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95 group"
+                        className="p-3 mt-1 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95 group"
                     >
                         <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                     </button>
@@ -124,10 +124,10 @@ const ChiefComplaintDetail = () => {
                                 Automated Clinical Insight
                             </span>
                         </div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-none mb-1">
+                        <h1 className="text-4xl font-black text-main tracking-tight leading-none mb-1">
                             Insight Summary
                         </h1>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Structured Review of Clinical Findings</p>
+                        <p className="text-xs font-bold text-muted opacity-80 uppercase tracking-widest">Structured Review of Clinical Findings</p>
                     </div>
                 </div>
 
@@ -157,7 +157,7 @@ const ChiefComplaintDetail = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         className="bg-emerald-500 text-white px-8 py-5 rounded-[2rem] shadow-xl shadow-emerald-100 flex items-center gap-4 border-b-4 border-emerald-700"
                     >
-                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center animate-bounce">
+                        <div className="w-10 h-10 bg-card/20 rounded-xl flex items-center justify-center animate-bounce">
                             <Sparkles size={20} />
                         </div>
                         <div>
@@ -174,14 +174,14 @@ const ChiefComplaintDetail = () => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="card-premium p-8 bg-white border-slate-100 flex flex-col gap-4 relative overflow-hidden"
+                        className="card-premium p-8 bg-card border-border-card flex flex-col gap-4 relative overflow-hidden"
                     >
                         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10 opacity-50" />
-                        <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                        <div className="flex items-center gap-3 border-b border-border-card pb-4">
                             <FileText size={18} className="text-indigo-500" />
-                            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Complaint</h2>
+                            <h2 className="text-sm font-black text-main uppercase tracking-widest">Complaint</h2>
                         </div>
-                        <p className="text-slate-700 font-semibold leading-relaxed pt-2">
+                        <p className="text-main font-semibold leading-relaxed pt-2">
                             "{narrative}"
                         </p>
                     </motion.div>
@@ -197,7 +197,7 @@ const ChiefComplaintDetail = () => {
                                 <Brain size={18} className="text-indigo-600" />
                                 <h2 className="text-sm font-black text-indigo-900 uppercase tracking-widest">AI Clinical Summary</h2>
                             </div>
-                            <p className="font-semibold text-slate-800 leading-relaxed pt-2">
+                            <p className="font-semibold text-main leading-relaxed pt-2">
                                 {ai_summary}
                             </p>
                         </motion.div>
@@ -208,19 +208,19 @@ const ChiefComplaintDetail = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="card-premium p-8 bg-white border-slate-100 flex flex-col gap-6"
+                            className="card-premium p-8 bg-card border-border-card flex flex-col gap-6"
                         >
-                            <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                            <div className="flex items-center gap-3 border-b border-border-card pb-4">
                                 <Activity size={18} className="text-indigo-500" />
-                                <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Mental Status Exam (MSE)</h2>
+                                <h2 className="text-sm font-black text-main uppercase tracking-widest">Mental Status Exam (MSE)</h2>
                             </div>
                             <div className="grid grid-cols-2 gap-6">
                                 {Object.entries(structured.mse_observations).map(([key, value]) => (
                                     <div key={key} className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                                             {key.replace('_', ' ')}
                                         </p>
-                                        <p className="text-sm font-bold text-slate-800 bg-slate-50 px-3 py-2 rounded-xl">
+                                        <p className="text-sm font-bold text-main bg-page px-3 py-2 rounded-xl">
                                             {String(value) || 'Not Provided'}
                                         </p>
                                     </div>
@@ -234,9 +234,9 @@ const ChiefComplaintDetail = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.25 }}
-                            className="card-premium p-8 bg-white border-slate-100 flex flex-col gap-4"
+                            className="card-premium p-8 bg-card border-border-card flex flex-col gap-4"
                         >
-                            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest border-b border-slate-50 pb-4">Associated Symptoms</h2>
+                            <h2 className="text-sm font-black text-main uppercase tracking-widest border-b border-border-card pb-4">Associated Symptoms</h2>
                             <div className="flex flex-wrap gap-2">
                                 {structured.associated_symptoms.map((sym: string) => (
                                     <span key={sym} className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
@@ -252,20 +252,20 @@ const ChiefComplaintDetail = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="card-premium p-8 bg-white border-slate-100 grid md:grid-cols-2 gap-8"
+                            className="card-premium p-8 bg-card border-border-card grid md:grid-cols-2 gap-8"
                         >
                             {structured.clinical_impression && (
                                 <div className="space-y-2">
-                                    <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clinical Impression</h2>
-                                    <p className="text-sm font-semibold text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl h-full line-clamp-4">
+                                    <h2 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Clinical Impression</h2>
+                                    <p className="text-sm font-semibold text-main leading-relaxed bg-page p-4 rounded-2xl h-full line-clamp-4">
                                         {structured.clinical_impression}
                                     </p>
                                 </div>
                             )}
                             {structured.functional_impairment && (
                                 <div className="space-y-2">
-                                    <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Functional Impairment</h2>
-                                    <p className="text-sm font-semibold text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl h-full line-clamp-4">
+                                    <h2 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Functional Impairment</h2>
+                                    <p className="text-sm font-semibold text-main leading-relaxed bg-page p-4 rounded-2xl h-full line-clamp-4">
                                         {structured.functional_impairment}
                                     </p>
                                 </div>
@@ -278,22 +278,22 @@ const ChiefComplaintDetail = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.35 }}
-                            className="card-premium p-8 bg-white border-slate-100 flex flex-col gap-4"
+                            className="card-premium p-8 bg-card border-border-card flex flex-col gap-4"
                         >
-                            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest border-b border-slate-50 pb-4">Previous History</h2>
+                            <h2 className="text-sm font-black text-main uppercase tracking-widest border-b border-border-card pb-4">Previous History</h2>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Occurred Before</p>
-                                    <p className="text-sm font-bold text-slate-800">{complaint.previous_episodes.has_occurred_before ? 'Yes' : 'No'}</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Occurred Before</p>
+                                    <p className="text-sm font-bold text-main">{complaint.previous_episodes.has_occurred_before ? 'Yes' : 'No'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hospitalized</p>
-                                    <p className="text-sm font-bold text-slate-800">{complaint.previous_episodes.hospitalized_before ? 'Yes' : 'No'}</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Hospitalized</p>
+                                    <p className="text-sm font-bold text-main">{complaint.previous_episodes.hospitalized_before ? 'Yes' : 'No'}</p>
                                 </div>
                                 {complaint.previous_episodes.last_episode_date && (
                                     <div className="col-span-2 text-right">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Last Episode</p>
-                                        <p className="text-sm font-bold text-slate-800">{complaint.previous_episodes.last_episode_date}</p>
+                                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Last Episode</p>
+                                        <p className="text-sm font-bold text-main">{complaint.previous_episodes.last_episode_date}</p>
                                     </div>
                                 )}
                             </div>
@@ -325,7 +325,7 @@ const ChiefComplaintDetail = () => {
                             
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between pb-4 border-b border-white/40">
-                                    <span className="text-xs font-bold text-slate-600">Overall Level</span>
+                                    <span className="text-xs font-bold text-muted">Overall Level</span>
                                     <span className={`text-xs font-black uppercase tracking-wider px-2 py-1 rounded-md ${
                                         risk_markers.risk_level === 'None' ? 'bg-emerald-200 text-emerald-800' : 'bg-rose-600 text-white'
                                     }`}>
@@ -333,15 +333,15 @@ const ChiefComplaintDetail = () => {
                                     </span>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                                    <div className="flex justify-between items-center text-xs font-bold text-main">
                                         <span>Self Harm:</span>
                                         <span>{risk_markers.self_harm_detected ? '⚠️ Yes' : 'No'}</span>
                                     </div>
-                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                                    <div className="flex justify-between items-center text-xs font-bold text-main">
                                         <span>Violence:</span>
                                         <span>{risk_markers.violence_detected ? '⚠️ Yes' : 'No'}</span>
                                     </div>
-                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                                    <div className="flex justify-between items-center text-xs font-bold text-main">
                                         <span>Psychosis:</span>
                                         <span>{risk_markers.psychosis_detected ? '⚠️ Yes' : 'No'}</span>
                                     </div>
@@ -395,20 +395,20 @@ const ChiefComplaintDetail = () => {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.5 }}
-                            className="card-premium p-8 bg-white border-slate-100"
+                            className="card-premium p-8 bg-card border-border-card"
                         >
-                            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-50 pb-4">Clinical Profile</h2>
+                            <h2 className="text-sm font-black text-main uppercase tracking-widest mb-6 border-b border-border-card pb-4">Clinical Profile</h2>
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calculated Severity</p>
-                                    <p className="text-sm font-bold text-slate-800">{structured.severity || 'Unspecified'}</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Calculated Severity</p>
+                                    <p className="text-sm font-bold text-main">{structured.severity || 'Unspecified'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Duration</p>
-                                    <p className="text-sm font-bold text-slate-800">{structured.duration || 'Not stated'}</p>
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Duration</p>
+                                    <p className="text-sm font-bold text-main">{structured.duration || 'Not stated'}</p>
                                 </div>
-                                <div className="pt-2 border-t border-slate-50">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Potential Diagnoses</p>
+                                <div className="pt-2 border-t border-border-card">
+                                    <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-2">Potential Diagnoses</p>
                                     <div className="flex flex-wrap gap-2">
                                         {structured.potential_diagnoses?.length > 0 ? (
                                             structured.potential_diagnoses.map((dx: string) => (
@@ -417,7 +417,7 @@ const ChiefComplaintDetail = () => {
                                                 </span>
                                             ))
                                         ) : (
-                                            <span className="text-xs font-bold text-slate-400 italic">None identified</span>
+                                            <span className="text-xs font-bold text-muted opacity-80 italic">None identified</span>
                                         )}
                                     </div>
                                 </div>

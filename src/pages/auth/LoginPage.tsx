@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
@@ -52,9 +52,25 @@ const LoginPage = () => {
     const [error, setError] = useState<string | null>(null);
 
     const location = useLocation();
-    const successMsg = location.state?.message;
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
+
+    const [successMsg, setSuccessMsg] = useState<string | null>(location.state?.message || null);
+
+    useEffect(() => {
+        if (location.state?.message) {
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location, navigate]);
+
+    useEffect(() => {
+        if (successMsg) {
+            const timer = setTimeout(() => {
+                setSuccessMsg(null);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [successMsg]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -176,7 +176,7 @@ const Teleconsult = () => {
         return (
             <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-8">
                 <Activity className="animate-spin text-indigo-500 mb-6" size={48} />
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Initializing Session Container...</p>
+                <p className="text-muted opacity-80 font-bold uppercase tracking-widest text-xs">Initializing Session Container...</p>
             </div>
         );
     }
@@ -188,7 +188,7 @@ const Teleconsult = () => {
                     <LockIcon size={32} />
                 </div>
                 <h3 className="text-2xl font-black text-white mb-2">Access Control Violation</h3>
-                <p className="text-slate-400 font-medium mb-8">Unauthorized clinical session attempt or expired token.</p>
+                <p className="text-muted opacity-80 font-medium mb-8">Unauthorized clinical session attempt or expired token.</p>
                 <Button variant="primary" onClick={() => navigate(isProfessional ? '/clinical-schedule' : '/schedule')}>Return to Dashboard</Button>
             </div>
         );
@@ -236,21 +236,21 @@ const Teleconsult = () => {
                                 animate={{ x: 0, opacity: 1 }}
                                 exit={{ x: '-100%', opacity: 0 }}
                                 transition={{ type: 'spring', damping: 30, stiffness: 200 }}
-                                className="fixed top-4 left-4 bottom-4 w-[380px] bg-slate-50/95 backdrop-blur-xl border-2 border-slate-200/80 rounded-3xl flex flex-col z-[160] shadow-[0_30px_80px_rgba(15,23,42,0.1)] overflow-hidden"
+                                className="fixed top-4 left-4 bottom-4 w-[380px] bg-page/95 backdrop-blur-xl border-2 border-border-card/80 rounded-3xl flex flex-col z-[160] shadow-[0_30px_80px_rgba(15,23,42,0.1)] overflow-hidden"
                             >
-                                <div className="p-6 pb-2 border-b border-slate-100">
+                                <div className="p-6 pb-2 border-b border-border-card">
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-3">
                                             {activeTool && (
                                                 <button
                                                     onClick={() => setActiveTool(null)}
-                                                    className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:bg-white hover:text-indigo-600 transition-all"
+                                                    className="w-8 h-8 rounded-lg bg-page border border-border-card flex items-center justify-center text-muted hover:bg-card hover:text-indigo-600 transition-all"
                                                 >
                                                     <BackIcon size={16} />
                                                 </button>
                                             )}
                                             <div>
-                                                <h2 className="text-lg font-black text-slate-900 tracking-tight">
+                                                <h2 className="text-lg font-black text-main tracking-tight">
                                                     {activeTool === 'notes' ? 'Session Notes' :
                                                         activeTool === 'symptoms' ? 'Symptoms' :
                                                             activeTool === 'assessments' ? 'Assessments' :
@@ -259,12 +259,12 @@ const Teleconsult = () => {
                                                                         activeTool === 'patient_record' ? 'Record' :
                                                                             activeTool === 'ai_diagnosis' ? 'AI Diagnosis' : 'Clinical Hub'}
                                                 </h2>
-                                                <p className="text-[8px] text-slate-400 font-bold uppercase tracking-[0.1em] mt-0.5">Focus Workspace</p>
+                                                <p className="text-[8px] text-muted opacity-80 font-bold uppercase tracking-[0.1em] mt-0.5">Focus Workspace</p>
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => setIsSidebarOpen(false)}
-                                            className="w-9 h-9 rounded-lg bg-slate-50 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-all text-slate-400 border border-slate-100"
+                                            className="w-9 h-9 rounded-lg bg-page hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-all text-muted opacity-80 border border-border-card"
                                         >
                                             <X size={18} />
                                         </button>
@@ -280,15 +280,15 @@ const Teleconsult = () => {
                                                 { id: 'assessments', icon: Brain, label: 'DSM-5 Assess', color: 'text-indigo-600' },
                                                 { id: 'treatment', icon: ClipboardCheck, label: 'Treatment Plan', color: 'text-teal-600' },
                                                 { id: 'past_history', icon: History, label: 'Past History', color: 'text-purple-500' },
-                                                { id: 'notes', icon: MessageSquare, label: 'Session Notes', color: 'text-slate-800' },
+                                                { id: 'notes', icon: MessageSquare, label: 'Session Notes', color: 'text-main' },
                                                 { id: 'ai_diagnosis', icon: Brain, label: 'AI Diagnosis', color: 'text-violet-600' }
                                             ].map((tool) => (
                                                 <button
                                                     key={tool.id}
                                                     onClick={() => setActiveTool(tool.id as any)}
-                                                    className="group relative h-24 bg-white border-2 border-slate-200 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-indigo-500 flex flex-col items-center justify-center gap-2.5 p-3 shadow-sm"
+                                                    className="group relative h-24 bg-card border-2 border-border-card rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-indigo-500 flex flex-col items-center justify-center gap-2.5 p-3 shadow-sm"
                                                 >
-                                                    <div className={`w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center transition-colors group-hover:bg-indigo-50 ${tool.color}`}>
+                                                    <div className={`w-8 h-8 rounded-lg bg-page flex items-center justify-center transition-colors group-hover:bg-indigo-50 ${tool.color}`}>
                                                         <tool.icon size={16} />
                                                     </div>
                                                     <span className={`text-[10px] font-black uppercase tracking-widest ${tool.color} transition-colors whitespace-nowrap`}>{tool.label}</span>
@@ -316,16 +316,16 @@ const Teleconsult = () => {
 
                                             {activeTool === 'notes' && (
                                                 <div className="space-y-6">
-                                                    <div className="bg-white rounded-2xl p-6 border-2 border-slate-200 shadow-sm">
+                                                    <div className="bg-card rounded-2xl p-6 border-2 border-border-card shadow-sm">
                                                         <textarea
                                                             value={notes}
                                                             onChange={(e) => setNotes(e.target.value)}
                                                             placeholder="Clinical synthesis..."
-                                                            className="w-full h-[400px] bg-transparent text-slate-700 font-medium text-sm focus:outline-none resize-none leading-relaxed placeholder:text-slate-300"
+                                                            className="w-full h-[400px] bg-transparent text-main font-medium text-sm focus:outline-none resize-none leading-relaxed placeholder:text-muted opacity-40"
                                                         />
                                                     </div>
                                                     <div className="flex items-center justify-between px-1">
-                                                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Encrypted Data Uplink Active</span>
+                                                        <span className="text-[8px] font-black text-muted opacity-40 uppercase tracking-widest">Encrypted Data Uplink Active</span>
                                                         <Button
                                                             variant={saveSuccess ? "secondary" : "primary"}
                                                             size="sm"

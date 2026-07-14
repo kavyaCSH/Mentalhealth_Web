@@ -456,9 +456,9 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
         }
         if (!display || display === 'false') return null;
         return (
-            <div className="flex justify-between items-start py-2 border-b border-slate-50 last:border-none">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label.replace(/_/g, ' ')}</span>
-                <span className="text-[10px] font-bold text-slate-700 text-right max-w-[60%] uppercase tracking-tight">{display}</span>
+            <div className="flex justify-between items-start py-2 border-b border-border-card last:border-none">
+                <span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">{label.replace(/_/g, ' ')}</span>
+                <span className="text-[10px] font-bold text-main text-right max-w-[60%] uppercase tracking-tight">{display}</span>
             </div>
         );
     };
@@ -467,14 +467,14 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
         if (!editedRecord) return null;
         return (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 pt-4 px-2">
-                <div className="flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-10 py-4 border-b border-slate-100">
+                <div className="flex items-center justify-between sticky top-0 bg-card/80 backdrop-blur-md z-10 py-4 border-b border-border-card">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center shadow-lg">
                             <Zap size={20} />
                         </div>
                         <div>
                              <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Medical Override Mode</h4>
-                             <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">AUTHENTICATED SPECIALIST CONTEXT</p>
+                             <p className="text-xs font-bold text-muted opacity-80 uppercase tracking-tighter">AUTHENTICATED SPECIALIST CONTEXT</p>
                         </div>
                     </div>
                     <div className="flex gap-3">
@@ -490,42 +490,42 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                             value={overrideNotes}
                             onChange={(e) => setOverrideNotes(e.target.value)}
                             placeholder="Reason for manual correction (e.g., patient clarified history after clinical interview)..."
-                            className="w-full h-24 p-5 bg-white border border-amber-200 rounded-2xl text-xs font-medium focus:ring-2 focus:ring-amber-500 outline-none transition-all shadow-inner italic"
+                            className="w-full h-24 p-5 bg-card border border-amber-200 rounded-2xl text-xs font-medium focus:ring-2 focus:ring-amber-500 outline-none transition-all shadow-inner italic"
                          />
                     </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
-                     <div className="p-8 bg-white border-2 border-slate-100 rounded-[3rem] shadow-sm space-y-8 hover:border-indigo-100 transition-all">
-                        <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+                     <div className="p-8 bg-card border-2 border-border-card rounded-[3rem] shadow-sm space-y-8 hover:border-indigo-100 transition-all">
+                        <div className="flex items-center gap-4 border-b border-border-card pb-6">
                             <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm"><Brain size={24} /></div>
                             <h5 className="text-[11px] font-black text-indigo-900 uppercase tracking-widest">Psychiatric Update</h5>
                         </div>
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Historical Episodes / Diagnoses</label>
+                                <label className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">Historical Episodes / Diagnoses</label>
                                 <textarea 
                                     value={editedRecord.psychiatric_history?.previous_diagnosis?.[0] || ''}
                                     onChange={(e) => setEditedRecord({...editedRecord, psychiatric_history: {...editedRecord.psychiatric_history, previous_diagnosis: [e.target.value]}})}
-                                    className="w-full min-h-[100px] p-5 bg-slate-50 border border-slate-100 rounded-2xl text-[11px] font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all"
+                                    className="w-full min-h-[100px] p-5 bg-page border border-border-card rounded-2xl text-[11px] font-bold outline-none focus:bg-card focus:border-indigo-600 transition-all"
                                 />
                             </div>
                         </div>
                      </div>
 
-                     <div className="p-8 bg-white border-2 border-slate-100 rounded-[3rem] shadow-sm space-y-8 hover:border-rose-100 transition-all">
-                        <div className="flex items-center gap-4 border-b border-slate-50 pb-6">
+                     <div className="p-8 bg-card border-2 border-border-card rounded-[3rem] shadow-sm space-y-8 hover:border-rose-100 transition-all">
+                        <div className="flex items-center gap-4 border-b border-border-card pb-6">
                             <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-sm"><HeartPulse size={24} /></div>
                             <h5 className="text-[11px] font-black text-rose-900 uppercase tracking-widest">Surgical & Medical</h5>
                         </div>
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Chronic Conditions (Comma Separated)</label>
+                                <label className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">Chronic Conditions (Comma Separated)</label>
                                 <input 
                                     type="text"
                                     value={Array.isArray(editedRecord.medical_history?.chronic_conditions) ? editedRecord.medical_history.chronic_conditions.join(', ') : ''}
                                     onChange={(e) => setEditedRecord({...editedRecord, medical_history: {...editedRecord.medical_history, chronic_conditions: e.target.value.split(',').map((s: string) => s.trim())}})}
-                                    className="w-full h-14 p-5 bg-slate-50 border border-slate-100 rounded-2xl text-[11px] font-bold outline-none focus:bg-white focus:border-rose-600 transition-all"
+                                    className="w-full h-14 p-5 bg-page border border-border-card rounded-2xl text-[11px] font-bold outline-none focus:bg-card focus:border-rose-600 transition-all"
                                 />
                             </div>
                         </div>
@@ -541,7 +541,7 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                              <textarea 
                                 value={editedRecord.ai_notes || ''}
                                 onChange={(e) => setEditedRecord({...editedRecord, ai_notes: e.target.value})}
-                                className="w-full min-h-[120px] p-6 bg-white/5 border border-white/10 rounded-[2rem] text-xs font-bold text-slate-200 outline-none focus:border-indigo-500 transition-all resize-none italic"
+                                className="w-full min-h-[120px] p-6 bg-card/5 border border-white/10 rounded-[2rem] text-xs font-bold text-muted opacity-40 outline-none focus:border-indigo-500 transition-all resize-none italic"
                              />
                         </div>
                         <div className="space-y-6">
@@ -551,11 +551,11 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                     value={Array.isArray(editedRecord.risk_flags) ? editedRecord.risk_flags.join('\n') : ''}
                                     onChange={(e) => setEditedRecord({...editedRecord, risk_flags: e.target.value.split('\n').filter(Boolean)})}
                                     placeholder="Enter one flag per line..."
-                                    className="w-full min-h-[120px] p-6 bg-white/5 border border-white/10 rounded-[2rem] text-xs font-bold text-slate-200 outline-none focus:border-rose-500 transition-all resize-none"
+                                    className="w-full min-h-[120px] p-6 bg-card/5 border border-white/10 rounded-[2rem] text-xs font-bold text-muted opacity-40 outline-none focus:border-rose-500 transition-all resize-none"
                                 />
                             </div>
                             <div className="flex items-center gap-4">
-                                 <label className="text-[9px] font-black text-slate-400 uppercase">Urgency Accent:</label>
+                                 <label className="text-[9px] font-black text-muted opacity-80 uppercase">Urgency Accent:</label>
                                  <input 
                                     type="color" 
                                     value={editedRecord.color_code || '#6366f1'}
@@ -575,20 +575,20 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
     const renderHistoryTab = () => (
         <div className="space-y-4 pt-2">
             {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white border-2 border-slate-100 rounded-[2.5rem]">
+                <div className="flex flex-col items-center justify-center py-20 bg-card border-2 border-border-card rounded-[2.5rem]">
                     <div className="relative">
                         <Activity className="animate-spin text-indigo-600" size={32} />
                         <div className="absolute inset-0 animate-ping opacity-20 bg-indigo-400 rounded-full" />
                     </div>
-                    <p className="mt-6 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Synchronizing Archive...</p>
+                    <p className="mt-6 text-[11px] font-black text-muted opacity-80 uppercase tracking-[0.2em]">Synchronizing Archive...</p>
                 </div>
             ) : history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem]">
-                    <div className="p-4 bg-slate-50 rounded-2xl mb-4">
-                        <HistoryIcon size={32} className="text-slate-300" />
+                <div className="flex flex-col items-center justify-center py-20 bg-card border-2 border-dashed border-border-card rounded-[2.5rem]">
+                    <div className="p-4 bg-page rounded-2xl mb-4">
+                        <HistoryIcon size={32} className="text-muted opacity-40" />
                     </div>
-                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-1">No Historical Nodes</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-8">Clinical record is currently empty</p>
+                    <h3 className="text-xs font-black text-main uppercase tracking-widest mb-1">No Historical Nodes</h3>
+                    <p className="text-[10px] font-bold text-muted opacity-80 uppercase tracking-tight mb-8">Clinical record is currently empty</p>
                     <Button
                         variant="primary"
                         size="sm"
@@ -605,7 +605,7 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                         <button
                             key={record._id || record.id || `hist-${index}`}
                             onClick={() => setSelectedRecord(record)}
-                            className="w-full text-left bg-white p-6 rounded-[2rem] border-2 border-slate-100 hover:border-indigo-600 transition-all hover:shadow-xl hover:shadow-slate-100 group relative overflow-hidden"
+                            className="w-full text-left bg-card p-6 rounded-[2rem] border-2 border-border-card hover:border-indigo-600 transition-all hover:shadow-xl hover:shadow-slate-100 group relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Zap size={16} className="text-indigo-600" />
@@ -613,12 +613,12 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
 
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                    <div className="w-10 h-10 bg-page rounded-xl flex items-center justify-center text-muted opacity-80 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
                                         <Archive size={18} />
                                     </div>
                                     <div>
-                                        <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Clinical Snapshot</h4>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase">{record.createdAt ? new Date(record.createdAt).toLocaleDateString() : 'Draft'}</p>
+                                        <h4 className="text-[10px] font-black text-main uppercase tracking-widest">Clinical Snapshot</h4>
+                                        <p className="text-[9px] font-bold text-muted opacity-80 uppercase">{record.createdAt ? new Date(record.createdAt).toLocaleDateString() : 'Draft'}</p>
                                     </div>
                                 </div>
                                 <div className="px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-lg">
@@ -626,11 +626,11 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                 </div>
                             </div>
 
-                            <p className="text-xs font-bold text-slate-600 leading-relaxed italic mb-4 line-clamp-2">
+                            <p className="text-xs font-bold text-muted leading-relaxed italic mb-4 line-clamp-2">
                                 \"{String(record.ai_notes || record.narrative || 'Detailed psychiatric and medical history captured.')}\"
                             </p>
 
-                            <div className="flex items-center gap-4 text-slate-400">
+                            <div className="flex items-center gap-4 text-muted opacity-80">
                                 <div className="flex items-center gap-1.5">
                                     <Brain size={12} />
                                     <span className="text-[9px] font-black uppercase tracking-tighter">Psych Roots</span>
@@ -651,15 +651,15 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
         return (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-700 pb-20 pt-2">
                 {!extractionResult ? (
-                    <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 shadow-sm">
+                    <div className="bg-card border-2 border-border-card rounded-[2.5rem] p-8 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-2xl bg-indigo-900 text-white flex items-center justify-center shadow-2xl shadow-indigo-100">
                                     <Sparkles size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.15em]">AI History Assistant</h3>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Active Extraction Mode</p>
+                                    <h3 className="text-xs font-black text-main uppercase tracking-[0.15em]">AI History Assistant</h3>
+                                    <p className="text-[9px] font-bold text-muted opacity-80 uppercase tracking-widest">Active Extraction Mode</p>
                                 </div>
                             </div>
 
@@ -667,7 +667,7 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                 onClick={toggleRecording}
                                 className={`p-3 rounded-xl transition-all flex items-center gap-2 border-2 ${isRecording
                                     ? 'bg-rose-500 text-white border-rose-500 animate-pulse shadow-lg shadow-rose-100'
-                                    : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-900 hover:text-white'
+                                    : 'bg-page text-muted opacity-80 border-border-card hover:bg-slate-900 hover:text-white'
                                     }`}
                             >
                                 {isRecording ? <MicOff size={16} /> : <Mic size={16} />}
@@ -682,7 +682,7 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                 value={narrative}
                                 onChange={(e) => setNarrative(e.target.value)}
                                 placeholder="Describe patient's medical and psychiatric history narrative here..."
-                                className="w-full h-40 bg-slate-50 border-2 border-slate-100 rounded-3xl p-6 text-xs font-bold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-300 focus:bg-white transition-all resize-none leading-relaxed"
+                                className="w-full h-40 bg-page border-2 border-border-card rounded-3xl p-6 text-xs font-bold text-main placeholder:text-muted opacity-40 focus:outline-none focus:border-indigo-300 focus:bg-card transition-all resize-none leading-relaxed"
                             />
                             {isRecording && (
                                 <div className="absolute top-4 right-4 flex items-center gap-2 text-rose-500 font-black text-[8px] uppercase tracking-widest">
@@ -729,7 +729,7 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
                                     {extractionResult.risk_flags.map((f: string, i: number) => (
-                                        <span key={i} className="px-3 py-1.5 bg-white/10 border border-white/5 text-[9px] font-black rounded-lg uppercase tracking-tight">{f}</span>
+                                        <span key={i} className="px-3 py-1.5 bg-card/10 border border-white/5 text-[9px] font-black rounded-lg uppercase tracking-tight">{f}</span>
                                     ))}
                                 </div>
                             </div>
@@ -750,17 +750,17 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                 if (!hasData) return null;
 
                                 return (
-                                    <div key={i} className={`p-8 bg-white border border-${domain.color}-100 rounded-[2.5rem] shadow-sm hover:border-${domain.color}-200 transition-all`}>
-                                        <div className="flex items-center gap-4 mb-6 border-b border-slate-50 pb-4">
+                                    <div key={i} className={`p-8 bg-card border border-${domain.color}-100 rounded-[2.5rem] shadow-sm hover:border-${domain.color}-200 transition-all`}>
+                                        <div className="flex items-center gap-4 mb-6 border-b border-border-card pb-4">
                                             <div className={`p-2 bg-${domain.color}-50 text-${domain.color}-600 rounded-xl`}>{domain.icon}</div>
-                                            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{domain.title}</h4>
+                                            <h4 className="text-[10px] font-black text-main uppercase tracking-widest">{domain.title}</h4>
                                         </div>
                                         
                                         {domain.data ? (
                                             <div className="space-y-4">
                                                 {domain.fields.map((f: any) => (
                                                     <div key={f} className="space-y-1.5">
-                                                        <label className="text-[8px] font-black text-slate-400 uppercase ml-1">{f.replace(/_/g, ' ')}</label>
+                                                        <label className="text-[8px] font-black text-muted opacity-80 uppercase ml-1">{f.replace(/_/g, ' ')}</label>
                                                         <input 
                                                             type="text" 
                                                             value={(domain.data as any)[f]} 
@@ -769,7 +769,7 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                                                              domain.title === 'Medical' ? setMedical : setFamily;
                                                                 setter((p: any) => ({ ...p, [f]: e.target.value }));
                                                             }}
-                                                            className={`w-full bg-slate-50 border-2 border-transparent rounded-xl p-4 text-[11px] font-bold focus:outline-none focus:border-${domain.color}-200 focus:bg-white transition-all`} 
+                                                            className={`w-full bg-page border-2 border-transparent rounded-xl p-4 text-[11px] font-bold focus:outline-none focus:border-${domain.color}-200 focus:bg-card transition-all`} 
                                                         />
                                                     </div>
                                                 ))}
@@ -778,7 +778,7 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                             <textarea 
                                                 value={domain.value} 
                                                 onChange={(e) => domain.onChange!(e.target.value)}
-                                                className={`w-full h-24 bg-slate-50 border-2 border-transparent rounded-[2rem] p-6 text-[11px] font-bold focus:outline-none focus:border-${domain.color}-200 focus:bg-white transition-all resize-none`}
+                                                className={`w-full h-24 bg-page border-2 border-transparent rounded-[2rem] p-6 text-[11px] font-bold focus:outline-none focus:border-${domain.color}-200 focus:bg-card transition-all resize-none`}
                                             />
                                         )}
                                     </div>
@@ -815,19 +815,19 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
         return (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 pt-2 pb-20">
                 <button onClick={() => setSelectedRecord(null)} className="flex items-center gap-2 group mb-4">
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                    <div className="w-8 h-8 rounded-full bg-page flex items-center justify-center text-muted opacity-80 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                         <ChevronRight size={16} className="rotate-180" />
                     </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-indigo-600 transition-colors">Return to Clinical Archive</span>
+                    <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest group-hover:text-indigo-600 transition-colors">Return to Clinical Archive</span>
                 </button>
 
-                <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] p-8 space-y-8">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-6">
+                <div className="bg-card border-2 border-border-card rounded-[2.5rem] p-8 space-y-8">
+                    <div className="flex items-center justify-between border-b border-border-card pb-6">
                         <div className="flex items-center gap-4">
                             <div className="w-14 h-14 rounded-[1.25rem] bg-slate-900 text-white flex items-center justify-center shadow-xl"><FileText size={24} /></div>
                             <div>
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-none mb-1">Record Synthesis</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">{formatDate(selectedRecord?.createdAt)}</p>
+                                <h3 className="text-sm font-black text-main uppercase tracking-widest leading-none mb-1">Record Synthesis</h3>
+                                <p className="text-[10px] font-bold text-muted opacity-80 uppercase">{formatDate(selectedRecord?.createdAt)}</p>
                             </div>
                         </div>
                     <div className="flex gap-3">
@@ -836,25 +836,25 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                     </div>
                 </div>
 
-                <div className="p-8 bg-slate-50 border-2 border-slate-100 rounded-[2rem] relative italic">
-                    <div className="absolute -top-3 left-8 px-3 py-1 bg-white border border-slate-200 rounded-lg">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">AI Synthesis</span>
+                <div className="p-8 bg-page border-2 border-border-card rounded-[2rem] relative italic">
+                    <div className="absolute -top-3 left-8 px-3 py-1 bg-card border border-border-card rounded-lg">
+                        <span className="text-[8px] font-black text-muted opacity-80 uppercase tracking-widest">AI Synthesis</span>
                     </div>
-                    <p className="text-xs font-bold text-slate-600 leading-relaxed capitalize">
+                    <p className="text-xs font-bold text-muted leading-relaxed capitalize">
                         \"{String(selectedRecord.ai_notes || selectedRecord.narrative || 'Detailed records captured.')}\"
                     </p>
                 </div>
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+                    <div className="p-6 bg-card border border-border-card rounded-[2rem] shadow-sm">
                         <div className="flex items-center gap-2 mb-4 text-purple-600"><Brain size={16} /><h5 className="text-[9px] font-black uppercase tracking-widest">Psychiatry</h5></div>
-                        <p className="text-[10px] font-bold text-slate-700 leading-relaxed uppercase">{formatInsightValue(selectedRecord.psychiatric_history?.previous_diagnosis)}</p>
+                        <p className="text-[10px] font-bold text-main leading-relaxed uppercase">{formatInsightValue(selectedRecord.psychiatric_history?.previous_diagnosis)}</p>
                     </div>
-                    <div className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+                    <div className="p-6 bg-card border border-border-card rounded-[2rem] shadow-sm">
                         <div className="flex items-center gap-2 mb-4 text-rose-600"><HeartPulse size={16} /><h5 className="text-[9px] font-black uppercase tracking-widest">Medical</h5></div>
-                        <p className="text-[10px] font-bold text-slate-700 leading-relaxed uppercase">{formatInsightValue(selectedRecord.medical_history?.chronic_conditions)}</p>
+                        <p className="text-[10px] font-bold text-main leading-relaxed uppercase">{formatInsightValue(selectedRecord.medical_history?.chronic_conditions)}</p>
                     </div>
-                    <div className="p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm">
+                    <div className="p-6 bg-card border border-border-card rounded-[2rem] shadow-sm">
                         <div className="flex items-center gap-2 mb-4 text-emerald-600"><Users size={16} /><h5 className="text-[9px] font-black uppercase tracking-widest">Clinical Flags</h5></div>
                         <div className="flex flex-wrap gap-1">
                             {selectedRecord.risk_flags && Array.isArray(selectedRecord.risk_flags) && selectedRecord.risk_flags.length > 0 ? (
@@ -862,7 +862,7 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
                                     <span key={`det-flag-${i}`} className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[7px] font-black rounded uppercase">{f}</span>
                                 ))
                             ) : (
-                                <span className="text-[8px] font-bold text-slate-300 uppercase">No flags detected</span>
+                                <span className="text-[8px] font-bold text-muted opacity-40 uppercase">No flags detected</span>
                             )}
                         </div>
                     </div>
@@ -877,18 +877,18 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg"><HistoryIcon size={20} /></div>
-                    <div><h3 className="text-xs font-black text-slate-900 uppercase">Analysis Result</h3></div>
+                    <div><h3 className="text-xs font-black text-main uppercase">Analysis Result</h3></div>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => {setResult(null); setActiveTab('history');}} className="rounded-xl font-black uppercase text-[9px]">Close</Button>
             </div>
 
-            <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
+            <div className="bg-card border-2 border-border-card rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: result.color_code || '#6366f1' }} />
                 <div className="space-y-8 uppercase tracking-tighter font-black">
                     <div className="flex items-center gap-4 uppercase tracking-widest mb-2"><Sparkles size={18} className="text-indigo-600" /> Synthesis Captured Sucessfully</div>
-                    <div className="p-6 bg-slate-50 rounded-3xl text-xs text-slate-600 italic">\"{result.ai_notes || 'Captured.'}\"</div>
+                    <div className="p-6 bg-page rounded-3xl text-xs text-muted italic">\"{result.ai_notes || 'Captured.'}\"</div>
                     <div className="grid md:grid-cols-2 gap-8">
-                         <div><h5 className="text-[9px] text-slate-400 mb-4 tracking-widest uppercase">Primary Identifiers</h5><FindingItem label="Psychiatric" value={result.psychiatric_history?.previous_diagnosis} /><FindingItem label="Medical" value={result.medical_history?.chronic_conditions} /></div>
+                         <div><h5 className="text-[9px] text-muted opacity-80 mb-4 tracking-widest uppercase">Primary Identifiers</h5><FindingItem label="Psychiatric" value={result.psychiatric_history?.previous_diagnosis} /><FindingItem label="Medical" value={result.medical_history?.chronic_conditions} /></div>
                          <div><h5 className="text-[9px] text-rose-600 mb-4 tracking-widest uppercase">Risk Marker Nodes</h5><div className="flex flex-wrap gap-2">{result.risk_flags?.map((f: string, i: number) => (<span key={`res-flag-${i}`} className="px-3 py-1.5 bg-rose-50 text-rose-600 text-[8px] rounded-lg border border-rose-100">{f}</span>))}</div></div>
                     </div>
                 </div>
@@ -898,12 +898,12 @@ export const ConsultPastHistory: React.FC<ConsultPastHistoryProps> = ({
     );
 
     return (
-        <div className="flex flex-col h-full bg-white px-2">
+        <div className="flex flex-col h-full bg-card px-2">
             {!selectedRecord && !isEditing && (
                 <div className="flex items-center justify-between mb-8">
-                    <div className="flex bg-slate-100 p-1.5 rounded-xl border-2 border-slate-200">
-                        <button onClick={() => setActiveTab('history')} className={`px-8 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Archive</button>
-                        <button onClick={() => setActiveTab('new')} className={`px-8 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>New Intake</button>
+                    <div className="flex bg-page p-1.5 rounded-xl border-2 border-border-card">
+                        <button onClick={() => setActiveTab('history')} className={`px-8 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted opacity-80 hover:text-muted'}`}>Archive</button>
+                        <button onClick={() => setActiveTab('new')} className={`px-8 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-card text-indigo-600 shadow-sm' : 'text-muted opacity-80 hover:text-muted'}`}>New Intake</button>
                     </div>
                 </div>
             )}

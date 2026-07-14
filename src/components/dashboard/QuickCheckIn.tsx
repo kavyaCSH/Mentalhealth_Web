@@ -31,14 +31,14 @@ const QuickCheckIn: React.FC = () => {
     };
 
     return (
-        <section className="card-premium p-8 bg-white border-slate-100 relative overflow-hidden group">
+        <section className="card-premium p-8 bg-card border-border-card relative overflow-hidden group">
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <div className="flex items-center gap-2 mb-1.5">
                         <Sparkles size={14} className="text-amber-400" />
-                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Daily Pulse</h2>
+                        <h2 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-[0.2em]">Daily Pulse</h2>
                     </div>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">How are you feeling, jii?</h3>
+                    <h3 className="text-2xl font-black text-main tracking-tight">How are you feeling, jii?</h3>
                 </div>
                 <AnimatePresence>
                     {isSubmitted && (
@@ -69,13 +69,13 @@ const QuickCheckIn: React.FC = () => {
                                     ? `${mood.bgColor} ${mood.color} scale-105 shadow-xl shadow-current/10 ring-2 ring-current ring-offset-2` 
                                     : isDisabled 
                                         ? 'opacity-30 grayscale cursor-not-allowed'
-                                        : 'bg-slate-50 hover:bg-white hover:shadow-lg hover:-translate-y-1'
+                                        : 'bg-page hover:bg-card hover:shadow-lg hover:-translate-y-1'
                             }`}
                         >
                             <span className={`text-3xl transition-transform duration-500 ${isSelected ? 'scale-125' : 'group-hover/mood:scale-110'}`}>
                                 {mood.emoji}
                             </span>
-                            <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${isSelected ? 'opacity-100' : 'text-slate-400 group-hover/mood:text-slate-600'}`}>
+                            <span className={`text-[9px] font-black uppercase tracking-widest transition-colors ${isSelected ? 'opacity-100' : 'text-muted opacity-80 group-hover/mood:text-muted'}`}>
                                 {mood.label}
                             </span>
                             
@@ -96,7 +96,7 @@ const QuickCheckIn: React.FC = () => {
                     <motion.p 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-6 text-center text-sm font-bold text-slate-500 italic"
+                        className="mt-6 text-center text-sm font-bold text-muted italic"
                     >
                         "Thank you for sharing. Your specialist will notice your trend."
                     </motion.p>

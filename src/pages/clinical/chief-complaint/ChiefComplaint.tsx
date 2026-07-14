@@ -189,16 +189,16 @@ const ChiefComplaint = () => {
             <header className="flex items-center gap-6">
                 <button
                     onClick={navigateBack}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    className="p-3 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                    <h1 className="text-4xl font-black text-main tracking-tight">
                         Chief Complaints
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Patient Identity:</span>
+                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Patient Identity:</span>
                         <span className="text-xs font-bold text-indigo-600">
                             {patient ? `${patient.firstName} ${patient.lastName || ''}` : `Patient #${userId}`}
                         </span>
@@ -210,7 +210,7 @@ const ChiefComplaint = () => {
                         onClick={toggleFilters}
                         className={`p-3 rounded-2xl border transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest ${isFilterExpanded || (Object.keys(filters).length > 1 || (Object.keys(filters).length === 1 && filters.status !== 'completed'))
                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200'
-                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                            : 'bg-card text-muted border-border-card hover:bg-page'
                             }`}
                     >
                         <Filter size={18} />
@@ -233,12 +233,12 @@ const ChiefComplaint = () => {
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="card-premium p-8 bg-white/70 backdrop-blur-xl border-indigo-100/50 shadow-2xl shadow-indigo-100/20 space-y-8"
+                    className="card-premium p-8 bg-card/70 backdrop-blur-xl border-indigo-100/50 shadow-2xl shadow-indigo-100/20 space-y-8"
                 >
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {/* Status */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                 <Clock size={14} /> Record Status
                             </label>
                             <div className="flex gap-2">
@@ -248,7 +248,7 @@ const ChiefComplaint = () => {
                                         onClick={() => setTempFilters({ ...tempFilters, status: s as any })}
                                         className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${tempFilters.status === s
                                             ? 'bg-indigo-600 text-white border-indigo-600'
-                                            : 'bg-slate-50 text-slate-500 border-slate-100 hover:border-indigo-200'
+                                            : 'bg-page text-muted border-border-card hover:border-indigo-200'
                                             }`}
                                     >
                                         {s}
@@ -259,13 +259,13 @@ const ChiefComplaint = () => {
 
                         {/* Severity */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                 <Activity size={14} /> Severity
                             </label>
                             <select
                                 value={tempFilters.severity || ''}
                                 onChange={(e) => setTempFilters({ ...tempFilters, severity: e.target.value || undefined as any })}
-                                className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                className="w-full bg-page border border-border-card rounded-xl py-2 px-3 text-[10px] font-bold text-main focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             >
                                 <option value="">All Severities</option>
                                 <option value="Mild">Mild</option>
@@ -277,13 +277,13 @@ const ChiefComplaint = () => {
 
                         {/* Risk Level */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                 <ShieldAlert size={14} /> Risk Level
                             </label>
                             <select
                                 value={tempFilters.risk_level || ''}
                                 onChange={(e) => setTempFilters({ ...tempFilters, risk_level: e.target.value || undefined as any })}
-                                className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 px-3 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                className="w-full bg-page border border-border-card rounded-xl py-2 px-3 text-[10px] font-bold text-main focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             >
                                 <option value="">All Risk Levels</option>
                                 <option value="Low">Low</option>
@@ -295,7 +295,7 @@ const ChiefComplaint = () => {
 
                         {/* Period */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-2">
                                 <Calendar size={14} /> Intake Period
                             </label>
                             <div className="flex items-center gap-2">
@@ -303,24 +303,24 @@ const ChiefComplaint = () => {
                                     type="date"
                                     value={tempFilters.startDate || ''}
                                     onChange={(e) => setTempFilters({ ...tempFilters, startDate: e.target.value })}
-                                    className="flex-1 bg-slate-50/50 border border-slate-100 rounded-xl py-2 px-2 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                    className="flex-1 bg-card/50 border border-border-card rounded-xl py-2 px-2 text-[10px] font-bold text-main focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                 />
                                 <input
                                     type="date"
                                     value={tempFilters.endDate || ''}
                                     onChange={(e) => setTempFilters({ ...tempFilters, endDate: e.target.value })}
-                                    className="flex-1 bg-slate-50/50 border border-slate-100 rounded-xl py-2 px-2 text-[10px] font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                    className="flex-1 bg-card/50 border border-border-card rounded-xl py-2 px-2 text-[10px] font-bold text-main focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-6 border-t border-slate-50">
-                        <button onClick={resetFilters} className="text-[10px] font-black text-slate-400 uppercase hover:text-rose-500 flex items-center gap-2 transition-colors">
+                    <div className="flex items-center justify-between pt-6 border-t border-border-card">
+                        <button onClick={resetFilters} className="text-[10px] font-black text-muted opacity-80 uppercase hover:text-rose-500 flex items-center gap-2 transition-colors">
                             <RotateCcw size={14} /> Reset Filters
                         </button>
                         <div className="flex items-center gap-3">
-                            <button onClick={toggleFilters} className="px-6 py-2.5 text-[10px] font-black text-slate-500 uppercase rounded-xl hover:bg-slate-50">Cancel</button>
+                            <button onClick={toggleFilters} className="px-6 py-2.5 text-[10px] font-black text-muted uppercase rounded-xl hover:bg-page">Cancel</button>
                             <Button onClick={applyFilters} variant="primary" className="px-8 py-2.5 rounded-xl shadow-lg shadow-indigo-100 text-[10px] uppercase font-black">Apply View</Button>
                         </div>
                     </div>
@@ -338,14 +338,14 @@ const ChiefComplaint = () => {
                             onClick={() => navigate(isPatient
                                 ? `/records/chief-complaint/${item.chiefComplaintId || item.id || item._id}`
                                 : `/patients/${effectiveUserId}/chief-complaint/${item.chiefComplaintId || item.id || item._id}${queryHexId ? `?hexId=${queryHexId}` : ''}`)}
-                            className="card-premium p-8 bg-white border-slate-100 hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
+                            className="card-premium p-8 bg-card border-border-card hover:border-indigo-200 cursor-pointer transition-all group flex flex-col gap-4 relative"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
                                     <Clock size={16} />
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">
                                         {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
                                             month: 'short',
                                             day: 'numeric',
@@ -354,10 +354,10 @@ const ChiefComplaint = () => {
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-slate-700 font-bold leading-relaxed line-clamp-4 flex-1">
+                            <p className="text-main font-bold leading-relaxed line-clamp-4 flex-1">
                                 {item.narrative}
                             </p>
-                            <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                            <div className="pt-4 border-t border-border-card flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     {item.structured?.severity && (
                                         <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${item.structured.severity === 'Critical' || item.structured.severity === 'Severe' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
@@ -395,16 +395,16 @@ const ChiefComplaint = () => {
                                             </button>
                                         </>
                                     )}
-                                    <ChevronLeft size={14} className="rotate-180 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                    <ChevronLeft size={14} className="rotate-180 text-muted opacity-40 group-hover:text-indigo-500 transition-colors" />
                                 </div>
                             </div>
                         </motion.div>
                     ))
                 ) : (
-                    <div className="col-span-full card-premium p-20 text-center border-dashed border-slate-200 bg-slate-50/50">
-                        <Stethoscope size={48} className="mx-auto text-slate-300 mb-6 opacity-50" />
-                        <h3 className="text-xl font-black text-slate-900 mb-2">No Records Found</h3>
-                        <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto italic mb-8">
+                    <div className="col-span-full card-premium p-20 text-center border-dashed border-border-card bg-card/50">
+                        <Stethoscope size={48} className="mx-auto text-muted opacity-40 mb-6 opacity-50" />
+                        <h3 className="text-xl font-black text-main mb-2">No Records Found</h3>
+                        <p className="text-sm font-bold text-muted opacity-80 max-w-xs mx-auto italic mb-8">
                             There are no previous chief complaints recorded for this patient identity.
                         </p>
                     </div>

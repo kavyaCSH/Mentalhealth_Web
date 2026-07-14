@@ -198,7 +198,7 @@ const PastHistory: React.FC = () => {
                     status: 'Clinical',
                     icon: <Sparkles size={ICON_SIZE} />,
                     color: 'text-indigo-700',
-                    bg: 'bg-slate-50',
+                    bg: 'bg-page',
                     path: isClinicalView ? `/patients/${patientRecordId}/past-history/${item._id || item.id}` : `/history/past/${item._id || item.id}`
                 });
             });
@@ -229,7 +229,7 @@ const PastHistory: React.FC = () => {
                 <div className="space-y-4">
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors"
+                        className="flex items-center gap-2 text-[11px] font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors"
                     >
                         <ChevronLeft size={16} /> Back to dashboard
                     </button>
@@ -239,7 +239,7 @@ const PastHistory: React.FC = () => {
                                 <History size={24} />
                                 <span className="text-[12px] font-black uppercase tracking-[0.2em]">Health repository</span>
                             </div>
-                            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Record history</h1>
+                            <h1 className="text-3xl font-black text-main tracking-tight leading-none">Record history</h1>
                         </div>
                     </div>
                 </div>
@@ -256,7 +256,7 @@ const PastHistory: React.FC = () => {
                             className={`px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-wider transition-all whitespace-nowrap shadow-sm border ${
                                 filter === t.id 
                                     ? 'bg-indigo-600 text-white border-transparent' 
-                                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                                    : 'bg-card border-border-card text-muted hover:bg-page'
                             }`}
                         >
                             {t.label}
@@ -268,11 +268,11 @@ const PastHistory: React.FC = () => {
             {loading ? (
                 <div className="py-24 text-center space-y-4">
                     <History className="animate-spin text-indigo-400 mx-auto" size={40} />
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Opening health vault...</p>
+                    <p className="text-[11px] font-bold text-muted opacity-80 uppercase tracking-widest">Opening health vault...</p>
                 </div>
             ) : (
                 <div className="space-y-5 relative">
-                    <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-slate-100/50 z-0 hidden md:block" />
+                    <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-page/50 z-0 hidden md:block" />
                     
                     <AnimatePresence mode="popLayout" initial={false}>
                         {filteredTimeline.map((item, idx) => (
@@ -283,7 +283,7 @@ const PastHistory: React.FC = () => {
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: idx * 0.03 }}
                                 onClick={() => item.path !== '#' && navigate(item.path)}
-                                className="bg-white rounded-[2.5rem] border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:shadow-indigo-50/50 transition-all cursor-pointer group relative z-10"
+                                className="bg-card rounded-[2.5rem] border border-border-card p-6 shadow-sm hover:shadow-xl hover:shadow-indigo-50/50 transition-all cursor-pointer group relative z-10"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex gap-6 items-center">
@@ -292,7 +292,7 @@ const PastHistory: React.FC = () => {
                                         </div>
                                         <div className="space-y-2 pt-1">
                                             <div className="flex flex-wrap items-center gap-4">
-                                                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-2">
+                                                <span className="text-[10px] font-bold text-muted opacity-80 flex items-center gap-2">
                                                     <Calendar size={12} className="text-indigo-400" />
                                                     {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                 </span>
@@ -305,17 +305,17 @@ const PastHistory: React.FC = () => {
                                                     {item.status}
                                                 </div>
                                             </div>
-                                            <h3 className="text-lg font-black text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors leading-none">
+                                            <h3 className="text-lg font-black text-main tracking-tight group-hover:text-indigo-600 transition-colors leading-none">
                                                 {item.title}
                                             </h3>
-                                            <p className="text-slate-400 font-bold text-sm leading-relaxed italic max-w-xl truncate">
+                                            <p className="text-muted opacity-80 font-bold text-sm leading-relaxed italic max-w-xl truncate">
                                                 {item.description}
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center">
-                                        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner">
+                                        <div className="w-12 h-12 bg-page rounded-2xl flex items-center justify-center text-muted opacity-40 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner">
                                             <ChevronRight size={28} />
                                         </div>
                                     </div>

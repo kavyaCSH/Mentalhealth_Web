@@ -1,6 +1,6 @@
 import api from '../client';
 import { AssessmentService } from './assessment.service';
-import type { User, Patient } from '../../types/user.types';
+import type { User, Patient, ClinicalNote } from '../../types/user.types';
 
 export const UserService = {
     updateMyProfile: async (data: Partial<User> | FormData): Promise<User> => {
@@ -86,6 +86,14 @@ export const UserService = {
     },
     updateUserById: async (userId: string, data: Partial<User>): Promise<User> => {
         const response = await api.put(`users/${userId}`, data);
+        return response.data?.data ?? response.data;
+    },
+    getClinicalNotes: async (id: string | number): Promise<ClinicalNote[]> => {
+        const response = await api.get(`users/${id}/notes`);
+        return response.data?.data ?? response.data ?? [];
+    },
+    addClinicalNote: async (id: string | number, noteData: { content: string }): Promise<ClinicalNote> => {
+        const response = await api.post(`users/${id}/notes`, noteData);
         return response.data?.data ?? response.data;
     }
 };

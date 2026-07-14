@@ -64,12 +64,12 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
             {(centerValue || centerLabel) && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     {centerValue && (
-                        <span className="text-2xl font-black text-slate-900 leading-none">
+                        <span className="text-2xl font-black text-main leading-none">
                             {centerValue}
                         </span>
                     )}
                     {centerLabel && (
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                        <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mt-1">
                             {centerLabel}
                         </span>
                     )}

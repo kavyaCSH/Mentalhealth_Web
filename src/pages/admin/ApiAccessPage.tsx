@@ -107,7 +107,7 @@ const ApiAccessPage = () => {
                 <div className="space-y-2">
                     <button 
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
+                        className="flex items-center gap-2 text-xs font-black text-muted opacity-80 uppercase tracking-widest hover:text-indigo-600 transition-colors mb-4"
                     >
                         <ArrowLeft size={14} /> Security Console
                     </button>
@@ -116,7 +116,7 @@ const ApiAccessPage = () => {
                             <ShieldCheck size={30} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-900 tracking-tight text-main">API Access Governance</h1>
+                            <h1 className="text-4xl font-black text-main tracking-tight text-main">API Access Governance</h1>
                             <p className="text-muted font-medium">Granular Role-Based Access Control (RBAC) and clinical resource sovereignty.</p>
                         </div>
                     </div>
@@ -145,8 +145,8 @@ const ApiAccessPage = () => {
                         <Layers size={26} />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Resource Registry</p>
-                        <h3 className="text-2xl font-black text-slate-900 leading-none">{resources.length} Protected</h3>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5 leading-none">Resource Registry</p>
+                        <h3 className="text-2xl font-black text-main leading-none">{resources.length} Protected</h3>
                     </div>
                 </div>
                 <div className="p-6 glass-card group flex items-center gap-5">
@@ -154,8 +154,8 @@ const ApiAccessPage = () => {
                         <Users size={26} />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Defined Roles</p>
-                        <h3 className="text-2xl font-black text-slate-900 leading-none">{roles.length} Audited</h3>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5 leading-none">Defined Roles</p>
+                        <h3 className="text-2xl font-black text-main leading-none">{roles.length} Audited</h3>
                     </div>
                 </div>
                 <div className="p-6 glass-card group flex items-center gap-5">
@@ -163,8 +163,8 @@ const ApiAccessPage = () => {
                         <Zap size={26} />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Global Lock</p>
-                        <h3 className="text-2xl font-black text-slate-900 leading-none">Inactive</h3>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5 leading-none">Global Lock</p>
+                        <h3 className="text-2xl font-black text-main leading-none">Inactive</h3>
                     </div>
                 </div>
                 <div className="p-6 glass-card group flex items-center gap-5">
@@ -172,8 +172,8 @@ const ApiAccessPage = () => {
                         <Database size={26} />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Registry sync</p>
-                        <h3 className="text-2xl font-black text-slate-900 leading-none">Real-time</h3>
+                        <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-1.5 leading-none">Registry sync</p>
+                        <h3 className="text-2xl font-black text-main leading-none">Real-time</h3>
                     </div>
                 </div>
             </div>
@@ -192,21 +192,21 @@ const ApiAccessPage = () => {
             )}
 
             {/* Filter Hub */}
-            <div className="card-premium p-6 flex flex-col md:flex-row gap-6 items-center justify-between border-slate-100/50">
+            <div className="card-premium p-6 flex flex-col md:flex-row gap-6 items-center justify-between border-border-card/50">
                 <div className="flex items-center gap-3">
-                    <Filter className="text-slate-300" size={20} />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100 pr-6 mr-2">Global ACL Filters</span>
+                    <Filter className="text-muted opacity-40" size={20} />
+                    <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest border-r border-border-card pr-6 mr-2">Global ACL Filters</span>
                     <button className="px-5 py-2 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-100">Live Registry</button>
-                    <button className="px-5 py-2 bg-white text-slate-400 border border-slate-100 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50">Locked Categories</button>
+                    <button className="px-5 py-2 bg-card text-muted opacity-80 border border-border-card rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-page">Locked Categories</button>
                 </div>
                 <div className="relative w-full md:w-80">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted opacity-40" size={18} />
                     <input
                         type="text"
                         placeholder="Search roles or resources..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                        className="w-full bg-page border border-border-card rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
                     />
                 </div>
             </div>
@@ -214,9 +214,9 @@ const ApiAccessPage = () => {
             {/* ACL Registry Matrix */}
             <div className="grid gap-6">
                 {isLoading ? (
-                    <div className="p-32 text-center bg-white rounded-[4rem] border border-slate-100">
+                    <div className="p-32 text-center bg-card rounded-[4rem] border border-border-card">
                         <div className="w-12 h-12 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] animate-pulse">Decrypting Security Registry...</p>
+                        <p className="text-xs font-black text-muted opacity-80 uppercase tracking-[0.2em] animate-pulse">Decrypting Security Registry...</p>
                     </div>
                 ) : filteredRules.length > 0 ? (
                     filteredRules.map((rule, i) => (
@@ -225,11 +225,11 @@ const ApiAccessPage = () => {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.05 }}
-                            className="card-premium p-8 group relative hover:border-indigo-200 transition-all cursor-pointer overflow-hidden border-slate-100/50"
+                            className="card-premium p-8 group relative hover:border-indigo-200 transition-all cursor-pointer overflow-hidden border-border-card/50"
                         >
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                                 <div className="flex items-center gap-8 flex-1">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all shrink-0">
+                                    <div className="w-16 h-16 bg-page rounded-2xl border border-border-card flex items-center justify-center text-muted opacity-40 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all shrink-0">
                                         <Lock size={28} />
                                     </div>
                                     <div className="space-y-4">
@@ -250,7 +250,7 @@ const ApiAccessPage = () => {
                                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
                                                             hasPerm 
                                                             ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                                                            : 'bg-white text-slate-200 border-slate-50'
+                                                            : 'bg-card text-muted opacity-40 border-border-card'
                                                         }`}
                                                     >
                                                         {hasPerm ? <CheckCircle2 size={12} /> : <Unlock size={12} />}
@@ -267,12 +267,12 @@ const ApiAccessPage = () => {
                                             e.stopPropagation();
                                             handleDeleteRule(rule.id || rule._id || '');
                                         }}
-                                        className="p-4 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
+                                        className="p-4 text-muted opacity-40 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
                                         title="Revoke Permission"
                                     >
                                         <Trash2 size={20} />
                                     </button>
-                                    <button className="p-4 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all">
+                                    <button className="p-4 text-muted opacity-40 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all">
                                         <MoreVertical size={20} />
                                     </button>
                                 </div>
@@ -280,10 +280,10 @@ const ApiAccessPage = () => {
                         </motion.div>
                     ))
                 ) : (
-                    <div className="p-32 text-center bg-slate-50/50 rounded-[4rem] border-2 border-dashed border-slate-100">
-                        <Lock size={64} className="mx-auto text-slate-200 mb-6" />
-                        <h3 className="text-xl font-black text-slate-900 mb-2">No Access Rules Matrix</h3>
-                        <p className="text-sm font-medium text-slate-400 italic">No role-to-resource mappings have been registered in the security governance layer.</p>
+                    <div className="p-32 text-center bg-card/50 rounded-[4rem] border-2 border-dashed border-border-card">
+                        <Lock size={64} className="mx-auto text-muted opacity-40 mb-6" />
+                        <h3 className="text-xl font-black text-main mb-2">No Access Rules Matrix</h3>
+                        <p className="text-sm font-medium text-muted opacity-80 italic">No role-to-resource mappings have been registered in the security governance layer.</p>
                     </div>
                 )}
             </div>
@@ -296,20 +296,20 @@ const ApiAccessPage = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden"
+                            className="bg-card w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden"
                         >
                             <div className="p-10 space-y-10">
                                 <header className="text-center space-y-2">
-                                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">Security Registry Build</h2>
-                                    <p className="text-slate-500 text-sm font-medium italic">Configure resource-specific permissions for the specified group.</p>
+                                    <h2 className="text-3xl font-black text-main tracking-tight">Security Registry Build</h2>
+                                    <p className="text-muted text-sm font-medium italic">Configure resource-specific permissions for the specified group.</p>
                                 </header>
 
                                 <div className="space-y-8">
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Target Role</label>
+                                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Target Role</label>
                                             <select 
-                                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-xs font-black outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none cursor-pointer"
+                                                className="w-full bg-page border border-border-card rounded-2xl px-5 py-4 text-xs font-black outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none cursor-pointer"
                                                 value={newRule.role_code}
                                                 onChange={(e) => setNewRule({...newRule, role_code: e.target.value})}
                                             >
@@ -318,9 +318,9 @@ const ApiAccessPage = () => {
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Cloud Resource</label>
+                                            <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Cloud Resource</label>
                                             <select 
-                                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-xs font-black outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none cursor-pointer"
+                                                className="w-full bg-page border border-border-card rounded-2xl px-5 py-4 text-xs font-black outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none cursor-pointer"
                                                 value={newRule.resource}
                                                 onChange={(e) => setNewRule({...newRule, resource: e.target.value})}
                                             >
@@ -331,7 +331,7 @@ const ApiAccessPage = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Authorized Actions</label>
+                                        <label className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest px-1">Authorized Actions</label>
                                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                             {['create', 'read', 'update', 'delete'].map((perm) => {
                                                 const isActive = newRule.permissions?.includes(perm as any);
@@ -342,7 +342,7 @@ const ApiAccessPage = () => {
                                                         className={`p-6 rounded-[2rem] border transition-all flex flex-col items-center gap-3 ${
                                                             isActive 
                                                             ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-100 border-transparent scale-105' 
-                                                            : 'bg-white border-slate-100 text-slate-400 hover:bg-slate-50'
+                                                            : 'bg-card border-border-card text-muted opacity-80 hover:bg-page'
                                                         }`}
                                                     >
                                                         {isActive ? <CheckCircle2 size={20} /> : <Unlock size={20} />}

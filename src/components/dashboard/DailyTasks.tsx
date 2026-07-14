@@ -37,31 +37,31 @@ const DailyTasks: React.FC<DailyTasksProps> = ({ initialTasks = defaultTasks }) 
     const progress = (completedCount / tasks.length) * 100;
 
     return (
-        <section className="card-premium p-8 bg-white border-slate-100 space-y-8 h-full flex flex-col shadow-2xl shadow-indigo-50/50">
+        <section className="card-premium p-8 bg-card border-border-card space-y-8 h-full flex flex-col shadow-2xl shadow-indigo-50/50">
             <div className="flex items-center justify-between">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
                         <Clock size={14} className="text-indigo-400" />
-                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Today's Protocol</h2>
+                        <h2 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Today's Protocol</h2>
                     </div>
-                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Wellness Routine</h3>
+                    <h3 className="text-xl font-black text-main tracking-tight">Wellness Routine</h3>
                 </div>
                 <div className="text-right">
-                    <p className="text-2xl font-black text-slate-900 leading-none">{completedCount}/{tasks.length}</p>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Done</p>
+                    <p className="text-2xl font-black text-main leading-none">{completedCount}/{tasks.length}</p>
+                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mt-1">Done</p>
                 </div>
             </div>
 
             {/* Progress Bar */}
             <div className="space-y-2">
-                <div className="h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-50 shadow-inner">
+                <div className="h-3 bg-page rounded-full overflow-hidden border border-border-card shadow-inner">
                     <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${progress}%` }}
                         className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full"
                     />
                 </div>
-                <div className="flex justify-between text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                <div className="flex justify-between text-[9px] font-black text-muted opacity-80 uppercase tracking-widest">
                     <span>In Progress</span>
                     <span className="text-indigo-600 italic">Target: 100%</span>
                 </div>
@@ -77,22 +77,22 @@ const DailyTasks: React.FC<DailyTasksProps> = ({ initialTasks = defaultTasks }) 
                         onClick={() => toggleTask(task.id)}
                         className={`group p-4 rounded-2xl border transition-all duration-300 cursor-pointer flex items-center gap-4 ${
                             task.completed 
-                                ? 'bg-slate-50 border-slate-100 opacity-60' 
-                                : 'bg-white border-slate-100 hover:border-indigo-100 hover:shadow-lg shadow-sm'
+                                ? 'bg-page border-border-card opacity-60' 
+                                : 'bg-card border-border-card hover:border-indigo-100 hover:shadow-lg shadow-sm'
                         }`}
                     >
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${task.bgColor} ${task.color}`}>
                             <task.icon size={20} />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h4 className={`text-sm font-bold tracking-tight mb-0.5 truncate ${task.completed ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                            <h4 className={`text-sm font-bold tracking-tight mb-0.5 truncate ${task.completed ? 'line-through text-muted opacity-80' : 'text-main'}`}>
                                 {task.title}
                             </h4>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest flex items-center gap-1.5">
                                 <Clock size={10} /> {task.time}
                             </p>
                         </div>
-                        <div className={`p-1 rounded-full transition-colors ${task.completed ? 'text-emerald-500' : 'text-slate-200 group-hover:text-indigo-400'}`}>
+                        <div className={`p-1 rounded-full transition-colors ${task.completed ? 'text-emerald-500' : 'text-muted opacity-40 group-hover:text-indigo-400'}`}>
                             {task.completed ? <CheckCircle2 size={24} /> : <Circle size={24} />}
                         </div>
                     </motion.div>

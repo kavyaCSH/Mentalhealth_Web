@@ -6,9 +6,9 @@ import {
     ChevronLeft, Camera, User, Mail, Phone, Calendar, MapPin, 
     ShieldCheck, Bell, CheckCircle, Smartphone, UserCircle, AlertCircle,
     Navigation, Crosshair, Loader2, Briefcase, Info, List, MessageCircle, Sparkles,
-    Map as MapIcon
+    Map as MapIcon, Heart
 } from 'lucide-react';
-import LocationPicker from '../../components/shared/LocationPicker';
+import MapLocationPicker from '../../components/ui/MapLocationPicker';
 import type { RootState, AppDispatch } from '../../store';
 import { setUser } from '../../features/auth/store/authSlice';
 import { UserService } from '../../api/services/user.service';
@@ -56,7 +56,6 @@ const EditProfilePage = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [showMap, setShowMap] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -87,15 +86,32 @@ const EditProfilePage = () => {
 
         setIsLocating(true);
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+            async (position) => {
+                const { latitude, longitude } = position.coords;
                 setFormData(prev => ({
                     ...prev,
-                    coordinates: {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    }
+                    coordinates: { lat: latitude, lng: longitude }
                 }));
-                setIsLocating(false);
+
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                    const data = await res.json();
+                    
+                    if (data && data.address) {
+                        const fetchedCity = data.address.city || data.address.town || data.address.village || data.address.county || '';
+                        const displayAddr = data.display_name.split(',').slice(0, 3).join(', ');
+                        
+                        setFormData(prev => ({
+                            ...prev,
+                            city: fetchedCity || prev.city,
+                            address: displayAddr || prev.address
+                        }));
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch address from live location.', err);
+                } finally {
+                    setIsLocating(false);
+                }
             },
             () => {
                 setError('Unable to retrieve your location');
@@ -157,7 +173,12 @@ const EditProfilePage = () => {
             const updatedUser = await UserService.updateMyProfile(submissionData);
             dispatch(setUser(updatedUser));
             setSuccess(true);
-            setTimeout(() => setSuccess(false), 3000);
+            
+            // Go back to the previous screen after a short delay so the success message is visible
+            setTimeout(() => {
+                setSuccess(false);
+                navigate(-1);
+            }, 1500);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to update profile');
         } finally {
@@ -179,14 +200,6 @@ const EditProfilePage = () => {
                         </button>
                         <h1 className="text-xl font-black text-main tracking-tight">Edit Profile</h1>
                     </div>
-                    <Button 
-                        onClick={handleSubmit} 
-                        isLoading={isLoading}
-                        className="rounded-xl px-8"
-                        size="sm"
-                    >
-                        Save Changes
-                    </Button>
                 </div>
             </header>
 
@@ -327,15 +340,7 @@ const EditProfilePage = () => {
                             </div>
 
                             {/* Essential Medical Details (All Users) */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-50">
-                                <InputField
-                                    label="Emergency Contact"
-                                    name="emergencyContact"
-                                    value={formData.emergencyContact}
-                                    onChange={handleChange}
-                                    leftIcon={<Phone size={18} className="text-rose-500" />}
-                                    placeholder="Name or Phone Number"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border-card">
                                 <div className="space-y-2">
                                     <label className="text-xs font-black text-muted uppercase tracking-widest ml-1">Blood Group</label>
                                     <select 
@@ -354,7 +359,7 @@ const EditProfilePage = () => {
 
                             {/* Professional-Specific Fields */}
                             {user?.role !== 'patient' && (
-                                <div className="space-y-6 pt-6 border-t border-slate-50">
+                                <div className="space-y-6 pt-6 border-t border-border-card">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <InputField
                                             label="Specialization"
@@ -420,6 +425,34 @@ const EditProfilePage = () => {
                             )}
                         </section>
 
+                        {/* Emergency Contact */}
+                        <section className="bg-card p-8 md:p-10 rounded-[2.5rem] border border-border-card shadow-sm space-y-8 relative overflow-hidden group">
+                            <div className="absolute -right-8 -top-8 w-40 h-40 bg-rose-500/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700 opacity-50"></div>
+                            
+                            <div className="relative z-10 space-y-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-1.5 h-6 bg-rose-500 rounded-full"></div>
+                                    <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted">Manage Emergency Contact</h2>
+                                </div>
+                                <div className="flex flex-col md:flex-row items-start gap-8">
+                                    <div className="flex-1 w-full space-y-4">
+                                        <p className="text-sm font-medium text-muted">Please provide a trusted contact we can reach in case of a medical emergency.</p>
+                                        <InputField
+                                            label="Emergency Contact Details"
+                                            name="emergencyContact"
+                                            value={formData.emergencyContact}
+                                            onChange={handleChange}
+                                            leftIcon={<Phone size={18} className="text-rose-500" />}
+                                            placeholder="Name & Phone Number (e.g., Jane Doe - +91 9876543210)"
+                                        />
+                                    </div>
+                                    <div className="hidden md:flex w-24 h-24 rounded-3xl bg-rose-500/10 border border-rose-500/20 items-center justify-center text-rose-500 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                                        <Heart size={32} className="animate-pulse" />
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
                         {/* Location Details */}
                         <section className="bg-card p-8 md:p-10 rounded-[2.5rem] border border-border-card shadow-sm space-y-8">
                             <div className="flex items-center gap-3">
@@ -444,6 +477,16 @@ const EditProfilePage = () => {
                                     leftIcon={<MapPin size={18} />}
                                     placeholder="Street, Suite, Unit..."
                                 />
+                                {/* <div className="md:col-span-2">
+                                    <MapLocationPicker 
+                                        city={formData.city} 
+                                        onCityFound={(cityName) => {
+                                            if (formData.city.length > 3 && !formData.city.includes(cityName)) {
+                                                // Optional: logic to sync city name if needed
+                                            }
+                                        }} 
+                                    />
+                                </div> */}
                             </div>
 
                             <div className="p-8 bg-page rounded-[2rem] border border-border-card flex flex-col md:flex-row items-center justify-between gap-6 shadow-inner">
@@ -467,22 +510,13 @@ const EditProfilePage = () => {
                                 <div className="flex items-center gap-3">
                                     <Button
                                         type="button"
-                                        variant="outline"
-                                        onClick={() => setShowMap(true)}
-                                        leftIcon={<MapIcon size={16} />}
-                                        className="rounded-xl px-6 border-border-card bg-card hover:bg-page text-[10px] font-black uppercase tracking-widest shrink-0 text-main"
-                                    >
-                                        Pin on Map
-                                    </Button>
-                                    <Button
-                                        type="button"
                                         variant="primary"
                                         onClick={handleGetLocation}
                                         isLoading={isLocating}
                                         leftIcon={<Crosshair size={16} />}
                                         className="rounded-xl px-6 text-[10px] font-black uppercase tracking-widest shrink-0"
                                     >
-                                        Auto Detect
+                                        Auto Detect Address
                                     </Button>
                                 </div>
                             </div>
@@ -513,7 +547,7 @@ const EditProfilePage = () => {
                                         ${formData.is2fa ? 'bg-indigo-600' : 'bg-border-card'}
                                     `}
                                 >
-                                    <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform transform ${formData.is2fa ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                                    <div className={`w-6 h-6 bg-card rounded-full shadow-md transition-transform transform ${formData.is2fa ? 'translate-x-6' : 'translate-x-0'}`}></div>
                                 </button>
                             </div>
 
@@ -570,28 +604,7 @@ const EditProfilePage = () => {
                         </Button>
                     </div>
 
-                    {/* Map Modal */}
-                    <AnimatePresence>
-                        {showMap && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-page/80 backdrop-blur-sm animate-fade-in">
-                                <motion.div 
-                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                    className="w-full max-w-4xl"
-                                >
-                                    <LocationPicker 
-                                        initialCoords={formData.coordinates}
-                                        onConfirm={(coords) => {
-                                            setFormData(prev => ({ ...prev, coordinates: coords }));
-                                            setShowMap(false);
-                                        }}
-                                        onClose={() => setShowMap(false)}
-                                    />
-                                </motion.div>
-                            </div>
-                        )}
-                    </AnimatePresence>
+                    {/* Removed modal since map is now inline */}
                 </form>
             </div>
         </div>

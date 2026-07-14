@@ -414,7 +414,7 @@ const ClinicalSchedulePage = () => {
                             variant="secondary"
                             leftIcon={<Settings size={20} />}
                             onClick={() => navigate('/clinical/availability')}
-                            className="rounded-2xl shadow-xl shadow-slate-100 py-3.5"
+                            className="rounded-2xl shadow-xl shadow-sm py-3.5"
                         >
                             Manage Availability
                         </Button>
@@ -422,7 +422,7 @@ const ClinicalSchedulePage = () => {
                             variant="primary"
                             leftIcon={<Plus size={20} />}
                             onClick={openBookingModal}
-                            className="rounded-2xl shadow-xl shadow-indigo-100 py-3.5"
+                            className="rounded-2xl shadow-xl shadow-sm py-3.5"
                         >
                             Schedule Session
                         </Button>
@@ -484,10 +484,10 @@ const ClinicalSchedulePage = () => {
                                         {date.getDate()}
                                     </span>
                                     {hasAppt && (
-                                        <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-indigo-500'} shadow-sm`} />
+                                        <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-card' : 'bg-indigo-500'} shadow-sm`} />
                                     )}
                                     {!hasAppt && mainAvailableSlots.some(s => s.available !== false) && isSameDate(date, selectedDate) && (
-                                        <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isSelected ? 'bg-white/50' : 'bg-emerald-500/50'}`} />
+                                        <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isSelected ? 'bg-card/50' : 'bg-success/100/50'}`} />
                                     )}
                                     {isToday && !isSelected && (
                                         <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-indigo-500 rounded-full" />
@@ -572,7 +572,7 @@ const ClinicalSchedulePage = () => {
                                                                 'Assigned Patient';
                                                             return (
                                                                 <>
-                                                                    <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-[10px] font-black border-2 border-white shadow-md">
+                                                                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-[10px] font-black border-2 border-white shadow-md">
                                                                         {pName.charAt(0).toUpperCase()}
                                                                     </div>
                                                                     <p className="text-sm font-bold text-main/80">
@@ -591,13 +591,13 @@ const ClinicalSchedulePage = () => {
                                                         variant="primary"
                                                         leftIcon={<Video size={16} />}
                                                         onClick={() => handleJoinCall(appt)}
-                                                        className="rounded-2xl text-[10px] py-4 px-8 shadow-lg shadow-indigo-100"
+                                                        className="rounded-2xl text-[10px] py-4 px-8 shadow-lg shadow-sm"
                                                     >
                                                         Start Session
                                                     </Button>
                                                 )}
                                                 <button
-                                                    className="p-4 text-muted hover:text-indigo-500 hover:bg-indigo-500/10 rounded-2xl transition-all"
+                                                    className="p-4 text-muted hover:text-indigo-500 hover:bg-indigo-500/100/10 rounded-2xl transition-all"
                                                     onClick={() => handleRescheduleClick(appt)}
                                                     title="Reschedule Session"
                                                 >
@@ -623,7 +623,7 @@ const ClinicalSchedulePage = () => {
                         <div className="bg-card rounded-[2.5rem] p-10 border border-border-card shadow-sm space-y-8">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl border border-emerald-500/20"><Clock size={20} /></div>
+                                    <div className="p-3 bg-success/100/10 text-success rounded-2xl border border-emerald-500/20"><Clock size={20} /></div>
                                     <div>
                                         <h3 className="text-xl font-black text-main uppercase">Open Clinical Capacity</h3>
                                         <p className="text-[10px] font-black text-muted uppercase tracking-widest mt-0.5">
@@ -663,7 +663,7 @@ const ClinicalSchedulePage = () => {
                                                 {slot.endTime && (
                                                     <span className="text-[9px] font-bold text-muted">{slot.endTime}</span>
                                                 )}
-                                                <span className={`text-[9px] font-black uppercase tracking-tighter ${slot.available !== false ? 'text-emerald-500' : 'text-rose-400'}`}>
+                                                <span className={`text-[9px] font-black uppercase tracking-tighter ${slot.available !== false ? 'text-success' : 'text-rose-400'}`}>
                                                     {slot.available !== false ? 'Available' : 'Booked'}
                                                 </span>
                                             </div>
@@ -681,11 +681,11 @@ const ClinicalSchedulePage = () => {
 
                     {/* Info Column */}
                     <div className="lg:col-span-4 space-y-6">
-                        <div className="bg-indigo-900 rounded-[3rem] p-8 text-white relative overflow-hidden group shadow-2xl shadow-indigo-200/50">
+                        <div className="bg-indigo-900 rounded-[3rem] p-8 text-white relative overflow-hidden group shadow-2xl shadow-sm/50">
                             <div className="absolute -right-12 -top-12 w-48 h-48 bg-indigo-800 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000 opacity-50"></div>
                             <div className="relative z-10 space-y-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20">
+                                    <div className="w-14 h-14 bg-card/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20">
                                         <Activity size={28} />
                                     </div>
                                     <div>
@@ -693,8 +693,8 @@ const ClinicalSchedulePage = () => {
                                         <p className="font-bold text-xl">42% Capacity used</p>
                                     </div>
                                 </div>
-                                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                                    <motion.div initial={{ width: 0 }} animate={{ width: '42%' }} className="h-full bg-white rounded-full" />
+                                <div className="h-2 w-full bg-card/10 rounded-full overflow-hidden">
+                                    <motion.div initial={{ width: 0 }} animate={{ width: '42%' }} className="h-full bg-card rounded-full" />
                                 </div>
                                 <p className="text-xs text-indigo-100/70 font-medium leading-relaxed">
                                     You have 3 more available slots for emergency triage today.
@@ -722,11 +722,11 @@ const ClinicalSchedulePage = () => {
             <AnimatePresence>
                 {isModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
 
                         {bookingSuccess ? (
                             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative bg-card rounded-[4rem] p-16 text-center shadow-sm space-y-8 max-w-md w-full border border-border-card">
-                                <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto"><CheckCircle2 size={48} /></div>
+                                <div className="w-24 h-24 bg-success/100/10 text-success rounded-[2.5rem] flex items-center justify-center mx-auto"><CheckCircle2 size={48} /></div>
                                 <div>
                                     <h3 className="text-3xl font-black text-main tracking-tight">Success!</h3>
                                     <p className="text-muted font-semibold mt-2">The session with {selectedPatient?.firstName} has been synchronized.</p>
@@ -746,7 +746,7 @@ const ClinicalSchedulePage = () => {
                                                 {bookingStep === 'patient' ? 'Select Patient' : 'Session Details'}
                                             </h3>
                                             <div className="flex gap-2 mt-1">
-                                                <div className={`h-1 rounded-full transition-all duration-500 ${bookingStep === 'patient' ? 'w-8 bg-indigo-500' : 'w-4 bg-emerald-500'}`} />
+                                                <div className={`h-1 rounded-full transition-all duration-500 ${bookingStep === 'patient' ? 'w-8 bg-indigo-500' : 'w-4 bg-success/100'}`} />
                                                 <div className={`h-1 rounded-full transition-all duration-500 ${bookingStep === 'details' ? 'w-8 bg-indigo-500' : 'w-4 bg-muted/30'}`} />
                                             </div>
                                         </div>
@@ -882,7 +882,7 @@ const ClinicalSchedulePage = () => {
                                                                                     : 'bg-card border-border-card text-main font-bold hover:border-indigo-500/50 hover:text-indigo-400 hover:shadow-md hover:-translate-y-0.5'
                                                                             }`}
                                                                     >
-                                                                        {isSelected && <div className="absolute inset-0 bg-white/20" />}
+                                                                        {isSelected && <div className="absolute inset-0 bg-card/20" />}
                                                                         <span className={`relative z-10 flex flex-col items-center gap-0.5 ${isSelected ? 'font-black' : ''}`}>
                                                                             <span>{slot.startTime || '—'}</span>
                                                                             {slot.endTime && <span className="text-[9px] opacity-70">{slot.endTime}</span>}
@@ -928,7 +928,7 @@ const ClinicalSchedulePage = () => {
 
                                             <Button
                                                 variant="primary"
-                                                className="w-full rounded-[2rem] py-6 flex items-center justify-center text-sm font-black uppercase tracking-widest shadow-2xl shadow-indigo-200"
+                                                className="w-full rounded-[2rem] py-6 flex items-center justify-center text-sm font-black uppercase tracking-widest shadow-2xl shadow-sm"
                                                 onClick={handleBookAppointment}
                                                 disabled={isBooking}
                                             >
@@ -952,40 +952,40 @@ const ClinicalSchedulePage = () => {
             <AnimatePresence>
                 {isRescheduleModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsRescheduleModalOpen(false)} />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setIsRescheduleModalOpen(false)} />
 
                         {rescheduleSuccess ? (
-                            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative bg-white rounded-[4rem] p-16 text-center shadow-2xl space-y-8 max-w-md w-full border border-indigo-50">
-                                <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-xl shadow-emerald-100/50"><CheckCircle2 size={48} /></div>
+                            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative bg-card rounded-[4rem] p-16 text-center shadow-2xl space-y-8 max-w-md w-full border border-indigo-50">
+                                <div className="w-24 h-24 bg-success/10 text-success rounded-[2.5rem] flex items-center justify-center mx-auto shadow-xl shadow-sm"><CheckCircle2 size={48} /></div>
                                 <div>
-                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Success!</h3>
-                                    <p className="text-slate-500 font-semibold mt-2">The session has been successfully rescheduled.</p>
+                                    <h3 className="text-3xl font-black text-main tracking-tight">Success!</h3>
+                                    <p className="text-muted font-semibold mt-2">The session has been successfully rescheduled.</p>
                                 </div>
                             </motion.div>
                         ) : (
-                            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="relative bg-white rounded-[3rem] shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] border border-slate-100">
-                                <header className="p-8 border-b border-slate-50 flex items-center justify-between shrink-0 glass-surface relative z-10">
+                            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="relative bg-card rounded-[3rem] shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] border border-border-card">
+                                <header className="p-8 border-b border-border-card flex items-center justify-between shrink-0 glass-surface relative z-10">
                                     <div>
-                                        <h3 className="font-black text-slate-900 text-xl tracking-tight uppercase">Reschedule Session</h3>
-                                        <p className="text-sm text-slate-500 font-semibold">Select a new date and time</p>
+                                        <h3 className="font-black text-main text-xl tracking-tight uppercase">Reschedule Session</h3>
+                                        <p className="text-sm text-muted font-semibold">Select a new date and time</p>
                                     </div>
-                                    <button onClick={() => setIsRescheduleModalOpen(false)} className="p-3 bg-slate-50 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-all"><X size={20} /></button>
+                                    <button onClick={() => setIsRescheduleModalOpen(false)} className="p-3 bg-page hover:bg-red-500/10 hover:text-red-500 rounded-2xl transition-all"><X size={20} /></button>
                                 </header>
 
                                 <div className="flex-1 overflow-y-auto p-10 space-y-8">
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none mb-1">New Date</label>
+                                        <label className="text-[10px] font-black text-main uppercase tracking-widest block leading-none mb-1">New Date</label>
                                         <input
                                             type="date"
                                             value={rescheduleDate}
                                             onChange={e => setRescheduleDate(e.target.value)}
-                                            className="w-full bg-slate-50 rounded-2xl py-4 px-6 text-slate-700 text-sm font-bold border-2 border-slate-100 focus:border-indigo-500/30 focus:shadow-xl focus:shadow-indigo-500/10 transition-all outline-none"
+                                            className="w-full bg-page rounded-2xl py-4 px-6 text-main text-sm font-bold border-2 border-border-card focus:border-indigo-500/30 focus:shadow-xl focus:shadow-indigo-500/10 transition-all outline-none"
                                         />
                                     </div>
 
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-[10px] font-black text-slate-900 uppercase tracking-widest block leading-none">Available Slots</label>
+                                            <label className="text-[10px] font-black text-main uppercase tracking-widest block leading-none">Available Slots</label>
                                             {rescheduleAvailableSlots.length > 0 && !isLoadingRescheduleSlots && (
                                                 <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full">
                                                     {rescheduleAvailableSlots.filter((s: any) => s.available !== false).length} Slots
@@ -1006,9 +1006,9 @@ const ClinicalSchedulePage = () => {
                                                             type="button"
                                                             onClick={() => setRescheduleTime(slot.startTime)}
                                                             disabled={disabled}
-                                                            className={`relative py-3 px-2 rounded-2xl border text-xs transition-all ${disabled ? 'bg-slate-50 border-slate-100 text-slate-300 opacity-60' :
+                                                            className={`relative py-3 px-2 rounded-2xl border text-xs transition-all ${disabled ? 'bg-page border-border-card text-muted opacity-40 opacity-60' :
                                                                     isSelected ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' :
-                                                                        'bg-white border-slate-200 text-slate-600 hover:border-indigo-400'
+                                                                        'bg-card border-border-card text-muted hover:border-indigo-400'
                                                                 }`}
                                                         >
                                                             <span className={isSelected ? 'font-black' : 'font-bold'}>{slot.startTime}</span>
@@ -1017,7 +1017,7 @@ const ClinicalSchedulePage = () => {
                                                 })}
                                             </div>
                                         ) : (
-                                            <div className="p-8 text-center text-slate-400 text-sm font-semibold">No open slots on this date.</div>
+                                            <div className="p-8 text-center text-muted opacity-80 text-sm font-semibold">No open slots on this date.</div>
                                         )}
                                     </div>
 

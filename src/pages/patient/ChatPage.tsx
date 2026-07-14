@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { 
-    Send, Bot, ChevronLeft, Activity, Moon, HeartCrack, Flame, Leaf, ArrowUpRight, User, MoreVertical, Trash2, HelpCircle, X
+    Send, Bot, ChevronLeft, Activity, Moon, HeartCrack, Flame, Leaf, ArrowUpRight, User, MoreVertical, Trash2, HelpCircle, X, Sparkles
 } from 'lucide-react';
 import { connectSocket, getSocket } from '../../api/socketService';
 import MindBalanceHelpModal from '../../components/clinical/MindBalanceHelpModal';
@@ -282,8 +282,8 @@ const ChatPage = () => {
                         <ChevronLeft size={24} />
                     </button>
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shadow-inner relative">
-                            <div className="absolute top-0 left-0 w-full h-full bg-indigo-400 rounded-2xl blur-lg opacity-20 animate-pulse"></div>
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 flex items-center justify-center shadow-inner relative group">
+                            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-400 to-violet-400 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity animate-pulse"></div>
                             <Bot size={24} className="text-indigo-600 relative z-10" />
                         </div>
                         <div>
@@ -334,17 +334,17 @@ const ChatPage = () => {
                                         </div>
                                         <div className="flex flex-col">
                                             <span>About MindBalance</span>
-                                            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">Learn more about AI</span>
+                                            <span className="text-[10px] font-medium text-muted opacity-80 uppercase tracking-widest mt-0.5">Learn more about AI</span>
                                         </div>
                                     </button>
                                     
-                                    <div className="h-px bg-slate-50 my-1 mx-4" />
+                                    <div className="h-px bg-page my-1 mx-4" />
                                     
                                     <button 
                                         onClick={() => setShowMenu(false)}
-                                        className="w-full flex items-center gap-3 px-4 py-4 text-left text-sm font-black text-slate-400 hover:bg-slate-50 rounded-2xl transition-all group"
+                                        className="w-full flex items-center gap-3 px-4 py-4 text-left text-sm font-black text-muted opacity-80 hover:bg-page rounded-2xl transition-all group"
                                     >
-                                        <div className="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-slate-100 flex items-center justify-center transition-colors">
+                                        <div className="w-10 h-10 rounded-xl bg-page group-hover:bg-page flex items-center justify-center transition-colors">
                                             <X size={18} />
                                         </div>
                                         <span>Cancel</span>
@@ -364,38 +364,44 @@ const ChatPage = () => {
                         <p className="text-xs font-black uppercase tracking-widest text-muted">Establishing Connection...</p>
                     </div>
                 ) : messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center px-4 animate-fade-in">
-                        <div className="relative mb-8">
-                            <div className="absolute inset-0 bg-indigo-500 blur-[60px] opacity-20 rounded-full"></div>
-                            <div className="w-24 h-24 bg-card rounded-3xl shadow-2xl flex items-center justify-center border border-border-card relative z-10">
-                                <Bot size={48} className="text-indigo-600" />
+                    <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto text-center px-4 animate-fade-in">
+                        <div className="relative mb-10 group cursor-default">
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-violet-500 blur-[80px] opacity-30 rounded-full group-hover:opacity-50 transition-opacity duration-700"></div>
+                            <div className="w-28 h-28 bg-card/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl flex items-center justify-center border border-white/20 relative z-10 overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5"></div>
+                                <Bot size={56} className="text-indigo-600 drop-shadow-md" />
                             </div>
                         </div>
                         <h2 className="text-3xl font-black text-main tracking-tight mb-2">Hello, {user?.firstName || 'there'}.</h2>
                         <p className="text-muted font-medium mb-12">I'm your personalized wellness companion. How are you feeling today?</p>
                         
-                        <div className="w-full text-left bg-card p-6 rounded-[2rem] shadow-xl border border-border-card">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted mb-4 ml-2">Suggested Topics</p>
-                            <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar mb-4">
+                        <div className="w-full text-left bg-card/60 backdrop-blur-3xl p-8 rounded-[2.5rem] shadow-2xl border border-white/40 dark:border-white/5">
+                            <div className="flex items-center gap-3 mb-6 ml-2">
+                                <Sparkles size={18} className="text-indigo-500" />
+                                <p className="text-xs font-black uppercase tracking-widest text-main">Suggested Topics</p>
+                            </div>
+                            <div className="flex overflow-x-auto gap-3 pb-4 no-scrollbar mb-4 snap-x">
                                 {SUGGESTION_CATEGORIES.map((cat, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => setActiveCat(idx)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap border ${activeCat === idx ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' : 'bg-page text-muted border-border-card hover:bg-card'}`}
+                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold transition-all whitespace-nowrap border snap-start ${activeCat === idx ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white border-transparent shadow-lg shadow-indigo-200/50' : 'bg-page/50 hover:bg-card text-muted border-border-card hover:border-indigo-200 hover:shadow-sm'}`}
                                     >
                                         {cat.icon} {cat.label}
                                     </button>
                                 ))}
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {SUGGESTION_CATEGORIES[activeCat].questions.map((q, j) => (
                                     <button
                                         key={j}
                                         onClick={() => sendMessage(q)}
-                                        className="flex items-center justify-between p-4 bg-page hover:bg-indigo-50 hover:text-indigo-700 text-main rounded-2xl text-left text-sm font-semibold transition-colors group border border-transparent hover:border-indigo-100"
+                                        className="flex items-center justify-between p-5 bg-page/40 hover:bg-card hover:dark:bg-slate-800 text-main rounded-[1.5rem] text-left text-[14px] font-semibold transition-all duration-300 group border border-border-card hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/5"
                                     >
                                         <span className="truncate pr-4">{q}</span>
-                                        <ArrowUpRight size={16} className="text-slate-400 group-hover:text-indigo-500 shrink-0" />
+                                        <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                            <ArrowUpRight size={16} className="text-indigo-500" />
+                                        </div>
                                     </button>
                                 ))}
                             </div>
@@ -414,13 +420,13 @@ const ChatPage = () => {
                                             </div>
                                         </div>
                                     )}
-                                    <div className={`max-w-[80%] md:max-w-[70%] p-5 rounded-[2rem] shadow-sm relative transition-all duration-300 group/bubble ${
+                                    <div className={`max-w-[85%] md:max-w-[75%] p-5 rounded-[2rem] relative transition-all duration-300 group/bubble ${
                                         isAI 
-                                            ? 'bg-card border border-border-card rounded-bl-sm text-main shadow-xl shadow-indigo-50/20' 
-                                            : 'bg-indigo-600 border-none rounded-br-sm text-white shadow-2xl shadow-indigo-200'
+                                            ? 'bg-card/90 backdrop-blur-sm border border-border-card rounded-bl-md text-main shadow-lg shadow-indigo-500/5' 
+                                            : 'bg-gradient-to-br from-indigo-600 to-violet-600 border-none rounded-br-md text-white shadow-xl shadow-indigo-500/20'
                                     }`}>
                                         <p className="text-[15px] leading-relaxed font-medium whitespace-pre-wrap">{msg.content}</p>
-                                        <div className={`flex items-center gap-2 mt-3 opacity-60 ${isAI ? 'text-muted' : 'text-indigo-100 justify-end'}`}>
+                                        <div className={`flex items-center gap-2 mt-3 opacity-70 ${isAI ? 'text-muted' : 'text-indigo-100 justify-end'}`}>
                                             <span className="text-[9px] font-black uppercase tracking-widest">
                                                 {formatTime(msg.createdAt)}
                                             </span>
@@ -456,7 +462,7 @@ const ChatPage = () => {
                 {/* Contextual Suggestions */}
                 {messages.length > 0 && !isTyping && (
                     <div className="max-w-4xl mx-auto mb-4 animate-fade-in">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 ml-2 italic">Suggested Continuations</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted opacity-80 mb-3 ml-2 italic">Suggested Continuations</p>
                         <div className="flex flex-wrap gap-2">
                             {getContextualSuggestions().map((q, idx) => (
                                 <button
@@ -476,19 +482,21 @@ const ChatPage = () => {
                         e.preventDefault();
                         sendMessage();
                     }}
-                    className="max-w-4xl mx-auto relative flex items-center"
+                    className="max-w-4xl mx-auto relative flex items-center group/input"
                 >
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-violet-500/10 rounded-full blur-xl opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-500"></div>
                     <input
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Message your Virtual Companion..."
-                        className="w-full bg-page border border-border-card focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-main rounded-full py-4 pl-6 pr-16 text-[15px] font-medium transition-all outline-none"
+                        className="w-full bg-card/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus:shadow-[0_8px_30px_rgb(79,70,229,0.1)] text-main rounded-full py-4.5 pl-6 pr-16 text-[15px] font-medium transition-all outline-none"
+                        style={{ paddingTop: '18px', paddingBottom: '18px' }}
                     />
                     <button
                         type="submit"
                         disabled={!input.trim()}
-                        className={`absolute right-2 w-10 h-10 flex items-center justify-center rounded-full transition-all ${input.trim() ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:scale-105 active:scale-95' : 'bg-slate-200 text-slate-400'}`}
+                        className={`absolute right-2.5 w-11 h-11 flex items-center justify-center rounded-full transition-all duration-300 ${input.trim() ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg hover:shadow-indigo-500/30 hover:scale-105 active:scale-95' : 'bg-page text-muted opacity-40 dark:bg-slate-800 dark:text-muted'}`}
                     >
                         <Send size={18} className="translate-x-[1px] translate-y-[-1px]" />
                     </button>

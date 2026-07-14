@@ -207,15 +207,15 @@ const AddHPI = () => {
             <header className="flex items-center gap-6">
                 <button
                     onClick={() => navigate(isPatient ? '/records' : `/patients/${userId}/health`)}
-                    className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 transition-all hover:shadow-md active:scale-95"
+                    className="p-3 bg-card hover:bg-page border border-border-card rounded-2xl text-muted transition-all hover:shadow-md active:scale-95"
                 >
                     <ChevronLeft size={20} />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                    <h1 className="text-4xl font-black text-main tracking-tight">
                         New HPI history
                     </h1>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Capture history of present illness</p>
+                    <p className="text-xs font-bold text-muted opacity-80 uppercase tracking-widest mt-1">Capture history of present illness</p>
                 </div>
             </header>
 
@@ -223,7 +223,7 @@ const AddHPI = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="card-premium p-10 bg-white border-slate-100 space-y-8"
+                    className="card-premium p-10 bg-card border-border-card space-y-8"
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -231,8 +231,8 @@ const AddHPI = () => {
                                 <HistoryIcon size={24} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900">Clinical History</h2>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Detail the progression of symptoms</p>
+                                <h2 className="text-xl font-black text-main">Clinical History</h2>
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">Detail the progression of symptoms</p>
                             </div>
                         </div>
 
@@ -255,7 +255,7 @@ const AddHPI = () => {
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             placeholder="Describe the progression of the patient's symptoms, onset, and any relevant clinical history..."
-                            className="w-full min-h-[300px] p-8 bg-slate-50/50 border-2 border-slate-100 rounded-[2.5rem] text-lg font-semibold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all resize-none leading-relaxed"
+                            className="w-full min-h-[300px] p-8 bg-card/50 border-2 border-border-card rounded-[2.5rem] text-lg font-semibold text-main placeholder:text-muted opacity-40 focus:outline-none focus:border-indigo-500 focus:bg-card transition-all resize-none leading-relaxed"
                         />
                         {isRecording && (
                             <div className="absolute bottom-6 right-6 flex items-center gap-2 text-rose-500 font-bold text-[10px] uppercase tracking-widest">
@@ -293,8 +293,8 @@ const AddHPI = () => {
                                 <Brain size={20} />
                             </div>
                             <div>
-                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Clinical Intelligence</h2>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">AI-structured historical data</p>
+                                <h2 className="text-xl font-black text-main tracking-tight">Clinical Intelligence</h2>
+                                <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest">AI-structured historical data</p>
                             </div>
                         </div>
                         <Button variant="outline" size="sm" leftIcon={<Edit2 size={16} />} onClick={() => setStep(0)}>Edit Input</Button>
@@ -315,48 +315,48 @@ const AddHPI = () => {
 
                             {/* Detailed Findings Grid */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="card-premium p-6 bg-white border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Duration</p>
-                                    <p className="text-xs font-bold text-slate-700">{extractionData?.structured?.duration || 'Not specified'}</p>
+                                <div className="card-premium p-6 bg-card border-border-card">
+                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-3">Duration</p>
+                                    <p className="text-xs font-bold text-main">{extractionData?.structured?.duration || 'Not specified'}</p>
                                 </div>
-                                <div className="card-premium p-6 bg-white border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Onset</p>
-                                    <p className="text-xs font-bold text-slate-700">{extractionData?.structured?.onset || 'Not specified'}</p>
+                                <div className="card-premium p-6 bg-card border-border-card">
+                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-3">Onset</p>
+                                    <p className="text-xs font-bold text-main">{extractionData?.structured?.onset || 'Not specified'}</p>
                                 </div>
-                                <div className="card-premium p-6 bg-white border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Course</p>
-                                    <p className="text-xs font-bold text-slate-700">{extractionData?.structured?.course || 'Not specified'}</p>
+                                <div className="card-premium p-6 bg-card border-border-card">
+                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-3">Course</p>
+                                    <p className="text-xs font-bold text-main">{extractionData?.structured?.course || 'Not specified'}</p>
                                 </div>
-                                <div className="card-premium p-6 bg-white border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Energy Level</p>
-                                    <p className="text-xs font-bold text-slate-700">{extractionData?.structured?.energy || 'Stable'}</p>
+                                <div className="card-premium p-6 bg-card border-border-card">
+                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-3">Energy Level</p>
+                                    <p className="text-xs font-bold text-main">{extractionData?.structured?.energy || 'Stable'}</p>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="card-premium p-6 bg-white border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Mood Features</p>
+                                <div className="card-premium p-6 bg-card border-border-card">
+                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-3">Mood Features</p>
                                     <div className="flex flex-wrap gap-2">
                                         {extractionData?.structured?.mood_features?.map((f: string) => (
                                             <span key={f} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded border border-blue-100">{f}</span>
-                                        )) || <span className="text-xs text-slate-300 italic font-medium">None detected</span>}
+                                        )) || <span className="text-xs text-muted opacity-40 italic font-medium">None detected</span>}
                                     </div>
                                 </div>
-                                <div className="card-premium p-6 bg-white border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Psychotic Features</p>
+                                <div className="card-premium p-6 bg-card border-border-card">
+                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-3">Psychotic Features</p>
                                     <div className="flex flex-wrap gap-2">
                                         {extractionData?.structured?.psychotic_features?.map((f: string) => (
                                             <span key={f} className="px-2 py-0.5 bg-rose-50 text-rose-700 text-[10px] font-bold rounded border border-rose-100">{f}</span>
-                                        )) || <span className="text-xs text-slate-300 italic font-medium">None detected</span>}
+                                        )) || <span className="text-xs text-muted opacity-40 italic font-medium">None detected</span>}
                                     </div>
                                 </div>
-                                <div className="card-premium p-6 bg-white border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Sleep Pattern</p>
-                                    <p className="text-xs font-bold text-slate-700">{extractionData?.structured?.sleep || 'Not mentioned'}</p>
+                                <div className="card-premium p-6 bg-card border-border-card">
+                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-3">Sleep Pattern</p>
+                                    <p className="text-xs font-bold text-main">{extractionData?.structured?.sleep || 'Not mentioned'}</p>
                                 </div>
-                                <div className="card-premium p-6 bg-white border-slate-100">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Appetite</p>
-                                    <p className="text-xs font-bold text-slate-700">{extractionData?.structured?.appetite || 'Not mentioned'}</p>
+                                <div className="card-premium p-6 bg-card border-border-card">
+                                    <p className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-3">Appetite</p>
+                                    <p className="text-xs font-bold text-main">{extractionData?.structured?.appetite || 'Not mentioned'}</p>
                                 </div>
                             </div>
                         </div>
@@ -377,7 +377,7 @@ const AddHPI = () => {
                                     </div>
                                     <div>
                                         <p className="text-[9px] font-black text-white/40 uppercase mb-2">Calculated Severity</p>
-                                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                                        <div className="h-2 bg-card/10 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full transition-all duration-1000"
                                                 style={{
@@ -392,12 +392,12 @@ const AddHPI = () => {
                             </div>
 
                             {/* DSM mapping */}
-                            <div className="card-premium p-8 bg-white border-slate-100">
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">DSM-5 Potential Mapping</h3>
+                            <div className="card-premium p-8 bg-card border-border-card">
+                                <h3 className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest mb-4">DSM-5 Potential Mapping</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {extractionData?.dsm5_mapping?.map((code: string) => (
-                                        <span key={code} className="text-[9px] font-black px-2 py-1 bg-slate-100 text-slate-600 rounded uppercase">{code}</span>
-                                    )) || <span className="text-[10px] text-slate-300 italic">No direct mapping identified</span>}
+                                        <span key={code} className="text-[9px] font-black px-2 py-1 bg-page text-muted rounded uppercase">{code}</span>
+                                    )) || <span className="text-[10px] text-muted opacity-40 italic">No direct mapping identified</span>}
                                 </div>
                             </div>
                         </div>

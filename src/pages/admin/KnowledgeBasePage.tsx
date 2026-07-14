@@ -384,7 +384,7 @@ const KnowledgeBasePage = () => {
                                 </div>
                             </div>
 
-                            <div className="flex gap-4 mt-12 border-t border-slate-50 pt-10">
+                            <div className="flex gap-4 mt-12 border-t border-border-card pt-10">
                                 <Button variant="outline" size="lg" className="flex-1 rounded-2xl" onClick={() => setShowCreateModal(false)}>Cancel</Button>
                                 <Button 
                                     variant="primary" 
