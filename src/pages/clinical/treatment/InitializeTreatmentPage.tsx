@@ -115,17 +115,28 @@ const InitializeTreatmentPage = () => {
                         next_steps: nextSteps.trim()
                     };
                     console.log(`[Clinical Treatment] Attempting plan creation with ID: ${targetId}`);
-                    successResult = await TreatmentService.createTreatmentPlan(payload);
+                    // Add a timeout of 15 seconds to avoid endless loading if API hangs
+                    const timeout = new Promise<never>((_, reject) =>
+                        setTimeout(() => reject(new Error('Treatment plan creation timed out')), 15000)
+                    );
+                    successResult = await Promise.race([
+                        TreatmentService.createTreatmentPlan(payload),
+                        timeout
+                    ]);
                     if (successResult) break;
                 } catch (err: any) {
                     lastErr = err;
                     if (err.response?.status === 404) continue;
+                    // Ensure loading state is cleared on any error
+                    setIsSubmitting(false);
                     throw err;
                 }
             }
 
             if (!successResult && lastErr) throw lastErr;
 
+            // Ensure loading indicator is cleared before showing success UI
+            setIsSubmitting(false);
             setSuccess(true);
             setTimeout(() => {
                 navigate(`/patients/${userId}/treatment`);
@@ -133,7 +144,6 @@ const InitializeTreatmentPage = () => {
         } catch (err: any) {
             console.error('Failed to save treatment plan:', err);
             setError(err.response?.data?.message || 'Failed to finalize treatment plan.');
-        } finally {
             setIsSubmitting(false);
         }
     };
@@ -163,13 +173,13 @@ const InitializeTreatmentPage = () => {
         <div className="p-8 max-w-7xl mx-auto animate-fade-in pb-24">
             <header className="mb-12">
                 <button
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate(`/patients/${userId}/treatment`)}
                     className="flex items-center gap-2 text-[10px] font-black text-muted opacity-80 hover:text-indigo-600 transition-all uppercase tracking-[0.2em] mb-6"
                 >
                     <ChevronLeft size={16} /> Back to Session History
                 </button>
                 <div className="flex items-start gap-6">
-                    <div className="p-4 bg-indigo-600 text-white rounded-[1.5rem] shadow-xl shadow-indigo-100">
+                    <div className="p-4 bg-indigo-600 text-white rounded-[1.5rem] shadow-xl shadow-indigo-500/10">
                         <Activity size={32} />
                     </div>
                     <div>
@@ -182,7 +192,7 @@ const InitializeTreatmentPage = () => {
             <div className="grid lg:grid-cols-12 gap-12">
                 {/* Left: Patient Reference */}
                 <div className="lg:col-span-4 space-y-8">
-                    <div className="p-10 bg-slate-900 text-white rounded-[3rem] shadow-2xl relative overflow-hidden group border border-white/5">
+                    <div className="p-10 bg-slate-900 dark:bg-slate-950 text-white rounded-[3rem] shadow-2xl relative overflow-hidden group border border-white/10">
                         <div className="absolute -right-6 -top-6 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700" />
                         
                         <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-10">Patient Context</h3>
@@ -202,14 +212,14 @@ const InitializeTreatmentPage = () => {
                                     <UserIcon size={14} className="text-muted opacity-80" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Metadata</span>
                                 </div>
-                                <span className="text-[11px] font-black text-indigo-200 uppercase tracking-tighter">{patient?.gender || 'Unspecified'}</span>
+                                <span className="text-[11px] font-black text-indigo-300 uppercase tracking-tighter">{patient?.gender || 'Unspecified'}</span>
                             </div>
                         </div>
                     </div>
                     
-                    <div className="p-8 bg-indigo-50/30 rounded-[2.5rem] border border-indigo-100 flex items-start gap-4 shadow-sm">
-                        <div className="p-3 bg-card text-indigo-600 rounded-xl shadow-sm border border-indigo-50"><Brain size={18} /></div>
-                        <p className="text-[11px] font-bold text-indigo-900/60 uppercase tracking-tight leading-relaxed font-medium">
+                    <div className="p-8 bg-indigo-500/5 rounded-[2.5rem] border border-indigo-500/10 flex items-start gap-4 shadow-sm">
+                        <div className="p-3 bg-card text-indigo-500 rounded-xl shadow-sm border border-border-card"><Brain size={18} /></div>
+                        <p className="text-[11px] font-bold text-main/70 uppercase tracking-tight leading-relaxed">
                             Synthesized clinical impressions are automatically indexed for longitudinal tracking.
                         </p>
                     </div>
@@ -218,47 +228,47 @@ const InitializeTreatmentPage = () => {
                 {/* Right: The High-Density Form */}
                 <div className="lg:col-span-8">
                     <form onSubmit={handleSubmit} className="space-y-10">
-                        <div className="bg-card p-12 rounded-[3.5rem] border border-border-card shadow-xl shadow-slate-200/20 space-y-12">
+                        <div className="bg-card p-12 rounded-[3.5rem] border border-border-card shadow-xl shadow-slate-200/5 space-y-12">
                             
                             {/* Section: Imp */}
                             <div className="space-y-4">
                                 <div className="flex items-center gap-4 mb-2">
-                                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-[1.25rem]"><Brain size={22} /></div>
+                                    <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-[1.25rem]"><Brain size={22} /></div>
                                     <label className="text-xs font-black text-main uppercase tracking-[0.2em]">Clinical Impression</label>
                                 </div>
                                 <textarea
                                     value={plan}
                                     onChange={(e) => setPlan(e.target.value)}
                                     placeholder="Summarize the core clinical findings and session synthesis..."
-                                    className="w-full bg-card/50 border border-border-card rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-indigo-500/5 transition-all min-h-[160px] resize-none placeholder:text-muted opacity-40 shadow-inner leading-relaxed"
+                                    className="w-full bg-card/50 border border-border-card rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-indigo-500/5 text-main transition-all min-h-[160px] resize-none placeholder:text-muted shadow-inner leading-relaxed"
                                 />
                             </div>
 
                             {/* Section: Meds */}
                             <div className="space-y-4">
                                 <div className="flex items-center gap-4 mb-2">
-                                    <div className="p-3 bg-rose-50 text-rose-600 rounded-[1.25rem]"><Pill size={22} /></div>
+                                    <div className="p-3 bg-rose-500/10 text-rose-500 rounded-[1.25rem]"><Pill size={22} /></div>
                                     <label className="text-xs font-black text-main uppercase tracking-[0.2em]">Medication Regimen</label>
                                 </div>
                                 <textarea
                                     value={medications}
                                     onChange={(e) => setMedications(e.target.value)}
                                     placeholder="Detail any titrations or new prescriptions..."
-                                    className="w-full bg-card/50 border border-border-card rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-rose-500/5 transition-all min-h-[110px] resize-none placeholder:text-muted opacity-40 shadow-inner"
+                                    className="w-full bg-card/50 border border-border-card rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-rose-500/5 text-main transition-all min-h-[110px] resize-none placeholder:text-muted shadow-inner"
                                 />
                             </div>
 
                             {/* Section: Steps */}
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4 mb-2">
-                                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-[1.25rem]"><ClipboardList size={22} /></div>
+                                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-[1.25rem]"><ClipboardList size={22} /></div>
                                     <label className="text-xs font-black text-main uppercase tracking-[0.2em]">Recommendations & Journey Steps</label>
                                 </div>
                                 <textarea
                                     value={nextSteps}
                                     onChange={(e) => setNextSteps(e.target.value)}
                                     placeholder="Define actionable milestones for the patient journey..."
-                                    className="w-full bg-card/50 border border-border-card rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition-all min-h-[160px] resize-none placeholder:text-muted opacity-40 shadow-inner"
+                                    className="w-full bg-card/50 border border-border-card rounded-[2rem] py-8 px-8 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 text-main transition-all min-h-[160px] resize-none placeholder:text-muted shadow-inner"
                                 />
 
                                 <div className="space-y-4 pt-4">
@@ -269,7 +279,7 @@ const InitializeTreatmentPage = () => {
                                                 key={i}
                                                 type="button"
                                                 onClick={() => addRecommendation(rec)}
-                                                className="px-6 py-3 bg-card border border-border-card rounded-2xl text-[10px] font-black text-muted uppercase tracking-widest hover:border-indigo-600 hover:text-indigo-600 hover:shadow-lg hover:shadow-indigo-100 transition-all flex items-center gap-3 group"
+                                                className="px-6 py-3 bg-card border border-border-card rounded-2xl text-[10px] font-black text-muted uppercase tracking-widest hover:border-indigo-600 hover:text-indigo-600 hover:shadow-lg hover:shadow-indigo-500/5 transition-all flex items-center gap-3 group"
                                             >
                                                 <Plus size={14} className="text-muted opacity-40 group-hover:text-indigo-600 transition-colors" />
                                                 {rec}
@@ -281,7 +291,7 @@ const InitializeTreatmentPage = () => {
                         </div>
 
                         {error && (
-                            <div className="p-6 bg-rose-50 border border-rose-100 rounded-[2rem] flex items-center gap-4 text-rose-600 text-[11px] font-black uppercase tracking-widest animate-pulse">
+                            <div className="p-6 bg-rose-500/10 border border-rose-500/20 rounded-[2rem] flex items-center gap-4 text-rose-600 text-[11px] font-black uppercase tracking-widest animate-pulse">
                                 <AlertCircle size={20} />
                                 {error}
                             </div>
@@ -295,7 +305,7 @@ const InitializeTreatmentPage = () => {
                                 variant="primary"
                                 type="submit"
                                 isLoading={isSubmitting}
-                                className="rounded-[2rem] px-16 py-6 h-auto text-xs shadow-2xl shadow-indigo-200/50 uppercase tracking-[0.3em] font-black hover:scale-[1.02] transition-transform"
+                                className="rounded-[2rem] px-16 py-6 h-auto text-xs shadow-2xl shadow-indigo-600/20 uppercase tracking-[0.3em] font-black hover:scale-[1.02] transition-transform"
                             >
                                 Finalize Record
                             </Button>

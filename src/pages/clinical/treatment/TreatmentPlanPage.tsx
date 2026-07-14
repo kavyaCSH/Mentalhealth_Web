@@ -60,7 +60,7 @@ const TreatmentPlanPage = () => {
 
     const [progress, setProgress] = useState<TreatmentProgress>({ stages: [], overall_progress: 0, patientId: userIdFromRoute || '', diagnosis: '' });
     const [history, setHistory] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState<'journey' | 'history'>('journey');
+    const [activeTab, setActiveTab] = useState<'history'>('history');
     const [isLoading, setIsLoading] = useState(true);
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [identities, setIdentities] = useState<{ userId: string; patientId: string } | null>(null);
@@ -264,75 +264,13 @@ const TreatmentPlanPage = () => {
                         </button>
                     )}
                     <div className="flex bg-page p-1 rounded-2xl border border-border-card">
-                        <button onClick={() => setActiveTab('journey')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'journey' ? 'bg-card text-indigo-600 shadow-lg ring-1 ring-slate-200/50' : 'text-muted opacity-80'}`}>Journey</button>
                         <button onClick={() => setActiveTab('history')} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'history' ? 'bg-card text-indigo-600 shadow-lg ring-1 ring-slate-200/50' : 'text-muted opacity-80'}`}>History</button>
                     </div>
                 </div>
             </header>
 
             <AnimatePresence mode="wait">
-                {activeTab === 'journey' ? (
-                    <motion.div key="journey" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid lg:grid-cols-4 gap-8">
-                        <div className="lg:col-span-1 space-y-4">
-                            {!progress?.stages || progress.stages.length === 0 ? (
-                                <div className="p-6 text-center bg-page border border-dashed border-border-card rounded-[1.5rem] shadow-sm flex flex-col items-center">
-                                    <LayoutDashboard size={32} className="text-muted opacity-40 mb-4" />
-                                    <h3 className="text-sm font-black text-main uppercase">Initialize Plan</h3>
-                                    <p className="text-[9px] font-bold text-muted opacity-80 uppercase leading-relaxed mt-2 mb-6">Setup the clinical roadmap.</p>
-                                    {isPractitioner && (
-                                        <Button onClick={handleInitializeJourney} isLoading={isActionLoading} variant="primary" className="w-full rounded-[1rem] py-4 uppercase font-black tracking-widest text-[10px]">
-                                            Establish
-                                        </Button>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    <div className="p-6 bg-card border border-border-card rounded-[2rem] shadow-xl flex flex-col items-center text-center">
-                                        <div className="text-5xl font-black text-main mb-1 tracking-tighter leading-none">{progress.overall_progress}%</div>
-                                        <span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest mb-6 italic">Total Mastery</span>
-                                        <div className="w-full h-1.5 bg-page rounded-full overflow-hidden border border-border-card"><div className="h-full bg-indigo-600 transition-all duration-700" style={{ width: `${progress.overall_progress}%` }} /></div>
-                                    </div>
-                                    <div className="p-6 bg-slate-900 text-white rounded-[2rem] shadow-xl relative overflow-hidden">
-                                        <h2 className="text-xl font-black tracking-tight leading-tight mb-6">{progress.diagnosis || 'Active Protocol'}</h2>
-                                        <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                            <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /><span className="text-[9px] font-black uppercase tracking-widest text-emerald-100/60">Live</span></div>
-                                            {isPractitioner && <button onClick={handleInitializeJourney} className="text-[8px] font-black uppercase tracking-[0.2em] text-indigo-400 hover:text-white transition-all">Reset</button>}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="lg:col-span-3">
-                            <div className="grid gap-3">
-                            {progress?.stages?.map((stg, i) => (
-                                <div key={stg.id || i} className={`p-5 bg-card border border-border-card rounded-[1.75rem] flex items-center gap-6 transition-all hover:bg-page shadow-sm relative ${stg.status === 'in_progress' ? 'ring-2 ring-indigo-500/5' : ''}`}>
-                                    <div className={`absolute left-0 top-5 bottom-5 w-1 rounded-r-xl ${stg.status === 'completed' ? 'bg-emerald-500' : stg.status === 'in_progress' ? 'bg-indigo-600' : 'bg-border-card'}`} />
-                                    
-                                    <div className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center shrink-0 border transition-all ${stg.status === 'completed' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : stg.status === 'in_progress' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-page border-border-card text-muted opacity-80'}`}>
-                                        {stg.status === 'completed' ? <CheckCircle2 size={20} /> : <span className="text-lg font-black tracking-tighter">0{i + 1}</span>}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <h3 className="text-xl font-black text-main tracking-tighter truncate leading-tight">{stg.title}</h3>
-                                            <StatusBadge status={stg.status} />
-                                        </div>
-                                        <div className="flex items-center justify-between gap-4">
-                                            <p className="text-[13px] font-semibold text-muted opacity-80 italic truncate opacity-80">{stg.description || 'Milestone pending clinical evaluation.'}</p>
-                                            {isPractitioner && (
-                                                <button onClick={() => handleOpenUpdate(stg)} className="shrink-0 text-indigo-600 hover:text-main text-[9px] font-black uppercase tracking-[0.2em] underline underline-offset-4">
-                                                    Update Stage
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                            </div>
-                        </div>
-                    </motion.div>
-                ) : (
-                    <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <motion.div key="history" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                          {history.length === 0 ? (
                             <div className="col-span-full p-20 text-center bg-card/50 rounded-[2rem] border-2 border-dashed border-border-card flex flex-col items-center">
                                 <ClipboardCheck size={48} className="text-muted opacity-40 mb-6" />
@@ -348,7 +286,7 @@ const TreatmentPlanPage = () => {
                                                 <span className="text-[12px] font-black text-main tracking-tighter italic">{new Date(rec.createdAt || rec.date).toLocaleDateString()}</span>
                                             </div>
                                         </div>
-                                        <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 tracking-widest uppercase italic">Verified</span>
+                                        <span className="text-[8px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20 tracking-widest uppercase italic">Verified</span>
                                     </div>
                                     <div className="space-y-4 flex-1">
                                         {rec.plan && (
@@ -360,7 +298,7 @@ const TreatmentPlanPage = () => {
                                         {rec.medications && (
                                             <div className="space-y-1.5 pt-4 border-t border-border-card">
                                                 <div className="flex items-center gap-1.5 ml-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500" /><span className="text-[9px] font-black text-muted opacity-80 uppercase tracking-widest leading-none">Meds</span></div>
-                                                <p className="text-[11px] font-black text-rose-600 uppercase tracking-tight">{rec.medications}</p>
+                                                <p className="text-[11px] font-black text-rose-500 uppercase tracking-tight">{rec.medications}</p>
                                             </div>
                                         )}
                                     </div>
@@ -368,7 +306,6 @@ const TreatmentPlanPage = () => {
                             ))
                         )}
                     </motion.div>
-                )}
             </AnimatePresence>
 
             {/* REDESIGNED UPDATE FORM CARD UI */}
@@ -382,7 +319,7 @@ const TreatmentPlanPage = () => {
                                     <h2 className="text-xl font-black text-main tracking-tighter uppercase italic leading-none">Update Protocol</h2>
                                     <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest opacity-80">Synchronizing stage</p>
                                 </div>
-                                <button onClick={() => setUpdatingStage(null)} className="p-2.5 bg-card text-muted opacity-80 hover:bg-rose-50 hover:text-rose-600 rounded-xl shadow-sm transition-all border border-border-card"><X size={18} /></button>
+                                <button onClick={() => setUpdatingStage(null)} className="p-2.5 bg-card text-muted opacity-80 hover:bg-rose-500/10 hover:text-rose-500 rounded-xl shadow-sm transition-all border border-border-card"><X size={18} /></button>
                             </div>
 
                             <div className="px-6 py-6 space-y-5 overflow-y-auto custom-scrollbar flex-1">
@@ -411,15 +348,15 @@ const TreatmentPlanPage = () => {
                                 </div>
 
                                 {updateForm.status === 'completed' && (
-                                    <div className="space-y-2.5 animate-fade-in p-4 bg-emerald-50/50 rounded-[1.25rem] border border-emerald-100/50">
+                                    <div className="space-y-2.5 animate-fade-in p-4 bg-emerald-500/5 rounded-[1.25rem] border border-emerald-500/10">
                                         <label className="text-[8px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2"><Calendar size={10} /> Completion Date</label>
-                                        <input type="date" value={updateForm.completedAt} onChange={(e) => setUpdateForm({ ...updateForm, completedAt: e.target.value })} className="w-full bg-card border border-emerald-100/60 rounded-xl py-3 px-5 text-[12px] font-black uppercase tracking-widest focus:outline-none shadow-sm" />
+                                        <input type="date" value={updateForm.completedAt} onChange={(e) => setUpdateForm({ ...updateForm, completedAt: e.target.value })} className="w-full bg-card border border-border-card rounded-xl py-3 px-5 text-[12px] font-black uppercase tracking-widest focus:outline-none shadow-sm" />
                                     </div>
                                 )}
                             </div>
 
                             <div className="px-6 py-5 bg-card/50 border-t border-border-card shrink-0">
-                                <Button onClick={handleUpdateStatus} isLoading={isUpdating} className="w-full rounded-[1.25rem] py-4 flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 hover:scale-[1.01] transition-transform text-[11px] uppercase font-black tracking-widest">
+                                <Button onClick={handleUpdateStatus} isLoading={isUpdating} className="w-full rounded-[1.25rem] py-4 flex items-center justify-center gap-3 shadow-xl shadow-indigo-600/10 hover:scale-[1.01] transition-transform text-[11px] uppercase font-black tracking-widest">
                                     <Save size={18} /> Commit Status
                                 </Button>
                             </div>

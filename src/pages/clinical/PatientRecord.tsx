@@ -63,7 +63,7 @@ const PatientRecord = () => {
                             AssessmentService.getPatientProfessionalHistory(targetId),
                             DashboardService.getPatientStatistics(targetId)
                         ]);
-                        
+
                         let resolvedP = pRes.status === 'fulfilled' ? pRes.value as Patient : null;
                         const resolvedH = hRes.status === 'fulfilled' ? hRes.value : [];
                         const resolvedS = sRes.status === 'fulfilled' ? (sRes.value.data || sRes.value) : null;
@@ -138,7 +138,7 @@ const PatientRecord = () => {
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <Activity className="animate-spin text-indigo-600 mb-4" size={40} />
+                <Activity className="animate-spin text-main mb-4" size={40} />
                 <p className="text-sm font-bold text-muted uppercase tracking-widest">Loading Patient Record...</p>
             </div>
         );
@@ -187,16 +187,16 @@ const PatientRecord = () => {
                 <div className="lg:col-span-1 space-y-6">
                     {/* Emergency Contact (Crisis Aware - Mobile Parity) */}
                     <div className={`card-premium p-6 border-2 transition-all ${patient.riskLevel === 'high'
-                        ? 'border-rose-200 bg-rose-50/30'
+                        ? 'border-error/20 bg-error/5'
                         : 'border-border-card bg-card'
                         }`}>
                         <div className="flex items-center gap-4 mb-4">
-                            <div className={`p-2.5 rounded-xl ${patient.riskLevel === 'high' ? 'bg-rose-600 text-white' : 'bg-page text-muted'
+                            <div className={`p-2.5 rounded-xl ${patient.riskLevel === 'high' ? 'bg-error text-white' : 'bg-page text-muted'
                                 }`}>
                                 <Phone size={18} />
                             </div>
                             <div>
-                                <p className={`text-[10px] font-black uppercase tracking-widest ${patient.riskLevel === 'high' ? 'text-rose-600' : 'text-muted opacity-80'
+                                <p className={`text-[10px] font-black uppercase tracking-widest ${patient.riskLevel === 'high' ? 'text-error' : 'text-muted opacity-80'
                                     }`}>
                                     {patient.riskLevel === 'high' ? 'Critical Crisis Contact' : 'Emergency Contact'}
                                 </p>
@@ -209,9 +209,8 @@ const PatientRecord = () => {
                             <a
                                 href={`tel:${patient.emergencyContact}`}
                                 className={`w-full py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all ${patient.riskLevel === 'high'
-                                    ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-lg shadow-rose-200'
-                                    : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
-                                    }`}
+                                    ? 'bg-error text-white hover:bg-error/20 shadow-lg shadow-error/20'
+                                    : 'bg-card text-main hover:bg-page'}`}
                             >
                                 <Phone size={12} /> Call Emergency
                             </a>
@@ -265,20 +264,20 @@ const PatientRecord = () => {
                     </div>
 
                     {!isFocused && (
-                        <div className="card-premium p-6 bg-indigo-600 border-none text-white relative overflow-hidden">
+                        <div className="card-premium p-6 bg-card border-none text-main relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-8 opacity-10">
                                 <Activity size={100} />
                             </div>
-                            <h3 className="text-xs font-black text-indigo-200 uppercase tracking-widest mb-6 relative z-10">Clinical Profile</h3>
+                            <h3 className="text-xs font-black text-muted uppercase tracking-widest mb-6 relative z-10">Clinical Profile</h3>
 
                             <div className="space-y-4 relative z-10">
                                 <div>
-                                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Primary Diagnosis</p>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Primary Diagnosis</p>
                                     <p className="font-bold">{patient.diagnosis}</p>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Treatment Plan</p>
-                                    <p className="text-sm text-indigo-100 font-medium leading-relaxed">{patient.plan}</p>
+                                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Treatment Plan</p>
+                                    <p className="text-sm text-muted font-medium leading-relaxed">{patient.plan}</p>
                                 </div>
                             </div>
                         </div>
@@ -292,7 +291,7 @@ const PatientRecord = () => {
                         <div className="card-premium p-6 flex flex-col h-[500px]">
                             <div className="flex items-center justify-between mb-6 shrink-0">
                                 <h2 className="text-lg font-black text-main flex items-center gap-2">
-                                    <FileText className="text-indigo-600" size={20} /> Clinical Notes
+                                    <FileText className="stroke-current text-main" size={20} /> Clinical Notes
                                 </h2>
                             </div>
 
@@ -440,15 +439,15 @@ const PatientRecord = () => {
 
                     {/* Mind Health Section (Feature Parity with Mobile WellnessSnapshot) */}
                     {!isFocused && history.length > 0 && (
-                        <div className="card-premium p-6 border-indigo-100 bg-card/50 backdrop-blur-sm relative overflow-hidden group">
+                        <div className="card-premium p-6 border-border-card bg-card/50 backdrop-blur-sm relative overflow-hidden group">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="space-y-1">
                                     <h2 className="text-xl font-black text-main uppercase tracking-tight flex items-center gap-2">
-                                        <HeartPulse size={20} className="text-indigo-600" /> Mind Health Snapshot
+                                        <HeartPulse size={20} className="stroke-current text-main" /> Mind Health Snapshot
                                     </h2>
                                     <p className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest italic">Latest Wellness Analysis</p>
                                 </div>
-                                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:scale-110 transition-transform">
+                                <div className="p-3 bg-card text-main rounded-2xl group-hover:scale-110 transition-transform">
                                     <Activity size={20} />
                                 </div>
                             </div>
@@ -475,16 +474,16 @@ const PatientRecord = () => {
                             </div>
 
                             <div className="mt-8 grid grid-cols-2 gap-4">
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     className="rounded-[1.5rem] border-border-card text-muted hover:bg-page py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
                                     onClick={() => navigate(`/patients/${patient?.userId || id}/ai-history-assistant`)}
                                 >
-                                    <Mic size={14} className="text-indigo-600" /> Record Narrative
+                                    <Mic size={14} className="stroke-current text-main" /> Record Narrative
                                 </Button>
-                                <Button 
-                                    variant="primary" 
-                                    className="rounded-[1.5rem] bg-slate-900 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                                <Button
+                                    variant="primary"
+                                    className="rounded-[1.5rem] bg-card py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 text-main"
                                     onClick={() => navigate(`/patients/${patient?.userId || id}/ai-history-assistant?mode=manual`)}
                                 >
                                     <Plus size={14} /> Add Manual Entry
