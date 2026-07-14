@@ -8,7 +8,6 @@ import {
     Stethoscope,
     AlertCircle,
     Plus,
-    Edit3,
     Filter,
     Search,
     Calendar,
@@ -294,18 +293,7 @@ const ROSList = () => {
                                         <Stethoscope size={16} />
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        {!isPatient && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    navigate(`/patients/${userId}/ros/edit/${rosId}`);
-                                                }}
-                                                className="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl shadow-sm transition-all"
-                                                title="Edit Review"
-                                            >
-                                                <Edit3 size={16} />
-                                            </button>
-                                        )}
+
                                         <span className="text-[10px] font-black text-muted opacity-80 uppercase tracking-widest ml-2">
                                             {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', {
                                                 month: 'short',

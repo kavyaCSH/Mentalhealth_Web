@@ -11,8 +11,7 @@ import {
     Sparkles,
     Zap,
     FileText,
-    Stethoscope,
-    Edit3
+    Stethoscope
 } from 'lucide-react';
 import Button from '../../../components/ui/Button';
 import { ROSService } from '../../../api/services/ros.service';
@@ -160,16 +159,7 @@ const ROSDetail = () => {
                     </h1>
                 </div>
                 <div className="flex items-center gap-4">
-                    {!isPatient && (
-                        <Button
-                            variant="secondary"
-                            onClick={() => navigate(`/patients/${userId}/ros/edit/${rosId}`)}
-                            className="rounded-2xl h-12 px-8 font-black uppercase text-xs tracking-widest bg-emerald-50 text-emerald-600 border-emerald-100 shadow-lg shadow-emerald-50 hover:bg-emerald-600 hover:text-white transition-all mr-4"
-                            leftIcon={<Edit3 size={16} />}
-                        >
-                            Edit Review
-                        </Button>
-                    )}
+
                     <Button
                         variant="primary"
                         onClick={navigateBack}

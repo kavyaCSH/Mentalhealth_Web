@@ -254,7 +254,13 @@ const AddROS = () => {
         }
     };
 
-    const navigateBack = () => navigate(-1);
+    const navigateBack = () => {
+        if (currentUser?.role === 'patient' || (currentUser as any)?.group === 'PATIENT') {
+            navigate('/records');
+        } else {
+            navigate(`/patients/${userId}/ros`);
+        }
+    };
 
     if (isLoading) return <div className="flex flex-col items-center justify-center min-h-[60vh]"><Activity className="animate-spin text-indigo-600 mb-4" size={40} /><p className="text-sm font-bold text-muted uppercase tracking-widest">Hydrating Review...</p></div>;
 

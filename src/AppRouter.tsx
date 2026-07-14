@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout.tsx';
 import Dashboard from './pages/Dashboard.tsx';
 import LoginPage from './pages/auth/LoginPage';
@@ -88,6 +88,11 @@ import ClinicalIntelligencePage from './pages/admin/ClinicalIntelligencePage';
 import GlobalAnalyticsPage from './pages/admin/GlobalAnalyticsPage';
 import PastHistory from './pages/patient/PastHistory';
 import PastHistoryDetailPage from './pages/patient/PastHistoryDetailPage';
+
+const ROSRedirect = () => {
+    const { patientId, rosId } = useParams();
+    return <Navigate to={`/patients/${patientId}/ros/${rosId}`} replace />;
+};
 
 const AppRouter = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -207,7 +212,7 @@ const AppRouter = () => {
                                 <Route path="patients/:patientId/ros" element={<RosAssessmentPage />} />
                                 <Route path="patients/:patientId/ros/new" element={<AddROS />} />
                                 <Route path="patients/:patientId/ros/:rosId" element={<ROSDetail />} />
-                                <Route path="patients/:patientId/ros/edit/:rosId" element={<EditROS />} />
+                                <Route path="patients/:patientId/ros/edit/:rosId" element={<ROSRedirect />} />
                                 <Route path="patients/:patientId/symptoms" element={<ConsultSymptomsPage />} />
                                 <Route path="patients/:patientId/treatment" element={<TreatmentPlanPage />} />
                                 <Route path="patients/:patientId/treatment/new" element={<InitializeTreatmentPage />} />
