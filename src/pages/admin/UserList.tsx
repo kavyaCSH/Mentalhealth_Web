@@ -17,7 +17,6 @@ import {
     Send,
     X,
     Bell,
-    Plus,
     Edit3,
     Trash2,
     Eye,
@@ -28,8 +27,9 @@ import {
     UserPlus,
     MoreVertical,
     RefreshCw,
-    Download,
-    Filter
+    MapPin,
+    Globe,
+    Map
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
@@ -55,7 +55,7 @@ const UserList = () => {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     
     // Create/Edit form
-    const [formData, setFormData] = useState({
+    const initialFormData = {
         role: 'patient' as UserRole,
         firstName: '',
         lastName: '',
@@ -67,6 +67,21 @@ const UserList = () => {
         gender: '',
         dateOfBirth: '',
         address: '',
+        // Admin/Hospital/SuperAdmin fields
+        isdCode: '',
+        mobile: '',
+        profileImage: '',
+        city: '',
+        timezoneId: '',
+        countryIso: '',
+        commEmail: true,
+        commSms: false,
+        commPush: true,
+        coordLat: '',
+        coordLng: '',
+        hospital: '',
+        reportingTo: '',
+        // Professional fields
         specialization: '',
         about: '',
         experienceYears: '',
@@ -74,14 +89,20 @@ const UserList = () => {
         qualifications: '',
         languages: '',
         skills: '',
+        // Patient fields
         emergencyContact: '',
         bloodGroup: '',
-        hospitalId: '',
-        professionalId: '',
-        reportingTo: '',
-    });
+        professional: '',
+    };
+    const [formData, setFormData] = useState(initialFormData);
     const [formLoading, setFormLoading] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
+    const [isGeocoding, setIsGeocoding] = useState(false);
+
+    // Form options state
+    const [hospitalOptions, setHospitalOptions] = useState<User[]>([]);
+    const [adminOptions, setAdminOptions] = useState<User[]>([]);
+    const [professionalOptions, setProfessionalOptions] = useState<User[]>([]);
     
     // Notification form
     const [notifForm, setNotifForm] = useState({ title: '', message: '' });
@@ -124,12 +145,18 @@ const UserList = () => {
             if (activeTab === 'practitioner') roleQuery = 'psychiatrist,psychologist,nurse,counselor,social_worker';
             if (activeTab === 'admin') roleQuery = 'admin,super_admin';
 
-            const { users: fetchedUsers, total: totalCount } = await UserService.listUsers({
+            const queryParams: any = {
                 role: roleQuery,
                 search: searchQuery || undefined,
                 page,
                 limit
-            });
+            };
+
+            if (currentUser?.role === 'admin' && currentUser?.hospital) {
+                queryParams.hospital = typeof currentUser.hospital === 'object' ? currentUser.hospital._id : currentUser.hospital;
+            }
+
+            const { users: fetchedUsers, total: totalCount } = await UserService.listUsers(queryParams);
             
             setUsers(fetchedUsers);
             setTotal(totalCount);
@@ -140,7 +167,7 @@ const UserList = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [activeTab, searchQuery, page, limit]);
+    }, [activeTab, searchQuery, page, limit, currentUser]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -165,31 +192,7 @@ const UserList = () => {
     }, [openMenuId]);
 
     const resetForm = () => {
-        setFormData({
-            role: 'patient',
-            firstName: '',
-            lastName: '',
-            username: '',
-            email: '',
-            phone: '',
-            password: '',
-            confirmPassword: '',
-            gender: '',
-            dateOfBirth: '',
-            address: '',
-            specialization: '',
-            about: '',
-            experienceYears: '',
-            consultationFee: '',
-            qualifications: '',
-            languages: '',
-            skills: '',
-            emergencyContact: '',
-            bloodGroup: '',
-            hospitalId: '',
-            professionalId: '',
-            reportingTo: '',
-        });
+        setFormData({ ...initialFormData });
         setFormError(null);
     };
 
@@ -201,6 +204,7 @@ const UserList = () => {
     const openEditModal = (user: User) => {
         setSelectedUser(user);
         setFormData({
+            ...initialFormData,
             role: user.role,
             firstName: user.firstName || '',
             lastName: user.lastName || '',
@@ -212,23 +216,53 @@ const UserList = () => {
             gender: user.gender || '',
             dateOfBirth: user.dateOfBirth || user.dob || '',
             address: user.address || '',
+            isdCode: user.isdCode || '',
+            mobile: user.mobile || '',
+            profileImage: user.profileImage || '',
+            city: user.city || '',
+            timezoneId: user.timezoneId || '',
+            countryIso: user.countryIso || '',
+            coordLat: user.coordinates?.lat?.toString() || '',
+            coordLng: user.coordinates?.lng?.toString() || '',
+            hospital: (typeof user.hospital === 'object' ? (user.hospital as any)?._id : user.hospital) || '',
+            reportingTo: user.reportingTo || '',
+            professional: user.professional || '',
             specialization: user.specialization || '',
             about: user.about || '',
-            experienceYears: user.experienceYears ? String(user.experienceYears) : '',
-            consultationFee: user.consultationFee ? String(user.consultationFee) : '',
+            experienceYears: user.experienceYears?.toString() || '',
+            consultationFee: user.consultationFee?.toString() || '',
             qualifications: user.qualifications || '',
-            languages: user.languages ? user.languages.join(', ') : '',
-            skills: user.skills ? user.skills.join(', ') : '',
+            languages: Array.isArray(user.languages) ? user.languages.join(', ') : '',
+            skills: Array.isArray(user.skills) ? user.skills.join(', ') : '',
+            commEmail: user.communicationPreferences?.email ?? true,
+            commSms: user.communicationPreferences?.sms ?? false,
+            commPush: user.communicationPreferences?.push ?? true,
             emergencyContact: user.emergencyContact || '',
             bloodGroup: user.bloodGroup || '',
-            hospitalId: '',
-            professionalId: '',
-            reportingTo: '',
         });
         setFormError(null);
         setActiveModal('edit');
-        setOpenMenuId(null);
     };
+
+    useEffect(() => {
+        if (activeModal === 'create' || activeModal === 'edit') {
+            const fetchOptions = async () => {
+                try {
+                    const [hospitalRes, adminRes, profRes] = await Promise.all([
+                        UserService.listUsers({ role: 'hospital', limit: 100 }),
+                        UserService.listUsers({ role: 'admin', limit: 100 }),
+                        UserService.listUsers({ role: 'psychiatrist,psychologist,nurse,counselor,social_worker', limit: 100 })
+                    ]);
+                    setHospitalOptions(hospitalRes.users || []);
+                    setAdminOptions(adminRes.users || []);
+                    setProfessionalOptions(profRes.users || []);
+                } catch (err) {
+                    console.error('Error fetching form options:', err);
+                }
+            };
+            fetchOptions();
+        }
+    }, [activeModal]);
 
     const openViewModal = (user: User) => {
         setSelectedUser(user);
@@ -286,9 +320,42 @@ const UserList = () => {
             if (formData.gender) payload.gender = formData.gender;
             if (formData.dateOfBirth) payload.dateOfBirth = formData.dateOfBirth;
             if (formData.address) payload.address = formData.address;
-            if (formData.reportingTo) payload.reportingTo = Number(formData.reportingTo);
 
-            // Professional-specific fields
+            // ── Shared Admin/Hospital/SuperAdmin fields ──
+            if (['super_admin', 'admin', 'hospital'].includes(formData.role)) {
+                if (formData.isdCode) payload.isdCode = formData.isdCode;
+                if (formData.mobile) payload.mobile = formData.mobile;
+                if (formData.profileImage) payload.profileImage = formData.profileImage;
+                if (formData.city) payload.city = formData.city;
+                if (formData.timezoneId) payload.timezoneId = Number(formData.timezoneId);
+                if (formData.countryIso) payload.countryIso = formData.countryIso;
+                payload.communicationPreferences = {
+                    email: formData.commEmail,
+                    sms: formData.commSms,
+                    push: formData.commPush,
+                };
+            }
+
+            // ── Admin-specific ──
+            if (formData.role === 'admin') {
+                if (formData.hospital) payload.hospital = formData.hospital;
+                if (formData.reportingTo) payload.reportingTo = formData.reportingTo;
+            }
+
+            // ── Hospital-specific ──
+            if (formData.role === 'hospital') {
+                if (formData.coordLat && formData.coordLng) {
+                    payload.coordinates = {
+                        lat: Number(formData.coordLat),
+                        lng: Number(formData.coordLng),
+                    };
+                }
+                if (formData.reportingTo) payload.reportingTo = formData.reportingTo;
+            }
+
+            // ── Super Admin: reportingTo not needed ──
+
+            // ── Professional-specific fields ──
             if (isProfessionalRole(formData.role)) {
                 if (formData.specialization) payload.specialization = formData.specialization;
                 if (formData.about) payload.about = formData.about;
@@ -297,20 +364,16 @@ const UserList = () => {
                 if (formData.qualifications) payload.qualifications = formData.qualifications.split(',').map((q: string) => q.trim()).filter(Boolean);
                 if (formData.languages) payload.languages = formData.languages.split(',').map((l: string) => l.trim()).filter(Boolean);
                 if (formData.skills) payload.skills = formData.skills.split(',').map((s: string) => s.trim()).filter(Boolean);
-                if (formData.hospitalId) payload.hospitalId = Number(formData.hospitalId);
+                if (formData.hospital) payload.hospital = formData.hospital;
+                if (formData.reportingTo) payload.reportingTo = formData.reportingTo;
             }
 
-            // Patient-specific fields
+            // ── Patient-specific fields ──
             if (formData.role === 'patient') {
                 if (formData.emergencyContact) payload.emergencyContact = formData.emergencyContact;
                 if (formData.bloodGroup) payload.bloodGroup = formData.bloodGroup;
-                if (formData.hospitalId) payload.hospitalId = Number(formData.hospitalId);
-                if (formData.professionalId) payload.professionalId = Number(formData.professionalId);
-            }
-
-            // Hospital-specific
-            if (formData.role === 'hospital') {
-                if (formData.address) payload.address = formData.address;
+                if (formData.hospital) payload.hospital = formData.hospital;
+                if (formData.professional) payload.professional = formData.professional;
             }
 
             await UserService.createUserByRole(formData.role, payload);
@@ -344,6 +407,33 @@ const UserList = () => {
             if (formData.dateOfBirth) updatePayload.dateOfBirth = formData.dateOfBirth;
             if (formData.address) updatePayload.address = formData.address;
 
+            // Admin/Hospital/SuperAdmin shared fields
+            if (['super_admin', 'admin', 'hospital'].includes(formData.role)) {
+                if (formData.isdCode) updatePayload.isdCode = formData.isdCode;
+                if (formData.mobile) updatePayload.mobile = formData.mobile;
+                if (formData.profileImage) updatePayload.profileImage = formData.profileImage;
+                if (formData.city) updatePayload.city = formData.city;
+                if (formData.timezoneId) updatePayload.timezoneId = Number(formData.timezoneId);
+                if (formData.countryIso) updatePayload.countryIso = formData.countryIso;
+                updatePayload.communicationPreferences = {
+                    email: formData.commEmail,
+                    sms: formData.commSms,
+                    push: formData.commPush,
+                };
+            }
+
+            if (formData.role === 'admin') {
+                if (formData.hospital) updatePayload.hospital = formData.hospital;
+                if (formData.reportingTo) updatePayload.reportingTo = formData.reportingTo;
+            }
+
+            if (formData.role === 'hospital') {
+                if (formData.coordLat && formData.coordLng) {
+                    updatePayload.coordinates = { lat: Number(formData.coordLat), lng: Number(formData.coordLng) };
+                }
+                if (formData.reportingTo) updatePayload.reportingTo = formData.reportingTo;
+            }
+
             if (isProfessionalRole(formData.role)) {
                 if (formData.specialization) updatePayload.specialization = formData.specialization;
                 if (formData.about) updatePayload.about = formData.about;
@@ -352,11 +442,15 @@ const UserList = () => {
                 if (formData.qualifications) updatePayload.qualifications = formData.qualifications.split(',').map((q: string) => q.trim()).filter(Boolean);
                 if (formData.languages) updatePayload.languages = formData.languages.split(',').map((l: string) => l.trim()).filter(Boolean);
                 if (formData.skills) updatePayload.skills = formData.skills.split(',').map((s: string) => s.trim()).filter(Boolean);
+                if (formData.hospital) updatePayload.hospital = formData.hospital;
+                if (formData.reportingTo) updatePayload.reportingTo = formData.reportingTo;
             }
 
             if (formData.role === 'patient') {
                 if (formData.emergencyContact) updatePayload.emergencyContact = formData.emergencyContact;
                 if (formData.bloodGroup) updatePayload.bloodGroup = formData.bloodGroup;
+                if (formData.hospital) updatePayload.hospital = formData.hospital;
+                if (formData.professional) updatePayload.professional = formData.professional;
             }
 
             await UserService.updateUserById(selectedUser.id, updatePayload);
@@ -444,6 +538,40 @@ const UserList = () => {
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleGeocodeAddress = async () => {
+        if (!formData.address) {
+            setFormError('Please enter an address first to fetch coordinates.');
+            return;
+        }
+        
+        setIsGeocoding(true);
+        setFormError(null);
+        
+        try {
+            const query = [formData.address, formData.city, formData.countryIso]
+                .filter(Boolean)
+                .join(', ');
+                
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            if (data && data.length > 0) {
+                setFormData({
+                    ...formData,
+                    coordLat: data[0].lat,
+                    coordLng: data[0].lon
+                });
+            } else {
+                setFormError('Could not find coordinates for this address. Please try being more specific or enter them manually.');
+            }
+        } catch (err) {
+            console.error('Geocoding error:', err);
+            setFormError('Failed to fetch coordinates. Please enter them manually.');
+        } finally {
+            setIsGeocoding(false);
+        }
     };
 
     const totalPages = Math.ceil(total / limit);
@@ -850,9 +978,108 @@ const UserList = () => {
                                     </div>
                                     <InputField label="Address" name="address" placeholder="e.g. 123 Main St, City" value={formData.address} onChange={handleFormChange} />
 
-                                    {/* ── Admin/Hospital: Reporting To ── */}
-                                    {['admin', 'hospital'].includes(formData.role) && (
-                                        <InputField label="Reporting To (User ID)" name="reportingTo" type="number" placeholder="e.g. 1 (supervisor userId)" value={formData.reportingTo} onChange={handleFormChange} helperText="Optional: userId of the managing admin/super_admin" />
+                                    {/* ── Super Admin / Admin / Hospital: Contact & System Fields ── */}
+                                    {['super_admin', 'admin', 'hospital'].includes(formData.role) && (
+                                        <div className="space-y-4 p-5 bg-page/50 rounded-2xl border border-border-card">
+                                            <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2">
+                                                <Globe size={14} /> Contact & System Preferences
+                                            </p>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <InputField label="ISD Code" name="isdCode" placeholder="+1" value={formData.isdCode} onChange={handleFormChange} />
+                                                <InputField label="Mobile" name="mobile" placeholder="1987654321" value={formData.mobile} onChange={handleFormChange} />
+                                                <InputField label="City" name="city" placeholder="e.g. Tech City" value={formData.city} onChange={handleFormChange} />
+                                            </div>
+                                            <InputField label="Profile Image URL" name="profileImage" placeholder="https://storage.example.com/profiles/user.jpg" value={formData.profileImage} onChange={handleFormChange} />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <InputField label="Timezone ID" name="timezoneId" type="number" placeholder="e.g. 15" value={formData.timezoneId} onChange={handleFormChange} />
+                                                <InputField label="Country (ISO)" name="countryIso" placeholder="e.g. US" value={formData.countryIso} onChange={handleFormChange} />
+                                            </div>
+
+                                            {/* Communication Preferences */}
+                                            <div>
+                                                <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-3 block">Communication Preferences</label>
+                                                <div className="flex items-center gap-6">
+                                                    {[
+                                                        { key: 'commEmail' as const, label: 'Email' },
+                                                        { key: 'commSms' as const, label: 'SMS' },
+                                                        { key: 'commPush' as const, label: 'Push' },
+                                                    ].map(pref => (
+                                                        <label key={pref.key} className="flex items-center gap-2 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={formData[pref.key]}
+                                                                onChange={(e) => setFormData({ ...formData, [pref.key]: e.target.checked })}
+                                                                className="w-5 h-5 rounded-lg border-border-card accent-indigo-500"
+                                                            />
+                                                            <span className="text-sm font-bold text-main">{pref.label}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── Admin-specific: Hospital & Reporting ── */}
+                                    {formData.role === 'admin' && (
+                                        <div className="space-y-4 p-5 bg-page/50 rounded-2xl border border-border-card">
+                                            <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2">
+                                                <Shield size={14} /> Admin Organization
+                                            </p>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Hospital Mapping</label>
+                                                    <select name="hospital" value={formData.hospital} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Hospital</option>
+                                                        {hospitalOptions.map(h => (
+                                                            <option key={h._id || h.id} value={h._id || h.id}>{h.firstName} {h.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Reporting To (Admin)</label>
+                                                    <select name="reportingTo" value={formData.reportingTo} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Admin (Optional)</option>
+                                                        {adminOptions.map(a => (
+                                                            <option key={a._id || a.id} value={a._id || a.id}>{a.firstName} {a.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── Hospital-specific: Coordinates & Reporting ── */}
+                                    {formData.role === 'hospital' && (
+                                        <div className="space-y-4 p-5 bg-page/50 rounded-2xl border border-border-card">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2">
+                                                    <MapPin size={14} /> Facility Location & Management
+                                                </p>
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    type="button" 
+                                                    onClick={handleGeocodeAddress}
+                                                    isLoading={isGeocoding}
+                                                    leftIcon={<Map size={14} />}
+                                                >
+                                                    Get Coordinates
+                                                </Button>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <InputField label="Latitude" name="coordLat" type="number" step="any" placeholder="e.g. 40.7128" value={formData.coordLat} onChange={handleFormChange} helperText="GPS latitude for map" />
+                                                <InputField label="Longitude" name="coordLng" type="number" step="any" placeholder="e.g. -74.0060" value={formData.coordLng} onChange={handleFormChange} helperText="GPS longitude for map" />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Reporting To (Admin)</label>
+                                                <select name="reportingTo" value={formData.reportingTo} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                    <option value="">Select Admin (Optional)</option>
+                                                    {adminOptions.map(a => (
+                                                        <option key={a._id || a.id} value={a._id || a.id}>{a.firstName} {a.lastName}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
                                     )}
 
                                     {/* ── Professional-specific fields ── */}
@@ -872,8 +1099,24 @@ const UserList = () => {
                                             <InputField label="Languages" name="languages" placeholder="English, Spanish (comma-separated)" value={formData.languages} onChange={handleFormChange} helperText="Comma-separated list" />
                                             <InputField label="Skills" name="skills" placeholder="CBT, Trauma Therapy (comma-separated)" value={formData.skills} onChange={handleFormChange} helperText="Comma-separated list" />
                                             <div className="grid grid-cols-2 gap-4">
-                                                <InputField label="Hospital ID" name="hospitalId" type="number" placeholder="e.g. 5" value={formData.hospitalId} onChange={handleFormChange} helperText="Optional: userId of hospital" />
-                                                <InputField label="Reporting To (User ID)" name="reportingTo" type="number" placeholder="e.g. 2" value={formData.reportingTo} onChange={handleFormChange} helperText="Optional: supervisor userId" />
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Hospital Mapping</label>
+                                                    <select name="hospital" value={formData.hospital} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Hospital</option>
+                                                        {hospitalOptions.map(h => (
+                                                            <option key={h._id || h.id} value={h._id || h.id}>{h.firstName} {h.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Reporting To (Admin)</label>
+                                                    <select name="reportingTo" value={formData.reportingTo} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Admin (Optional)</option>
+                                                        {adminOptions.map(a => (
+                                                            <option key={a._id || a.id} value={a._id || a.id}>{a.firstName} {a.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -900,8 +1143,24 @@ const UserList = () => {
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
-                                                <InputField label="Hospital ID" name="hospitalId" type="number" placeholder="e.g. 5" value={formData.hospitalId} onChange={handleFormChange} helperText="Optional: userId of hospital" />
-                                                <InputField label="Professional ID" name="professionalId" type="number" placeholder="e.g. 10" value={formData.professionalId} onChange={handleFormChange} helperText="Optional: treating professional userId" />
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Hospital Mapping</label>
+                                                    <select name="hospital" value={formData.hospital} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Hospital</option>
+                                                        {hospitalOptions.map(h => (
+                                                            <option key={h._id || h.id} value={h._id || h.id}>{h.firstName} {h.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Professional Mapping</label>
+                                                    <select name="professional" value={formData.professional} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Professional (Optional)</option>
+                                                        {professionalOptions.map(p => (
+                                                            <option key={p._id || p.id} value={p._id || p.id}>{p.firstName} {p.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -971,38 +1230,171 @@ const UserList = () => {
                                         <InputField label="Last Name" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleFormChange} required />
                                     </div>
                                     <InputField label="Email Address" name="email" type="email" placeholder="user@example.com" leftIcon={<Mail size={16} />} value={formData.email} onChange={handleFormChange} required />
-                                    <InputField label="Phone Number" name="phone" placeholder="+1 (555) 000-0000" leftIcon={<Phone size={16} />} value={formData.phone} onChange={handleFormChange} />
+                                    <InputField label="Phone Number" name="phone" placeholder="+1234567890" leftIcon={<Phone size={16} />} value={formData.phone} onChange={handleFormChange} />
 
-                                    <div>
-                                        <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Gender</label>
-                                        <select
-                                            name="gender"
-                                            value={formData.gender}
-                                            onChange={handleFormChange}
-                                            className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50"
-                                        >
-                                            <option value="">Select Gender</option>
-                                            <option value="male">Male</option>
-                                            <option value="female">Female</option>
-                                            <option value="other">Other</option>
-                                        </select>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Gender</label>
+                                            <select name="gender" value={formData.gender} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                <option value="">Select Gender</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+                                        <InputField label="Date of Birth" name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleFormChange} />
                                     </div>
+                                    <InputField label="Address" name="address" placeholder="e.g. 123 Main St, City" value={formData.address} onChange={handleFormChange} />
 
-                                    {['psychiatrist', 'psychologist', 'nurse', 'counselor', 'social_worker'].includes(formData.role) && (
-                                        <InputField label="Specialization" name="specialization" placeholder="e.g. Cognitive Behavioral Therapy" value={formData.specialization} onChange={handleFormChange} />
+                                    {/* ── Super Admin / Admin / Hospital: Contact & System Fields ── */}
+                                    {['super_admin', 'admin', 'hospital'].includes(formData.role) && (
+                                        <div className="space-y-4 p-5 bg-page/50 rounded-2xl border border-border-card">
+                                            <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2">
+                                                <Globe size={14} /> Contact & System Preferences
+                                            </p>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <InputField label="ISD Code" name="isdCode" placeholder="+1" value={formData.isdCode} onChange={handleFormChange} />
+                                                <InputField label="Mobile" name="mobile" placeholder="1987654321" value={formData.mobile} onChange={handleFormChange} />
+                                                <InputField label="City" name="city" placeholder="e.g. Tech City" value={formData.city} onChange={handleFormChange} />
+                                            </div>
+                                            <InputField label="Profile Image URL" name="profileImage" placeholder="https://..." value={formData.profileImage} onChange={handleFormChange} />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <InputField label="Timezone ID" name="timezoneId" type="number" placeholder="e.g. 15" value={formData.timezoneId} onChange={handleFormChange} />
+                                                <InputField label="Country (ISO)" name="countryIso" placeholder="e.g. US" value={formData.countryIso} onChange={handleFormChange} />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-3 block">Communication Preferences</label>
+                                                <div className="flex items-center gap-6">
+                                                    {[
+                                                        { key: 'commEmail' as const, label: 'Email' },
+                                                        { key: 'commSms' as const, label: 'SMS' },
+                                                        { key: 'commPush' as const, label: 'Push' },
+                                                    ].map(pref => (
+                                                        <label key={pref.key} className="flex items-center gap-2 cursor-pointer">
+                                                            <input type="checkbox" checked={formData[pref.key]} onChange={(e) => setFormData({ ...formData, [pref.key]: e.target.checked })} className="w-5 h-5 rounded-lg border-border-card accent-indigo-500" />
+                                                            <span className="text-sm font-bold text-main">{pref.label}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
                                     )}
 
-                                    <div>
-                                        <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">About</label>
-                                        <textarea
-                                            name="about"
-                                            rows={3}
-                                            value={formData.about}
-                                            onChange={handleFormChange}
-                                            placeholder="Brief description..."
-                                            className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all resize-none text-main focus:ring-2 focus:ring-indigo-500/50"
-                                        />
-                                    </div>
+                                    {/* ── Admin-specific ── */}
+                                    {formData.role === 'admin' && (
+                                        <div className="space-y-4 p-5 bg-page/50 rounded-2xl border border-border-card">
+                                            <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2"><Shield size={14} /> Admin Organization</p>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <InputField label="Hospital (ObjectId)" name="hospital" placeholder="e.g. 64c9f1..." value={formData.hospital} onChange={handleFormChange} helperText="Hospital this admin manages" />
+                                                <InputField label="Reporting To (ObjectId)" name="reportingTo" placeholder="e.g. 64c9f2..." value={formData.reportingTo} onChange={handleFormChange} helperText="Super admin ObjectId" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── Hospital-specific ── */}
+                                    {formData.role === 'hospital' && (
+                                        <div className="space-y-4 p-5 bg-page/50 rounded-2xl border border-border-card">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2">
+                                                    <MapPin size={14} /> Facility Location
+                                                </p>
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    type="button" 
+                                                    onClick={handleGeocodeAddress}
+                                                    isLoading={isGeocoding}
+                                                    leftIcon={<Map size={14} />}
+                                                >
+                                                    Get Coordinates
+                                                </Button>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <InputField label="Latitude" name="coordLat" type="number" step="any" placeholder="e.g. 40.7128" value={formData.coordLat} onChange={handleFormChange} />
+                                                <InputField label="Longitude" name="coordLng" type="number" step="any" placeholder="e.g. -74.0060" value={formData.coordLng} onChange={handleFormChange} />
+                                            </div>
+                                            <InputField label="Reporting To (ObjectId)" name="reportingTo" placeholder="e.g. 64c9f3..." value={formData.reportingTo} onChange={handleFormChange} helperText="Admin managing this facility" />
+                                        </div>
+                                    )}
+
+                                    {/* ── Professional-specific ── */}
+                                    {isProfessionalRole(formData.role) && (
+                                        <div className="space-y-4 p-5 bg-page/50 rounded-2xl border border-border-card">
+                                            <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2"><Activity size={14} /> Professional Details</p>
+                                            <InputField label="Specialization" name="specialization" placeholder="e.g. Clinical Psychology" value={formData.specialization} onChange={handleFormChange} />
+                                            <div>
+                                                <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">About / Bio</label>
+                                                <textarea name="about" rows={3} value={formData.about} onChange={handleFormChange} placeholder="Professional background..." className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all resize-none text-main focus:ring-2 focus:ring-indigo-500/50" />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <InputField label="Experience (Years)" name="experienceYears" type="number" placeholder="e.g. 15" value={formData.experienceYears} onChange={handleFormChange} />
+                                                <InputField label="Consultation Fee" name="consultationFee" type="number" placeholder="e.g. 150" value={formData.consultationFee} onChange={handleFormChange} />
+                                            </div>
+                                            <InputField label="Qualifications" name="qualifications" placeholder="Comma-separated" value={formData.qualifications} onChange={handleFormChange} helperText="Comma-separated list" />
+                                            <InputField label="Languages" name="languages" placeholder="Comma-separated" value={formData.languages} onChange={handleFormChange} helperText="Comma-separated list" />
+                                            <InputField label="Skills" name="skills" placeholder="Comma-separated" value={formData.skills} onChange={handleFormChange} helperText="Comma-separated list" />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Hospital Mapping</label>
+                                                    <select name="hospital" value={formData.hospital} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Hospital</option>
+                                                        {hospitalOptions.map(h => (
+                                                            <option key={h._id || h.id} value={h._id || h.id}>{h.firstName} {h.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Reporting To (Admin)</label>
+                                                    <select name="reportingTo" value={formData.reportingTo} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Admin (Optional)</option>
+                                                        {adminOptions.map(a => (
+                                                            <option key={a._id || a.id} value={a._id || a.id}>{a.firstName} {a.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── Patient-specific ── */}
+                                    {formData.role === 'patient' && (
+                                        <div className="space-y-4 p-5 bg-page/50 rounded-2xl border border-border-card">
+                                            <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-2"><UserIcon size={14} /> Patient Details</p>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <InputField label="Emergency Contact" name="emergencyContact" placeholder="+1999888777" leftIcon={<Phone size={16} />} value={formData.emergencyContact} onChange={handleFormChange} />
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Blood Group</label>
+                                                    <select name="bloodGroup" value={formData.bloodGroup} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select</option>
+                                                        <option value="A+">A+</option><option value="A-">A-</option>
+                                                        <option value="B+">B+</option><option value="B-">B-</option>
+                                                        <option value="O+">O+</option><option value="O-">O-</option>
+                                                        <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Hospital Mapping</label>
+                                                    <select name="hospital" value={formData.hospital} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Hospital</option>
+                                                        {hospitalOptions.map(h => (
+                                                            <option key={h._id || h.id} value={h._id || h.id}>{h.firstName} {h.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 block">Professional Mapping</label>
+                                                    <select name="professional" value={formData.professional} onChange={handleFormChange} className="w-full bg-page border border-border-card rounded-2xl p-4 text-sm font-bold outline-none transition-all text-main focus:ring-2 focus:ring-indigo-500/50">
+                                                        <option value="">Select Professional (Optional)</option>
+                                                        {professionalOptions.map(p => (
+                                                            <option key={p._id || p.id} value={p._id || p.id}>{p.firstName} {p.lastName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {formError && (
                                         <div className="bg-error/10 text-error p-4 rounded-xl border border-error/20 text-sm font-bold flex items-center gap-3">

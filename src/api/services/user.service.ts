@@ -22,8 +22,8 @@ export const UserService = {
         limit?: number; 
         isActive?: boolean; 
         isVerified?: boolean;
-        hospitalId?: number;
-        professionalId?: number;
+        hospital?: string;
+        professional?: string;
     }): Promise<{ users: User[], total: number, pagination?: any }> => {
         const response = await api.get('users/list', { params });
         const data = response.data?.data ?? response.data;

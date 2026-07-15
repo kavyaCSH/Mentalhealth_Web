@@ -61,6 +61,12 @@ export interface User {
         lat: number;
         lng: number;
     };
+    countryIso?: string;
+    hospital?: string | any;
+    reportingTo?: string | any;
+    professional?: string | any;
+    hospitalId?: number | string;
+    professionalId?: number | string;
     createdAt?: string;
     updatedAt?: string;
     plan?: string;
